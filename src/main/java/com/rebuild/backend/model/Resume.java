@@ -1,10 +1,7 @@
 package com.rebuild.backend.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,9 +21,12 @@ public class Resume {
     private UUID id;
 
     @OneToMany(mappedBy = "resume")
+    @NonNull
     private List<Experience> experiences;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
+    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_user_id"))
+    @NonNull
     private User user;
 }
