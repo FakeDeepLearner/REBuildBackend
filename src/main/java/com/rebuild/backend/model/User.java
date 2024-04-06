@@ -3,6 +3,7 @@ package com.rebuild.backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -17,6 +18,9 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(
+            name = "id"
+    )
     private UUID id;
 
     @Column(
@@ -41,6 +45,9 @@ public class User {
     )
     @NonNull
     private String email;
+
+    @OneToMany(mappedBy = "user")
+    private List<Resume> resumes;
 
 
 }
