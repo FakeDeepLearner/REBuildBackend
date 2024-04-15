@@ -20,7 +20,7 @@ public class Experience {
     private UUID id;
 
 
-    @ManyToOne
+    @ManyToOne(fetch =  FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
         foreignKey = @ForeignKey(name = "fk_resume_id"))
     @NonNull

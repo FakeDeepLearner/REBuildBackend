@@ -20,11 +20,15 @@ public class Resume {
     )
     private UUID id;
 
-    @OneToMany(mappedBy = "resume")
+    @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {
+            CascadeType.ALL
+    })
     @NonNull
     private List<Experience> experiences;
 
-    @ManyToOne
+    @ManyToOne(cascade = {
+            CascadeType.REFRESH
+    })
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_user_id"))
     @NonNull
