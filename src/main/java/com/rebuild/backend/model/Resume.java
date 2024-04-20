@@ -20,6 +20,10 @@ public class Resume {
     )
     private UUID id;
 
+    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER)
+    @NonNull
+    private Header header;
+
     @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {
             CascadeType.ALL
     })

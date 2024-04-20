@@ -30,4 +30,9 @@ public class Header {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @OneToOne
+    @JoinColumn(name = "resume_id", referencedColumnName = "id",
+    foreignKey = @ForeignKey(name = "fk_resume_id"))
+    private Resume resume;
 }
