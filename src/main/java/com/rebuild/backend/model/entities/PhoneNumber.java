@@ -1,4 +1,4 @@
-package com.rebuild.backend.model;
+package com.rebuild.backend.model.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
