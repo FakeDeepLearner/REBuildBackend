@@ -1,5 +1,7 @@
-package com.rebuild.backend.model.constraints;
+package com.rebuild.backend.model.constraints.password;
 
+import com.rebuild.backend.model.constraints.password.NoUsernameInPasswordConstraint;
+import com.rebuild.backend.model.constraints.password.PasswordSizeAndPatternConstraint;
 import jakarta.validation.Constraint;
 import org.hibernate.validator.constraints.CompositionType;
 import org.hibernate.validator.constraints.ConstraintComposition;

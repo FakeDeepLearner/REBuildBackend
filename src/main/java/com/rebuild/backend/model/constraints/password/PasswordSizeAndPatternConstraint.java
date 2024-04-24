@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.constraints;
+package com.rebuild.backend.model.constraints.password;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.constraints.Pattern;

@@ -1,5 +1,6 @@
-package com.rebuild.backend.model.constraints;
+package com.rebuild.backend.model.constraints.password;
 
+import com.rebuild.backend.model.constraints.password.NoUsernameInPasswordConstraint;
 import com.rebuild.backend.model.forms.SignupForm;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
