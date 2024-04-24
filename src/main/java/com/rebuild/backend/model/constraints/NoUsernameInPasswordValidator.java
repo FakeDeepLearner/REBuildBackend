@@ -1,16 +1,18 @@
 package com.rebuild.backend.model.constraints;
 
+import com.rebuild.backend.model.forms.SignupForm;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.springframework.stereotype.Component;
 
-public class NoUsernameInPasswordValidator implements ConstraintValidator<NoUsernameInPasswordConstraint, String> {
+@Component
+public class NoUsernameInPasswordValidator implements ConstraintValidator<NoUsernameInPasswordConstraint, SignupForm> {
 
 
     @Override
-    public boolean isValid(String password, ConstraintValidatorContext constraintValidatorContext) {
-        //TODO: Replace with actual logic to get the username once security configs are in place
-        String obtainedUsername = "example";
+    public boolean isValid(SignupForm form, ConstraintValidatorContext constraintValidatorContext) {
+        String obtainedPassword = form.password();
 
-        return !password.contains(obtainedUsername);
+        return !obtainedPassword.contains(form.username());
     }
 }
