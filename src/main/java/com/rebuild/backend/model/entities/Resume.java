@@ -24,6 +24,13 @@ public class Resume {
     @NonNull
     private Header header;
 
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "schoolName", column = @Column(name = "school_name")),
+            @AttributeOverride(name = "relevantCoursework", column = @Column("coursework"))
+    })
+    private Education education;
+
     @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {
             CascadeType.ALL
     })

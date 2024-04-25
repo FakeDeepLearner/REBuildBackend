@@ -6,18 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
-@Component
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Embeddable
-public class PhoneNumber {
+public class Education {
 
-    private String countryCode;
+    private String schoolName;
 
-    private String areaCode;
-
-    private String restOfNumber;
-
-
+    private List<String> relevantCoursework;
 }
