@@ -27,7 +27,7 @@ public class Resume {
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "schoolName", column = @Column(name = "school_name")),
-            @AttributeOverride(name = "relevantCoursework", column = @Column("coursework"))
+            @AttributeOverride(name = "relevantCoursework", column = @Column(name = "coursework"))
     })
     private Education education;
 
