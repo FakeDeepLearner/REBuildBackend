@@ -29,6 +29,7 @@ public class Resume {
             @AttributeOverride(name = "schoolName", column = @Column(name = "school_name")),
             @AttributeOverride(name = "relevantCoursework", column = @Column(name = "coursework"))
     })
+    @NonNull
     private Education education;
 
     @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {

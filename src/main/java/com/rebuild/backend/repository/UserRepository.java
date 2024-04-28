@@ -1,5 +1,6 @@
 package com.rebuild.backend.repository;
 
+import com.rebuild.backend.model.entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,10 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
     @Query("SELECT r.id FROM Resume r WHERE r.user.id=:userID")
     List<UUID> getAllResumesById(UUID userID);
+
+    @Query("SELECT res FROM Resume res JOIN FETCH res.user WHERE res.user.id=:userID")
+    //All the other attributes of a Resume are fetched eagerly, so there is no need to manually fetch them here
+    List<Resume> getAllResumesByID(UUID userID);
 
 
 
