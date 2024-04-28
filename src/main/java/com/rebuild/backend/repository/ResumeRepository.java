@@ -28,6 +28,6 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
 
     @Modifying
     @Query("UPDATE Resume r SET r.education.schoolName=:newSchoolName, " +
-            "r.education.relevantCoursework=:newCoursework WHERE r.id=:resID")
+            "r.education.relevantCoursework=:newCourseWork WHERE r.id=:resID")
     void changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork);
 }
