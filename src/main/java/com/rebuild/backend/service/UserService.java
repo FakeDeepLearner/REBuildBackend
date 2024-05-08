@@ -26,19 +26,19 @@ public class UserService{
     }
 
 
-    Optional<User> findByEmail(String email){
+    public Optional<User> findByEmail(String email){
         return repository.findByEmail(email);
     }
 
-    void changePassword(UUID userID, String newHashedPassword){
+    public void changePassword(UUID userID, String newHashedPassword){
         repository.changePassword(userID, newHashedPassword);
     }
 
-    void changeEmail(UUID userID, String newEmail){
+    public void changeEmail(UUID userID, String newEmail){
         repository.changeEmail(userID, newEmail);
     }
 
-    List<Resume> getAllResumesById(UUID userID){
+    public List<Resume> getAllResumesById(UUID userID){
         return repository.getAllResumesByID(userID);
     }
 

@@ -16,7 +16,11 @@ public class SecureAuthConfig {
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security) throws Exception {
         security.
                 authorizeHttpRequests(config -> config.
-                        requestMatchers(HttpMethod.GET, "home/**").authenticated()).
+                        requestMatchers(HttpMethod.GET, "home/**").authenticated().
+                        requestMatchers(HttpMethod.POST, "home/**").authenticated().
+                        requestMatchers(HttpMethod.PUT, "home/**").authenticated().
+                        requestMatchers(HttpMethod.DELETE, "home/**").authenticated().
+                        requestMatchers(HttpMethod.PATCH, "home/**").authenticated()).
                 formLogin(login -> login.loginPage("/login"));
 
         return security.build();

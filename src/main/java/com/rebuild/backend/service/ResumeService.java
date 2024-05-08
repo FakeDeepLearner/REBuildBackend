@@ -21,17 +21,17 @@ public class ResumeService {
     }
 
 
-    void changeHeaderInfo(UUID resID, String newName, PhoneNumber newPhoneNumber){
-        repository.changeHeaderInfo(resID, newName, newPhoneNumber);
+    public void changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber){
+        repository.changeHeaderInfo(resID, newName, newEmail, newPhoneNumber);
     }
 
-    void changeExperienceInfo(UUID resID, UUID expID,
+    public void changeExperienceInfo(UUID resID, UUID expID,
                               String newCompanyName, String newDuration,
                               List<String> newBullets){
         repository.changeExperienceInfo(resID, expID, newCompanyName, newDuration, newBullets);
     }
 
-    void changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
+    public void changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
         repository.changeEducationInfo(resID, newSchoolName, newCourseWork);
     }
 

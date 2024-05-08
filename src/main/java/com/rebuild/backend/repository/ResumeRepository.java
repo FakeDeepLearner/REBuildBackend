@@ -16,8 +16,10 @@ import java.util.UUID;
 public interface ResumeRepository extends CrudRepository<Resume, UUID> {
 
     @Modifying
-    @Query("UPDATE Resume r SET r.header.name =:newName, r.header.number=:newPhoneNumber WHERE r.id=:resID")
-    void changeHeaderInfo(UUID resID, String newName, PhoneNumber newPhoneNumber);
+    @Query("UPDATE Resume r SET r.header.name =:newName, " +
+            "r.header.number=:newPhoneNumber, " +
+            "r.header.email =:newEmail WHERE r.id=:resID")
+    void changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber);
 
     @Modifying
     @Query("UPDATE Experience exp SET exp.companyName=:newCompanyName, exp.timePeriod=:newDuration, " +
