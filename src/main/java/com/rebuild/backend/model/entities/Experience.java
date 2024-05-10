@@ -36,7 +36,7 @@ public class Experience {
 
     @ManyToOne(fetch =  FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
-        foreignKey = @ForeignKey(name = "fk_resume_id"))
+        foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
     @NonNull
     private Resume resume;
 

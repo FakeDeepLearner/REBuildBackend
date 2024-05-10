@@ -35,6 +35,6 @@ public class Header {
 
     @OneToOne
     @JoinColumn(name = "resume_id", referencedColumnName = "id",
-    foreignKey = @ForeignKey(name = "fk_resume_id"))
+    foreignKey = @ForeignKey(name = "head_fk_resume_id"))
     private Resume resume;
 }
