@@ -26,7 +26,7 @@ public class Resume {
 
     @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER)
     @NonNull
-    private Experience experience;
+    private Education education;
 
     @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {
             CascadeType.ALL

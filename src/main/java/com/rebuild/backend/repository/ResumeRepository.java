@@ -1,7 +1,6 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.entities.PhoneNumber;
-import com.rebuild.backend.model.entities.Resume;
+import com.rebuild.backend.model.entities.*;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -19,17 +18,32 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
     @Query("UPDATE Resume r SET r.header.name =:newName, " +
             "r.header.number=:newPhoneNumber, " +
             "r.header.email =:newEmail WHERE r.id=:resID")
-    void changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber);
+    Header changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber);
 
     @Modifying
     @Query("UPDATE Experience exp SET exp.companyName=:newCompanyName, exp.timePeriod=:newDuration, " +
             "exp.bullets=:newBullets WHERE exp.id=:expID AND exp.resume.id=:resID")
-    void changeExperienceInfo(UUID resID, UUID expID,
-                              String newCompanyName, String newDuration,
-                              List<String> newBullets);
+    Experience changeExperienceInfo(UUID resID, UUID expID,
+                                    String newCompanyName, String newDuration,
+                                    List<String> newBullets);
 
     @Modifying
     @Query("UPDATE Resume r SET r.education.schoolName=:newSchoolName, " +
             "r.education.relevantCoursework=:newCourseWork WHERE r.id=:resID")
-    void changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork);
+    Education changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork);
+
+
+    @Modifying
+    @Query(value = "INSERT INTO headers (countryCode, areaCode, restOfNumber, name, email, resume_id)" +
+            "VALUES (:countryCode, :areaCode, :restOfNumber, :name, :email, :resID)", nativeQuery = true)
+    Header createNewHeader(UUID resID, String name, String email,
+                           String countryCode, String areaCode, String restOfNumber);
+
+    @Modifying
+    @Query(value = "INSERT INTO experiences (companyName, timePeriod, bullets, resume_id)" +
+            "VALUES (:companyName, :timePeriod, :bullets, :resID)", nativeQuery = true)
+    Experience createNewExperience(String companyName, String timePeriod, List<String> bullets, UUID resID);
+
+
+
 }
