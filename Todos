@@ -1,3 +1,3 @@
 TODO: Finalize the service layer implementations.
-TODO: Start the controllers
-TODO: Create endpoints for the frontend to use
+TODO: Create (and test with Postman) the endpoints for the frontend to use
+TODO: Add facilities to create resumes themselves

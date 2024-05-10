@@ -38,6 +38,19 @@ public class ResumeService {
         return repository.changeEducationInfo(resID, newSchoolName, newCourseWork);
     }
 
+    public Header createNewHeader(UUID resID, String name, String email, PhoneNumber phoneNumber){
+        return repository.createNewHeader(resID, name, email,
+                phoneNumber.getCountryCode(), phoneNumber.getAreaCode(), phoneNumber.getRestOfNumber());
+    }
+
+    public Experience createNewExperience(UUID resID, String companyName, String duration, List<String> bullets){
+        return repository.createNewExperience(resID, companyName, duration, bullets);
+    }
+
+    public Education createNewEducation(UUID resID, String schoolName, List<String> courseWork){
+        return repository.createNewEducation(resID, schoolName, courseWork);
+    }
+
 
 
 
