@@ -10,6 +10,11 @@ public class StringToPhoneConverter implements Converter<String, PhoneNumber> {
     @Override
     public PhoneNumber convert(@NonNull String source) {
         String[] parts = source.split("-");
-        return new PhoneNumber(parts[0], parts[1], parts[2]);
+        try {
+            return new PhoneNumber(parts[0], parts[1], parts[2]);
+        }
+        catch (ArrayIndexOutOfBoundsException e){
+            throw new IllegalArgumentException();
+        }
     }
 }
