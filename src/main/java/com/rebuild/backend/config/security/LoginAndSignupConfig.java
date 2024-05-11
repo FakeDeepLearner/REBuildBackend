@@ -19,7 +19,7 @@ public class LoginAndSignupConfig {
         RequestMatcher logoutSuccess = new AntPathRequestMatcher("/login?logout=true", HttpMethod.GET.toString());
         security.authorizeHttpRequests(config ->
                 config.requestMatchers(HttpMethod.GET, "/signup").permitAll().
-                        requestMatchers(loginFail, logoutSuccess).permitAll()).
+                        requestMatchers(loginFail, logoutSuccess).authenticated()).
 
                 formLogin(login -> login.
                         loginPage("/login").

@@ -35,18 +35,18 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
 
     @Modifying
     @Query(value = "INSERT INTO headers (countryCode, areaCode, restOfNumber, name, email, resume_id)" +
-            "VALUES (:countryCode, :areaCode, :restOfNumber, :name, :email, :resID)", nativeQuery = true)
+            " VALUES (:countryCode, :areaCode, :restOfNumber, :name, :email, :resID)", nativeQuery = true)
     Header createNewHeader(UUID resID, String name, String email,
                            String countryCode, String areaCode, String restOfNumber);
 
     @Modifying
     @Query(value = "INSERT INTO experiences (companyName, timePeriod, bullets, resume_id)" +
-            "VALUES (:companyName, :timePeriod, :bullets, :resID)", nativeQuery = true)
+            " VALUES (:companyName, :timePeriod, :bullets, :resID)", nativeQuery = true)
     Experience createNewExperience(UUID resID, String companyName, String timePeriod, List<String> bullets);
 
     @Modifying
     @Query(nativeQuery = true, value = "INSERT INTO educations (schoolName, relevantCoursework, resume_id)" +
-            "VALUES (:schoolName, :coursework, :resID)")
+            " VALUES (:schoolName, :coursework, :resID)")
     Education createNewEducation(UUID resID, String schoolName, List<String> coursework);
 
 
