@@ -1,4 +1,4 @@
-package com.rebuild.backend.config.security;
+package com.rebuild.backend.config.properties;
 
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
