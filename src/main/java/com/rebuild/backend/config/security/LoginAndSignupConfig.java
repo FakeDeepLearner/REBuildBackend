@@ -15,7 +15,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class LoginAndSignupConfig {
 
     @Bean
-    @Order(2)
     public SecurityFilterChain filterChainLoginSignup(HttpSecurity security) throws Exception {
         RequestMatcher loginFail = new AntPathRequestMatcher("/login?error=true", HttpMethod.GET.toString());
         RequestMatcher logoutSuccess = new AntPathRequestMatcher("/login?logout=true", HttpMethod.GET.toString());

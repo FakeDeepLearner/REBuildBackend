@@ -18,6 +18,8 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByUsername(String username);
+
     @Modifying(flushAutomatically = true)
     @Query("UPDATE User u SET u.password=:newHashedPassword WHERE u.id=:userID")
     void changePassword(UUID userID, String newHashedPassword);

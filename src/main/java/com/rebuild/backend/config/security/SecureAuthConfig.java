@@ -10,6 +10,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -17,7 +19,6 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecureAuthConfig {
 
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security) throws Exception {
         security.
                 authorizeHttpRequests(config -> config.
@@ -27,8 +28,9 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.DELETE, "home/**").authenticated().
                         requestMatchers(HttpMethod.PATCH, "home/**").authenticated()).
                 formLogin(login -> login.loginPage("/login")).
-                oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()));
-
+                oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults())).
+                exceptionHandling(handler -> handler.accessDeniedHandler(new BearerTokenAccessDeniedHandler()).
+                        authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()));
         return security.build();
 
 
