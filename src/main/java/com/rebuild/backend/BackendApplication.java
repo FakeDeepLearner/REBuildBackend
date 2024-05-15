@@ -1,11 +1,11 @@
 package com.rebuild.backend;
 
-import com.rebuild.backend.config.properties.RSAProperties;
+import com.rebuild.backend.config.properties.RSAKeys;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-@EnableConfigurationProperties(RSAProperties.class)
+@EnableConfigurationProperties(RSAKeys.class)
 @SpringBootApplication
 public class BackendApplication {
 

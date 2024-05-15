@@ -26,6 +26,7 @@ public class User implements UserDetails {
     @Column(
             name = "id"
     )
+    @NonNull
     private UUID id;
 
     @Column(
@@ -52,6 +53,7 @@ public class User implements UserDetails {
     private String email;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @NonNull
     private List<Resume> resumes;
 
     @Enumerated(EnumType.STRING)

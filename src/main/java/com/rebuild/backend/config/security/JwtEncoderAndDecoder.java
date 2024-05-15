@@ -6,7 +6,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import com.rebuild.backend.config.properties.RSAProperties;
+import com.rebuild.backend.config.properties.RSAKeys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,10 +25,10 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 @EnableWebSecurity
 public class JwtEncoderAndDecoder {
 
-    private final RSAProperties properties;
+    private final RSAKeys properties;
 
     @Autowired
-    public JwtEncoderAndDecoder(RSAProperties properties) {
+    public JwtEncoderAndDecoder(RSAKeys properties) {
         this.properties = properties;
     }
 
