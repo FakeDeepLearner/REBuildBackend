@@ -1,12 +1,18 @@
 package com.rebuild.backend.service;
 
+import com.rebuild.backend.exceptions.UserNotFoundException;
+import com.rebuild.backend.exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.Resume;
 import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,6 +46,32 @@ public class UserService{
 
     public List<Resume> getAllResumesById(UUID userID){
         return repository.getAllResumesByID(userID);
+    }
+
+    public void validateLoginCredentials(LoginForm form) {
+        Optional<User> foundUsername = repository.findByUsername(form.emailOrUsername());
+        Optional<User> foundEmail = repository.findByEmail(form.emailOrUsername());
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String hashedPassword = encoder.encode(form.password());
+
+        if (foundEmail.isEmpty() && foundUsername.isEmpty()){
+            throw new UserNotFoundException("A user with the specified email or username doesn't exist");
+        }
+
+        if (foundEmail.isPresent()){
+            User actualUser = foundEmail.get();
+            if (!actualUser.getPassword().equals(hashedPassword)){
+                throw new WrongPasswordException("Wrong password");
+            }
+        }
+
+        if (foundUsername.isPresent()){
+            User actualUser = foundUsername.get();
+            if (!actualUser.getPassword().equals(hashedPassword)){
+                throw new WrongPasswordException("Wrong password");
+            }
+        }
     }
 
 

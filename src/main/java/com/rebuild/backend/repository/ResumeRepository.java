@@ -1,6 +1,7 @@
 package com.rebuild.backend.repository;
 
 import com.rebuild.backend.model.entities.*;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -48,6 +49,21 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
     @Query(nativeQuery = true, value = "INSERT INTO educations (schoolName, relevantCoursework, resume_id)" +
             " VALUES (:schoolName, :coursework, :resID)")
     Education createNewEducation(UUID resID, String schoolName, List<String> coursework);
+
+    @Modifying
+    @Query(value = "DELETE FROM Header h WHERE h.id=:ID")
+    void deleteHeader(UUID ID);
+
+    @Modifying
+    @Query(value = "DELETE FROM Experience exp WHERE exp.id=:ID")
+    void deleteExperience(UUID ID);
+
+    @Modifying
+    @Query(value = "DELETE FROM Education ed WHERE ed.id=:ID")
+    void deleteEducation(UUID ID);
+
+    void deleteById(@NonNull UUID ID);
+
 
 
 

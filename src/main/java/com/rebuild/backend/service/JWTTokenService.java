@@ -28,7 +28,7 @@ public class JWTTokenService {
         JwtClaimsSet claimsSet = JwtClaimsSet.builder().
                 issuer("self").
                 issuedAt(curr).
-                expiresAt(curr.plus(30, ChronoUnit.MINUTES)).
+                expiresAt(curr.plus(5, ChronoUnit.MINUTES)).
                 subject(auth.getName()).
                 claim("scope", claim).
                 build();
