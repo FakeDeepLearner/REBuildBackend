@@ -1,7 +1,8 @@
-package com.rebuild.backend.controller;
+package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.service.JWTTokenService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,9 +25,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/generatetoken")
-    public String tokenFor(@RequestBody LoginForm form){
-        Authentication auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(
-                form.emailOrUsername(), form.password()));
+    public String tokenFor(@Valid @RequestBody LoginForm form){
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        form.emailOrUsername(), form.password()));
         return tokenService.generateJWTToken(auth);
 
     }

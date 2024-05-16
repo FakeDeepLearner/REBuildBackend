@@ -1,4 +1,4 @@
-package com.rebuild.backend.controller.resume_controllers;
+package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.Education;
 import com.rebuild.backend.model.entities.Experience;

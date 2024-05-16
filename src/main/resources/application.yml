@@ -26,7 +26,11 @@ spring:
 logging:
   level:
     root: warn
+    org:
+      springframework:
+        security: trace
+
 
 rsa:
-  private-key: classpath:certs/private.pem
   public-key: classpath:certs/public.pem
+  private-key: classpath:certs/private.pem

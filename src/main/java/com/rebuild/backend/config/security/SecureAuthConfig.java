@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.security.config.Customizer.*;
+
 @Configuration
 @EnableWebSecurity
 public class SecureAuthConfig {
@@ -28,7 +30,8 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.DELETE, "home/**").authenticated().
                         requestMatchers(HttpMethod.PATCH, "home/**").authenticated()).
                 formLogin(login -> login.loginPage("/login")).
-                oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults())).
+                //oauth2Login(login -> login.loginPage("/login")).
+                oauth2ResourceServer(server -> server.jwt(withDefaults())).
                 exceptionHandling(handler -> handler.accessDeniedHandler(new BearerTokenAccessDeniedHandler()).
                         authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()));
         return security.build();

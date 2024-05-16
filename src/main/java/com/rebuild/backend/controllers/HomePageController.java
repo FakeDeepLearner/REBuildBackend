@@ -1,4 +1,4 @@
-package com.rebuild.backend.controller;
+package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.Resume;
 import com.rebuild.backend.service.UserService;
