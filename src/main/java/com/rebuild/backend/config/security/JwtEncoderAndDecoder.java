@@ -22,6 +22,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
+import javax.crypto.SecretKey;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -44,7 +46,7 @@ public class JwtEncoderAndDecoder {
 
     @Bean
     public JwtDecoder decoder() {
-        return NimbusJwtDecoder.withPublicKey(properties.publicKey()).build();
+        return NimbusJwtDecoder.withSecretKey((SecretKey) properties.privateKey()).build();
     }
 
     @Bean
