@@ -1,18 +1,15 @@
 package com.rebuild.backend.service;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,7 +19,8 @@ public class JWTTokenService {
     private final JwtDecoder decoder;
 
     @Autowired
-    public JWTTokenService(JwtEncoder encoder, JwtDecoder decoder) {
+    public JWTTokenService(@Qualifier("encoder") JwtEncoder encoder,
+                           @Qualifier("decoder") JwtDecoder decoder) {
         this.encoder = encoder;
         this.decoder = decoder;
     }
