@@ -32,7 +32,7 @@ public class JWTTokenService {
         JwtClaimsSet claimsSet = JwtClaimsSet.builder().
                 issuer("self").
                 issuedAt(curr).
-                expiresAt(curr.plus(2, ChronoUnit.HOURS)).
+                expiresAt(curr.plus(1, ChronoUnit.HOURS)).
                 subject(auth.getName()).
                 claim("scope", claim).
                 build();
@@ -54,15 +54,19 @@ public class JWTTokenService {
         return allClaims.getClaimAsInstant("exp");
     }
 
-    public boolean isTokenValid(String token, UserDetails details) {
+    private boolean tokenCredentialsMatch(String token, UserDetails details) {
         String tokenUsername = extractUsername(token);
         String actualUsername = details.getUsername();
         return tokenUsername.equals(actualUsername);
     }
 
-    public boolean tokenNonExpired(String token) {
+    private boolean tokenNonExpired(String token) {
         Instant tokenExpiration = extractExpiration(token);
         return tokenExpiration.isBefore(Instant.now());
+    }
+
+    public boolean isTokenValid(String token, UserDetails details){
+        return tokenCredentialsMatch(token, details) && tokenNonExpired(token);
     }
 
 
