@@ -1,5 +1,7 @@
 package com.rebuild.backend.service;
 
+import com.rebuild.backend.exceptions.JWTCredentialsMismatchException;
+import com.rebuild.backend.exceptions.JWTTokenExpiredException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -57,12 +59,20 @@ public class JWTTokenService {
     private boolean tokenCredentialsMatch(String token, UserDetails details) {
         String tokenUsername = extractUsername(token);
         String actualUsername = details.getUsername();
-        return tokenUsername.equals(actualUsername);
+        boolean result = tokenUsername.equals(actualUsername);
+        if (!result){
+            throw new JWTCredentialsMismatchException("Credentials mismatch");
+        }
+        return true;
     }
 
     private boolean tokenNonExpired(String token) {
         Instant tokenExpiration = extractExpiration(token);
-        return tokenExpiration.isBefore(Instant.now());
+        boolean result = tokenExpiration.isBefore(Instant.now());
+        if (!result){
+            throw new JWTTokenExpiredException("Token expired");
+        }
+        return true;
     }
 
     public boolean isTokenValid(String token, UserDetails details){

@@ -21,7 +21,6 @@ import java.io.IOException;
 
 @Component
 public class JWTVerificationFilter extends OncePerRequestFilter {
-
     private final JWTTokenService tokenService;
 
     private final UserDetailsService detailsService;
@@ -42,6 +41,7 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
         try {
             String jwtToken = extractJWTToken(request);
             String extractedUsername = tokenService.extractUsername(jwtToken);
+            //The user is not authenticated yet
             if (extractedUsername != null && SecurityContextHolder.getContext().getAuthentication() != null){
                 UserDetails details = detailsService.loadUserByUsername(extractedUsername);
                 if (tokenService.isTokenValid(jwtToken, details)){
