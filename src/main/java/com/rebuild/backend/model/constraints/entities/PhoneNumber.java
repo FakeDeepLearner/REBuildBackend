@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities;
+package com.rebuild.backend.model.constraints.entities;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

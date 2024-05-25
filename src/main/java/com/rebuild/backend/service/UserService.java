@@ -2,17 +2,15 @@ package com.rebuild.backend.service;
 
 import com.rebuild.backend.exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.WrongPasswordException;
-import com.rebuild.backend.model.entities.Resume;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.constraints.entities.Resume;
+import com.rebuild.backend.model.constraints.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 

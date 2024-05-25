@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.entities.Resume;
+import com.rebuild.backend.model.constraints.entities.Resume;
 import com.rebuild.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

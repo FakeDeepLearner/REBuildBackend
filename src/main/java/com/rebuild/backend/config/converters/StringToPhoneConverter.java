@@ -1,6 +1,6 @@
 package com.rebuild.backend.config.converters;
 
-import com.rebuild.backend.model.entities.PhoneNumber;
+import com.rebuild.backend.model.constraints.entities.PhoneNumber;
 import lombok.NonNull;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;

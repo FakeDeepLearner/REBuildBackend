@@ -1,8 +1,8 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-import com.rebuild.backend.model.entities.Education;
-import com.rebuild.backend.model.entities.Experience;
-import com.rebuild.backend.model.entities.Header;
+import com.rebuild.backend.model.constraints.entities.Education;
+import com.rebuild.backend.model.constraints.entities.Experience;
+import com.rebuild.backend.model.constraints.entities.Header;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;

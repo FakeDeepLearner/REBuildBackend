@@ -1,6 +1,5 @@
-package com.rebuild.backend.model.entities;
+package com.rebuild.backend.model.constraints.entities;
 
-import com.rebuild.backend.model.entities.Resume;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;

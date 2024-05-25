@@ -39,12 +39,12 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            String jwtToken = extractJWTToken(request);
-            String extractedUsername = tokenService.extractUsername(jwtToken);
+            String accessToken = extractAccessToken(request);
+            String extractedUsername = tokenService.extractUsername(accessToken);
             //The user is not authenticated yet
             if (extractedUsername != null && SecurityContextHolder.getContext().getAuthentication() != null){
                 UserDetails details = detailsService.loadUserByUsername(extractedUsername);
-                if (tokenService.isTokenValid(jwtToken, details)){
+                if (tokenService.isTokenValid(accessToken, details)){
                     UsernamePasswordAuthenticationToken newToken = new UsernamePasswordAuthenticationToken(
                             details, null, details.getAuthorities()
                     );
@@ -63,7 +63,7 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
 
     }
 
-    private String extractJWTToken(HttpServletRequest request){
+    private String extractAccessToken(HttpServletRequest request){
         String auth = request.getHeader("Authorization");
         if (auth != null && auth.startsWith("Bearer")){
             return auth.substring(7);

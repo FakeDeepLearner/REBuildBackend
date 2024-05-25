@@ -27,18 +27,25 @@ public class JWTTokenService {
         this.decoder = decoder;
     }
 
-    public String generateJWTToken(Authentication auth){
+    private String generateTokenGivenExpiration(Authentication auth, long amount, ChronoUnit unit){
         Instant curr = Instant.now();
         String claim = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
         JwtClaimsSet claimsSet = JwtClaimsSet.builder().
                 issuer("self").
                 issuedAt(curr).
-                expiresAt(curr.plus(1, ChronoUnit.HOURS)).
+                expiresAt(curr.plus(amount, unit)).
                 subject(auth.getName()).
                 claim("scope", claim).
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+    public String generateRefreshToken(Authentication auth){
+        return generateTokenGivenExpiration(auth, 3, ChronoUnit.DAYS);
+    }
+
+    public String generateAccessToken(Authentication auth){
+        return generateTokenGivenExpiration(auth, 2, ChronoUnit.HOURS);
     }
 
     private Jwt extractAllClaims(String token) {

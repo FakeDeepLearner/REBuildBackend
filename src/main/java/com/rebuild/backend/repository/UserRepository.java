@@ -1,7 +1,7 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.entities.Resume;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.constraints.entities.Resume;
+import com.rebuild.backend.model.constraints.entities.User;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
