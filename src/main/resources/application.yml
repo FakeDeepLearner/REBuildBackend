@@ -27,6 +27,14 @@ spring:
     compose:
       lifecycle-management: start_only
 
+  session:
+    timeout: 15m
+
+  data:
+    redis:
+      port: 6379
+      host: localhost
+
 logging:
   level:
     root: warn
