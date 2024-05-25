@@ -23,6 +23,10 @@ spring:
   main:
     banner-mode: off
 
+  docker:
+    compose:
+      lifecycle-management: start_only
+
 logging:
   level:
     root: warn
@@ -32,5 +36,5 @@ logging:
 
 
 rsa:
-  public-key: classpath:certs/public.pem
   private-key: classpath:certs/private.pem
+  public-key: classpath:certs/public.pem
