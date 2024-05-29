@@ -1,5 +1,7 @@
-package com.rebuild.backend.model.constraints.entities;
+package com.rebuild.backend.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -56,23 +58,35 @@ public class User implements UserDetails {
     private List<Resume> resumes;
 
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private Authority authority = Authority.USER_FREE;
 
     @Transient
+    @JsonIgnore
     private boolean accountNonExpired = false;
 
     @Transient
+    @JsonIgnore
     private boolean accountNonLocked = false;
 
     @Transient
+    @JsonIgnore
     private boolean credentialsNonExpired = false;
 
     @Transient
+    @JsonIgnore
     private boolean enabled = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(authority.name()));
+        SimpleGrantedAuthority freeAuthority = new SimpleGrantedAuthority(Authority.USER_FREE.name());
+        SimpleGrantedAuthority paidAuthority = new SimpleGrantedAuthority(Authority.USER_PAID.name());
+        if (authority == Authority.USER_FREE){
+            return List.of(freeAuthority);
+        }
+        else{
+            return List.of(freeAuthority, paidAuthority);
+        }
     }
 
     @Override

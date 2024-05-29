@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.constraints.entities;
+package com.rebuild.backend.model.entities;
 
 
 public enum Authority {

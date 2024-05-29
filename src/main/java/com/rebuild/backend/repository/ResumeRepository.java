@@ -1,6 +1,5 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.constraints.entities.*;
 import com.rebuild.backend.model.entities.*;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.Modifying;

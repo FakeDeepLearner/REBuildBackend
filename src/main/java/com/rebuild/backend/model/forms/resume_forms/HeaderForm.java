@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.forms.resume_forms;
 
-import com.rebuild.backend.model.constraints.entities.PhoneNumber;
+import com.rebuild.backend.model.entities.PhoneNumber;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
