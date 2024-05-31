@@ -19,6 +19,7 @@ spring:
     user:
       name: "eren"
       password: "12Eren89"
+    pepper-value: classpath:/pepper.txt
 
   main:
     banner-mode: off

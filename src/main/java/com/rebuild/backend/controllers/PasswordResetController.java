@@ -34,5 +34,6 @@ public class PasswordResetController {
         if (foundUser.isEmpty()){
             throw new EmailDoesNotExistException("A user hasn't been found with the provided email address.");
         }
+        return ResponseEntity.ok("ok");
     }
 }

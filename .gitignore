@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 /src/main/resources/certs/
+/src/main/resources/pepper.txt
 
 ### STS ###
 .apt_generated
