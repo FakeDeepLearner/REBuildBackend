@@ -30,10 +30,16 @@ spring:
   session:
     timeout: 15m
 
+
   data:
     redis:
       port: 6379
       host: localhost
+
+  mail:
+    host: smtp.hotmail.com
+    port: 587
+
 
 logging:
   level:
