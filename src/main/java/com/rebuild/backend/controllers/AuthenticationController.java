@@ -1,6 +1,8 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
+import com.rebuild.backend.model.forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
 import com.rebuild.backend.service.JWTTokenService;
 import com.rebuild.backend.service.UserService;
@@ -46,5 +48,11 @@ public class AuthenticationController {
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
         return new AuthResponse(accessToken, refreshToken);
+    }
+
+    @PostMapping("/signup")
+    @ResponseStatus(HttpStatus.OK)
+    public User processSignup(@Valid @RequestBody SignupForm signupForm){
+        return userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
     }
 }

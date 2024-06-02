@@ -1,13 +1,17 @@
 package com.rebuild.backend.service;
 
+import com.rebuild.backend.exceptions.EmailAlreadyTakenException;
 import com.rebuild.backend.exceptions.UserNotFoundException;
+import com.rebuild.backend.exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,9 +24,13 @@ public class UserService{
 
     private final UserRepository repository;
 
+    private final PasswordEncoder encoder;
+
     @Autowired
-    public UserService(UserRepository repository){
+    public UserService(UserRepository repository,
+                       @Qualifier("peppered") PasswordEncoder encoder){
         this.repository = repository;
+        this.encoder = encoder;
     }
 
     Optional<User> findByID(UUID userID){
@@ -70,6 +78,29 @@ public class UserService{
                 throw new WrongPasswordException("Wrong password");
             }
         }
+    }
+
+    public boolean checkUsernameExists(String username){
+        Optional<User> checkedUser = repository.findByUsername(username);
+        return checkedUser.isPresent();
+    }
+
+    public boolean checkEmailExists(String email){
+        Optional<User> checkedUser = repository.findByEmail(email);
+        return checkedUser.isPresent();
+    }
+
+    public User createNewUser(String username, String rawPassword, String email){
+        if (checkUsernameExists(username)){
+            throw new UsernameAlreadyExistsException("This username is taken.");
+        }
+
+        if (checkEmailExists(email)){
+            throw new EmailAlreadyTakenException("There is already an account with this email address.");
+        }
+        String encodedPassword = encoder.encode(rawPassword);
+        User newUser = new User(username, encodedPassword, email);
+        return repository.save(newUser);
     }
 
 

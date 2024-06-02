@@ -1,4 +1,4 @@
-TODO: Finalize the service layer implementations.
-TODO: Create (and test with Postman) the endpoints for the frontend to use
 TODO: Add facilities to create resumes themselves
 TODO: Modify the request filter to recreate access tokens with the refresh token
+TODO: Add more detailed exception handling
+TODO: Fix other configuration issues, primarily with redis and docker.
