@@ -33,7 +33,7 @@ public class UserService{
         this.encoder = encoder;
     }
 
-    Optional<User> findByID(UUID userID){
+    public Optional<User> findByID(UUID userID){
         return repository.findById(userID);
     }
 
@@ -80,12 +80,12 @@ public class UserService{
         }
     }
 
-    public boolean checkUsernameExists(String username){
+    private boolean checkUsernameExists(String username){
         Optional<User> checkedUser = repository.findByUsername(username);
         return checkedUser.isPresent();
     }
 
-    public boolean checkEmailExists(String email){
+    private boolean checkEmailExists(String email){
         Optional<User> checkedUser = repository.findByEmail(email);
         return checkedUser.isPresent();
     }

@@ -1,10 +1,7 @@
 package com.rebuild.backend.service;
 
 
-import com.rebuild.backend.model.entities.Education;
-import com.rebuild.backend.model.entities.Experience;
-import com.rebuild.backend.model.entities.Header;
-import com.rebuild.backend.model.entities.PhoneNumber;
+import com.rebuild.backend.model.entities.*;
 import com.rebuild.backend.repository.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,6 +46,10 @@ public class ResumeService {
 
     public Education createNewEducation(UUID resID, String schoolName, List<String> courseWork){
         return repository.createNewEducation(resID, schoolName, courseWork);
+    }
+
+    public Resume save(Resume resume){
+        return repository.save(resume);
     }
 
 

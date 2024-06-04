@@ -63,8 +63,4 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
     void deleteEducation(UUID ID);
 
     void deleteById(@NonNull UUID ID);
-
-
-
-
 }
