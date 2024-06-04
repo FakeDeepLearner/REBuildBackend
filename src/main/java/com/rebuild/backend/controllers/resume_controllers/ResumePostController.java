@@ -9,12 +9,14 @@ import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.service.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/post")
+@ResponseStatus(HttpStatus.CREATED)
 public class ResumePostController {
     private final ResumeService resumeService;
 

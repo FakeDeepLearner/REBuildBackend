@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.security;
 
+import com.rebuild.backend.exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.NoJWTTokenException;
 import com.rebuild.backend.service.JWTTokenService;
 import jakarta.servlet.FilterChain;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,9 +39,15 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-
+        String servletPath = request.getServletPath();
+        // If we are trying to log in or to refresh our token, just let us through
+        if(servletPath.equals("/api/refresh_token") || servletPath.equals("/login")){
+            filterChain.doFilter(request, response);
+            return;
+        }
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         try {
-            String accessToken = extractAccessToken(request);
+            String accessToken = tokenService.extractTokenFromRequest(request);
             String extractedUsername = tokenService.extractUsername(accessToken);
             //The user is not authenticated yet
             if (extractedUsername != null && SecurityContextHolder.getContext().getAuthentication() != null){
@@ -58,22 +66,6 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }
 
-
-
-
     }
-
-    private String extractAccessToken(HttpServletRequest request){
-        String auth = request.getHeader("Authorization");
-        if (auth != null && auth.startsWith("Bearer")){
-            return auth.substring(7);
-        }
-        else{
-            throw new NoJWTTokenException("No JWT token is in the request");
-        }
-    }
-
-
-
 
 }

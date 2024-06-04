@@ -6,6 +6,8 @@ import com.rebuild.backend.model.forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
 import com.rebuild.backend.service.JWTTokenService;
 import com.rebuild.backend.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,4 +58,15 @@ public class AuthenticationController {
     public User processSignup(@Valid @RequestBody SignupForm signupForm){
         return userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
     }
+
+    @PostMapping("/api/refresh_token")
+    public AuthResponse generateRefreshToken(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String newAccessToken = tokenService.issueNewAccessToken(request, response);
+        String refreshToken = tokenService.extractTokenFromRequest(request);
+        //Redirect back to where the request originally came from.
+        response.sendRedirect(request.getContextPath());
+        return new AuthResponse(newAccessToken, refreshToken);
+    }
+
 }
