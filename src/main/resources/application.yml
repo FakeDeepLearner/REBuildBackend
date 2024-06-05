@@ -4,6 +4,10 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: 12Eren89
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   jpa:
     hibernate:
@@ -30,12 +34,6 @@ spring:
 
   session:
     timeout: 15m
-
-
-  data:
-    redis:
-      port: 6379
-      host: localhost
 
   mail:
     host: smtp.hotmail.com
