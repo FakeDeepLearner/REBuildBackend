@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/post")
+@RequestMapping(value = "/api/post")
 @ResponseStatus(HttpStatus.CREATED)
 public class ResumePostController {
     private final ResumeService resumeService;

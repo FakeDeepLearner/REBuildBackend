@@ -1,8 +1,6 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-
 import com.rebuild.backend.repository.ResumeRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/delete")
+@RequestMapping(value = "/api/delete")
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public class ResumeDeleteController {
 
@@ -24,7 +22,6 @@ public class ResumeDeleteController {
     @DeleteMapping("/header/{id}")
     public void deleteHeader(@PathVariable UUID id){
         repository.deleteHeader(id);
-
     }
 
     @DeleteMapping("/experience/{id}")

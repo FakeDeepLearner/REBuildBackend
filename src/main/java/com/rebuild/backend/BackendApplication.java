@@ -1,12 +1,13 @@
 package com.rebuild.backend;
 
+import com.rebuild.backend.config.properties.HTTPContentType;
 import com.rebuild.backend.config.properties.PepperValue;
 import com.rebuild.backend.config.properties.RSAKeys;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-@EnableConfigurationProperties({RSAKeys.class, PepperValue.class})
+@EnableConfigurationProperties({RSAKeys.class, PepperValue.class, HTTPContentType.class})
 @SpringBootApplication
 public class BackendApplication {
 

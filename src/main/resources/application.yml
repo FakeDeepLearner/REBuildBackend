@@ -8,6 +8,8 @@ spring:
     redis:
       host: localhost
       port: 6379
+    rest:
+      content-type: "application/json"
 
   jpa:
     hibernate:
