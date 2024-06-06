@@ -3,7 +3,6 @@ package com.rebuild.backend.service;
 import com.rebuild.backend.exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.NoJWTTokenException;
-import com.rebuild.backend.model.entities.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +28,10 @@ public class JWTTokenService {
 
     private final UserDetailsService detailsService;
 
+    private final Map<String, String> accessAndRefreshTokens;
+
+    private final Map<String, String> refreshAndAccessTokens;
+
     @Autowired
     public JWTTokenService(@Qualifier("encoder") JwtEncoder encoder,
                            @Qualifier("decoder") JwtDecoder decoder,
@@ -34,6 +39,8 @@ public class JWTTokenService {
         this.encoder = encoder;
         this.decoder = decoder;
         this.detailsService = detailsService;
+        accessAndRefreshTokens = new HashMap<>();
+        refreshAndAccessTokens = new HashMap<>();
     }
 
     private String generateTokenGivenExpiration(Authentication auth, long amount, ChronoUnit unit){
@@ -49,6 +56,12 @@ public class JWTTokenService {
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
+
+    public void addTokenPair(String access, String refresh){
+        accessAndRefreshTokens.put(access, refresh);
+        refreshAndAccessTokens.put(refresh, access);
+    }
+
     public String generateRefreshToken(Authentication auth){
         return generateTokenGivenExpiration(auth, 3, ChronoUnit.DAYS);
     }
@@ -93,9 +106,10 @@ public class JWTTokenService {
 
     private boolean tokenNonExpired(String token) {
         Instant tokenExpiration = extractExpiration(token);
+        String correspondingRefreshToken = accessAndRefreshTokens.get(token);
         boolean result = tokenExpiration.isBefore(Instant.now());
         if (!result){
-            throw new JWTTokenExpiredException("Token expired");
+            throw new JWTTokenExpiredException("Token expired", correspondingRefreshToken);
         }
         return true;
     }
@@ -104,9 +118,15 @@ public class JWTTokenService {
         return tokenCredentialsMatch(token, details) && tokenNonExpired(token);
     }
 
+    private void removeTokenPair(String refresh){
+        String correspondingAccess = refreshAndAccessTokens.get(refresh);
+        accessAndRefreshTokens.remove(correspondingAccess);
+        refreshAndAccessTokens.remove(refresh);
+    }
 
     public String issueNewAccessToken(HttpServletRequest request, HttpServletResponse response){
         String refresh_token = extractTokenFromRequest(request);
+        removeTokenPair(refresh_token);
         String username = extractUsername(refresh_token);
         UserDetails user =  detailsService.loadUserByUsername(username);
         Instant curr = Instant.now();

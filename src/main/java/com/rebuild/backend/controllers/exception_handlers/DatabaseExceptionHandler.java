@@ -2,11 +2,11 @@ package com.rebuild.backend.controllers.exception_handlers;
 
 import com.rebuild.backend.exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.JWTTokenExpiredException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +19,17 @@ public class DatabaseExceptionHandler {
     public ResponseEntity<Map<String, String>> handleTokenExpired(JWTTokenExpiredException e){
         HttpHeaders reqHeaders = new HttpHeaders();
         reqHeaders.add("Location", "/login");
+        reqHeaders.add("Authorization", "Bearer " + e.getRefreshToken());
         Map<String, String> reqBody = new HashMap<>();
         reqBody.put("message", e.getMessage());
-       return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT).headers(reqHeaders).body(reqBody);
+        HttpEntity<Map<String, String>> httpEntity = new HttpEntity<>(reqBody, reqHeaders);
+        String urlToPost = "/api/refresh_token";
+        return new RestTemplate().
+                exchange(urlToPost,
+                        HttpMethod.POST,
+                        httpEntity,
+                        new ParameterizedTypeReference<Map<String, String>>() {
+                        });
     }
 
     @ExceptionHandler(JWTCredentialsMismatchException.class)

@@ -50,6 +50,7 @@ public class AuthenticationController {
                         form.emailOrUsername(), form.password()));
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
+        tokenService.addTokenPair(accessToken, refreshToken);
         return new AuthResponse(accessToken, refreshToken);
     }
 
@@ -64,6 +65,7 @@ public class AuthenticationController {
             throws IOException {
         String newAccessToken = tokenService.issueNewAccessToken(request, response);
         String refreshToken = tokenService.extractTokenFromRequest(request);
+        tokenService.addTokenPair(newAccessToken, refreshToken);
         //Redirect back to where the request originally came from.
         response.sendRedirect(request.getContextPath());
         return new AuthResponse(newAccessToken, refreshToken);
