@@ -1,6 +1,9 @@
 package com.rebuild.backend.config.security;
 
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -10,9 +13,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.io.IOException;
 
 import static org.springframework.security.config.Customizer.*;
 
@@ -37,5 +44,19 @@ public class SecureAuthConfig {
         return security.build();
 
 
+    }
+
+    @Bean
+    public AuthenticationEntryPoint unauthorizedAuthEntry(){
+        return (request, response, authException) -> {
+            //401 = Unauthorized
+            response.setStatus(401);
+            response.setHeader("WWW-Authenticate",
+                    "Bearer error=\"invalid_token\", " +
+                            "error_description=\"Your token has either expired, its credentials do not match," +
+                            "or its claims do not match\"");
+            response.getWriter().write(authException.getMessage());
+
+        };
     }
 }
