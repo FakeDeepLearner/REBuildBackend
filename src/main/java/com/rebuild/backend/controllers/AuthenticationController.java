@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -55,19 +57,26 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    @ResponseStatus(HttpStatus.OK)
-    public User processSignup(@Valid @RequestBody SignupForm signupForm){
-        return userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
+    @ResponseStatus(HttpStatus.SEE_OTHER)
+    public ResponseEntity<User> processSignup(@Valid @RequestBody SignupForm signupForm){
+        User createdUser =
+                userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Location", "/home/" + createdUser.getId());
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(responseHeaders).body(createdUser);
     }
 
     @PostMapping("/api/refresh_token")
+    @ResponseStatus(HttpStatus.SEE_OTHER)
     public AuthResponse generateRefreshToken(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String newAccessToken = tokenService.issueNewAccessToken(request, response);
         String refreshToken = tokenService.extractTokenFromRequest(request);
         tokenService.addTokenPair(newAccessToken, refreshToken);
+        String originalUrl = request.getContextPath();
         //Redirect back to where the request originally came from.
-        response.sendRedirect(request.getContextPath());
+        response.setStatus(303);
+        response.addHeader("Location", originalUrl);
         return new AuthResponse(newAccessToken, refreshToken);
     }
 
