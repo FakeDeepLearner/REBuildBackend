@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
     @Query("UPDATE Experience exp SET exp.companyName=:newCompanyName, exp.timePeriod=:newDuration, " +
             "exp.bullets=:newBullets WHERE exp.id=:expID AND exp.resume.id=:resID")
     Experience changeExperienceInfo(UUID resID, UUID expID,
-                                    String newCompanyName, String newDuration,
+                                    String newCompanyName, Duration newDuration,
                                     List<String> newBullets);
 
     @Modifying
@@ -43,7 +44,7 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
     @Modifying
     @Query(value = "INSERT INTO experiences (companyName, timePeriod, bullets, resume_id)" +
             " VALUES (:companyName, :timePeriod, :bullets, :resID)", nativeQuery = true)
-    Experience createNewExperience(UUID resID, String companyName, String timePeriod, List<String> bullets);
+    Experience createNewExperience(UUID resID, String companyName, Duration timePeriod, List<String> bullets);
 
     @Modifying
     @Query(nativeQuery = true, value = "INSERT INTO educations (schoolName, relevantCoursework, resume_id)" +

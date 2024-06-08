@@ -1,12 +1,14 @@
 package com.rebuild.backend.service;
 
 
+import com.rebuild.backend.config.converters.DurationToStringConverter;
 import com.rebuild.backend.model.entities.*;
 import com.rebuild.backend.repository.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +28,7 @@ public class ResumeService {
     }
 
     public Experience changeExperienceInfo(UUID resID, UUID expID,
-                                           String newCompanyName, String newDuration,
+                                           String newCompanyName, Duration newDuration,
                                            List<String> newBullets){
         return repository.changeExperienceInfo(resID, expID, newCompanyName, newDuration, newBullets);
     }
@@ -40,7 +42,7 @@ public class ResumeService {
                 phoneNumber.getCountryCode(), phoneNumber.getAreaCode(), phoneNumber.getRestOfNumber());
     }
 
-    public Experience createNewExperience(UUID resID, String companyName, String duration, List<String> bullets){
+    public Experience createNewExperience(UUID resID, String companyName, Duration duration, List<String> bullets){
         return repository.createNewExperience(resID, companyName, duration, bullets);
     }
 

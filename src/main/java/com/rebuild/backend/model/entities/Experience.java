@@ -1,8 +1,10 @@
 package com.rebuild.backend.model.entities;
 
+import com.rebuild.backend.config.converters.DurationToStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +28,8 @@ public class Experience {
 
     @Column(name = "time_period", nullable = false)
     @NonNull
-    private String timePeriod;
+    @Convert(converter = DurationToStringConverter.class)
+    private Duration timePeriod;
 
     @ElementCollection
     @CollectionTable(name = "bullets", joinColumns = @JoinColumn(name = "experience_id"))

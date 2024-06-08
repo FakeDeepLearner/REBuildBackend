@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.UUID;
 
 @RestController
@@ -32,8 +33,9 @@ public class ResumePostController {
 
     @PostMapping("/experience/{res_id}")
     public Experience createNewExperience(@PathVariable UUID res_id, @Valid @RequestBody ExperienceForm experienceForm){
+        Duration duration = Duration.between(experienceForm.startDate(), experienceForm.endDate());
         return resumeService.createNewExperience(res_id, experienceForm.companyName(),
-                experienceForm.timePeriod(), experienceForm.bullets());
+                duration, experienceForm.bullets());
     }
 
     @PostMapping("/education/{res_id}")
