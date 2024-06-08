@@ -124,7 +124,7 @@ public class JWTTokenService {
         refreshAndAccessTokens.remove(refresh);
     }
 
-    public String issueNewAccessToken(HttpServletRequest request, HttpServletResponse response){
+    public String issueNewAccessToken(HttpServletRequest request){
         String refresh_token = extractTokenFromRequest(request);
         removeTokenPair(refresh_token);
         String username = extractUsername(refresh_token);

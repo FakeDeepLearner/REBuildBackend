@@ -1,6 +1,6 @@
 package com.rebuild.backend.service;
 
-import com.rebuild.backend.exceptions.EmailAlreadyTakenException;
+import com.rebuild.backend.exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.WrongPasswordException;
@@ -96,7 +96,7 @@ public class UserService{
         }
 
         if (checkEmailExists(email)){
-            throw new EmailAlreadyTakenException("There is already an account with this email address.");
+            throw new EmailAlreadyExistsException("There is already an account with this email address.");
         }
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(username, encodedPassword, email);

@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.converters;
 
+import com.rebuild.backend.exceptions.PhoneNumberParseException;
 import com.rebuild.backend.model.entities.PhoneNumber;
 import lombok.NonNull;
 import org.springframework.core.convert.converter.Converter;
@@ -14,7 +15,7 @@ public class StringToPhoneConverter implements Converter<String, PhoneNumber> {
             return new PhoneNumber(parts[0], parts[1], parts[2]);
         }
         catch (ArrayIndexOutOfBoundsException e){
-            throw new IllegalArgumentException();
+            throw new PhoneNumberParseException("Please fill out all fields of the phone number");
         }
     }
 }

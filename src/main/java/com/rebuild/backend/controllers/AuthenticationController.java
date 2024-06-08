@@ -69,7 +69,7 @@ public class AuthenticationController {
     @PostMapping("/api/refresh_token")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public AuthResponse generateRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String newAccessToken = tokenService.issueNewAccessToken(request, response);
+        String newAccessToken = tokenService.issueNewAccessToken(request);
         String refreshToken = tokenService.extractTokenFromRequest(request);
         tokenService.addTokenPair(newAccessToken, refreshToken);
         String originalUrl = request.getContextPath();
