@@ -1,6 +1,6 @@
 package com.rebuild.backend.config.converters;
 
-import com.rebuild.backend.exceptions.PhoneNumberParseException;
+import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberParseException;
 import com.rebuild.backend.model.entities.PhoneNumber;
 import lombok.NonNull;
 import org.springframework.core.convert.converter.Converter;

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record ExperienceForm(@NotBlank String companyName,
-                             @NotBlank  String timePeriod,
-                             @NotEmpty List<String> bullets) {
+public record ExperienceForm(@NotBlank(message = "Company name may not be blank") String companyName,
+                             @NotBlank(message = "Time period may not be blank")  String timePeriod,
+                             @NotEmpty(message = "The bullets may not be empty") List<String> bullets) {
 }

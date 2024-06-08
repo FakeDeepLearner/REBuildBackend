@@ -1,7 +1,6 @@
 package com.rebuild.backend.config.security;
 
-import com.rebuild.backend.exceptions.JWTTokenExpiredException;
-import com.rebuild.backend.exceptions.NoJWTTokenException;
+import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.service.JWTTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

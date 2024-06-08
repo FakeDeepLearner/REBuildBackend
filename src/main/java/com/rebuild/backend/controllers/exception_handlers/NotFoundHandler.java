@@ -1,10 +1,9 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
-import com.rebuild.backend.exceptions.EmailDoesNotExistException;
-import com.rebuild.backend.exceptions.PhoneNumberParseException;
-import com.rebuild.backend.exceptions.UserNotFoundException;
-import com.rebuild.backend.exceptions.WrongPasswordException;
-import org.hibernate.annotations.NotFound;
+import com.rebuild.backend.exceptions.not_found_exceptions.EmailDoesNotExistException;
+import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberParseException;
+import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

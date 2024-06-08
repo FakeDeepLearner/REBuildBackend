@@ -1,8 +1,8 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
-import com.rebuild.backend.exceptions.JWTCredentialsMismatchException;
-import com.rebuild.backend.exceptions.JWTTokenExpiredException;
-import com.rebuild.backend.exceptions.NoJWTTokenException;
+import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
+import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
+import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice

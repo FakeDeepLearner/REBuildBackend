@@ -1,10 +1,9 @@
 package com.rebuild.backend.service;
 
-import com.rebuild.backend.exceptions.JWTCredentialsMismatchException;
-import com.rebuild.backend.exceptions.JWTTokenExpiredException;
-import com.rebuild.backend.exceptions.NoJWTTokenException;
+import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
+import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
+import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;

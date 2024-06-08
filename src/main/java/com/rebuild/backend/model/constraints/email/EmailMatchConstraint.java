@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Constraint(validatedBy = EmailMatchValidator.class)
 public @interface EmailMatchConstraint {
+
+    String message() default "The emails provided must match";
 }

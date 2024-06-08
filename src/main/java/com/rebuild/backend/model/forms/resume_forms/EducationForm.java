@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record EducationForm(@NotBlank
+public record EducationForm(@NotBlank(message = "The school name may not be blank")
                             String schoolName,
-                            @NotEmpty
+                            @NotEmpty(message = "The coursework may not be empty")
                             List<String> relevantCoursework) {
 }

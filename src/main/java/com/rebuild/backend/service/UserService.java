@@ -1,9 +1,9 @@
 package com.rebuild.backend.service;
 
-import com.rebuild.backend.exceptions.EmailAlreadyExistsException;
-import com.rebuild.backend.exceptions.UserNotFoundException;
-import com.rebuild.backend.exceptions.UsernameAlreadyExistsException;
-import com.rebuild.backend.exceptions.WrongPasswordException;
+import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
+import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
+import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;

@@ -1,4 +1,4 @@
-package com.rebuild.backend.exceptions;
+package com.rebuild.backend.exceptions.jwt_exceptions;
 
 public class JWTTokenExpiredException extends IllegalStateException{
     private final String refreshToken;

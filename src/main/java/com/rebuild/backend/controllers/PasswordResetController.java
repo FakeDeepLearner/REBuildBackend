@@ -1,13 +1,12 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.EmailDoesNotExistException;
+import com.rebuild.backend.exceptions.not_found_exceptions.EmailDoesNotExistException;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.PasswordResetForm;
 import com.rebuild.backend.service.ResetTokenService;
 import com.rebuild.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

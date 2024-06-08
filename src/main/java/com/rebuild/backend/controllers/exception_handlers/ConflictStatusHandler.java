@@ -1,14 +1,13 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
-import com.rebuild.backend.exceptions.EmailAlreadyExistsException;
-import com.rebuild.backend.exceptions.UsernameAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
 import java.util.Map;
 
 
