@@ -1,7 +1,6 @@
 package com.rebuild.backend.service;
 
 
-import com.rebuild.backend.config.converters.DurationToStringConverter;
 import com.rebuild.backend.model.entities.*;
 import com.rebuild.backend.repository.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;

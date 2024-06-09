@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities;
 
-import com.rebuild.backend.config.converters.DurationToStringConverter;
+import com.rebuild.backend.utils.converters.DurationToStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
