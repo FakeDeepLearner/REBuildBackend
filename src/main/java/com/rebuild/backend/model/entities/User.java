@@ -59,21 +59,17 @@ public class User implements UserDetails {
     @JsonIgnore
     private Authority authority = Authority.USER_FREE;
 
-    @Transient
     @JsonIgnore
     private boolean accountNonExpired = false;
 
-    @Transient
     @JsonIgnore
     private boolean accountNonLocked = false;
 
-    @Transient
     @JsonIgnore
     private boolean credentialsNonExpired = false;
 
-    @Transient
     @JsonIgnore
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

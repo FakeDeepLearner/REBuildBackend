@@ -26,6 +26,8 @@ spring:
       name: "eren"
       password: "12Eren89"
     pepper-value: classpath:/pepper.txt
+    passwords:
+      app-password: classpath:/outlook_app_password.txt
 
   main:
     banner-mode: off

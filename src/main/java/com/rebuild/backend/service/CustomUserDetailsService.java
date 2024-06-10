@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+
 @Service(value = "details")
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -24,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 () -> new UsernameNotFoundException("Username " + username + " not found"));
         return org.springframework.security.core.userdetails.User.builder().username(username)
                 .password(foundUser.getPassword()).
-                roles(foundUser.getAuthority().toString()).
+                roles(foundUser.getAuthorities().toString()).
                 accountExpired(!foundUser.isAccountNonExpired()).
                 accountLocked(!foundUser.isAccountNonLocked()).
                 credentialsExpired(!foundUser.isCredentialsNonExpired()).

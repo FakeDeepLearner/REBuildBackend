@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 /src/main/resources/certs/
 /src/main/resources/pepper.txt
+/src/main/resources/outlook_app_password.txt
 
 ### STS ###
 .apt_generated
