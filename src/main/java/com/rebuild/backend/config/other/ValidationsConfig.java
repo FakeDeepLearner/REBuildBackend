@@ -1,4 +1,4 @@
-package com.rebuild.backend.config.properties;
+package com.rebuild.backend.config.other;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

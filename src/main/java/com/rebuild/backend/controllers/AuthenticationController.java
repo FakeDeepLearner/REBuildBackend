@@ -10,9 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -61,6 +60,10 @@ public class AuthenticationController {
     public ResponseEntity<User> processSignup(@Valid @RequestBody SignupForm signupForm){
         User createdUser =
                 userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
+        Map<String, String> activationBody = new HashMap<>();
+        activationBody.put("email", signupForm.email());
+        HttpEntity<Map<String, String>> body = new HttpEntity<>(activationBody);
+        new RestTemplate().exchange("/api/activate", HttpMethod.POST, body, Void.TYPE);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Location", "/home/" + createdUser.getId());
         return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(responseHeaders).body(createdUser);

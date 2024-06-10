@@ -1,4 +1,4 @@
 TODO: Add facilities to create resumes themselves
 TODO: Fix other configuration issues, primarily with redis and docker.
 TODO: Fix (potential) issues that were caused by the change to storing experience durations
-TODO: Implement detailed validation error handling
+TODO: Fix potential issues with emails, primarily with getting a noreply email address

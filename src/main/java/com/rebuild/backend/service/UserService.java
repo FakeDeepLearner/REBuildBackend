@@ -103,5 +103,9 @@ public class UserService{
         return repository.save(newUser);
     }
 
+    public User save(User user){
+        return repository.save(user);
+    }
+
 
 }

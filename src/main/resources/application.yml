@@ -26,8 +26,10 @@ spring:
       name: "eren"
       password: "12Eren89"
     pepper-value: classpath:/pepper.txt
-    passwords:
+    mail-credentials:
       app-password: classpath:/outlook_app_password.txt
+      address: classpath:/email.txt
+
 
   main:
     banner-mode: off
@@ -38,10 +40,6 @@ spring:
 
   session:
     timeout: 15m
-
-  mail:
-    host: smtp.hotmail.com
-    port: 587
 
 
 logging:

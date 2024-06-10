@@ -6,7 +6,7 @@ target/
 /src/main/resources/certs/
 /src/main/resources/pepper.txt
 /src/main/resources/outlook_app_password.txt
-
+/src/main/resources/email.txt
 ### STS ###
 .apt_generated
 .classpath
