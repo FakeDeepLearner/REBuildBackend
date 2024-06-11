@@ -34,7 +34,7 @@ public class ResumePostController {
     @PostMapping("/experience/{res_id}")
     public Experience createNewExperience(@PathVariable UUID res_id, @Valid @RequestBody ExperienceForm experienceForm){
         Duration duration = Duration.between(experienceForm.startDate(), experienceForm.endDate());
-        return resumeService.createNewExperience(res_id, experienceForm.companyName(),
+        return resumeService.createNewExperience(res_id, experienceForm.companyName(), experienceForm.technologies(),
                 duration, experienceForm.bullets());
     }
 

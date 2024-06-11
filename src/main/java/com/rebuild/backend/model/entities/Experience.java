@@ -26,6 +26,12 @@ public class Experience {
     @NonNull
     private String companyName;
 
+    @ElementCollection
+    @CollectionTable(name = "technologies", joinColumns = @JoinColumn(name = "experience_id"))
+    @Column(nullable = false)
+    @NonNull
+    private List<String> technologyList;
+
     @Column(name = "time_period", nullable = false)
     @NonNull
     @Convert(converter = DurationToStringConverter.class)

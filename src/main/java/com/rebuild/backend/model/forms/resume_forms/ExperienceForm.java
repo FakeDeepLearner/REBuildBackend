@@ -7,6 +7,8 @@ import java.time.temporal.Temporal;
 import java.util.List;
 
 public record ExperienceForm(@NotBlank(message = "Company name may not be blank") String companyName,
+
+                             @NotEmpty(message = "The technologies may not be empty") List<String> technologies,
                              Temporal startDate,
                              Temporal endDate,
                              @NotEmpty(message = "The bullets may not be empty") List<String> bullets) {

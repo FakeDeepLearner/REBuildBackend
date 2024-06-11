@@ -27,9 +27,11 @@ public class ResumeService {
     }
 
     public Experience changeExperienceInfo(UUID resID, UUID expID,
-                                           String newCompanyName, Duration newDuration,
+                                           String newCompanyName,
+                                           List<String> newTechnologies,
+                                           Duration newDuration,
                                            List<String> newBullets){
-        return repository.changeExperienceInfo(resID, expID, newCompanyName, newDuration, newBullets);
+        return repository.changeExperienceInfo(resID, expID, newCompanyName, newTechnologies ,newDuration, newBullets);
     }
 
     public Education changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
@@ -41,8 +43,10 @@ public class ResumeService {
                 phoneNumber.getCountryCode(), phoneNumber.getAreaCode(), phoneNumber.getRestOfNumber());
     }
 
-    public Experience createNewExperience(UUID resID, String companyName, Duration duration, List<String> bullets){
-        return repository.createNewExperience(resID, companyName, duration, bullets);
+    public Experience createNewExperience(UUID resID, String companyName,
+                                          List<String> technologies,
+                                          Duration duration, List<String> bullets){
+        return repository.createNewExperience(resID, companyName, technologies, duration, bullets);
     }
 
     public Education createNewEducation(UUID resID, String schoolName, List<String> courseWork){

@@ -37,7 +37,7 @@ public class ResumePutController {
                                        @Valid @RequestBody ExperienceForm experienceForm){
         Duration duration = Duration.between(experienceForm.startDate(), experienceForm.endDate());
         return resumeService.changeExperienceInfo(res_id, exp_id, experienceForm.companyName(),
-                duration, experienceForm.bullets());
+                experienceForm.technologies(), duration, experienceForm.bullets());
 
     }
 
