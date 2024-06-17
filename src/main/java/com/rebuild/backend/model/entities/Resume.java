@@ -23,11 +23,11 @@ public class Resume {
     )
     private UUID id;
 
-    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @NonNull
     private Header header;
 
-    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @NonNull
     private Education education;
 
@@ -52,5 +52,9 @@ public class Resume {
         this.experiences = new ArrayList<>();
         this.education = new Education();
         this.header = new Header();
+    }
+
+    public void addExperience(Experience experience){
+        experiences.add(experience);
     }
 }

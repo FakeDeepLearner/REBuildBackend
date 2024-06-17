@@ -39,18 +39,33 @@ public class ResumeService {
     }
 
     public Header createNewHeader(UUID resID, String name, String email, PhoneNumber phoneNumber){
-        return repository.createNewHeader(resID, name, email,
+        Header createdHeader = repository.createNewHeader(resID, name, email,
                 phoneNumber.getCountryCode(), phoneNumber.getAreaCode(), phoneNumber.getRestOfNumber());
+        Resume foundResume = repository.findById(resID).orElseThrow(RuntimeException::new);
+        foundResume.setHeader(createdHeader);
+        repository.save(foundResume);
+        return createdHeader;
+
     }
 
     public Experience createNewExperience(UUID resID, String companyName,
                                           List<String> technologies,
                                           Duration duration, List<String> bullets){
-        return repository.createNewExperience(resID, companyName, technologies, duration, bullets);
+        Experience createdExperience =
+                repository.createNewExperience(resID, companyName, technologies, duration, bullets);
+        Resume foundResume = repository.findById(resID).orElseThrow(RuntimeException::new);
+        foundResume.addExperience(createdExperience);
+        repository.save(foundResume);
+        return createdExperience;
     }
 
     public Education createNewEducation(UUID resID, String schoolName, List<String> courseWork){
-        return repository.createNewEducation(resID, schoolName, courseWork);
+        Education createdEducation =
+                repository.createNewEducation(resID, schoolName, courseWork);
+        Resume foundResume = repository.findById(resID).orElseThrow(RuntimeException::new);
+        foundResume.setEducation(createdEducation);
+        repository.save(foundResume);
+        return createdEducation;
     }
 
     public Resume save(Resume resume){
