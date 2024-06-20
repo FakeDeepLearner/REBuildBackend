@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.forms.AccountActivationForm;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.model.forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,9 +61,8 @@ public class AuthenticationController {
     public ResponseEntity<Void> processSignup(@Valid @RequestBody SignupForm signupForm){
         User createdUser =
                 userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
-        Map<String, String> activationBody = new HashMap<>();
-        activationBody.put("email", createdUser.getEmail());
-        HttpEntity<Map<String, String>> body = new HttpEntity<>(activationBody);
+        AccountActivationForm form  = new AccountActivationForm(createdUser.getEmail(), 20L, ChronoUnit.MINUTES);
+        HttpEntity<AccountActivationForm> body = new HttpEntity<>(form);
         return new RestTemplate().exchange("/api/activate", HttpMethod.POST, body, Void.TYPE);
     }
 

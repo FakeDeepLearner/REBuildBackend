@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 
@@ -32,7 +34,8 @@ public class EnableTokenService {
         return encoder.encodeToString(bytes);
     }
 
-    public void sendActivationEmail(String addressFor, String activationToken){
+    public void sendActivationEmail(String addressFor, String activationToken,
+                                    Long timeCount, ChronoUnit timeUnit){
         SimpleMailMessage mailMessage =  new SimpleMailMessage();
         mailMessage.setTo(addressFor);
         mailMessage.setSubject("Account activation");
@@ -45,9 +48,9 @@ public class EnableTokenService {
                 """ + activationUrl +
                 """
                 
-                The token will expire in 20 minutes
+                The token will expire in
                 
-                """);
+                """ + timeCount.toString() + timeUnit.toString());
         mailSender.send(mailMessage);
     }
 

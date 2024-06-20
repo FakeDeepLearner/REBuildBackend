@@ -5,6 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenExpiredExc
 import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenNotFoundException;
 import com.rebuild.backend.model.entities.EnableAccountToken;
 import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.forms.AccountActivationForm;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.repository.EnableTokenRepository;
 import com.rebuild.backend.service.EnableTokenService;
@@ -38,17 +39,19 @@ public class AccountActivationController {
         this.userService = userService;
     }
 
-    private EnableAccountToken createActivationToken(String email){
+    private EnableAccountToken createActivationToken(String email, long timeCount, ChronoUnit timeUnit){
         String randomToken = tokenService.generateRandomActivateToken();
         EnableAccountToken newToken = new EnableAccountToken(randomToken, email,
-                LocalDateTime.now().plus(20, ChronoUnit.MINUTES));
+                LocalDateTime.now().plus(timeCount, timeUnit));
         return tokenRepository.save(newToken);
     }
 
     @PostMapping("/api/activate")
-    public void sendActivationEmail(@RequestBody String email){
-        EnableAccountToken newToken = createActivationToken(email);
-        tokenService.sendActivationEmail(email, newToken.getToken());
+    public void sendActivationEmail(@RequestBody AccountActivationForm activationForm){
+        EnableAccountToken newToken = createActivationToken(activationForm.email(),
+                activationForm.timeCount(), activationForm.timeUnit());
+        tokenService.sendActivationEmail(activationForm.email(), newToken.getToken(),
+                activationForm.timeCount(), activationForm.timeUnit());
     }
 
     @GetMapping("/api/activate/{token}")
