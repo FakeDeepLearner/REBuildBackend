@@ -1,4 +1,4 @@
-package com.rebuild.backend.controllers.exception_handlers;
+package com.rebuild.backend.utils;
 
 import org.springframework.stereotype.Component;
 

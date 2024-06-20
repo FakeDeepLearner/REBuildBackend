@@ -45,7 +45,7 @@ public class EnableTokenService {
                 """ + activationUrl +
                 """
                 
-                The token will expire in 10 minutes
+                The token will expire in 20 minutes
                 
                 """);
         mailSender.send(mailMessage);

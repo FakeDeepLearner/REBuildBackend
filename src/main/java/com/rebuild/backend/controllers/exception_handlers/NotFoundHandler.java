@@ -4,6 +4,7 @@ import com.rebuild.backend.exceptions.not_found_exceptions.EmailDoesNotExistExce
 import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberParseException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
+import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

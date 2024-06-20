@@ -41,10 +41,9 @@ public class AccountActivationController {
     private EnableAccountToken createActivationToken(String email){
         String randomToken = tokenService.generateRandomActivateToken();
         EnableAccountToken newToken = new EnableAccountToken(randomToken, email,
-                LocalDateTime.now().plus(10, ChronoUnit.MINUTES));
+                LocalDateTime.now().plus(20, ChronoUnit.MINUTES));
         return tokenRepository.save(newToken);
     }
-
 
     @PostMapping("/api/activate")
     public void sendActivationEmail(@RequestBody String email){
@@ -58,7 +57,10 @@ public class AccountActivationController {
         EnableAccountToken foundToken = tokenRepository.findByToken(token).orElseThrow(() ->
                 new ActivationTokenNotFoundException("No such token found"));
         if(tokenService.checkTokenExpiry(foundToken)){
-            throw new ActivationTokenExpiredException("This token has expired");
+            //We still have to delete the token if it is expired, since we will send a new one
+            tokenRepository.delete(foundToken);
+            throw new ActivationTokenExpiredException("This link has expired, please click this " +
+                    "button to request a new token", foundToken.getEmailFor());
         }
         User actualUser = userService.findByEmail(foundToken.getEmailFor()).orElseThrow(() ->
                 new ActivationTokenEmailMismatchException("A user with this email address hasn't been found"));

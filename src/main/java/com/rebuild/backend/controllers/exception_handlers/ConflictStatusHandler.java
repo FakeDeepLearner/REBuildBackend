@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.exception_handlers;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
+import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ExceptionHandler;
