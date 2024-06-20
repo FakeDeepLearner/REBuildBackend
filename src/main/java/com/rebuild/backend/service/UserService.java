@@ -58,7 +58,6 @@ public class UserService{
         Optional<User> foundUsername = repository.findByUsername(form.emailOrUsername());
         Optional<User> foundEmail = repository.findByEmail(form.emailOrUsername());
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String hashedPassword = encoder.encode(form.password());
 
         if (foundEmail.isEmpty() && foundUsername.isEmpty()){
@@ -100,7 +99,7 @@ public class UserService{
         }
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(username, encodedPassword, email);
-        return repository.save(newUser);
+        return save(newUser);
     }
 
     public User save(User user){

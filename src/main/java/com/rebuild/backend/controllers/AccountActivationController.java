@@ -5,11 +5,17 @@ import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenExpiredExc
 import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenNotFoundException;
 import com.rebuild.backend.model.entities.EnableAccountToken;
 import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.repository.EnableTokenRepository;
 import com.rebuild.backend.service.EnableTokenService;
 import com.rebuild.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -47,11 +53,11 @@ public class AccountActivationController {
     }
 
     @GetMapping("/api/activate/{token}")
-    public void activateAccount(@PathVariable String token){
+    @ResponseStatus(HttpStatus.SEE_OTHER)
+    public ResponseEntity<AccountActivationResponse> activateAccount(@PathVariable String token){
         EnableAccountToken foundToken = tokenRepository.findByToken(token).orElseThrow(() ->
                 new ActivationTokenNotFoundException("No such token found"));
         if(tokenService.checkTokenExpiry(foundToken)){
-            //TODO: Redirect the user back to the signup form.
             throw new ActivationTokenExpiredException("This token has expired");
         }
         User actualUser = userService.findByEmail(foundToken.getEmailFor()).orElseThrow(() ->
@@ -60,5 +66,14 @@ public class AccountActivationController {
         userService.save(actualUser);
         //Immediately remove the tokens once they are used
         tokenRepository.delete(foundToken);
+        return redirectUserToLogin(actualUser, foundToken.getToken());
+    }
+
+    private ResponseEntity<AccountActivationResponse> redirectUserToLogin(User user, String activationToken){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/login");
+        AccountActivationResponse body = new AccountActivationResponse(user.getEmail(), activationToken);
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);
+
     }
 }

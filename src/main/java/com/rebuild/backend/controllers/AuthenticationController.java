@@ -56,17 +56,13 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    @ResponseStatus(HttpStatus.SEE_OTHER)
-    public ResponseEntity<User> processSignup(@Valid @RequestBody SignupForm signupForm){
+    public ResponseEntity<Void> processSignup(@Valid @RequestBody SignupForm signupForm){
         User createdUser =
                 userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
         Map<String, String> activationBody = new HashMap<>();
-        activationBody.put("email", signupForm.email());
+        activationBody.put("email", createdUser.getEmail());
         HttpEntity<Map<String, String>> body = new HttpEntity<>(activationBody);
-        new RestTemplate().exchange("/api/activate", HttpMethod.POST, body, Void.TYPE);
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add("Location", "/home/" + createdUser.getId());
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(responseHeaders).body(createdUser);
+        return new RestTemplate().exchange("/api/activate", HttpMethod.POST, body, Void.TYPE);
     }
 
     @PostMapping("/api/refresh_token")
