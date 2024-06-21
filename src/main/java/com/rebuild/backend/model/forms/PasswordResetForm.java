@@ -1,9 +1,14 @@
 package com.rebuild.backend.model.forms;
 
+import com.rebuild.backend.model.constraints.password.PasswordSizeAndPatternConstraint;
+import com.rebuild.backend.model.constraints.password.PasswordsMatchConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record PasswordResetForm(@NotBlank(message = "May not be blank")
-                                @Email(message = "Must be a valid email")
-                                String enteredEmail) {
+@PasswordsMatchConstraint
+public record PasswordResetForm(
+                                @PasswordSizeAndPatternConstraint
+                                String newPassword,
+                                @PasswordSizeAndPatternConstraint
+                                String confirmNewPassword) {
 }
