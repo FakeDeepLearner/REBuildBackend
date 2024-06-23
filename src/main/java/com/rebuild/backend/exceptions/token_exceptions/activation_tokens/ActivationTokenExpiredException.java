@@ -1,6 +1,8 @@
-package com.rebuild.backend.exceptions.token_exceptions;
+package com.rebuild.backend.exceptions.token_exceptions.activation_tokens;
 
-public class ActivationTokenExpiredException extends IllegalStateException{
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenException;
+
+public non-sealed class ActivationTokenExpiredException extends ActivationTokenException {
 
     private final String failedEmailFor;
     public ActivationTokenExpiredException(String message, String failedEmailFor){

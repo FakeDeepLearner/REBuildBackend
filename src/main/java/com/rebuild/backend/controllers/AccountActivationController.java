@@ -1,8 +1,8 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenEmailMismatchException;
-import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenExpiredException;
-import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenNotFoundException;
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
 import com.rebuild.backend.model.entities.EnableAccountToken;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
@@ -15,9 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 @RestController
 public class AccountActivationController {

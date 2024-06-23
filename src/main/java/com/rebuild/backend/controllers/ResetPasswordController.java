@@ -1,7 +1,10 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.token_exceptions.ActivationTokenExpiredException;
-import com.rebuild.backend.model.entities.EnableAccountToken;
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
+import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
+import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
+import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNotFoundException;
 import com.rebuild.backend.model.entities.ResetPasswordToken;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
@@ -50,13 +53,15 @@ public class ResetPasswordController {
     public ResponseEntity<PasswordResetResponse> changeUserPassword(@PathVariable String token,
                                              @Valid @RequestBody PasswordResetForm resetForm){
         ResetPasswordToken foundToken = tokenRepository.findByActualToken(token).
-                orElseThrow();
+                orElseThrow(() -> new ResetTokenNotFoundException("No such token found"));
         if (tokenService.checkTokenExpiry(foundToken)){
             tokenRepository.delete(foundToken);
             //TODO: Change this once a more streamlined exception process for 2 tokens is built
-            throw new ActivationTokenExpiredException("This reset token has expired", token);
+            throw new ResetTokenExpiredException("This reset token has expired", foundToken.getEmailFor());
         }
-        User foundUser = userService.findByEmail(foundToken.getEmailFor()).orElseThrow();
+        User foundUser = userService.findByEmail(foundToken.getEmailFor()).orElseThrow(
+                () -> new ResetTokenEmailMismatchException("A user with this email address hasn't been found")
+        );
         String oldPassword = foundUser.getPassword();
         //Since findByEmail returns a reference, the change in the password is automatically reflected in foundUser
         userService.changePassword(foundUser.getId(), resetForm.newPassword());

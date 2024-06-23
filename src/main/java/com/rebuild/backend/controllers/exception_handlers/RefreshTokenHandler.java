@@ -1,7 +1,8 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
-import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenException;
-import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
+
+import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenException;
+import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
 import com.rebuild.backend.model.responses.TokenExpiredResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -10,22 +11,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class AcceptTokenHandler {
-
-    @ExceptionHandler(ActivationTokenException.class)
-    public ResponseEntity<TokenExpiredResponse> handleAcceptException(ActivationTokenException e){
-        if (e instanceof ActivationTokenExpiredException expiredException) {
+public class RefreshTokenHandler {
+    @ExceptionHandler(ResetTokenException.class)
+    public ResponseEntity<?> handleRefreshException(ResetTokenException resetTokenException){
+        if (resetTokenException instanceof ResetTokenExpiredException expiredException) {
             TokenExpiredResponse expiredResponse =
-            new TokenExpiredResponse(expiredException.getMessage(), expiredException.getFailedEmailFor());
+                    new TokenExpiredResponse(expiredException.getMessage(), expiredException.getEmailFor());
             HttpHeaders headers = new HttpHeaders();
             headers.add("Location", "/request_new_token");
             return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(expiredResponse);
         }
-        //TODO: Change these to handle the other 2 exceptions properly
+        //TODO: Change these to handle these exceptions properly
         else{
             return ResponseEntity.notFound().build();
         }
-
-
     }
 }

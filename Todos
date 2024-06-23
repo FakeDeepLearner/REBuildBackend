@@ -1,2 +1,1 @@
-TODO: Add more streamlined exception handling for the new activation and reset token exceptions.
 TODO: Rethink what data should really be exposed on return from a password reset and/or an account activation
