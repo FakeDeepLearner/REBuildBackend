@@ -1,5 +1,6 @@
 package com.rebuild.backend.service;
 
+import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.model.entities.EnableAccountToken;
 import com.rebuild.backend.model.entities.ResetPasswordToken;
 import com.rebuild.backend.repository.ResetTokenRepository;
@@ -16,6 +17,8 @@ import java.util.Base64.Encoder;
 
 import java.security.SecureRandom;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ResetTokenService {
@@ -26,6 +29,8 @@ public class ResetTokenService {
     private final SecureRandom random = new SecureRandom();
 
     private final Encoder encoder = Base64.getUrlEncoder();
+
+    private final Map<String, String> tokensMap = new ConcurrentHashMap<>();
 
     @Autowired
     public ResetTokenService(ResetTokenRepository tokenRepository,
@@ -41,10 +46,18 @@ public class ResetTokenService {
     }
 
     public ResetPasswordToken createResetToken(String email, Long timeCount, ChronoUnit timeUnit){
+        if (tokensMap.containsKey(email)){
+            throw new TokenAlreadySentException("An email to reset your password has already been sent");
+        }
         String randomToken = generateBase64Token();
         ResetPasswordToken newToken = new ResetPasswordToken(randomToken, email,
                 LocalDateTime.now().plus(timeCount, timeUnit));
+        tokensMap.put(email, randomToken);
         return tokenRepository.save(newToken);
+    }
+
+    public void removeTokenOf(String email){
+        tokensMap.remove(email);
     }
 
     public void sendResetEmail(String addressFor, String resetToken, Long timeCount, ChronoUnit timeUnit){

@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.exception_handlers;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
+import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -27,11 +28,16 @@ public class ConflictStatusHandler {
     public ResponseEntity<Map<String, String>> handleEmailTaken(EmailAlreadyExistsException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
-
     }
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<Map<String, String>> handleUsernameTaken(UsernameAlreadyExistsException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(TokenAlreadySentException.class)
+    public ResponseEntity<Map<String, String>> handleTokenSent(TokenAlreadySentException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }

@@ -18,7 +18,7 @@ public class AcceptTokenHandler {
             TokenExpiredResponse expiredResponse =
             new TokenExpiredResponse(expiredException.getMessage(), expiredException.getFailedEmailFor());
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Location", "/request_new_token");
+            headers.add("Location", "/request_new_token_activation");
             return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(expiredResponse);
         }
         //TODO: Change these to handle the other 2 exceptions properly

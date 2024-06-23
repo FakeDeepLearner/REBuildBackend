@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 public class ResetPasswordController {
 
@@ -47,7 +49,6 @@ public class ResetPasswordController {
                 resetForm.timeCount(), resetForm.timeUnit());
     }
 
-    //TODO: Put actual exceptions in the orElseThrow methods
     @PostMapping("/api/reset/{token}")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<PasswordResetResponse> changeUserPassword(@PathVariable String token,
@@ -56,7 +57,7 @@ public class ResetPasswordController {
                 orElseThrow(() -> new ResetTokenNotFoundException("No such token found"));
         if (tokenService.checkTokenExpiry(foundToken)){
             tokenRepository.delete(foundToken);
-            //TODO: Change this once a more streamlined exception process for 2 tokens is built
+            tokenService.removeTokenOf(foundToken.getEmailFor());
             throw new ResetTokenExpiredException("This reset token has expired", foundToken.getEmailFor());
         }
         User foundUser = userService.findByEmail(foundToken.getEmailFor()).orElseThrow(
@@ -66,6 +67,7 @@ public class ResetPasswordController {
         //Since findByEmail returns a reference, the change in the password is automatically reflected in foundUser
         userService.changePassword(foundUser.getId(), resetForm.newPassword());
         tokenRepository.delete(foundToken);
+        tokenService.removeTokenOf(foundToken.getEmailFor());
         return redirectUserToLogin(foundUser, oldPassword);
 
 

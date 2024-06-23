@@ -1,5 +1,6 @@
 package com.rebuild.backend.service;
 
+import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.model.entities.EnableAccountToken;
 import com.rebuild.backend.repository.EnableTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class EnableTokenService {
@@ -25,6 +28,8 @@ public class EnableTokenService {
     private final JavaMailSender mailSender;
 
     private final EnableTokenRepository tokenRepository;
+
+    private final Map<String, String> tokensMap = new ConcurrentHashMap<>();
 
     @Autowired
     public EnableTokenService(@Qualifier("mailSender") JavaMailSender mailSender, EnableTokenRepository tokenRepository) {
@@ -39,10 +44,18 @@ public class EnableTokenService {
     }
 
     public EnableAccountToken createActivationToken(String email, long timeCount, ChronoUnit timeUnit){
+        if (tokensMap.containsKey(email)){
+            throw new TokenAlreadySentException("An email to activate your account has already been sent");
+        }
         String randomToken = generateRandomActivateToken();
         EnableAccountToken newToken = new EnableAccountToken(randomToken, email,
                 LocalDateTime.now().plus(timeCount, timeUnit));
+        tokensMap.put(email, randomToken);
         return tokenRepository.save(newToken);
+    }
+
+    public void removeTokenOf(String email){
+        tokensMap.remove(email);
     }
 
     public void sendActivationEmail(String addressFor, String activationToken,

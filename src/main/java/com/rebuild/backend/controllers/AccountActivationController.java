@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
@@ -15,6 +16,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class AccountActivationController {
@@ -50,6 +54,7 @@ public class AccountActivationController {
                 new ActivationTokenNotFoundException("No such token found"));
         if(tokenService.checkTokenExpiry(foundToken)){
             //We still have to delete the token if it is expired, since we will send a new one
+            tokenService.removeTokenOf(foundToken.getEmailFor());
             tokenRepository.delete(foundToken);
             throw new ActivationTokenExpiredException("This link has expired, please click this " +
                     "button to request a new token", foundToken.getEmailFor());
@@ -59,6 +64,7 @@ public class AccountActivationController {
         actualUser.setEnabled(true);
         userService.save(actualUser);
         //Immediately remove the tokens once they are used
+        tokenService.removeTokenOf(foundToken.getEmailFor());
         tokenRepository.delete(foundToken);
         return redirectUserToLogin(actualUser, foundToken.getToken());
     }
