@@ -1,4 +1,4 @@
-package com.rebuild.backend.controllers;
+package com.rebuild.backend.utils;
 
 import lombok.NonNull;
 import org.springframework.core.MethodParameter;

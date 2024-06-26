@@ -1,1 +1,2 @@
 TODO: Rethink what data should really be exposed on return from a password reset and/or an account activation
+TODO: Combine the tokens (except jwt) and the token services (except jwt) using interfaces and dependency injection

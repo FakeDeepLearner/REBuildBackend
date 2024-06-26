@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.entities.EnableAccountToken;
+import com.rebuild.backend.model.entities.tokens.EnableAccountToken;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

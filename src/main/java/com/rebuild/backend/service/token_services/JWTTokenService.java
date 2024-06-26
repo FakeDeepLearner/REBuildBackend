@@ -1,4 +1,4 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.token_services;
 
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Service
+@Service("jwt")
 public class JWTTokenService {
     private final JwtEncoder encoder;
 

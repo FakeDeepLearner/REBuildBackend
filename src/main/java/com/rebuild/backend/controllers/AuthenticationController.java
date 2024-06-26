@@ -5,7 +5,7 @@ import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.model.forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
-import com.rebuild.backend.service.JWTTokenService;
+import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

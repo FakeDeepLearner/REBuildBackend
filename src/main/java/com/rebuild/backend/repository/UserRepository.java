@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

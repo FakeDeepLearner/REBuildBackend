@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
-import com.rebuild.backend.model.entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.EmailChangeForm;
 import com.rebuild.backend.service.ResumeService;

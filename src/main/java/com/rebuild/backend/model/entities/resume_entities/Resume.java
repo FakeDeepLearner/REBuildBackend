@@ -1,11 +1,13 @@
-package com.rebuild.backend.model.entities;
+package com.rebuild.backend.model.entities.resume_entities;
 
+import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.resume_entities.Education;
+import com.rebuild.backend.model.entities.resume_entities.Experience;
+import com.rebuild.backend.model.entities.resume_entities.Header;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.mapping.Collection;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 

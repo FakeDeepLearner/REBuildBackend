@@ -1,15 +1,14 @@
-package com.rebuild.backend.controllers;
+package com.rebuild.backend.controllers.token_controllers;
 
-import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
-import com.rebuild.backend.model.entities.EnableAccountToken;
+import com.rebuild.backend.model.entities.tokens.EnableAccountToken;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.repository.EnableTokenRepository;
-import com.rebuild.backend.service.EnableTokenService;
+import com.rebuild.backend.service.token_services.EnableTokenService;
 import com.rebuild.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -17,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class AccountActivationController {

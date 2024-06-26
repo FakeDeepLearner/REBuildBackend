@@ -4,13 +4,12 @@ import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsExce
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
-import com.rebuild.backend.model.entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

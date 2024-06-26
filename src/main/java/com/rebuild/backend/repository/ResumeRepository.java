@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.entities.*;
+import com.rebuild.backend.model.entities.resume_entities.*;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

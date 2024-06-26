@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities;
+package com.rebuild.backend.model.entities.resume_entities;
 
 import jakarta.persistence.*;
 import lombok.*;

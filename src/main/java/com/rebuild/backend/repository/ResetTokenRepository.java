@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository;
 
-import com.rebuild.backend.model.entities.ResetPasswordToken;
+import com.rebuild.backend.model.entities.tokens.ResetPasswordToken;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,17 +1,15 @@
-package com.rebuild.backend.controllers;
+package com.rebuild.backend.controllers.token_controllers;
 
-import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
-import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNotFoundException;
-import com.rebuild.backend.model.entities.ResetPasswordToken;
+import com.rebuild.backend.model.entities.tokens.ResetPasswordToken;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
 import com.rebuild.backend.model.forms.PasswordResetForm;
 import com.rebuild.backend.model.responses.PasswordResetResponse;
 import com.rebuild.backend.repository.ResetTokenRepository;
-import com.rebuild.backend.service.ResetTokenService;
+import com.rebuild.backend.service.token_services.ResetTokenService;
 import com.rebuild.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +17,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 public class ResetPasswordController {
