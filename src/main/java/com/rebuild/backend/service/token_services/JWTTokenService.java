@@ -3,6 +3,7 @@ package com.rebuild.backend.service.token_services;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
+import com.rebuild.backend.model.entities.TokenType;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,7 @@ public class JWTTokenService {
                                                        long amount,
                                                        ChronoUnit unit,
                                                        String purpose){
-        if(purpose.equals("email_change")){
+        if(purpose.equals(TokenType.CHANGE_EMAIL.typeName)){
             return generateGivenBothEmails(email, newMail, amount, unit);
         }
         Instant curr = Instant.now();
@@ -193,12 +194,14 @@ public class JWTTokenService {
        Jwt allClaims = extractAllClaims(token);
        String purpose = allClaims.getClaimAsString("purpose");
        String address = allClaims.getClaimAsString("sub");
-       switch (purpose) {
-           case "activation" -> sendActivationEmail(address, token, timeAmount, timeUnit);
-
-           case "reset_password" -> sendResetEmail(address, token, timeAmount, timeUnit);
-
-           case "email_change" -> sendEmailChange(address, token, timeAmount, timeUnit);
+       if(purpose.equals(TokenType.ACTIVATE_ACCOUNT.typeName)){
+           sendActivationEmail(address, token, timeAmount, timeUnit);
+       }
+       if(purpose.equals(TokenType.CHANGE_PASSWORD.typeName)){
+           sendResetEmail(address, token, timeAmount, timeUnit);
+       }
+       if(purpose.equals(TokenType.CHANGE_EMAIL.typeName)){
+           sendEmailChange(address, token, timeAmount, timeUnit);
        }
     }
 

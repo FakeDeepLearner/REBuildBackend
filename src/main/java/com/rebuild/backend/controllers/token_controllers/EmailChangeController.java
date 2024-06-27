@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.EmailChangeForm;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
@@ -39,8 +40,8 @@ public class EmailChangeController {
         User actualUser = userService.findByUsername(username).
                 orElseThrow(() -> new UserNotFoundException("Username" + username + "not found"));
         String newToken = tokenService.generateTokenGivenEmailAndExpiration(actualUser.getEmail(),
-                changeForm.newEmail(), 15, ChronoUnit.MINUTES, "email_change");
-        tokenService.sendProperEmail(changeForm.newEmail(), 15L, ChronoUnit.MINUTES);
+                changeForm.newEmail(), 15, ChronoUnit.MINUTES, TokenType.CHANGE_EMAIL.typeName);
+        tokenService.sendProperEmail(newToken, 15L, ChronoUnit.MINUTES);
     }
 
     @GetMapping("/api/change_email")

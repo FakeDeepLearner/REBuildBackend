@@ -1,19 +1,15 @@
 package com.rebuild.backend.model.entities;
 
 
-public enum TokenTypes {
+public enum TokenType {
     ACTIVATE_ACCOUNT("account_activation"),
 
     CHANGE_PASSWORD("password_change"),
 
     CHANGE_EMAIL("email_change");
 
-    private final String typeName;
-    TokenTypes(String typeName){
+    public final String typeName;
+    TokenType(String typeName){
         this.typeName = typeName;
-    }
-
-    public String getTypeName() {
-        return typeName;
     }
 }

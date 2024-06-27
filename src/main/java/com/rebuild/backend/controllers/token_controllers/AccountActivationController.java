@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
+import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
@@ -33,7 +34,7 @@ public class AccountActivationController {
     @PostMapping("/api/activate")
     public void sendActivationEmail(@RequestBody AccountActivationOrResetForm activationForm){
         String newToken = tokenService.generateTokenGivenEmailAndExpiration(activationForm.email(),
-                null ,activationForm.timeCount(), activationForm.timeUnit(), "activation");
+                null ,activationForm.timeCount(), activationForm.timeUnit(), TokenType.ACTIVATE_ACCOUNT.typeName);
         tokenService.sendProperEmail(newToken, activationForm.timeCount(), activationForm.timeUnit());
     }
 
