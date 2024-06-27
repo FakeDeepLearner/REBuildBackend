@@ -1,3 +1,3 @@
 TODO: Rethink what data should really be exposed on return from a password reset and/or an account activation
-TODO: Combine the tokens (except jwt) and the token services (except jwt) using interfaces and dependency injection
-TODO (priority): shift to jwt tokens for all purposes
+TODO: Rewrite exception handling for the token mechanism, now that it has completely changed
+TODO: Start writing tests and using CI/CD with GitHub Actions

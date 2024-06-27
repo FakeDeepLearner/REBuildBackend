@@ -47,6 +47,9 @@ public class EmailChangeController {
     @GetMapping("/api/change_email")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<EmailChangeResponse> changeUserEmail(@RequestParam String token){
+        if(!tokenService.tokenNonExpired(token)){
+            throw new RuntimeException();
+        }
         String oldMail = tokenService.extractSubject(token);
         String newMail = tokenService.extractNewMail(token);
         User actualUser = userService.findByEmail(oldMail).
