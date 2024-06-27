@@ -14,6 +14,7 @@ public class StringToChronoUnitConverter implements Converter<String, ChronoUnit
             case "hours", "" -> ChronoUnit.HOURS;
             case "minutes" -> ChronoUnit.MINUTES;
             case "days" -> ChronoUnit.DAYS;
+            default -> ChronoUnit.MINUTES;
         };
     }
 }

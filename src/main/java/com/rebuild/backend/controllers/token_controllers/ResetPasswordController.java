@@ -2,15 +2,12 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
-import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNotFoundException;
-import com.rebuild.backend.model.entities.tokens.ResetPasswordToken;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
 import com.rebuild.backend.model.forms.PasswordResetForm;
 import com.rebuild.backend.model.responses.PasswordResetResponse;
-import com.rebuild.backend.repository.ResetTokenRepository;
-import com.rebuild.backend.service.token_services.ResetTokenService;
 import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.service.token_services.JWTTokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -21,52 +18,41 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class ResetPasswordController {
 
-    private final ResetTokenService tokenService;
 
-    private final ResetTokenRepository tokenRepository;
 
     private final UserService userService;
 
+    private final JWTTokenService tokenService;
 
     @Autowired
-    public ResetPasswordController(ResetTokenService tokenService,
-                                   ResetTokenRepository tokenRepository,
-                                   UserService userService) {
-        this.tokenService = tokenService;
-        this.tokenRepository = tokenRepository;
+    public ResetPasswordController(
+            UserService userService, JWTTokenService tokenService) {
         this.userService = userService;
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/api/reset")
     public void sendResetEmail(@RequestBody AccountActivationOrResetForm resetForm){
-        ResetPasswordToken newToken = tokenService.createResetToken(resetForm.email(),
-                resetForm.timeCount(), resetForm.timeUnit());
-        tokenService.sendResetEmail(resetForm.email(), newToken.getActualToken(),
-                resetForm.timeCount(), resetForm.timeUnit());
+        String newToken = tokenService.generateTokenGivenEmailAndExpiration(resetForm.email(),
+                null ,resetForm.timeCount(), resetForm.timeUnit(), "reset_password");
+        tokenService.sendProperEmail(newToken, resetForm.timeCount(), resetForm.timeUnit());
     }
 
-    @PostMapping("/api/reset/{token}")
+    @PostMapping("/api/reset")
     @ResponseStatus(HttpStatus.SEE_OTHER)
-    public ResponseEntity<PasswordResetResponse> changeUserPassword(@PathVariable String token,
+    public ResponseEntity<PasswordResetResponse> changeUserPassword(@RequestParam String token,
                                              @Valid @RequestBody PasswordResetForm resetForm){
-        ResetPasswordToken foundToken = tokenRepository.findByActualToken(token).
-                orElseThrow(() -> new ResetTokenNotFoundException("No such token found"));
-        if (tokenService.checkTokenExpiry(foundToken)){
-            tokenRepository.delete(foundToken);
-            tokenService.removeTokenOf(foundToken.getEmailFor());
-            throw new ResetTokenExpiredException("This reset token has expired", foundToken.getEmailFor());
+        String userEmail = tokenService.extractSubject(token);
+        if (!tokenService.tokenNonExpired(token)){
+            throw new ResetTokenExpiredException("This reset token has expired", userEmail);
         }
-        User foundUser = userService.findByEmail(foundToken.getEmailFor()).orElseThrow(
+        User foundUser = userService.findByEmail(userEmail).orElseThrow(
                 () -> new ResetTokenEmailMismatchException("A user with this email address hasn't been found")
         );
         String oldPassword = foundUser.getPassword();
         //Since findByEmail returns a reference, the change in the password is automatically reflected in foundUser
         userService.changePassword(foundUser.getId(), resetForm.newPassword());
-        tokenRepository.delete(foundToken);
-        tokenService.removeTokenOf(foundToken.getEmailFor());
         return redirectUserToLogin(foundUser, oldPassword);
-
-
     }
 
 

@@ -47,7 +47,7 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         try {
             String accessToken = tokenService.extractTokenFromRequest(request);
-            String extractedUsername = tokenService.extractUsername(accessToken);
+            String extractedUsername = tokenService.extractSubject(accessToken);
             //The user is not authenticated yet
             if (extractedUsername != null && SecurityContextHolder.getContext().getAuthentication() != null){
                 UserDetails details = detailsService.loadUserByUsername(extractedUsername);

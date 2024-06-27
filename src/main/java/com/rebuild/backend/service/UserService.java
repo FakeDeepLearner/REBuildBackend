@@ -41,6 +41,8 @@ public class UserService{
         return repository.findByEmail(email);
     }
 
+    public Optional<User> findByUsername(String username) {return repository.findByUsername(username);}
+
     public void changePassword(UUID userID, String newPassword){
         String newHashedPassword = encoder.encode(newPassword);
         repository.changePassword(userID, newHashedPassword);

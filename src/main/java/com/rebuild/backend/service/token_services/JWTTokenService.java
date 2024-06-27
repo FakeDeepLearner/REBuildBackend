@@ -3,9 +3,12 @@ package com.rebuild.backend.service.token_services;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +19,10 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service("jwt")
@@ -27,19 +33,21 @@ public class JWTTokenService {
 
     private final UserDetailsService detailsService;
 
-    private final Map<String, String> accessAndRefreshTokens;
+    private final Map<String, String> accessAndRefreshTokens = new ConcurrentHashMap<>();
 
-    private final Map<String, String> refreshAndAccessTokens;
+    private final Map<String, String> refreshAndAccessTokens = new ConcurrentHashMap<>();
+
+    private final JavaMailSender mailSender;
 
     @Autowired
     public JWTTokenService(@Qualifier("encoder") JwtEncoder encoder,
                            @Qualifier("decoder") JwtDecoder decoder,
-                           @Qualifier("details") UserDetailsService detailsService) {
+                           @Qualifier("details") UserDetailsService detailsService,
+                           @Qualifier("mailSender") JavaMailSender mailSender) {
         this.encoder = encoder;
         this.decoder = decoder;
         this.detailsService = detailsService;
-        accessAndRefreshTokens = new HashMap<>();
-        refreshAndAccessTokens = new HashMap<>();
+        this.mailSender = mailSender;
     }
 
     private String generateTokenGivenExpiration(Authentication auth, long amount, ChronoUnit unit){
@@ -52,6 +60,40 @@ public class JWTTokenService {
                 expiresAt(curr.plus(amount, unit)).
                 subject(auth.getName()).
                 claim("scope", claim).
+                build();
+        return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    public String generateGivenBothEmails(String oldEmail, String newEmail, long amount ,ChronoUnit unit){
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("purpose", "email_change");
+
+        Instant curr = Instant.now();
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder().
+                issuer("self").
+                issuedAt(curr).
+                expiresAt(curr.plus(amount, unit)).
+                subject(oldEmail).
+                claims((claimSet) -> claims.put("new_email", newEmail)).
+                build();
+        return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    public String generateTokenGivenEmailAndExpiration(String email,
+                                                       @Nullable String newMail,
+                                                       long amount,
+                                                       ChronoUnit unit,
+                                                       String purpose){
+        if(purpose.equals("email_change")){
+            return generateGivenBothEmails(email, newMail, amount, unit);
+        }
+        Instant curr = Instant.now();
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder().
+                issuer("self").
+                issuedAt(curr).
+                expiresAt(curr.plus(amount, unit)).
+                subject(email).
+                claims(claims -> claims.put("purpose", purpose)).
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
@@ -83,9 +125,14 @@ public class JWTTokenService {
         return decoder.decode(token);
     }
 
-    public String extractUsername(String token) {
+    public String extractSubject(String token) {
         Jwt allClaims = extractAllClaims(token);
         return allClaims.getClaimAsString("sub");
+    }
+
+    public String extractNewMail(String token){
+        Jwt allClaims = extractAllClaims(token);
+        return allClaims.getClaimAsString("new_email");
     }
 
     private Instant extractExpiration(String token) {
@@ -94,7 +141,7 @@ public class JWTTokenService {
     }
 
     private boolean tokenCredentialsMatch(String token, UserDetails details) {
-        String tokenUsername = extractUsername(token);
+        String tokenUsername = extractSubject(token);
         String actualUsername = details.getUsername();
         boolean result = tokenUsername.equals(actualUsername);
         if (!result){
@@ -103,7 +150,7 @@ public class JWTTokenService {
         return true;
     }
 
-    private boolean tokenNonExpired(String token) {
+    public boolean tokenNonExpired(String token) {
         Instant tokenExpiration = extractExpiration(token);
         String correspondingRefreshToken = accessAndRefreshTokens.get(token);
         boolean result = tokenExpiration.isBefore(Instant.now());
@@ -126,7 +173,7 @@ public class JWTTokenService {
     public String issueNewAccessToken(HttpServletRequest request){
         String refresh_token = extractTokenFromRequest(request);
         removeTokenPair(refresh_token);
-        String username = extractUsername(refresh_token);
+        String username = extractSubject(refresh_token);
         UserDetails user =  detailsService.loadUserByUsername(username);
         Instant curr = Instant.now();
         String claim = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
@@ -140,6 +187,84 @@ public class JWTTokenService {
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
 
+    }
+
+    public void sendProperEmail(String token, Long timeAmount, ChronoUnit timeUnit){
+       Jwt allClaims = extractAllClaims(token);
+       String purpose = allClaims.getClaimAsString("purpose");
+       String address = allClaims.getClaimAsString("sub");
+       switch (purpose) {
+           case "activation" -> sendActivationEmail(address, token, timeAmount, timeUnit);
+
+           case "reset_password" -> sendResetEmail(address, token, timeAmount, timeUnit);
+
+           case "email_change" -> sendEmailChange(address, token, timeAmount, timeUnit);
+       }
+    }
+
+    private void sendActivationEmail(String addressFor, String activationToken,
+                                    Long timeCount, ChronoUnit timeUnit){
+        SimpleMailMessage mailMessage =  new SimpleMailMessage();
+        mailMessage.setTo(addressFor);
+        mailMessage.setSubject("Account activation");
+        String activationUrl = "/api/activate?token=" + activationToken;
+        String timeStringDefault = timeUnit.toString().toLowerCase(Locale.CANADA);
+        String reprInMessage = (timeCount >= 2) ? timeStringDefault :
+                (timeStringDefault.substring(0, timeStringDefault.length() - 1));
+        mailMessage.setText("""
+                In order to activate your account, please click on, or paste onto your browser, the following link:
+                
+           
+                """ + activationUrl +
+                """
+                \n
+                The token will expire in
+                
+                """ + timeCount + reprInMessage);
+        mailSender.send(mailMessage);
+    }
+
+    private void sendResetEmail(String addressFor, String resetToken, Long timeCount, ChronoUnit timeUnit){
+        SimpleMailMessage mailMessage =  new SimpleMailMessage();
+        mailMessage.setTo(addressFor);
+        mailMessage.setSubject("Reset your password");
+        String activationUrl = "/api/reset?token=" + resetToken;
+        String timeStringDefault = timeUnit.toString().toLowerCase(Locale.CANADA);
+        String reprInMessage = (timeCount >= 2) ? timeStringDefault :
+                (timeStringDefault.substring(0, timeStringDefault.length() - 1));
+        mailMessage.setText("""
+                In order to reset your password, please click on, or paste onto your browser, the following link:
+                
+           
+                """ + activationUrl +
+                """
+                \n
+                The token will expire in
+                
+                """ + timeCount + reprInMessage);
+        mailSender.send(mailMessage);
+    }
+
+    private void sendEmailChange(String addressFor, String activationToken,
+                                    Long timeCount, ChronoUnit timeUnit){
+        SimpleMailMessage mailMessage =  new SimpleMailMessage();
+        mailMessage.setTo(addressFor);
+        mailMessage.setSubject("Change email");
+        String activationUrl = "/api/change_mail?token=" + activationToken;
+        String timeStringDefault = timeUnit.toString().toLowerCase(Locale.CANADA);
+        String reprInMessage = (timeCount >= 2) ? timeStringDefault :
+                (timeStringDefault.substring(0, timeStringDefault.length() - 1));
+        mailMessage.setText("""
+                In order to confirm your new email, please click on, or paste onto your browser, the following link:
+                
+           
+                """ + activationUrl +
+                """
+                \n
+                The token will expire in
+                
+                """ + timeCount + reprInMessage);
+        mailSender.send(mailMessage);
     }
 
 
