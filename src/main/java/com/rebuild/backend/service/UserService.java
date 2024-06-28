@@ -10,6 +10,8 @@ import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +27,22 @@ public class UserService{
 
     private final PasswordEncoder encoder;
 
+    private final SessionRegistry sessionRegistry;
+
     @Autowired
     public UserService(UserRepository repository,
-                       @Qualifier("peppered") PasswordEncoder encoder){
+                       @Qualifier("peppered") PasswordEncoder encoder,
+                       SessionRegistry sessionRegistry){
         this.repository = repository;
         this.encoder = encoder;
+        this.sessionRegistry = sessionRegistry;
+    }
+
+    public void invalidateAllSessions(String username){
+        List<SessionInformation> allSessions = sessionRegistry.getAllSessions(username, false);
+        if (allSessions != null) {
+            allSessions.forEach(SessionInformation::expireNow);
+        }
     }
 
     public Optional<User> findByID(UUID userID){

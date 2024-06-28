@@ -55,6 +55,7 @@ public class EmailChangeController {
         User actualUser = userService.findByEmail(oldMail).
                 orElseThrow(() -> new UserNotFoundException("Email not found"));
         userService.changeEmail(actualUser.getId(), newMail);
+        userService.invalidateAllSessions(actualUser.getUsername());
         return redirectUserToLogin(oldMail, newMail);
     }
 

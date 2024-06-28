@@ -53,6 +53,7 @@ public class ResetPasswordController {
         String oldPassword = foundUser.getPassword();
         //Since findByEmail returns a reference, the change in the password is automatically reflected in foundUser
         userService.changePassword(foundUser.getId(), resetForm.newPassword());
+        userService.invalidateAllSessions(foundUser.getUsername());
         return redirectUserToLogin(foundUser, oldPassword);
     }
 

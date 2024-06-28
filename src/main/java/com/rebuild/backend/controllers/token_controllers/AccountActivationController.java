@@ -43,7 +43,6 @@ public class AccountActivationController {
     public ResponseEntity<AccountActivationResponse> activateAccount(@RequestParam String token){
         String userEmail = tokenService.extractSubject(token);
         if(!tokenService.tokenNonExpired(token)){
-            //We still have to delete the token if it is expired, since we will send a new one
             throw new ActivationTokenExpiredException("This link has expired, please click this " +
                     "button to request a new token", token);
         }
@@ -51,7 +50,7 @@ public class AccountActivationController {
                 new ActivationTokenEmailMismatchException("A user with this email address hasn't been found"));
         actualUser.setEnabled(true);
         userService.save(actualUser);
-        //Immediately remove the tokens once they are used
+        userService.invalidateAllSessions(actualUser.getUsername());
         return redirectUserToLogin(actualUser, token);
     }
 
