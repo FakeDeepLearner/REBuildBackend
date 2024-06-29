@@ -20,12 +20,11 @@ public class SessionsConfig {
         return new SessionRegistryImpl();
     }
 
+    //Needed in order to make sure that the SessionRegistry listens to session invalidations and timeouts
     @Bean
     public HttpSessionEventPublisher eventPublisher(){
         return new HttpSessionEventPublisher();
     }
-
-
 
     @Bean
     public SecurityFilterChain sessionsFilterChain(HttpSecurity security) throws Exception {

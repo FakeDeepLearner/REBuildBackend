@@ -105,11 +105,11 @@ public class JWTTokenService {
     }
 
     public String generateRefreshToken(Authentication auth){
-        return generateTokenGivenExpiration(auth, 3, ChronoUnit.DAYS);
+        return generateTokenGivenExpiration(auth, 2, ChronoUnit.HOURS);
     }
 
     public String generateAccessToken(Authentication auth){
-        return generateTokenGivenExpiration(auth, 2, ChronoUnit.HOURS);
+        return generateTokenGivenExpiration(auth, 10, ChronoUnit.MINUTES);
     }
 
     public String extractTokenFromRequest(HttpServletRequest request){
