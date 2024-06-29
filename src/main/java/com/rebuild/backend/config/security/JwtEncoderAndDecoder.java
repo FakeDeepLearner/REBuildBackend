@@ -47,7 +47,7 @@ public class JwtEncoderAndDecoder {
 
     @Bean
     public JwtDecoder decoder() {
-        return NimbusJwtDecoder.withSecretKey((SecretKey) properties.privateKey()).build();
+        return NimbusJwtDecoder.withPublicKey(properties.publicKey()).build();
     }
 
     @Bean
