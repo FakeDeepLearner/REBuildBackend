@@ -15,6 +15,8 @@ spring:
       port: 6379
     rest:
       content-type: "application/json"
+  cache:
+    type: redis
 
   jpa:
     hibernate:
