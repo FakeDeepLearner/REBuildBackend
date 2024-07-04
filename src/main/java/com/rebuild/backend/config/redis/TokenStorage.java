@@ -27,7 +27,7 @@ public class TokenStorage {
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofMinutes(15)).
                 disableCachingNullValues().
-                prefixCacheNameWith("jwt_tokens::");
+                prefixCacheNameWith("jwt_tokens");
 
         return RedisCacheManager.
                 builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory)).

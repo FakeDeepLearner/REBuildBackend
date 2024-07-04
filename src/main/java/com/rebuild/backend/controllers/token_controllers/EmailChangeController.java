@@ -1,13 +1,14 @@
 package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.EmailChangeForm;
-import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
+import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
 @RestController
 public class EmailChangeController {
@@ -26,11 +26,15 @@ public class EmailChangeController {
 
     private final JWTTokenService tokenService;
 
+    private final TokenBlacklistService blacklistService;
+
     @Autowired
     public EmailChangeController(UserService userService,
-                                 JWTTokenService tokenService) {
+                                 JWTTokenService tokenService,
+                                 TokenBlacklistService blacklistService) {
         this.userService = userService;
         this.tokenService = tokenService;
+        this.blacklistService = blacklistService;
     }
 
     @PostMapping("/api/change_email")
@@ -56,6 +60,7 @@ public class EmailChangeController {
                 orElseThrow(() -> new UserNotFoundException("Email not found"));
         userService.changeEmail(actualUser.getId(), newMail);
         userService.invalidateAllSessions(actualUser.getUsername());
+        blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.EMAIL_CHANGE);
         return redirectUserToLogin(oldMail, newMail);
     }
 

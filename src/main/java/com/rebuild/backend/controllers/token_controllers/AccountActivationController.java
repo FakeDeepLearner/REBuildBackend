@@ -2,12 +2,14 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
+import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
+import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,11 +25,15 @@ public class AccountActivationController {
 
     private final UserService userService;
 
+    private final TokenBlacklistService blacklistService;
+
     @Autowired
     public AccountActivationController(JWTTokenService tokenService,
-                                       UserService userService) {
+                                       UserService userService,
+                                       TokenBlacklistService blacklistService) {
         this.tokenService = tokenService;
         this.userService = userService;
+        this.blacklistService = blacklistService;
     }
 
 
@@ -51,6 +57,7 @@ public class AccountActivationController {
         actualUser.setEnabled(true);
         userService.save(actualUser);
         userService.invalidateAllSessions(actualUser.getUsername());
+        blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.ACCOUNT_ACTIVATION);
         return redirectUserToLogin(actualUser, token);
     }
 

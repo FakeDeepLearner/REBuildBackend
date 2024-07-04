@@ -1,4 +1,4 @@
-package com.rebuild.backend.config.security;
+package com.rebuild.backend.config.security.filters;
 
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.service.token_services.JWTTokenService;

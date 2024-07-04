@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.security;
 
+import com.rebuild.backend.config.security.filters.JWTVerificationFilter;
 import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

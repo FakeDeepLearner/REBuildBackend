@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
+import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
@@ -9,6 +10,7 @@ import com.rebuild.backend.model.forms.PasswordResetForm;
 import com.rebuild.backend.model.responses.PasswordResetResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
+import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -25,11 +27,15 @@ public class ResetPasswordController {
 
     private final JWTTokenService tokenService;
 
+    private final TokenBlacklistService blacklistService;
+
     @Autowired
     public ResetPasswordController(
-            UserService userService, JWTTokenService tokenService) {
+            UserService userService, JWTTokenService tokenService,
+            TokenBlacklistService blacklistService) {
         this.userService = userService;
         this.tokenService = tokenService;
+        this.blacklistService = blacklistService;
     }
 
     @PostMapping("/api/reset")
@@ -54,6 +60,7 @@ public class ResetPasswordController {
         //Since findByEmail returns a reference, the change in the password is automatically reflected in foundUser
         userService.changePassword(foundUser.getId(), resetForm.newPassword());
         userService.invalidateAllSessions(foundUser.getUsername());
+        blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.PASSWORD_CHANGE);
         return redirectUserToLogin(foundUser, oldPassword);
     }
 
