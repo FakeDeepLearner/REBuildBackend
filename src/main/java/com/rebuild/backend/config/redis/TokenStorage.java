@@ -23,7 +23,7 @@ public class TokenStorage {
     }
 
     @Bean
-    public RedisCacheManager cacheManager(){
+    public RedisCacheManager redisCacheManager(){
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofMinutes(15)).
                 disableCachingNullValues();

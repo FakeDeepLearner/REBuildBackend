@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,6 +25,10 @@ public class ResumeService {
 
     public Header changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber){
         return repository.changeHeaderInfo(resID, newName, newEmail, newPhoneNumber);
+    }
+
+    public Resume findById(UUID id){
+        return repository.findById(id).orElseThrow(RuntimeException::new);
     }
 
     public Experience changeExperienceInfo(UUID resID, UUID expID,
