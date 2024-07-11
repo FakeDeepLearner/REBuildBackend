@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -19,6 +20,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private final UserRateLimitingService userRateLimitingService;
 
+    @Autowired
     public RateLimitingFilter(IPRateLimitingService ipRateLimitingService,
                               UserRateLimitingService userRateLimitingService) {
         this.ipRateLimitingService = ipRateLimitingService;
