@@ -39,7 +39,9 @@ spring:
     rate-limiting:
       ip-block-hours: 12
       user-block-hours: 24
-
+      # The limits are within one second
+      ip-request-limit: 5
+      user-request-limit: 30
 
   main:
     banner-mode: off
