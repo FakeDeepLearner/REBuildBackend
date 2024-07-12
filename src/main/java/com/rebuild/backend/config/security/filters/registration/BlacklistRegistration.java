@@ -1,5 +1,6 @@
-package com.rebuild.backend.config.security.filters;
+package com.rebuild.backend.config.security.filters.registration;
 
+import com.rebuild.backend.config.security.filters.JwtBlacklistFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;

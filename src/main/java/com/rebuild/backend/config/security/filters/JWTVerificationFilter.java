@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class JWTVerificationFilter extends OncePerRequestFilter {
+public class JWTVerificationFilter extends OncePerRequestFilter implements Ordered {
     private final JWTTokenService tokenService;
 
     private final UserDetailsService detailsService;
@@ -67,4 +68,8 @@ public class JWTVerificationFilter extends OncePerRequestFilter {
 
     }
 
+    @Override
+    public int getOrder() {
+        return 2;
+    }
 }

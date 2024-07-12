@@ -9,13 +9,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.filter.OrderedFilter;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Component
-public class JwtBlacklistFilter extends OncePerRequestFilter {
+public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered {
 
     private final TokenBlacklistService blacklistService;
 
@@ -51,5 +53,10 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
         }
         return TokenBlacklistPurpose.EMAIL_CHANGE;
 
+    }
+
+    @Override
+    public int getOrder() {
+        return 1;
     }
 }
