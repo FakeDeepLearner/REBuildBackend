@@ -52,7 +52,7 @@ spring:
 
 logging:
   level:
-    root: trace
+    root: warn
     org:
       springframework:
         security: trace

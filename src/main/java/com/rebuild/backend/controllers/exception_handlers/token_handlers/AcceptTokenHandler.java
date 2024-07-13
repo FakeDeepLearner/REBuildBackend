@@ -1,4 +1,4 @@
-package com.rebuild.backend.controllers.exception_handlers;
+package com.rebuild.backend.controllers.exception_handlers.token_handlers;
 
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;

@@ -1,4 +1,4 @@
-package com.rebuild.backend.controllers.exception_handlers;
+package com.rebuild.backend.controllers.exception_handlers.token_handlers;
 
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;

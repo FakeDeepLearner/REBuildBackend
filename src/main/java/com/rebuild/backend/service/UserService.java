@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
+import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.session.SessionInformation;
@@ -29,13 +30,16 @@ public class UserService{
 
     private final SessionRegistry sessionRegistry;
 
+    private final EmailOrUsernameDecider decider;
+
     @Autowired
     public UserService(UserRepository repository,
                        @Qualifier("peppered") PasswordEncoder encoder,
-                       SessionRegistry sessionRegistry){
+                       SessionRegistry sessionRegistry, EmailOrUsernameDecider decider){
         this.repository = repository;
         this.encoder = encoder;
         this.sessionRegistry = sessionRegistry;
+        this.decider = decider;
     }
 
     public void invalidateAllSessions(String username){
@@ -70,28 +74,23 @@ public class UserService{
     }
 
     public void validateLoginCredentials(LoginForm form) {
-        Optional<User> foundUsername = repository.findByUsername(form.emailOrUsername());
-        Optional<User> foundEmail = repository.findByEmail(form.emailOrUsername());
+        String formField = form.emailOrUsername();
+        User foundUser;
+        if(decider.isInputEmail(formField)){
+            foundUser = repository.findByEmail(formField).
+                    orElseThrow(() -> new UserNotFoundException("A user with the specified email does not exist"));
+        }
+        else{
+            foundUser = repository.findByUsername(formField).
+                    orElseThrow(() -> new UserNotFoundException("A user with the specified username does not exist"));
+        }
 
         String hashedPassword = encoder.encode(form.password());
 
-        if (foundEmail.isEmpty() && foundUsername.isEmpty()){
-            throw new UserNotFoundException("A user with the specified email or username doesn't exist");
+        if(!foundUser.getPassword().equals(hashedPassword)){
+            throw new WrongPasswordException("Wrong password");
         }
 
-        if (foundEmail.isPresent()){
-            User actualUser = foundEmail.get();
-            if (!actualUser.getPassword().equals(hashedPassword)){
-                throw new WrongPasswordException("Wrong password");
-            }
-        }
-
-        if (foundUsername.isPresent()){
-            User actualUser = foundUsername.get();
-            if (!actualUser.getPassword().equals(hashedPassword)){
-                throw new WrongPasswordException("Wrong password");
-            }
-        }
     }
 
     private boolean checkUsernameExists(String username){

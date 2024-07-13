@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
-import com.rebuild.backend.exceptions.not_found_exceptions.EmailDoesNotExistException;
 import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberParseException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
@@ -22,14 +21,6 @@ public class NotFoundHandler {
     @Autowired
     public NotFoundHandler(ExceptionBodyBuilder bodyBuilder) {
         this.bodyBuilder = bodyBuilder;
-    }
-
-
-    @ExceptionHandler(EmailDoesNotExistException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ResponseEntity<Map<String, String>> handleEmailDoesNotExist(EmailDoesNotExistException e){
-        Map<String, String> body = bodyBuilder.buildBody(e);
-        return ResponseEntity.unprocessableEntity().body(body);
     }
 
     @ExceptionHandler(UserNotFoundException.class)

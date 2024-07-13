@@ -2,6 +2,7 @@ package com.rebuild.backend.config.security.filters;
 
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.service.token_services.JWTTokenService;
+import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,14 +25,13 @@ import java.io.IOException;
 @Component
 public class JWTVerificationFilter extends OncePerRequestFilter implements Ordered {
     private final JWTTokenService tokenService;
-
-    private final UserDetailsService detailsService;
+    private final EmailOrUsernameDecider decider;
 
     @Autowired
     public JWTVerificationFilter(JWTTokenService tokenService,
-                                @Qualifier("details") UserDetailsService detailsService) {
+                                 EmailOrUsernameDecider decider) {
         this.tokenService = tokenService;
-        this.detailsService = detailsService;
+        this.decider = decider;
     }
 
 
@@ -48,10 +48,10 @@ public class JWTVerificationFilter extends OncePerRequestFilter implements Order
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         try {
             String accessToken = tokenService.extractTokenFromRequest(request);
-            String extractedUsername = tokenService.extractSubject(accessToken);
+            String subject = tokenService.extractSubject(accessToken);
             //The user is not authenticated yet
-            if (extractedUsername != null && SecurityContextHolder.getContext().getAuthentication() != null){
-                UserDetails details = detailsService.loadUserByUsername(extractedUsername);
+            if (subject != null && SecurityContextHolder.getContext().getAuthentication() != null){
+                UserDetails details = decider.createProperUserDetails(subject);
                 if (tokenService.isTokenValid(accessToken, details)){
                     UsernamePasswordAuthenticationToken newToken = new UsernamePasswordAuthenticationToken(
                             details, null, details.getAuthorities()

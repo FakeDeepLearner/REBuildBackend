@@ -4,6 +4,9 @@ import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchExcep
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.model.entities.TokenType;
+import com.rebuild.backend.service.CustomUserDetailsService;
+import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +16,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +25,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service("jwt")
@@ -32,7 +33,7 @@ public class JWTTokenService {
 
     private final JwtDecoder decoder;
 
-    private final UserDetailsService detailsService;
+    private final EmailOrUsernameDecider decider;
 
     private final Map<String, String> accessAndRefreshTokens = new ConcurrentHashMap<>();
 
@@ -43,11 +44,11 @@ public class JWTTokenService {
     @Autowired
     public JWTTokenService(@Qualifier("encoder") JwtEncoder encoder,
                            @Qualifier("decoder") JwtDecoder decoder,
-                           @Qualifier("details") UserDetailsService detailsService,
+                           EmailOrUsernameDecider decider,
                            @Qualifier("mailSender") JavaMailSender mailSender) {
         this.encoder = encoder;
         this.decoder = decoder;
-        this.detailsService = detailsService;
+        this.decider = decider;
         this.mailSender = mailSender;
     }
 
@@ -174,16 +175,16 @@ public class JWTTokenService {
     public String issueNewAccessToken(HttpServletRequest request){
         String refresh_token = extractTokenFromRequest(request);
         removeTokenPair(refresh_token);
-        String username = extractSubject(refresh_token);
-        UserDetails user =  detailsService.loadUserByUsername(username);
+        String subject = extractSubject(refresh_token);
+        UserDetails details = decider.createProperUserDetails(subject);
         Instant curr = Instant.now();
-        String claim = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+        String claim = details.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
         JwtClaimsSet claimsSet = JwtClaimsSet.builder().
                 issuer("self").
                 issuedAt(curr).
                 expiresAt(curr.plus(2, ChronoUnit.HOURS)).
-                subject(username).
+                subject(subject).
                 claim("scope", claim).
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
