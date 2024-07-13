@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "experiences")
+@Table(name = "experiences",
+        uniqueConstraints = {@UniqueConstraint(name = "uk_resume_company", columnNames = {"companyName", "resume_id"})})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -43,7 +44,7 @@ public class Experience {
     @NonNull
     private List<String> bullets;
 
-    @ManyToOne(fetch =  FetchType.LAZY)
+    @ManyToOne(fetch =  FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
         foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
     @NonNull

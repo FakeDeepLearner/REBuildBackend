@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
@@ -38,6 +39,12 @@ public class ConflictStatusHandler {
 
     @ExceptionHandler(TokenAlreadySentException.class)
     public ResponseEntity<Map<String, String>> handleTokenSent(TokenAlreadySentException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(ResumeCompanyConstraintException.class)
+    public ResponseEntity<Map<String, String>> handleResumeCompanyConstraint(ResumeCompanyConstraintException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }

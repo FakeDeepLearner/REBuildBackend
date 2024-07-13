@@ -1,10 +1,13 @@
 package com.rebuild.backend.service;
 
 
+import com.rebuild.backend.exceptions.conflict_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.repository.ResumeRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -44,33 +47,29 @@ public class ResumeService {
     }
 
     public Header createNewHeader(UUID resID, String name, String email, PhoneNumber phoneNumber){
-        Header createdHeader = repository.createNewHeader(resID, name, email,
+        return repository.createNewHeader(resID, name, email,
                 phoneNumber.getCountryCode(), phoneNumber.getAreaCode(), phoneNumber.getRestOfNumber());
-        Resume foundResume = repository.findById(resID).orElseThrow(RuntimeException::new);
-        foundResume.setHeader(createdHeader);
-        repository.save(foundResume);
-        return createdHeader;
 
     }
 
     public Experience createNewExperience(UUID resID, String companyName,
                                           List<String> technologies,
                                           Duration duration, List<String> bullets){
-        Experience createdExperience =
-                repository.createNewExperience(resID, companyName, technologies, duration, bullets);
-        Resume foundResume = repository.findById(resID).orElseThrow(RuntimeException::new);
-        foundResume.addExperience(createdExperience);
-        repository.save(foundResume);
-        return createdExperience;
+        try {
+            return repository.createNewExperience(resID, companyName, technologies, duration, bullets);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException
+                    && violationException.getConstraintName().equals("uk_resume_company")){
+                throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
+            }
+            throw e;
+        }
     }
 
     public Education createNewEducation(UUID resID, String schoolName, List<String> courseWork){
-        Education createdEducation =
-                repository.createNewEducation(resID, schoolName, courseWork);
-        Resume foundResume = repository.findById(resID).orElseThrow(RuntimeException::new);
-        foundResume.setEducation(createdEducation);
-        repository.save(foundResume);
-        return createdEducation;
+        return repository.createNewEducation(resID, schoolName, courseWork);
     }
 
     public Resume save(Resume resume){

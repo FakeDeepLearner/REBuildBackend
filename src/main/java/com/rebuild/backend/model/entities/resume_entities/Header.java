@@ -33,7 +33,7 @@ public class Header {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "resume_id", referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "head_fk_resume_id"))
     private Resume resume;

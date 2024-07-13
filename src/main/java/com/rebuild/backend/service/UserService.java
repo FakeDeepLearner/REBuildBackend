@@ -9,14 +9,17 @@ import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import com.rebuild.backend.utils.EmailOrUsernameDecider;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -66,7 +69,17 @@ public class UserService{
     }
 
     public void changeEmail(UUID userID, String newEmail){
-        repository.changeEmail(userID, newEmail);
+        try {
+            repository.changeEmail(userID, newEmail);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException){
+                if (violationException.getConstraintName().equals("uk_email")){
+                    throw new EmailAlreadyExistsException("This email address already exists");
+                }
+            }
+        }
     }
 
     public List<Resume> getAllResumesById(UUID userID){
@@ -93,27 +106,25 @@ public class UserService{
 
     }
 
-    private boolean checkUsernameExists(String username){
-        Optional<User> checkedUser = repository.findByUsername(username);
-        return checkedUser.isPresent();
-    }
-
-    private boolean checkEmailExists(String email){
-        Optional<User> checkedUser = repository.findByEmail(email);
-        return checkedUser.isPresent();
-    }
-
     public User createNewUser(String username, String rawPassword, String email){
-        if (checkUsernameExists(username)){
-            throw new UsernameAlreadyExistsException("This username is taken.");
-        }
-
-        if (checkEmailExists(email)){
-            throw new EmailAlreadyExistsException("There is already an account with this email address.");
-        }
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(username, encodedPassword, email);
-        return save(newUser);
+        try {
+            return save(newUser);
+        }
+        catch (DataIntegrityViolationException integrityViolationException){
+            Throwable cause = integrityViolationException.getCause();
+            if (cause instanceof ConstraintViolationException violationException){
+                String violatedConstraint = violationException.getConstraintName();
+                switch (violatedConstraint){
+                    case "uk_username" -> throw new UsernameAlreadyExistsException("This username is taken.");
+                    case "uk_email" -> throw new
+                            EmailAlreadyExistsException("This email address is taken");
+
+                }
+            }
+            throw integrityViolationException;
+        }
     }
 
     public User save(User user){

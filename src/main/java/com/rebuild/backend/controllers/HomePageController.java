@@ -47,11 +47,4 @@ public class HomePageController {
         return resumeService.save(newResume);
     }
 
-    @PostMapping("/api/{user_id}/change_email")
-    public RedirectView changeEmail(@PathVariable UUID user_id, @RequestBody EmailChangeForm changeForm){
-        userService.changeEmail(user_id, changeForm.newEmail());
-        return new RedirectView("/home/" + user_id);
-    }
-
-
 }
