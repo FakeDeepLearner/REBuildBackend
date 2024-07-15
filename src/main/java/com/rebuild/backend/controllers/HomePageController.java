@@ -38,12 +38,10 @@ public class HomePageController {
     @PostMapping("/api/{user_id}/create")
     @ResponseStatus(HttpStatus.CREATED)
     public Resume createNewResume(@PathVariable UUID user_id){
-        Optional<User> creatingUser = userService.findByID(user_id);
-        if(creatingUser.isEmpty()){
-            throw new UserNotFoundException("User not found with the given ID");
-        }
-        User actualUser = creatingUser.get();
-        Resume newResume = new Resume(actualUser);
+        User creatingUser = userService.findByID(user_id).
+                orElseThrow(() -> new UserNotFoundException("User not found with the given id"));
+
+        Resume newResume = new Resume(creatingUser);
         return resumeService.save(newResume);
     }
 

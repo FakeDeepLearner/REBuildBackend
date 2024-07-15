@@ -9,6 +9,7 @@ import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
+import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,13 +29,16 @@ public class EmailChangeController {
 
     private final TokenBlacklistService blacklistService;
 
+    private final EmailOrUsernameDecider decider;
+
     @Autowired
     public EmailChangeController(UserService userService,
                                  JWTTokenService tokenService,
-                                 TokenBlacklistService blacklistService) {
+                                 TokenBlacklistService blacklistService, EmailOrUsernameDecider decider) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.blacklistService = blacklistService;
+        this.decider = decider;
     }
 
     @PostMapping("/api/change_email")
@@ -54,14 +58,22 @@ public class EmailChangeController {
         if(!tokenService.tokenNonExpired(token)){
             throw new RuntimeException();
         }
-        String oldMail = tokenService.extractSubject(token);
+        String subject = tokenService.extractSubject(token);
         String newMail = tokenService.extractNewMail(token);
-        User actualUser = userService.findByEmail(oldMail).
-                orElseThrow(() -> new UserNotFoundException("Email not found"));
-        userService.changeEmail(actualUser.getId(), newMail);
-        userService.invalidateAllSessions(actualUser.getUsername());
+        User user;
+        if (decider.isInputEmail(subject)) {
+            user = userService.findByEmail(subject).
+                    orElseThrow(() -> new UserNotFoundException("Email not found"));
+        }
+        else{
+            user = userService.findByUsername(subject).
+                    orElseThrow(() -> new UserNotFoundException("Username not found"));
+        }
+
+        userService.changeEmail(user.getId(), newMail);
+        userService.invalidateAllSessions(user.getUsername());
         blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.EMAIL_CHANGE);
-        return redirectUserToLogin(oldMail, newMail);
+        return redirectUserToLogin(subject, newMail);
     }
 
     private ResponseEntity<EmailChangeResponse> redirectUserToLogin(String oldEmail, String newEmail){

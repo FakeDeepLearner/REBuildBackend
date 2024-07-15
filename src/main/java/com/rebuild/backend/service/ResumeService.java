@@ -39,7 +39,17 @@ public class ResumeService {
                                            List<String> newTechnologies,
                                            Duration newDuration,
                                            List<String> newBullets){
-        return repository.changeExperienceInfo(resID, expID, newCompanyName, newTechnologies ,newDuration, newBullets);
+        try {
+            return repository.changeExperienceInfo(resID, expID, newCompanyName, newTechnologies, newDuration, newBullets);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException
+                    && violationException.getConstraintName().equals("uk_resume_company")){
+                throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
+            }
+            throw e;
+        }
     }
 
     public Education changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
