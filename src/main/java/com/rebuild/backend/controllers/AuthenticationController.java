@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
+import com.rebuild.backend.model.forms.AccountActivationDTO;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.model.forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
@@ -43,7 +43,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponse processLogin(@Valid @RequestBody LoginForm form){
+    public ResponseEntity<AuthResponse> processLogin(@Valid @RequestBody LoginForm form){
         userService.validateLoginCredentials(form);
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -51,15 +51,26 @@ public class AuthenticationController {
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
         tokenService.addTokenPair(accessToken, refreshToken);
-        return new AuthResponse(accessToken, refreshToken);
+        AuthResponse responseBody = new AuthResponse(accessToken, refreshToken);
+        if(form.remember()) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.SET_COOKIE, accessToken);
+            return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseBody);
+        }
+        else{
+            return ResponseEntity.ok(responseBody);
+        }
     }
 
     @PostMapping("/signup")
     public ResponseEntity<Void> processSignup(@Valid @RequestBody SignupForm signupForm){
+
         User createdUser =
                 userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
-        AccountActivationOrResetForm form  = new AccountActivationOrResetForm(createdUser.getEmail(), 20L, ChronoUnit.MINUTES);
-        HttpEntity<AccountActivationOrResetForm> body = new HttpEntity<>(form);
+        AccountActivationDTO form  =
+                new AccountActivationDTO(createdUser.getEmail(), signupForm.password(), 20L, ChronoUnit.MINUTES,
+                         signupForm.remember());
+        HttpEntity<AccountActivationDTO> body = new HttpEntity<>(form);
         return new RestTemplate().exchange("/api/activate", HttpMethod.POST, body, Void.TYPE);
     }
 

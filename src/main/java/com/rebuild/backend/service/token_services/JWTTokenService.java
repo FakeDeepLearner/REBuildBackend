@@ -4,8 +4,6 @@ import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchExcep
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.model.entities.TokenType;
-import com.rebuild.backend.service.CustomUserDetailsService;
-import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +22,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -81,13 +80,44 @@ public class JWTTokenService {
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
 
-    public String generateTokenGivenEmailAndExpiration(String email,
-                                                       @Nullable String newMail,
-                                                       long amount,
-                                                       ChronoUnit unit,
-                                                       String purpose){
+
+    public String generateTokenForEmailChange(String email, String newEmail, long amount,
+                                              ChronoUnit unit,
+                                              String purpose){
         if(purpose.equals(TokenType.CHANGE_EMAIL.typeName)){
-            return generateGivenBothEmails(email, newMail, amount, unit);
+            return generateGivenBothEmails(email, newEmail, amount, unit);
+        }
+        else{
+            throw new NullPointerException("Token type must be change_email");
+        }
+
+
+    }
+
+
+    public String generateTokenForPasswordReset(String email, long amount, ChronoUnit unit, String purpose){
+        if(!Objects.equals(purpose, TokenType.CHANGE_PASSWORD.typeName)){
+            throw new NullPointerException("purpose must be change_password");
+        }
+
+        Instant curr = Instant.now();
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder().
+                issuer("self").
+                issuedAt(curr).
+                expiresAt(curr.plus(amount, unit)).
+                subject(email).
+                build();
+        return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    public String generateTokenForAccountActivation(String email,
+                                                    long amount,
+                                                    ChronoUnit unit,
+                                                    String purpose,
+                                                    boolean remember,
+                                                    String password){
+        if(!Objects.equals(purpose, TokenType.ACTIVATE_ACCOUNT.typeName)){
+            throw new NullPointerException("Purpose must be activate_account");
         }
         Instant curr = Instant.now();
         JwtClaimsSet claimsSet = JwtClaimsSet.builder().
@@ -95,7 +125,8 @@ public class JWTTokenService {
                 issuedAt(curr).
                 expiresAt(curr.plus(amount, unit)).
                 subject(email).
-                claims(claims -> claims.put("purpose", purpose)).
+                claim("password", password).
+                claim("rememberMe", remember).
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
@@ -130,6 +161,17 @@ public class JWTTokenService {
     public String extractSubject(String token) {
         Jwt allClaims = extractAllClaims(token);
         return allClaims.getClaimAsString("sub");
+    }
+
+    public String extractPassword(String token){
+        Jwt allClaims = extractAllClaims(token);
+        return allClaims.getClaimAsString("password");
+    }
+
+
+    public boolean extractRemember(String token){
+        Jwt allClaims = extractAllClaims(token);
+        return allClaims.getClaimAsBoolean("rememberMe");
     }
 
     public String extractNewMail(String token){

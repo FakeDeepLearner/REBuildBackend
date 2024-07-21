@@ -4,5 +4,6 @@ import com.rebuild.backend.model.constraints.username.LoginFieldConstraint;
 
 public record LoginForm(@LoginFieldConstraint
                         String emailOrUsername,
-                        String password) {
+                        String password,
+                        boolean remember) {
 }

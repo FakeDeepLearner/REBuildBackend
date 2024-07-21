@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEx
 import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
+import com.rebuild.backend.model.forms.AccountActivationDTO;
 import com.rebuild.backend.model.forms.PasswordResetForm;
 import com.rebuild.backend.model.responses.PasswordResetResponse;
 import com.rebuild.backend.service.UserService;
@@ -39,9 +39,11 @@ public class ResetPasswordController {
     }
 
     @PostMapping("/api/reset")
-    public void sendResetEmail(@RequestBody AccountActivationOrResetForm resetForm){
-        String newToken = tokenService.generateTokenGivenEmailAndExpiration(resetForm.email(),
-                null ,resetForm.timeCount(), resetForm.timeUnit(), TokenType.CHANGE_PASSWORD.typeName);
+    public void sendResetEmail(@RequestBody AccountActivationDTO resetForm){
+        String newToken = tokenService.generateTokenForPasswordReset(
+                resetForm.email(), resetForm.timeCount(), resetForm.timeUnit(),
+                TokenType.CHANGE_PASSWORD.typeName
+        );
         tokenService.sendProperEmail(newToken, resetForm.timeCount(), resetForm.timeUnit());
     }
 

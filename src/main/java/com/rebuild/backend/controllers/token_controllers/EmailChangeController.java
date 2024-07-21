@@ -47,8 +47,8 @@ public class EmailChangeController {
         String username = currentDetails.getUsername();
         User actualUser = userService.findByUsername(username).
                 orElseThrow(() -> new UserNotFoundException("Username" + username + "not found"));
-        String newToken = tokenService.generateTokenGivenEmailAndExpiration(actualUser.getEmail(),
-                changeForm.newEmail(), 15, ChronoUnit.MINUTES, TokenType.CHANGE_EMAIL.typeName);
+        String newToken = tokenService.generateTokenForEmailChange(actualUser.getEmail(), changeForm.newEmail(),15L,
+                ChronoUnit.MINUTES, TokenType.CHANGE_EMAIL.typeName);
         tokenService.sendProperEmail(newToken, 15L, ChronoUnit.MINUTES);
     }
 

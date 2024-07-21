@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.Activat
 import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.AccountActivationOrResetForm;
+import com.rebuild.backend.model.forms.AccountActivationDTO;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -27,20 +30,25 @@ public class AccountActivationController {
 
     private final TokenBlacklistService blacklistService;
 
+    private final AuthenticationManager authManager;
+
     @Autowired
     public AccountActivationController(JWTTokenService tokenService,
                                        UserService userService,
-                                       TokenBlacklistService blacklistService) {
+                                       TokenBlacklistService blacklistService,
+                                       AuthenticationManager authManager) {
         this.tokenService = tokenService;
         this.userService = userService;
         this.blacklistService = blacklistService;
+        this.authManager = authManager;
     }
 
 
     @PostMapping("/api/activate")
-    public void sendActivationEmail(@RequestBody AccountActivationOrResetForm activationForm){
-        String newToken = tokenService.generateTokenGivenEmailAndExpiration(activationForm.email(),
-                null ,activationForm.timeCount(), activationForm.timeUnit(), TokenType.ACTIVATE_ACCOUNT.typeName);
+    public void sendActivationEmail(@RequestBody AccountActivationDTO activationForm){
+        String newToken = tokenService.generateTokenForAccountActivation(activationForm.email(),
+                activationForm.timeCount(), activationForm.timeUnit(),
+                TokenType.ACTIVATE_ACCOUNT.typeName, activationForm.remember(), activationForm.password());
         tokenService.sendProperEmail(newToken, activationForm.timeCount(), activationForm.timeUnit());
     }
 
@@ -58,13 +66,28 @@ public class AccountActivationController {
         userService.save(actualUser);
         userService.invalidateAllSessions(actualUser.getUsername());
         blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.ACCOUNT_ACTIVATION);
-        return redirectUserToLogin(actualUser, token);
+
+        boolean remembered = tokenService.extractRemember(token);
+        String enteredPassword = tokenService.extractPassword(token);
+
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(userEmail, enteredPassword)
+        );
+        String accessToken = tokenService.generateAccessToken(auth);
+        String refreshToken = tokenService.generateRefreshToken(auth);
+        tokenService.addTokenPair(accessToken, refreshToken);
+        return redirectUserToLogin(actualUser, remembered, accessToken, refreshToken);
     }
 
-    private ResponseEntity<AccountActivationResponse> redirectUserToLogin(User user, String activationToken){
+    private ResponseEntity<AccountActivationResponse> redirectUserToLogin(User user,
+                                                                          boolean remembered, String accessToken,
+                                                                          String refreshToken){
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/login");
-        AccountActivationResponse body = new AccountActivationResponse(user.getEmail(), activationToken);
+        headers.add("Location", "/home/" + user.getId());
+        if(remembered){
+            headers.add(HttpHeaders.SET_COOKIE, accessToken);
+        }
+        AccountActivationResponse body = new AccountActivationResponse(user.getEmail(), accessToken, refreshToken);
         return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);
 
     }

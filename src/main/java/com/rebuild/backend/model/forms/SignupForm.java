@@ -10,5 +10,7 @@ public record SignupForm(@UsernameLengthConstraint
                          String username,
                          @PasswordSizeAndPatternConstraint
                          String password,
-                         @Email(message = "Must be a valid email") String email) {
+                         @Email(message = "Must be a valid email") String email,
+
+                         boolean remember) {
 }
