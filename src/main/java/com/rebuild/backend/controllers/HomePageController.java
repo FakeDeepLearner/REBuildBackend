@@ -3,16 +3,13 @@ package com.rebuild.backend.controllers;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.EmailChangeForm;
 import com.rebuild.backend.service.ResumeService;
 import com.rebuild.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
