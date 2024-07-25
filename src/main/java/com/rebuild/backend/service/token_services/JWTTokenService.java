@@ -1,11 +1,11 @@
 package com.rebuild.backend.service.token_services;
 
+import com.rebuild.backend.config.properties.MailAppCredentials;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.model.entities.TokenType;
 import com.rebuild.backend.utils.EmailOrUsernameDecider;
-import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,15 +40,19 @@ public class JWTTokenService {
 
     private final JavaMailSender mailSender;
 
+    private final MailAppCredentials credentials;
+
     @Autowired
     public JWTTokenService(@Qualifier("encoder") JwtEncoder encoder,
                            @Qualifier("decoder") JwtDecoder decoder,
                            EmailOrUsernameDecider decider,
-                           @Qualifier("mailSender") JavaMailSender mailSender) {
+                           @Qualifier("mailSender") JavaMailSender mailSender,
+                           MailAppCredentials credentials) {
         this.encoder = encoder;
         this.decoder = decoder;
         this.decider = decider;
         this.mailSender = mailSender;
+        this.credentials = credentials;
     }
 
     private String generateTokenGivenExpiration(Authentication auth, long amount, ChronoUnit unit){
@@ -248,10 +252,16 @@ public class JWTTokenService {
        }
     }
 
+    private void prePrepareMessage(SimpleMailMessage message, String to){
+        message.setFrom(credentials.address());
+        message.setTo(to);
+        message.setReplyTo(credentials.replyTo());
+    }
+
     private void sendActivationEmail(String addressFor, String activationToken,
                                     Long timeCount, ChronoUnit timeUnit){
         SimpleMailMessage mailMessage =  new SimpleMailMessage();
-        mailMessage.setTo(addressFor);
+        prePrepareMessage(mailMessage, addressFor);
         mailMessage.setSubject("Account activation");
         String activationUrl = "/api/activate?token=" + activationToken;
         String timeStringDefault = timeUnit.toString().toLowerCase(Locale.CANADA);
@@ -272,7 +282,7 @@ public class JWTTokenService {
 
     private void sendResetEmail(String addressFor, String resetToken, Long timeCount, ChronoUnit timeUnit){
         SimpleMailMessage mailMessage =  new SimpleMailMessage();
-        mailMessage.setTo(addressFor);
+        prePrepareMessage(mailMessage, addressFor);
         mailMessage.setSubject("Reset your password");
         String activationUrl = "/api/reset?token=" + resetToken;
         String timeStringDefault = timeUnit.toString().toLowerCase(Locale.CANADA);
@@ -294,7 +304,7 @@ public class JWTTokenService {
     private void sendEmailChange(String addressFor, String activationToken,
                                     Long timeCount, ChronoUnit timeUnit){
         SimpleMailMessage mailMessage =  new SimpleMailMessage();
-        mailMessage.setTo(addressFor);
+        prePrepareMessage(mailMessage, addressFor);
         mailMessage.setSubject("Change email");
         String activationUrl = "/api/change_mail?token=" + activationToken;
         String timeStringDefault = timeUnit.toString().toLowerCase(Locale.CANADA);

@@ -36,6 +36,7 @@ spring:
     mail-credentials:
       app-password: classpath:/outlook_app_password.txt
       address: classpath:/email.txt
+      reply-to: classpath:/reply_to.txt
     rate-limiting:
       ip-block-hours: 12
       user-block-hours: 24
