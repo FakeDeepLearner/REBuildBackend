@@ -27,14 +27,17 @@ public class IPStorage{
 
     @Bean
         public RedisCacheManager ipCacheManager(){
-        RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().
+        RedisCacheConfiguration blockedConfiguration = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofHours(hoursBlocked)).
                 disableCachingNullValues();
 
+        RedisCacheConfiguration connectionsConfiguration = RedisCacheConfiguration.defaultCacheConfig().
+                entryTtl(Duration.ofSeconds(1)).disableCachingNullValues();
+
         return RedisCacheManager.
                 builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory)).
-                cacheDefaults(cacheConfiguration).
-                withCacheConfiguration("blocked_ips", cacheConfiguration).
+                withCacheConfiguration("blocked_ips", blockedConfiguration).
+                withCacheConfiguration("connection_counts", connectionsConfiguration).
                 disableCreateOnMissingCache().
                 transactionAware().
                 build();

@@ -18,10 +18,14 @@ public class IPRateLimitingService {
 
     private final int hoursBlocked;
 
+    private final int ipRequestLimit;
+
     public IPRateLimitingService(@Qualifier("ipCacheManager") RedisCacheManager cacheManager,
-                                 @Value(value = "${spring.security.rate-limiting.ip-block-hours}") int hoursBlocked) {
+                                 @Value(value = "${spring.security.rate-limiting.ip-block-hours}") int hoursBlocked,
+                                 @Value("${spring.security.rate-limiting.ip-request-limit}") int ipRequestLimit) {
         this.cacheManager = cacheManager;
         this.hoursBlocked = hoursBlocked;
+        this.ipRequestLimit = ipRequestLimit;
     }
 
     public void blockIpAddress(String address){
@@ -29,6 +33,26 @@ public class IPRateLimitingService {
         if (ipCache != null) {
             //Put the address as the key and expiration time as the value
             ipCache.putIfAbsent(address, Instant.now().plus(hoursBlocked, ChronoUnit.HOURS));
+        }
+    }
+
+    public void registerConnection(String address){
+        if(!isAddressBlocked(address)) {
+            Cache connectionsCache = cacheManager.getCache("connection_counts");
+            if (connectionsCache != null) {
+                Cache.ValueWrapper wrapper = connectionsCache.get(address);
+                //If the address doesn't already exist, add it to the cache with a value of 1
+                if (wrapper == null) {
+                    connectionsCache.put(address, 1);
+                    return;
+                }
+                Integer actualValue = (Integer) wrapper.get();
+                connectionsCache.put(address, actualValue + 1);
+                if (actualValue + 1 == ipRequestLimit) {
+                    blockIpAddress(address);
+                }
+
+            }
         }
     }
 
