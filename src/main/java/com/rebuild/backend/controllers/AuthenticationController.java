@@ -47,7 +47,7 @@ public class AuthenticationController {
         userService.validateLoginCredentials(form);
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        form.emailOrUsername(), form.password()));
+                        form.email(), form.password()));
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
         tokenService.addTokenPair(accessToken, refreshToken);
@@ -66,7 +66,7 @@ public class AuthenticationController {
     public ResponseEntity<Void> processSignup(@Valid @RequestBody SignupForm signupForm){
 
         User createdUser =
-                userService.createNewUser(signupForm.username(), signupForm.password(), signupForm.email());
+                userService.createNewUser(signupForm.password(), signupForm.email());
         AccountActivationDTO form  =
                 new AccountActivationDTO(createdUser.getEmail(), signupForm.password(), 20L, ChronoUnit.MINUTES,
                          signupForm.remember());

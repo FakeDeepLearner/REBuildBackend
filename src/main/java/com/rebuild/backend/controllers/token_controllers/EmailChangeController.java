@@ -9,7 +9,6 @@ import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
-import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,25 +28,21 @@ public class EmailChangeController {
 
     private final TokenBlacklistService blacklistService;
 
-    private final EmailOrUsernameDecider decider;
 
     @Autowired
     public EmailChangeController(UserService userService,
                                  JWTTokenService tokenService,
-                                 TokenBlacklistService blacklistService, EmailOrUsernameDecider decider) {
+                                 TokenBlacklistService blacklistService) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.blacklistService = blacklistService;
-        this.decider = decider;
     }
 
     @PostMapping("/api/change_email")
     public void sendEmailChange(@RequestBody EmailChangeForm changeForm,
                                 @AuthenticationPrincipal UserDetails currentDetails){
-        String username = currentDetails.getUsername();
-        User actualUser = userService.findByUsername(username).
-                orElseThrow(() -> new UserNotFoundException("Username" + username + "not found"));
-        String newToken = tokenService.generateTokenForEmailChange(actualUser.getEmail(), changeForm.newEmail(),15L,
+        String oldEmail = currentDetails.getUsername();
+        String newToken = tokenService.generateTokenForEmailChange(oldEmail, changeForm.newEmail(),15L,
                 ChronoUnit.MINUTES, TokenType.CHANGE_EMAIL.typeName);
         tokenService.sendProperEmail(newToken, 15L, ChronoUnit.MINUTES);
     }
@@ -60,15 +55,7 @@ public class EmailChangeController {
         }
         String subject = tokenService.extractSubject(token);
         String newMail = tokenService.extractNewMail(token);
-        User user;
-        if (decider.isInputEmail(subject)) {
-            user = userService.findByEmail(subject).
-                    orElseThrow(() -> new UserNotFoundException("Email not found"));
-        }
-        else{
-            user = userService.findByUsername(subject).
-                    orElseThrow(() -> new UserNotFoundException("Username not found"));
-        }
+        User user = userService.findByEmail(subject).orElseThrow(() -> new UserNotFoundException("Email not found"));
 
         userService.changeEmail(user.getId(), newMail);
         userService.invalidateAllSessions(user.getUsername());

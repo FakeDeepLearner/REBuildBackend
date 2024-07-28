@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchExcep
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.model.entities.TokenType;
-import com.rebuild.backend.utils.EmailOrUsernameDecider;
+import com.rebuild.backend.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,7 +32,7 @@ public class JWTTokenService {
 
     private final JwtDecoder decoder;
 
-    private final EmailOrUsernameDecider decider;
+    private final CustomUserDetailsService detailsService;
 
     private final Map<String, String> accessAndRefreshTokens = new ConcurrentHashMap<>();
 
@@ -45,12 +45,12 @@ public class JWTTokenService {
     @Autowired
     public JWTTokenService(@Qualifier("encoder") JwtEncoder encoder,
                            @Qualifier("decoder") JwtDecoder decoder,
-                           EmailOrUsernameDecider decider,
+                           CustomUserDetailsService detailsService,
                            @Qualifier("mailSender") JavaMailSender mailSender,
                            MailAppCredentials credentials) {
         this.encoder = encoder;
         this.decoder = decoder;
-        this.decider = decider;
+        this.detailsService = detailsService;
         this.mailSender = mailSender;
         this.credentials = credentials;
     }
@@ -222,7 +222,7 @@ public class JWTTokenService {
         String refresh_token = extractTokenFromRequest(request);
         removeTokenPair(refresh_token);
         String subject = extractSubject(refresh_token);
-        UserDetails details = decider.createProperUserDetails(subject);
+        UserDetails details = detailsService.loadUserByEmail(subject);
         Instant curr = Instant.now();
         String claim = details.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));

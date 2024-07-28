@@ -6,13 +6,13 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NoUsernameInPasswordValidator implements ConstraintValidator<NoUsernameInPasswordConstraint, SignupForm> {
+public class NoUsernameInPasswordValidator implements ConstraintValidator<NoEmailInPasswordConstraint, SignupForm> {
 
 
     @Override
     public boolean isValid(SignupForm form, ConstraintValidatorContext constraintValidatorContext) {
         String obtainedPassword = form.password();
 
-        return !obtainedPassword.contains(form.username());
+        return !obtainedPassword.contains(form.email());
     }
 }

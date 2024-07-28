@@ -8,7 +8,6 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
-import com.rebuild.backend.utils.EmailOrUsernameDecider;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,16 +31,14 @@ public class UserService{
 
     private final SessionRegistry sessionRegistry;
 
-    private final EmailOrUsernameDecider decider;
 
     @Autowired
     public UserService(UserRepository repository,
                        @Qualifier("peppered") PasswordEncoder encoder,
-                       SessionRegistry sessionRegistry, EmailOrUsernameDecider decider){
+                       SessionRegistry sessionRegistry){
         this.repository = repository;
         this.encoder = encoder;
         this.sessionRegistry = sessionRegistry;
-        this.decider = decider;
     }
 
     public void invalidateAllSessions(String username){
@@ -61,7 +57,6 @@ public class UserService{
         return repository.findByEmail(email);
     }
 
-    public Optional<User> findByUsername(String username) {return repository.findByUsername(username);}
 
     public void changePassword(UUID userID, String newPassword){
         String newHashedPassword = encoder.encode(newPassword);
@@ -87,16 +82,9 @@ public class UserService{
     }
 
     public void validateLoginCredentials(LoginForm form) {
-        String formField = form.emailOrUsername();
-        User foundUser;
-        if(decider.isInputEmail(formField)){
-            foundUser = repository.findByEmail(formField).
-                    orElseThrow(() -> new UserNotFoundException("A user with the specified email does not exist"));
-        }
-        else{
-            foundUser = repository.findByUsername(formField).
-                    orElseThrow(() -> new UserNotFoundException("A user with the specified username does not exist"));
-        }
+        String formField = form.email();
+        User foundUser = repository.findByEmail(formField).
+                orElseThrow(() -> new UserNotFoundException("A user with the specified email does not exist"));;
 
         String hashedPassword = encoder.encode(form.password());
 
@@ -106,9 +94,9 @@ public class UserService{
 
     }
 
-    public User createNewUser(String username, String rawPassword, String email){
+    public User createNewUser(String rawPassword, String email){
         String encodedPassword = encoder.encode(rawPassword);
-        User newUser = new User(username, encodedPassword, email);
+        User newUser = new User(encodedPassword, email);
         try {
             return save(newUser);
         }

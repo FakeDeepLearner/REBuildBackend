@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = NoUsernameInPasswordValidator.class)
-public @interface NoUsernameInPasswordConstraint {
+public @interface NoEmailInPasswordConstraint {
     String message() default "The password may not contain your username.";
 }

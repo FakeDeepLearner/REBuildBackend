@@ -29,12 +29,6 @@ public class User implements UserDetails {
     )
     private UUID id;
 
-    @Column(
-            nullable = false,
-            name = "username"
-    )
-    @NonNull
-    private String username;
 
 
     @Column(
@@ -81,6 +75,11 @@ public class User implements UserDetails {
         else{
             return List.of(freeAuthority, paidAuthority);
         }
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override

@@ -54,7 +54,7 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
         }
         LoginForm reqBody = extractRequestBody(request);
         if(reqBody != null) {
-            String username = reqBody.emailOrUsername();
+            String username = reqBody.email();
             if (userRateLimitingService.isUserBlocked(username)){
                 filterChain.doFilter(request, response);
                 throw new UserBlockedException("Your account has been temporarily suspended because you have made too" +
@@ -84,6 +84,6 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
 
     @Override
     public int getOrder() {
-        return 3;
+        return 1;
     }
 }
