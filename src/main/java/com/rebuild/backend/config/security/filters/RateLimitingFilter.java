@@ -54,19 +54,19 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
         }
         LoginForm reqBody = extractRequestBody(request);
         if(reqBody != null) {
-            String username = reqBody.email();
-            if (userRateLimitingService.isUserBlocked(username)){
+            String email = reqBody.email();
+            userRateLimitingService.registerConnection(email);
+            if (userRateLimitingService.isEmailBlocked(email)){
                 filterChain.doFilter(request, response);
                 throw new UserBlockedException("Your account has been temporarily suspended because you have made too" +
-                        "many attempts to log in", Duration.from(userRateLimitingService.getTimeRemaining(username)));
+                        "many attempts to log in", Duration.from(userRateLimitingService.getTimeRemaining(email)));
             }
         }
         filterChain.doFilter(request, response);
 
     }
 
-    @SneakyThrows
-    private LoginForm extractRequestBody(HttpServletRequest request){
+    private LoginForm extractRequestBody(HttpServletRequest request) throws IOException {
         StringBuilder builder = new StringBuilder();
         String method = request.getMethod();
         InputStream requestStream = request.getInputStream();

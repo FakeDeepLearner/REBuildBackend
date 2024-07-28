@@ -17,31 +17,55 @@ public class UserRateLimitingService {
 
     private final int hoursBlocked;
 
+    private final int userRequestLimit;
+
     public UserRateLimitingService(@Qualifier("userCacheManager") RedisCacheManager cacheManager,
-                                   @Value(value = "${spring.security.rate-limiting.user-block-hours}") int hoursBlocked) {
+                                   @Value(value = "${spring.security.rate-limiting.user-block-hours}") int hoursBlocked,
+                                   @Value("${spring.security.rate-limiting.user-request-limit}") int userRequestLimit) {
         this.cacheManager = cacheManager;
         this.hoursBlocked = hoursBlocked;
+        this.userRequestLimit = userRequestLimit;
     }
 
-    public void blockUsername(String username){
-        Cache usernameCache = cacheManager.getCache("blocked_usernames");
+    public void blockEmail(String email){
+        Cache usernameCache = cacheManager.getCache("blocked_emails");
         if (usernameCache != null) {
-            //Put the username as the key and expiration time as the value
-            usernameCache.putIfAbsent(username, Instant.now().plus(hoursBlocked, ChronoUnit.HOURS));
+            //Put the email as the key and expiration time as the value
+            usernameCache.putIfAbsent(email, Instant.now().plus(hoursBlocked, ChronoUnit.HOURS));
         }
     }
 
-    public boolean isUserBlocked(String username){
-        Cache usernameCache = cacheManager.getCache("blocked_usernames");
+    public void registerConnection(String email){
+        if(!isEmailBlocked(email)) {
+            Cache connectionsCache = cacheManager.getCache("email_connections");
+            if (connectionsCache != null) {
+                Cache.ValueWrapper wrapper = connectionsCache.get(email);
+                //If the email doesn't already exist, add it to the cache with a value of 1
+                if (wrapper == null) {
+                    connectionsCache.put(email, 1);
+                    return;
+                }
+                Integer actualValue = (Integer) wrapper.get();
+                connectionsCache.put(email, actualValue + 1);
+                if (actualValue + 1 == userRequestLimit) {
+                    blockEmail(email);
+                }
+
+            }
+        }
+    }
+
+    public boolean isEmailBlocked(String email){
+        Cache usernameCache = cacheManager.getCache("blocked_emails");
         assert usernameCache != null;
-        Cache.ValueWrapper addressExists = usernameCache.get(username);
+        Cache.ValueWrapper addressExists = usernameCache.get(email);
         return addressExists != null;
     }
 
-    public TemporalAmount getTimeRemaining(String username){
-        Cache usernameCache = cacheManager.getCache("blocked_usernames");
+    public TemporalAmount getTimeRemaining(String email){
+        Cache usernameCache = cacheManager.getCache("blocked_emails");
         assert usernameCache != null;
-        Cache.ValueWrapper usernameValue = usernameCache.get(username);
+        Cache.ValueWrapper usernameValue = usernameCache.get(email);
         assert usernameValue != null;
         Instant actualValue = (Instant) usernameValue.get();
         Instant current = Instant.now();

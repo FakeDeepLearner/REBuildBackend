@@ -26,14 +26,17 @@ public class UserStorage {
 
     @Bean
     public RedisCacheManager userCacheManager(){
-        RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().
+        RedisCacheConfiguration blockedCacheConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofHours(hoursBlocked)).
                 disableCachingNullValues();
+        RedisCacheConfiguration connectionsCacheConfig = RedisCacheConfiguration.defaultCacheConfig().
+                entryTtl(Duration.ofSeconds(1)).disableCachingNullValues();
 
         return RedisCacheManager.
                 builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory)).
-                cacheDefaults(cacheConfiguration).
-                withCacheConfiguration("blocked_usernames", cacheConfiguration).
+                cacheDefaults(blockedCacheConfig).
+                withCacheConfiguration("blocked_emails", blockedCacheConfig).
+                withCacheConfiguration("email_connections", connectionsCacheConfig).
                 disableCreateOnMissingCache().
                 transactionAware().
                 build();

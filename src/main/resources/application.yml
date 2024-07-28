@@ -42,7 +42,7 @@ spring:
       user-block-hours: 24
       # The limits are within one second
       ip-request-limit: 5
-      user-request-limit: 30
+      user-request-limit: 10
 
   main:
     banner-mode: off
