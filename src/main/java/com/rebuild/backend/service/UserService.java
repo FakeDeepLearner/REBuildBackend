@@ -119,5 +119,17 @@ public class UserService{
         return repository.save(user);
     }
 
+    public void lockUserAccount(String email){
+        User user = repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(""));
+        user.setAccountNonLocked(false);
+        save(user);
+    }
+
+    public void unlockUserAccount(String email){
+        User user = repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(""));
+        user.setAccountNonLocked(true);
+        save(user);
+    }
+
 
 }

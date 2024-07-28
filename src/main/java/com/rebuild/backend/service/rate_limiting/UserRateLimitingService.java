@@ -13,22 +13,26 @@ import java.time.temporal.TemporalAmount;
 
 @Service
 public class UserRateLimitingService {
-    private final RedisCacheManager cacheManager;
+    private final RedisCacheManager emailsCacheManager;
+
+    private final RedisCacheManager connectionsCacheManager;
 
     private final int hoursBlocked;
 
     private final int userRequestLimit;
 
-    public UserRateLimitingService(@Qualifier("userCacheManager") RedisCacheManager cacheManager,
+    public UserRateLimitingService(@Qualifier("emailsCacheManager") RedisCacheManager emailsCacheManager,
+                                   @Qualifier("connectionsCacheManager") RedisCacheManager connectionsCacheManager,
                                    @Value(value = "${spring.security.rate-limiting.user-block-hours}") int hoursBlocked,
                                    @Value("${spring.security.rate-limiting.user-request-limit}") int userRequestLimit) {
-        this.cacheManager = cacheManager;
+        this.emailsCacheManager = emailsCacheManager;
+        this.connectionsCacheManager = connectionsCacheManager;
         this.hoursBlocked = hoursBlocked;
         this.userRequestLimit = userRequestLimit;
     }
 
     public void blockEmail(String email){
-        Cache usernameCache = cacheManager.getCache("blocked_emails");
+        Cache usernameCache = emailsCacheManager.getCache("blocked_emails");
         if (usernameCache != null) {
             //Put the email as the key and expiration time as the value
             usernameCache.putIfAbsent(email, Instant.now().plus(hoursBlocked, ChronoUnit.HOURS));
@@ -37,7 +41,7 @@ public class UserRateLimitingService {
 
     public void registerConnection(String email){
         if(!isEmailBlocked(email)) {
-            Cache connectionsCache = cacheManager.getCache("email_connections");
+            Cache connectionsCache = connectionsCacheManager.getCache("email_connections");
             if (connectionsCache != null) {
                 Cache.ValueWrapper wrapper = connectionsCache.get(email);
                 //If the email doesn't already exist, add it to the cache with a value of 1
@@ -56,14 +60,14 @@ public class UserRateLimitingService {
     }
 
     public boolean isEmailBlocked(String email){
-        Cache usernameCache = cacheManager.getCache("blocked_emails");
+        Cache usernameCache = emailsCacheManager.getCache("blocked_emails");
         assert usernameCache != null;
         Cache.ValueWrapper addressExists = usernameCache.get(email);
         return addressExists != null;
     }
 
     public TemporalAmount getTimeRemaining(String email){
-        Cache usernameCache = cacheManager.getCache("blocked_emails");
+        Cache usernameCache = emailsCacheManager.getCache("blocked_emails");
         assert usernameCache != null;
         Cache.ValueWrapper usernameValue = usernameCache.get(email);
         assert usernameValue != null;
