@@ -1,4 +1,4 @@
-package com.rebuild.backend.config.security;
+package com.rebuild.backend.config.security.sessions;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -30,11 +30,13 @@ public class SessionsConfig {
     public SecurityFilterChain sessionsFilterChain(HttpSecurity security) throws Exception {
         return security.sessionManagement(management ->
                 management.
+                        invalidSessionStrategy(new SessionInvalidationCustomStrategy()).
                         sessionConcurrency(concurrency -> concurrency.maximumSessions(-1)).
                         sessionAuthenticationStrategy(new RegisterSessionAuthenticationStrategy(sessionRegistry())).
                         maximumSessions(-1).
                         sessionRegistry(sessionRegistry()).
                         expiredUrl("/expired")).
+                exceptionHandling(handling -> handling.authenticationEntryPoint(new InvalidSessionAuthenticationEntry())).
                 build();
     }
 }

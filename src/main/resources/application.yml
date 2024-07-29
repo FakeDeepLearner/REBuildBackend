@@ -61,3 +61,8 @@ logging:
 rsa:
   private-key: classpath:certs/private.pem
   public-key: classpath:certs/public.pem
+
+server:
+  servlet:
+    session:
+      timeout: 10m

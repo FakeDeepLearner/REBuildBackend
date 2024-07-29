@@ -12,28 +12,29 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Duration;
 
 @RestControllerAdvice
-@ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
 public class RateLimitingHandler {
 
     @ExceptionHandler(IPAddressBlockedException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     public ResponseEntity<RateLimitingResponse> handleIpLimiting(IPAddressBlockedException exception){
-        return getRateLimitingResponseResponseEntity(exception.getBlockedTimeRemaining(), exception.getMessage());
+        return getRateLimitingResponseResponseEntity(exception.getBlockedTimeRemaining(), exception.getMessage(), true);
     }
 
     @ExceptionHandler(UserBlockedException.class)
+    @ResponseStatus(HttpStatus.LOCKED)
     public ResponseEntity<RateLimitingResponse> handleUserBlocked(UserBlockedException exception){
-        return getRateLimitingResponseResponseEntity(exception.getBlockedTimeRemaining(), exception.getMessage());
+        return getRateLimitingResponseResponseEntity(exception.getBlockedTimeRemaining(), exception.getMessage(), false);
     }
 
     private ResponseEntity<RateLimitingResponse> getRateLimitingResponseResponseEntity(Duration blockedTimeRemaining,
-                                                                                       String message) {
+                                                                                       String message, boolean ipBlocked) {
         int[] durationSplit = splitDuration(blockedTimeRemaining);
-
+        HttpStatus responseStatusCode = ipBlocked? HttpStatus.TOO_MANY_REQUESTS  : HttpStatus.LOCKED;
         RateLimitingResponse body = new RateLimitingResponse(message, durationSplit[0],
                 durationSplit[1], durationSplit[2]);
         int numSecondsBeforeRetry = durationSplit[0] * 3600 + durationSplit[1] * 60 + durationSplit[2];
 
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).
+        return ResponseEntity.status(responseStatusCode).
                 header("Retry-After", String.valueOf(numSecondsBeforeRetry)).
                 body(body);
     }

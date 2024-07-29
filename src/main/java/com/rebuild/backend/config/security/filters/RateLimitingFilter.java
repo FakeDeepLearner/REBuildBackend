@@ -17,6 +17,7 @@ import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -69,9 +70,11 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
     private LoginForm extractRequestBody(HttpServletRequest request) throws IOException {
         StringBuilder builder = new StringBuilder();
         String method = request.getMethod();
+        //This already retrieves the body
         InputStream requestStream = request.getInputStream();
         if(method.equalsIgnoreCase("POST")){
-            Scanner scanner = new Scanner(requestStream, StandardCharsets.UTF_8).useDelimiter("\\A");
+            //Delimit based on network newlines
+            Scanner scanner = new Scanner(requestStream, StandardCharsets.UTF_8).useDelimiter("\r\n");
             while(scanner.hasNext()){
                 String nextLine = scanner.next();
                 builder.append(nextLine);
