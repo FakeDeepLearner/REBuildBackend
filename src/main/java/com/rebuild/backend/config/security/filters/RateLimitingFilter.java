@@ -14,6 +14,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Scanner;
 
 @Component
@@ -46,6 +48,7 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String ipAddress = request.getRemoteAddr();
+        blockAllProxyAddresses(request, response, filterChain);
         ipRateLimitingService.registerConnection(ipAddress);
         if (ipRateLimitingService.isAddressBlocked(ipAddress)){
             filterChain.doFilter(request, response);
@@ -72,7 +75,7 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
         String method = request.getMethod();
         //This already retrieves the body
         InputStream requestStream = request.getInputStream();
-        if(method.equalsIgnoreCase("POST")){
+        if(method.equals("POST")){
             //Delimit based on network newlines
             Scanner scanner = new Scanner(requestStream, StandardCharsets.UTF_8).useDelimiter("\r\n");
             while(scanner.hasNext()){
@@ -83,6 +86,33 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
             return mapper.readValue(fullBody, LoginForm.class);
         }
         return null;
+    }
+
+    private void blockAllProxyAddresses(@NonNull  HttpServletRequest request,
+                                        @NonNull HttpServletResponse response,
+                                        @NonNull FilterChain filterChain) {
+        String allProxyIps = request.getHeader("X-Forwarded-For");
+        //If it is null, then it means the user isn't connecting through any proxies
+        if(allProxyIps != null){
+            String[] allAddressesSeparate = allProxyIps.split(",");
+            Arrays.stream(allAddressesSeparate).forEach((address) ->
+                    ipRateLimitingService.registerConnection(address.trim()));
+            Arrays.stream(allAddressesSeparate).forEach((address) -> {
+                if(ipRateLimitingService.isAddressBlocked(address.trim())){
+                    try {
+                        //If any of the proxy ip addresses are blocked, block all the others as wll
+                        Arrays.stream(allAddressesSeparate).forEach((newAddress) ->
+                                ipRateLimitingService.blockIpAddress(newAddress.trim()));
+                        filterChain.doFilter(request, response);
+                    } catch (IOException | ServletException e) {
+                        throw new RuntimeException(e);
+                    }
+                    throw new IPAddressBlockedException("Due to making too many requests in a short time, " +
+                            "you have been temporarily blocked",
+                            Duration.from(ipRateLimitingService.getTimeRemaining(address.trim())));
+                }
+            });
+        }
     }
 
     @Override
