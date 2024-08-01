@@ -66,3 +66,8 @@ server:
   servlet:
     session:
       timeout: 10m
+
+
+password-rules:
+  consecutive-character-limit: 8
+  consecutive-numbers-limit: 3
