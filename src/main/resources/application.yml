@@ -71,3 +71,10 @@ server:
 password-rules:
   consecutive-character-limit: 8
   consecutive-numbers-limit: 3
+  min-digit: 1
+  min-lowercase: 1
+  min-size: 8
+  min-special-character: 1
+  min-uppercase: 1
+  max-size: 30
+  can-contain-spaces: false

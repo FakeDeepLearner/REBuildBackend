@@ -1,6 +1,6 @@
-package com.rebuild.backend.model.constraints.password;
+package com.rebuild.backend.model.constraints.password.constraints_and_validators;
 
-import com.rebuild.backend.model.constraints.email.EmailMatchValidator;
+import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordsMatchConstraint;
 import com.rebuild.backend.model.forms.PasswordResetForm;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

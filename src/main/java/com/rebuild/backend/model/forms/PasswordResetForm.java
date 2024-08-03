@@ -1,14 +1,11 @@
 package com.rebuild.backend.model.forms;
 
-import com.rebuild.backend.model.constraints.password.PasswordSizeAndPatternConstraint;
-import com.rebuild.backend.model.constraints.password.PasswordsMatchConstraint;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordStrengthConstraint;
+import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordsMatchConstraint;
 
 @PasswordsMatchConstraint
 public record PasswordResetForm(
-                                @PasswordSizeAndPatternConstraint
+                                @PasswordStrengthConstraint
                                 String newPassword,
-                                @PasswordSizeAndPatternConstraint
                                 String confirmNewPassword) {
 }

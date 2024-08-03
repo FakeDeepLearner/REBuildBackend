@@ -7,6 +7,7 @@ import com.rebuild.backend.model.forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.utils.RandomPasswordGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -15,10 +16,7 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.temporal.ChronoUnit;
@@ -32,13 +30,17 @@ public class AuthenticationController {
 
     private final UserService userService;
 
+    private final RandomPasswordGenerator passwordGenerator;
+
     @Autowired
     public AuthenticationController(JWTTokenService tokenService,
                                     AuthenticationManager authManager,
-                                    UserService userService) {
+                                    UserService userService,
+                                    RandomPasswordGenerator passwordGenerator) {
         this.tokenService = tokenService;
         this.authManager = authManager;
         this.userService = userService;
+        this.passwordGenerator = passwordGenerator;
     }
 
     @PostMapping("/login")
@@ -85,6 +87,15 @@ public class AuthenticationController {
         response.setStatus(303);
         response.addHeader("Location", originalUrl);
         return new AuthResponse(newAccessToken, refreshToken);
+    }
+
+
+    @GetMapping("/api/random_password")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<String> generateRandomPassword(){
+        //The generator already has all the data it needs
+        String generatedPassword = passwordGenerator.generateRandom();
+        return ResponseEntity.ok(generatedPassword);
     }
 
 }
