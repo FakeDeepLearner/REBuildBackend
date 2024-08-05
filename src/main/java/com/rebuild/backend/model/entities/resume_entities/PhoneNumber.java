@@ -19,5 +19,9 @@ public class PhoneNumber {
 
     private String restOfNumber;
 
+    public String fullNumber(){
+        return countryCode + areaCode + restOfNumber;
+    }
+
 
 }
