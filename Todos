@@ -1,5 +1,4 @@
 TODO: Rethink what data should really be exposed on return from a password reset and/or an account activation
-TODO: Rewrite exception handling for the token mechanism, now that it has completely changed
-TODO: Start writing tests and using CI/CD with GitHub Actions
-TODO: Explore the option of caching frequent results from databases to improve performance
-TODO: Add error handling for the token blacklisted exception
+TODO: Finish implementing OTP (api endpoints and linking it with account unlocking logic)
+TODO: Implement credential locking
+TODO: Make filters for the above
