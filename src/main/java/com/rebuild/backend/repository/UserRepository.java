@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +30,8 @@ public interface UserRepository extends CrudRepository<User, UUID> {
     @Query("SELECT res FROM Resume res JOIN FETCH res.user WHERE res.user.id=:userID")
     //All the other attributes of a Resume are fetched eagerly, so there is no need to manually fetch them here
     List<Resume> getAllResumesByID(UUID userID);
+
+    List<User> findByLastLoginTimeBefore(LocalDateTime limit);
 
 
 

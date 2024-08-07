@@ -1,5 +1,4 @@
 TODO: Rethink what data should really be exposed on return from a password reset and/or an account activation
 TODO: Implement OTP facilities via SMS as well
-TODO: Build detailed exception handling for authentication failures (in Spring Security)
-TODO: Implement account expiry
 TODO: Make filters for the above
+TODO: Enable users to unlock their account when it has been locked automatically due to inactivity

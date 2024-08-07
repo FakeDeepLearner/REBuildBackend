@@ -12,11 +12,13 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -92,6 +94,9 @@ public class UserService{
             throw new WrongPasswordException("Wrong password");
         }
 
+        foundUser.setLastLoginTime(LocalDateTime.now());
+        save(foundUser);
+
     }
 
     public User createNewUser(String rawPassword, String email){
@@ -130,6 +135,20 @@ public class UserService{
         user.setAccountNonLocked(true);
         save(user);
     }
+    public void blockInactiveUsers(LocalDateTime cutoff){
+        List<User> inactiveUsers = repository.findByLastLoginTimeBefore(cutoff);
+        inactiveUsers.forEach((user) -> {
+            user.setAccountNonLocked(false);
+            repository.save(user);
+        });
+    }
 
+    //The following method will run every day at midnight (local (EST) time)
+    @Scheduled(cron = "@midnight")
+    public void blockingScheduledTask(){
+        //Block all users that haven't logged in for (at least) 6 months
+        LocalDateTime cutoff = LocalDateTime.now().minusMonths(6);
+        blockInactiveUsers(cutoff);
+    }
 
 }

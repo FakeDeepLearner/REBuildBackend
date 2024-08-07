@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(name = "uk_username", columnNames = {"username"}),
         @UniqueConstraint(name = "uk_email", columnNames = {"email"})
-})
+}, indexes = {@Index(columnList = "lastLoginTime")})
 @RequiredArgsConstructor
 @Data
 @NoArgsConstructor
@@ -64,6 +65,9 @@ public class User implements UserDetails {
 
     @JsonIgnore
     private boolean enabled = false;
+
+    @JsonIgnore
+    private LocalDateTime lastLoginTime = LocalDateTime.now();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
