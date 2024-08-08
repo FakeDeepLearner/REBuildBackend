@@ -1,4 +1,3 @@
-TODO: Rethink what data should really be exposed on return from a password reset and/or an account activation
+TODO: Finish implementing resume downloads via pdf and setting up twilio sms
 TODO: Implement OTP facilities via SMS as well
-TODO: Make filters for the above
 TODO: Enable users to unlock their account when it has been locked automatically due to inactivity

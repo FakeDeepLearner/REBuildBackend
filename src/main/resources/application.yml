@@ -78,3 +78,7 @@ password-rules:
   min-uppercase: 1
   max-size: 30
   can-contain-spaces: false
+
+twilio:
+  account-sid: classpath:twilio/account_sid.txt
+  auth-token: classpath:twilio/auth_token.txt

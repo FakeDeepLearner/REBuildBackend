@@ -1,6 +1,9 @@
 package com.rebuild.backend.service;
 
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
 import com.rebuild.backend.exceptions.conflict_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.repository.ResumeRepository;
@@ -10,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,6 +33,7 @@ public class ResumeService {
         return repository.changeHeaderInfo(resID, newName, newEmail, newPhoneNumber);
     }
 
+    //TODO: Throw a proper exception here and handle it properly
     public Resume findById(UUID id){
         return repository.findById(id).orElseThrow(RuntimeException::new);
     }
@@ -87,6 +91,15 @@ public class ResumeService {
     }
 
 
+    public byte[] returnResumeAsPdf(Resume resume){
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(outputStream);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document mainDocument = new Document(pdfDoc);
+        return outputStream.toByteArray();
+
+
+    }
 
 
 

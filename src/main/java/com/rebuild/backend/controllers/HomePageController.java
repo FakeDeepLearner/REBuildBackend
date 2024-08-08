@@ -6,9 +6,14 @@ import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.service.ResumeService;
 import com.rebuild.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +45,25 @@ public class HomePageController {
 
         Resume newResume = new Resume(creatingUser);
         return resumeService.save(newResume);
+    }
+
+    @GetMapping("/api/download/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<InputStreamResource> downloadResumeAsPdf(@PathVariable UUID id){
+        Resume fetchedResume = resumeService.findById(id);
+
+        byte[] pdfAsBytes = resumeService.returnResumeAsPdf(fetchedResume);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(pdfAsBytes);
+        InputStreamResource body = new InputStreamResource(inputStream);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=resume.pdf");
+
+        return ResponseEntity.ok().
+                contentType(MediaType.APPLICATION_PDF).
+                headers(headers).
+                body(body);
+
     }
 
 }
