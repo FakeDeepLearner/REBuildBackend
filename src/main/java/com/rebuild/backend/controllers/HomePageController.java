@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.service.ResumeService;
@@ -42,9 +43,13 @@ public class HomePageController {
     public Resume createNewResume(@PathVariable UUID user_id){
         User creatingUser = userService.findByID(user_id).
                 orElseThrow(() -> new UserNotFoundException("User not found with the given id"));
+        return resumeService.createNewResumeFor(creatingUser);
+    }
 
-        Resume newResume = new Resume(creatingUser);
-        return resumeService.save(newResume);
+    @DeleteMapping("/api/delete/{res_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteResume(@PathVariable UUID res_id){
+        resumeService.deleteById(res_id);
     }
 
     @GetMapping("/api/download/{id}")

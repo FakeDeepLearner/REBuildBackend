@@ -23,6 +23,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
+
+    private static final int MAX_RESUME_LIMIT = 15;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(
@@ -47,8 +50,11 @@ public class User implements UserDetails {
     @NonNull
     private String email;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Resume> resumes;
+
+    @JsonIgnore
+    private int numberOfResumes = 0;
 
     @Enumerated(EnumType.STRING)
     @JsonIgnore
@@ -104,5 +110,9 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean maxResumeLimitReached(){
+        return authority.equals(Authority.USER_FREE) && numberOfResumes == MAX_RESUME_LIMIT;
     }
 }

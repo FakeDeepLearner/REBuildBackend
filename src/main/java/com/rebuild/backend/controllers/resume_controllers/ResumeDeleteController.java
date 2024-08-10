@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.repository.ResumeRepository;
+import com.rebuild.backend.service.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -12,25 +13,25 @@ import java.util.UUID;
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public class ResumeDeleteController {
 
-    private final ResumeRepository repository;
+    private final ResumeService resumeService;
 
     @Autowired
-    public ResumeDeleteController(ResumeRepository repository) {
-        this.repository = repository;
+    public ResumeDeleteController(ResumeService resumeService) {
+        this.resumeService = resumeService;
     }
 
     @DeleteMapping("/header/{id}")
     public void deleteHeader(@PathVariable UUID id){
-        repository.deleteHeader(id);
+        resumeService.deleteHeader(id);
     }
 
-    @DeleteMapping("/experience/{id}")
-    public void deleteExperience(@PathVariable UUID id){
-        repository.deleteExperience(id);
+    @DeleteMapping("/experience/{resID}/{expID}")
+    public void deleteExperience(@PathVariable UUID resID, @PathVariable UUID expID){
+        resumeService.deleteExperience(resID, expID);
     }
 
     @DeleteMapping("/education/{id}")
     public void deleteEducation(@PathVariable UUID id){
-        repository.deleteEducation(id);
+        resumeService.deleteEducation(id);
     }
 }

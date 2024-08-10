@@ -1,7 +1,8 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
-import com.rebuild.backend.exceptions.conflict_exceptions.ResumeCompanyConstraintException;
+import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
+import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
@@ -15,7 +16,6 @@ import java.util.Map;
 
 
 @RestControllerAdvice
-@ResponseStatus(HttpStatus.CONFLICT)
 public class ConflictStatusHandler {
 
     private final ExceptionBodyBuilder bodyBuilder;
@@ -49,5 +49,10 @@ public class ConflictStatusHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(MaxResumesReachedException.class)
+    public ResponseEntity<Map<String, String>> handleMaxResumesReached(MaxResumesReachedException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
 
 }

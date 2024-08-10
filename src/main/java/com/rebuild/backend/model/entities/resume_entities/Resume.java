@@ -25,17 +25,15 @@ public class Resume {
     )
     private UUID id;
 
-    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @NonNull
+    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Header header;
 
-    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @NonNull
+    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Education education;
 
     @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {
             CascadeType.ALL
-    })
+    }, orphanRemoval = true)
     @NonNull
     private List<Experience> experiences;
 

@@ -47,7 +47,6 @@ public class Experience {
     @ManyToOne(fetch =  FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
         foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
-    @NonNull
     private Resume resume;
 
 }

@@ -1,9 +1,8 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
@@ -12,6 +11,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class Header {
 
     @Id
@@ -24,13 +24,16 @@ public class Header {
             @AttributeOverride(name = "areaCode", column = @Column(name = "phone_area_code")),
             @AttributeOverride(name = "restOfNumber", column = @Column(name = "phone_remainder")),
     })
+    @NonNull
     private PhoneNumber number;
 
 
     @Column(name = "name", nullable = false)
+    @NonNull
     private String name;
 
     @Column(name = "email", nullable = false)
+    @NonNull
     private String email;
 
     @OneToOne(cascade = CascadeType.PERSIST)

@@ -1,4 +1,4 @@
-package com.rebuild.backend.exceptions.conflict_exceptions;
+package com.rebuild.backend.exceptions.resume_exceptions;
 
 public class ResumeCompanyConstraintException extends IllegalStateException{
     public ResumeCompanyConstraintException(String message){
