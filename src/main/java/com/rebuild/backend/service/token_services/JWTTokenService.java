@@ -4,7 +4,7 @@ import com.rebuild.backend.config.properties.MailAppCredentials;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
-import com.rebuild.backend.model.entities.TokenType;
+import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

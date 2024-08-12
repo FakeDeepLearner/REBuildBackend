@@ -1,8 +1,8 @@
 package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
-import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
-import com.rebuild.backend.model.entities.TokenType;
+import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
+import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.EmailChangeForm;
 import com.rebuild.backend.model.responses.EmailChangeResponse;

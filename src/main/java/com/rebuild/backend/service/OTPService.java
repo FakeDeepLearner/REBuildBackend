@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException
 import com.rebuild.backend.exceptions.otp_exceptions.InvalidOtpException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPAlreadyGeneratedException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPExpiredException;
-import com.rebuild.backend.model.entities.EmailOTPGenerationPurpose;
+import com.rebuild.backend.model.entities.enums.EmailOTPGenerationPurpose;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,6 @@ import org.springframework.cache.Cache;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;

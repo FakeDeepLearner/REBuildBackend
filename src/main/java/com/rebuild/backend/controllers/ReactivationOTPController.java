@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.entities.EmailOTPGenerationPurpose;
+import com.rebuild.backend.model.entities.enums.EmailOTPGenerationPurpose;
 import com.rebuild.backend.model.forms.OTPVerificationEmailDTO;
 import com.rebuild.backend.service.OTPService;
 import org.springframework.beans.factory.annotation.Autowired;

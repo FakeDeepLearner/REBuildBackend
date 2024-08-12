@@ -1,7 +1,7 @@
 package com.rebuild.backend.config.security.filters;
 
 import com.rebuild.backend.exceptions.token_exceptions.TokenBlackListedException;
-import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
+import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.filter.OrderedFilter;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;

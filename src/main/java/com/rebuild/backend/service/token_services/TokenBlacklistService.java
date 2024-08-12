@@ -1,6 +1,6 @@
 package com.rebuild.backend.service.token_services;
 
-import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
+import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;

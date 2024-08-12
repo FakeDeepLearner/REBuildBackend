@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities;
+package com.rebuild.backend.model.entities.enums;
 
 public enum TokenBlacklistPurpose {
     EMAIL_CHANGE("change_email"),

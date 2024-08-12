@@ -2,8 +2,8 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
-import com.rebuild.backend.model.entities.TokenBlacklistPurpose;
-import com.rebuild.backend.model.entities.TokenType;
+import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
+import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.AccountActivationDTO;
 import com.rebuild.backend.model.forms.PasswordResetForm;
