@@ -1,9 +1,12 @@
 package com.rebuild.backend.service;
 
 import com.rebuild.backend.config.properties.MailAppCredentials;
+import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.otp_exceptions.InvalidOtpException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPAlreadyGeneratedException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPExpiredException;
+import com.rebuild.backend.model.entities.EmailOTPGenerationPurpose;
+import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,6 +14,7 @@ import org.springframework.cache.Cache;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -24,17 +28,22 @@ public class OTPService {
     private final JavaMailSender mailSender;
 
     private final MailAppCredentials credentials;
+
+    private final UserService userService;
+
     private final Random random = new Random();
 
     @Autowired
     public OTPService(@Qualifier("otpCacheManager")
                           RedisCacheManager otpCacheManager,
                       @Qualifier("connectionsCacheManager") RedisCacheManager blockedCacheManager,
-                      JavaMailSender mailSender, MailAppCredentials credentials) {
+                      JavaMailSender mailSender, MailAppCredentials credentials,
+                      UserService userService) {
         this.otpCacheManager = otpCacheManager;
         this.blockedCacheManager = blockedCacheManager;
         this.mailSender = mailSender;
         this.credentials = credentials;
+        this.userService = userService;
     }
 
 
@@ -43,9 +52,15 @@ public class OTPService {
     }
 
 
-    public int generateOtpFor(String email){
+    public int generateOtpFor(String email, EmailOTPGenerationPurpose purpose){
         int generatedOtp = generateRandomOtp();
-        Cache emailsCache = otpCacheManager.getCache("email_otp");
+        Cache emailsCache;
+        if (purpose.equals(EmailOTPGenerationPurpose.ACCOUNT_UNLOCK)){
+            emailsCache = otpCacheManager.getCache("email_otp");
+        }
+        else{
+            emailsCache = otpCacheManager.getCache("reactivation_otp");
+        }
         assert emailsCache != null;
         Cache.ValueWrapper wrapper = emailsCache.putIfAbsent(email, generatedOtp);
         if(wrapper == null){
@@ -72,8 +87,14 @@ public class OTPService {
     }
 
 
-    public void validateOtpFor(String email, int enteredOtp){
-        Cache emailsCache = otpCacheManager.getCache("email_otp");
+    public void validateOtpFor(String email, int enteredOtp, EmailOTPGenerationPurpose purpose){
+        Cache emailsCache;
+        if(purpose.equals(EmailOTPGenerationPurpose.ACCOUNT_UNLOCK)){
+            emailsCache = otpCacheManager.getCache("email_otp");
+        }
+        else{
+            emailsCache = otpCacheManager.getCache("reactivation_otp");
+        }
         assert emailsCache != null;
         Cache.ValueWrapper wrapper = emailsCache.get(email);
         if(wrapper == null){
@@ -85,9 +106,19 @@ public class OTPService {
                 throw new InvalidOtpException("Wrong passcode, please try again");
             }
             else{
-                Cache connectionsCache = blockedCacheManager.getCache("email_connections");
-                assert connectionsCache != null;
-                connectionsCache.evict(email);
+                if(purpose.equals(EmailOTPGenerationPurpose.ACCOUNT_UNLOCK)) {
+                    Cache connectionsCache = blockedCacheManager.getCache("email_connections");
+                    assert connectionsCache != null;
+                    connectionsCache.evict(email);
+                }
+                else{
+                    User actualUser = userService.findByEmail(email).orElseThrow(() ->
+                        new UserNotFoundException("A user with email" + email + "has not been found")
+                    );
+                    userService.reactivateUserCredentials(actualUser);
+
+
+                }
             }
         }
     }

@@ -31,6 +31,7 @@ public class OTPStorage {
                 cacheDefaults(cacheConfiguration).
                 withCacheConfiguration("email_otp", cacheConfiguration).
                 withCacheConfiguration("phone_otp", cacheConfiguration).
+                withCacheConfiguration("reactivation_otp", cacheConfiguration).
                 transactionAware().
                 build();
     }
