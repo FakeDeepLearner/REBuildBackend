@@ -1,6 +1,9 @@
 package com.rebuild.backend.config.security.filters;
 
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
+import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountInactivityException;
+import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountIsLockedException;
+import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountNotActivatedException;
 import com.rebuild.backend.service.CustomUserDetailsService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import jakarta.servlet.FilterChain;
@@ -39,17 +42,19 @@ public class JWTVerificationFilter extends OncePerRequestFilter implements Order
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String servletPath = request.getServletPath();
         // If we are trying to log in or to refresh our token, just let us through
+        //TODO: Update the paths that can bypass this filter.
         if(servletPath.equals("/api/refresh_token") || servletPath.equals("/login")){
             filterChain.doFilter(request, response);
             return;
         }
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        try {
+
             String accessToken = tokenService.extractTokenFromRequest(request);
             String subject = tokenService.extractSubject(accessToken);
             //The user is not authenticated yet
             if (subject != null && SecurityContextHolder.getContext().getAuthentication() != null){
                 UserDetails details = detailsService.loadUserByEmail(subject);
+                checkUserDetails(details);
                 if (tokenService.isTokenValid(accessToken, details)){
                     UsernamePasswordAuthenticationToken newToken = new UsernamePasswordAuthenticationToken(
                             details, null, details.getAuthorities()
@@ -59,11 +64,21 @@ public class JWTVerificationFilter extends OncePerRequestFilter implements Order
                 }
             }
             filterChain.doFilter(request, response);
-        }
-        catch (NoJWTTokenException e){
-            filterChain.doFilter(request, response);
-        }
 
+
+    }
+
+    private void checkUserDetails(UserDetails details){
+        if(!details.isEnabled()){
+            throw new AccountNotActivatedException("Your account has not been activated yet, please activate it");
+        }
+        if(!details.isAccountNonExpired()){
+            throw new AccountInactivityException("Your account has been blocked due to prolonged inactivity, " +
+                    "please unlock it before continuing");
+        }
+        if(!details.isAccountNonLocked()){
+            throw new AccountIsLockedException("Your account has been locked due to suspicious activity, please unlock it");
+        }
     }
 
     @Override

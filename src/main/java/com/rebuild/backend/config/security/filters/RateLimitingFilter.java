@@ -51,7 +51,6 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
         blockAllProxyAddresses(request, response, filterChain);
         ipRateLimitingService.registerConnection(ipAddress);
         if (ipRateLimitingService.isAddressBlocked(ipAddress)){
-            filterChain.doFilter(request, response);
             throw new IPAddressBlockedException("Due to making too many requests in a short time, " +
                     "you have been temporarily blocked",
                     Duration.from(ipRateLimitingService.getTimeRemaining(ipAddress)));
@@ -61,7 +60,6 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
             String email = reqBody.email();
             userRateLimitingService.registerConnection(email);
             if (userRateLimitingService.isEmailBlocked(email)){
-                filterChain.doFilter(request, response);
                 throw new UserBlockedException("Your account has been temporarily suspended because you have made too" +
                         "many attempts to log in", Duration.from(userRateLimitingService.getTimeRemaining(email)));
             }
@@ -98,18 +96,19 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
             Arrays.stream(allAddressesSeparate).forEach((address) ->
                     ipRateLimitingService.registerConnection(address.trim()));
             Arrays.stream(allAddressesSeparate).forEach((address) -> {
-                if(ipRateLimitingService.isAddressBlocked(address.trim())){
+                String trimmedAddress = address.trim();
+                if(ipRateLimitingService.isAddressBlocked(trimmedAddress)){
                     try {
                         //If any of the proxy ip addresses are blocked, block all the others as wll
                         Arrays.stream(allAddressesSeparate).forEach((newAddress) ->
-                                ipRateLimitingService.blockIpAddress(newAddress.trim()));
+                                ipRateLimitingService.blockIpAddress(trimmedAddress));
                         filterChain.doFilter(request, response);
                     } catch (IOException | ServletException e) {
                         throw new RuntimeException(e);
                     }
                     throw new IPAddressBlockedException("Due to making too many requests in a short time, " +
                             "you have been temporarily blocked",
-                            Duration.from(ipRateLimitingService.getTimeRemaining(address.trim())));
+                            Duration.from(ipRateLimitingService.getTimeRemaining(trimmedAddress)));
                 }
             });
         }

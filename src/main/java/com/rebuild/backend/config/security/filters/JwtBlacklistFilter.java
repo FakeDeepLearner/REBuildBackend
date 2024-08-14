@@ -36,7 +36,6 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
 
         if(token != null && purpose != null){
             if(blacklistService.isTokenBlacklisted(token, purpose)){
-                filterChain.doFilter(request, response);
                 throw new TokenBlackListedException("This token is blacklisted");
             }
         }
