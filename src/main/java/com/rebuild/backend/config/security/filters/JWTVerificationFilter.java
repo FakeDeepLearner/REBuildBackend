@@ -41,9 +41,12 @@ public class JWTVerificationFilter extends OncePerRequestFilter implements Order
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String servletPath = request.getServletPath();
-        // If we are trying to log in or to refresh our token, just let us through
-        //TODO: Update the paths that can bypass this filter.
-        if(servletPath.equals("/api/refresh_token") || servletPath.equals("/login")){
+        /*
+          Normally, the filter applies to all paths that start with "/api", but we need to be able
+          to update our token without requiring one, so we let the refresh token endpoint true by processing
+          the other filters and returning immediately
+         */
+        if(servletPath.equals("/api/refresh_token")){
             filterChain.doFilter(request, response);
             return;
         }
