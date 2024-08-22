@@ -9,6 +9,7 @@ target/
 /src/main/resources/email.txt
 /src/main/resources/reply_to.txt
 /src/main/resources/twilio/
+src/main/resources/sslkey.jks
 ### STS ###
 .apt_generated
 .classpath

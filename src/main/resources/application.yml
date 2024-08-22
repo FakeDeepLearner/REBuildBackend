@@ -66,6 +66,13 @@ server:
   servlet:
     session:
       timeout: 10m
+  port: 443
+  ssl:
+    enabled: true
+    key-store: classpath:/sslkey.jks
+    key-password: 12Eren89
+    key-alias: reformkey
+    key-store-type: JKS
 
 
 password-rules:
