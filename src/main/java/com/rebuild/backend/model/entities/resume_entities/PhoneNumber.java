@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+
 @Component
 @Data
 @AllArgsConstructor
@@ -21,6 +23,13 @@ public class PhoneNumber {
 
     public String fullNumber(){
         return countryCode + areaCode + restOfNumber;
+    }
+
+    public String maskedNumber(){
+        String unmaskedNumber = fullNumber();
+        int firstUnmaskedIndex = unmaskedNumber.length() - 4;
+        String lastPart = unmaskedNumber.substring(firstUnmaskedIndex);
+        return "*".repeat(firstUnmaskedIndex) + lastPart;
     }
 
 

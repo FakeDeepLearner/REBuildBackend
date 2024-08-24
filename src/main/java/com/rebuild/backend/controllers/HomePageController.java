@@ -4,6 +4,7 @@ import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.responses.GetResumeResponse;
 import com.rebuild.backend.service.ResumeService;
 import com.rebuild.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,12 @@ public class HomePageController {
         this.resumeService = resumeService;
     }
 
+    @GetMapping("/home/user/{resume_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public GetResumeResponse getResume(@PathVariable UUID resume_id){
+        Resume foundResume = resumeService.findById(resume_id);
+        return new GetResumeResponse(foundResume.getHeader(), foundResume.getEducation(), foundResume.getExperiences());
+    }
 
     @GetMapping("/home/{user_id}")
     @ResponseStatus(HttpStatus.OK)

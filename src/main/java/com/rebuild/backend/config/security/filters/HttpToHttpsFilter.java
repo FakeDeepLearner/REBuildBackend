@@ -19,11 +19,13 @@ public class HttpToHttpsFilter extends OncePerRequestFilter implements Ordered {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String requestURI = request.getRequestURI();
-        if(requestURI.startsWith("/api") && request.getScheme().equals("http")){
+        if(request.getScheme().equals("http")){
+            //The status code 301 (Moved Permanently) is the standard for redirection to https
             response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+            //Replace "http" with "https", and then redirect
             String redirectLocation = request.getRequestURL().replace(0, 4, "https").toString();
             response.setHeader("Location", redirectLocation);
+
         }
         filterChain.doFilter(request, response);
     }

@@ -173,4 +173,10 @@ public class ResumeService {
         resume.setHeader(null);
         resumeRepository.save(resume);
     }
+
+    public Resume setExperiences(UUID resID, List<Experience> newExperiences){
+        Resume resume = findById(resID);
+        resume.setExperiences(newExperiences);
+        return resumeRepository.save(resume);
+    }
 }
