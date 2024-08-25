@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.forms;
+package com.rebuild.backend.model.forms.dto_forms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

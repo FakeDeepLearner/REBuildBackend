@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.constraints.email;
 
-import com.rebuild.backend.model.forms.EmailChangeForm;
+import com.rebuild.backend.model.forms.auth_forms.EmailChangeForm;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

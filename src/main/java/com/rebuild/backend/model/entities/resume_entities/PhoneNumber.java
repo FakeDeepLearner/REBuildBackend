@@ -25,6 +25,10 @@ public class PhoneNumber {
         return countryCode + areaCode + restOfNumber;
     }
 
+    public String databaseStorageFormat() {
+        return countryCode + "-" + areaCode + "-" + restOfNumber;
+    }
+
     public String maskedNumber(){
         String unmaskedNumber = fullNumber();
         int firstUnmaskedIndex = unmaskedNumber.length() - 4;

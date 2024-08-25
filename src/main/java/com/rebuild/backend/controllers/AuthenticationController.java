@@ -1,9 +1,9 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.AccountActivationDTO;
-import com.rebuild.backend.model.forms.LoginForm;
-import com.rebuild.backend.model.forms.SignupForm;
+import com.rebuild.backend.model.forms.dto_forms.AccountActivationDTO;
+import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.AuthResponse;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.UserService;

@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.forms;
+package com.rebuild.backend.model.forms.auth_forms;
 
 import jakarta.validation.constraints.Email;
 

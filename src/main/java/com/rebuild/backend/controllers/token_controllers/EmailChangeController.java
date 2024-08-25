@@ -4,7 +4,7 @@ import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.EmailChangeForm;
+import com.rebuild.backend.model.forms.auth_forms.EmailChangeForm;
 import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;

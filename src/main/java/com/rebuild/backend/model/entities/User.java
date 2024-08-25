@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
+import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,6 +51,10 @@ public class User implements UserDetails {
     )
     @NonNull
     private String email;
+
+    @Column(name = "phone_number")
+    private PhoneNumber phoneNumber;
+
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Resume> resumes;
