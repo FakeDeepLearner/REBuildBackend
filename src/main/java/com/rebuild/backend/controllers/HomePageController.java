@@ -78,4 +78,10 @@ public class HomePageController {
 
     }
 
+    @DeleteMapping("/api/delete_phone/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removePhoneNumber(@PathVariable UUID id){
+        userService.removePhoneOf(id);
+    }
+
 }

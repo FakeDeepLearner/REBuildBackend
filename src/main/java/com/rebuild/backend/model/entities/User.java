@@ -18,7 +18,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(name = "uk_username", columnNames = {"username"}),
-        @UniqueConstraint(name = "uk_email", columnNames = {"email"})
+        @UniqueConstraint(name = "uk_email", columnNames = {"email"}),
+        //Even if we set up a unique constraint on phone numbers, postgresql allows for multiple null values
+        @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"})
 }, indexes = {@Index(columnList = "lastLoginTime")})
 @RequiredArgsConstructor
 @Data
@@ -53,6 +55,7 @@ public class User implements UserDetails {
     private String email;
 
     @Column(name = "phone_number")
+    @NonNull
     private PhoneNumber phoneNumber;
 
 
@@ -77,6 +80,9 @@ public class User implements UserDetails {
 
     @JsonIgnore
     private boolean enabled = false;
+
+    @JsonIgnore
+    private LocalDateTime signUpTime = LocalDateTime.now();
 
     @JsonIgnore
     private LocalDateTime lastLoginTime = LocalDateTime.now();

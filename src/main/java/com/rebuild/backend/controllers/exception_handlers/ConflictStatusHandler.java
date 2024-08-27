@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.exception_handlers;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
@@ -53,6 +54,12 @@ public class ConflictStatusHandler {
     public ResponseEntity<Map<String, String>> handleMaxResumesReached(MaxResumesReachedException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(PhoneNumberAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handlePhoneNumberAlreadyExists(PhoneNumberAlreadyExistsException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
 }

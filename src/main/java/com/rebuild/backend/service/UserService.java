@@ -1,9 +1,11 @@
 package com.rebuild.backend.service;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
+import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
@@ -11,6 +13,7 @@ import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.session.SessionInformation;
@@ -99,9 +102,16 @@ public class UserService{
 
     }
 
-    public User createNewUser(String rawPassword, String email){
+    public void removePhoneOf(UUID userID){
+        User deletingUser = findByID(userID).orElseThrow(
+                () -> new UserNotFoundException("A user hasn't been found with the given id"));
+        deletingUser.setPhoneNumber(null);
+        save(deletingUser);
+    }
+
+    public User createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
         String encodedPassword = encoder.encode(rawPassword);
-        User newUser = new User(encodedPassword, email);
+        User newUser = new User(encodedPassword, email, phoneNumber);
         try {
             return save(newUser);
         }
@@ -113,6 +123,8 @@ public class UserService{
                     case "uk_username" -> throw new UsernameAlreadyExistsException("This username is taken.");
                     case "uk_email" -> throw new
                             EmailAlreadyExistsException("This email address is taken");
+                    case "uk_phone_number" -> throw new PhoneNumberAlreadyExistsException("This phone number is " +
+                            "already associated with another account");
 
                 }
             }

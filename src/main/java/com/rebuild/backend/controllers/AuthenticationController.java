@@ -68,7 +68,7 @@ public class AuthenticationController {
     public ResponseEntity<Void> processSignup(@Valid @RequestBody SignupForm signupForm){
 
         User createdUser =
-                userService.createNewUser(signupForm.password(), signupForm.email());
+                userService.createNewUser(signupForm.password(), signupForm.email(), signupForm.phoneNumber());
         AccountActivationDTO form  =
                 new AccountActivationDTO(createdUser.getEmail(), signupForm.password(), 20L, ChronoUnit.MINUTES,
                          signupForm.remember());
