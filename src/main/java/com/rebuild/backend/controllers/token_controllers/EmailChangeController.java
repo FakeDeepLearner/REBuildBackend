@@ -50,6 +50,7 @@ public class EmailChangeController {
     @GetMapping("/api/change_email")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<EmailChangeResponse> changeUserEmail(@RequestParam String token){
+        //TODO: Add a new exception here (and handle it)
         if(!tokenService.tokenNonExpired(token)){
             throw new RuntimeException();
         }

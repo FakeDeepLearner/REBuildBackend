@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
+import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
@@ -55,6 +56,9 @@ public class AccountActivationController {
     @GetMapping("/api/activate")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<AccountActivationResponse> activateAccount(@RequestParam String token){
+        if(token == null){
+            throw new ActivationTokenNotFoundException("There is no token in the url");
+        }
         String userEmail = tokenService.extractSubject(token);
         if(!tokenService.tokenNonExpired(token)){
             throw new ActivationTokenExpiredException("This link has expired, please click this " +

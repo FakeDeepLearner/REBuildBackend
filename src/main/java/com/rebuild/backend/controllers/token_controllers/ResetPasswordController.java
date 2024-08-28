@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
+import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNotFoundException;
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
@@ -51,6 +52,9 @@ public class ResetPasswordController {
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<PasswordResetResponse> changeUserPassword(@RequestParam String token,
                                              @Valid @RequestBody PasswordResetForm resetForm){
+        if(token == null){
+            throw new ResetTokenNotFoundException("There is no token in the url");
+        }
         String userEmail = tokenService.extractSubject(token);
         if (!tokenService.tokenNonExpired(token)){
             throw new ResetTokenExpiredException("This reset token has expired", userEmail);

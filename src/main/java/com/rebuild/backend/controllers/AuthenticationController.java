@@ -73,7 +73,7 @@ public class AuthenticationController {
                 new AccountActivationDTO(createdUser.getEmail(), signupForm.password(), 20L, ChronoUnit.MINUTES,
                          signupForm.remember());
         HttpEntity<AccountActivationDTO> body = new HttpEntity<>(form);
-        return new RestTemplate().exchange("/api/activate", HttpMethod.POST, body, Void.TYPE);
+        return new RestTemplate().exchange("https://localhost:8080/api/activate", HttpMethod.POST, body, Void.TYPE);
     }
 
     @PostMapping("/api/refresh_token")

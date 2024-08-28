@@ -29,7 +29,7 @@ public class AuthenticationExceptionHandler {
         reqHeaders.add("Authorization", "Bearer " + e.getRefreshToken());
         Map<String, String> reqBody = bodyBuilder.buildBody(e);
         HttpEntity<Map<String, String>> httpEntity = new HttpEntity<>(reqBody, reqHeaders);
-        String urlToPost = "/api/refresh_token";
+        String urlToPost = "https://localhost:8080/api/refresh_token";
 
         ParameterizedTypeReference<Map<String, String>>
                 typeReference = new ParameterizedTypeReference<Map<String, String>>() {};
