@@ -12,6 +12,7 @@ import com.rebuild.backend.model.responses.PasswordResetResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
+import com.rebuild.backend.utils.RedirectionUtility;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -29,14 +30,16 @@ public class ResetPasswordController {
     private final JWTTokenService tokenService;
 
     private final TokenBlacklistService blacklistService;
+    private final RedirectionUtility redirectionUtility;
 
     @Autowired
     public ResetPasswordController(
             UserService userService, JWTTokenService tokenService,
-            TokenBlacklistService blacklistService) {
+            TokenBlacklistService blacklistService, RedirectionUtility redirectionUtility) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.blacklistService = blacklistService;
+        this.redirectionUtility = redirectionUtility;
     }
 
     @PostMapping("/api/reset")
@@ -50,7 +53,7 @@ public class ResetPasswordController {
 
     @PostMapping("/api/reset")
     @ResponseStatus(HttpStatus.SEE_OTHER)
-    public ResponseEntity<PasswordResetResponse> changeUserPassword(@RequestParam String token,
+    public ResponseEntity<PasswordResetResponse> changeUserPassword(@RequestParam(required = false) String token,
                                              @Valid @RequestBody PasswordResetForm resetForm){
         if(token == null){
             throw new ResetTokenNotFoundException("There is no token in the url");
@@ -67,16 +70,7 @@ public class ResetPasswordController {
         userService.changePassword(foundUser.getId(), resetForm.newPassword());
         userService.invalidateAllSessions(foundUser.getUsername());
         blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.PASSWORD_CHANGE);
-        return redirectUserToLogin(foundUser, oldPassword);
-    }
-
-
-    private ResponseEntity<PasswordResetResponse> redirectUserToLogin(User user,
-                                                                      String oldPassword){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/login");
-        PasswordResetResponse body = new PasswordResetResponse(oldPassword, user.getPassword());
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);
+        return redirectionUtility.redirectUserToLogin(foundUser, oldPassword);
     }
 
 }

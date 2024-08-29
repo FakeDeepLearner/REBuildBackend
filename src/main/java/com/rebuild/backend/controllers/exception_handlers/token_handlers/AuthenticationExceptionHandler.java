@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.exception_handlers.token_handlers;
 
+import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
@@ -18,9 +19,12 @@ import java.util.Map;
 public class AuthenticationExceptionHandler {
     private final ExceptionBodyBuilder bodyBuilder;
 
+    private final AppUrlBase urlBase;
+
     @Autowired
-    public AuthenticationExceptionHandler(ExceptionBodyBuilder bodyBuilder) {
+    public AuthenticationExceptionHandler(ExceptionBodyBuilder bodyBuilder, AppUrlBase urlBase) {
         this.bodyBuilder = bodyBuilder;
+        this.urlBase = urlBase;
     }
 
     @ExceptionHandler(JWTTokenExpiredException.class)
@@ -29,7 +33,7 @@ public class AuthenticationExceptionHandler {
         reqHeaders.add("Authorization", "Bearer " + e.getRefreshToken());
         Map<String, String> reqBody = bodyBuilder.buildBody(e);
         HttpEntity<Map<String, String>> httpEntity = new HttpEntity<>(reqBody, reqHeaders);
-        String urlToPost = "https://localhost:8080/api/refresh_token";
+        String urlToPost = urlBase.baseUrl() + "/api/refresh_token";
 
         ParameterizedTypeReference<Map<String, String>>
                 typeReference = new ParameterizedTypeReference<Map<String, String>>() {};

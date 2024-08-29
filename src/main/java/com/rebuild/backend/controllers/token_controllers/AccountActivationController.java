@@ -11,6 +11,7 @@ import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
+import com.rebuild.backend.utils.RedirectionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,15 +34,18 @@ public class AccountActivationController {
 
     private final AuthenticationManager authManager;
 
+    private final RedirectionUtility redirectionUtility;
+
     @Autowired
     public AccountActivationController(JWTTokenService tokenService,
                                        UserService userService,
                                        TokenBlacklistService blacklistService,
-                                       AuthenticationManager authManager) {
+                                       AuthenticationManager authManager, RedirectionUtility redirectionUtility) {
         this.tokenService = tokenService;
         this.userService = userService;
         this.blacklistService = blacklistService;
         this.authManager = authManager;
+        this.redirectionUtility = redirectionUtility;
     }
 
 
@@ -55,7 +59,7 @@ public class AccountActivationController {
 
     @GetMapping("/api/activate")
     @ResponseStatus(HttpStatus.SEE_OTHER)
-    public ResponseEntity<AccountActivationResponse> activateAccount(@RequestParam String token){
+    public ResponseEntity<AccountActivationResponse> activateAccount(@RequestParam(required = false) String token){
         if(token == null){
             throw new ActivationTokenNotFoundException("There is no token in the url");
         }
@@ -80,19 +84,6 @@ public class AccountActivationController {
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
         tokenService.addTokenPair(accessToken, refreshToken);
-        return redirectUserToLogin(actualUser, remembered, accessToken, refreshToken);
-    }
-
-    private ResponseEntity<AccountActivationResponse> redirectUserToLogin(User user,
-                                                                          boolean remembered, String accessToken,
-                                                                          String refreshToken){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/home/" + user.getId());
-        if(remembered){
-            headers.add(HttpHeaders.SET_COOKIE, accessToken);
-        }
-        AccountActivationResponse body = new AccountActivationResponse(user.getEmail(), accessToken, refreshToken);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);
-
+        return redirectionUtility.redirectUserToLogin(actualUser, remembered, accessToken, refreshToken);
     }
 }

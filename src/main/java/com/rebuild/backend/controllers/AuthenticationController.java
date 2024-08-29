@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.dto_forms.AccountActivationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
@@ -32,15 +33,18 @@ public class AuthenticationController {
 
     private final RandomPasswordGenerator passwordGenerator;
 
+    private final AppUrlBase urlBase;
+
     @Autowired
     public AuthenticationController(JWTTokenService tokenService,
                                     AuthenticationManager authManager,
                                     UserService userService,
-                                    RandomPasswordGenerator passwordGenerator) {
+                                    RandomPasswordGenerator passwordGenerator, AppUrlBase urlBase) {
         this.tokenService = tokenService;
         this.authManager = authManager;
         this.userService = userService;
         this.passwordGenerator = passwordGenerator;
+        this.urlBase = urlBase;
     }
 
     @PostMapping("/login")
@@ -73,7 +77,7 @@ public class AuthenticationController {
                 new AccountActivationDTO(createdUser.getEmail(), signupForm.password(), 20L, ChronoUnit.MINUTES,
                          signupForm.remember());
         HttpEntity<AccountActivationDTO> body = new HttpEntity<>(form);
-        return new RestTemplate().exchange("https://localhost:8080/api/activate", HttpMethod.POST, body, Void.TYPE);
+        return new RestTemplate().exchange(urlBase.baseUrl() + "/api/activate", HttpMethod.POST, body, Void.TYPE);
     }
 
     @PostMapping("/api/refresh_token")
@@ -82,7 +86,7 @@ public class AuthenticationController {
         String newAccessToken = tokenService.issueNewAccessToken(request);
         String refreshToken = tokenService.extractTokenFromRequest(request);
         tokenService.addTokenPair(newAccessToken, refreshToken);
-        String originalUrl = request.getContextPath();
+        String originalUrl = request.getRequestURL().toString();
         //Redirect back to where the request originally came from.
         response.setStatus(303);
         response.addHeader("Location", originalUrl);

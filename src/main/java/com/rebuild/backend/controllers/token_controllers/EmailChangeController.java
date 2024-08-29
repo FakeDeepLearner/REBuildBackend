@@ -9,6 +9,7 @@ import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.service.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
+import com.rebuild.backend.utils.RedirectionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,14 +29,17 @@ public class EmailChangeController {
 
     private final TokenBlacklistService blacklistService;
 
+    private final RedirectionUtility redirectionUtility;
+
 
     @Autowired
     public EmailChangeController(UserService userService,
                                  JWTTokenService tokenService,
-                                 TokenBlacklistService blacklistService) {
+                                 TokenBlacklistService blacklistService, RedirectionUtility redirectionUtility) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.blacklistService = blacklistService;
+        this.redirectionUtility = redirectionUtility;
     }
 
     @PostMapping("/api/change_email")
@@ -49,7 +53,7 @@ public class EmailChangeController {
 
     @GetMapping("/api/change_email")
     @ResponseStatus(HttpStatus.SEE_OTHER)
-    public ResponseEntity<EmailChangeResponse> changeUserEmail(@RequestParam String token){
+    public ResponseEntity<EmailChangeResponse> changeUserEmail(@RequestParam(required = false) String token){
         //TODO: Add a new exception here (and handle it)
         if(!tokenService.tokenNonExpired(token)){
             throw new RuntimeException();
@@ -61,15 +65,8 @@ public class EmailChangeController {
         userService.changeEmail(user.getId(), newMail);
         userService.invalidateAllSessions(user.getUsername());
         blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.EMAIL_CHANGE);
-        return redirectUserToLogin(subject, newMail);
+        return redirectionUtility.redirectUserToLogin(subject, newMail);
     }
 
-    private ResponseEntity<EmailChangeResponse> redirectUserToLogin(String oldEmail, String newEmail){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/login");
-        EmailChangeResponse body = new EmailChangeResponse(oldEmail, newEmail);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);
-
-    }
 
 }

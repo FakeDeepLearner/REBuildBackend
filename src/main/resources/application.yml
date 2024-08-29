@@ -90,3 +90,6 @@ twilio:
   account-sid: classpath:twilio/account_sid.txt
   auth-token: classpath:twilio/auth_token.txt
   phone-number: classpath:twilio/phone_number.txt
+
+app:
+  base-url: https://localhost:8443

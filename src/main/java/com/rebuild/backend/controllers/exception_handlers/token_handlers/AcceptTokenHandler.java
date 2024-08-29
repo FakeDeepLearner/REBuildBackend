@@ -1,11 +1,13 @@
 package com.rebuild.backend.controllers.exception_handlers.token_handlers;
 
+import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
 import com.rebuild.backend.model.responses.TokenExpiredResponse;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +19,12 @@ public class AcceptTokenHandler {
 
     private final ExceptionBodyBuilder bodyBuilder;
 
-    public AcceptTokenHandler(ExceptionBodyBuilder bodyBuilder) {
+    private final AppUrlBase urlBase;
+
+    @Autowired
+    public AcceptTokenHandler(ExceptionBodyBuilder bodyBuilder, AppUrlBase urlBase) {
         this.bodyBuilder = bodyBuilder;
+        this.urlBase = urlBase;
     }
 
     @ExceptionHandler(ActivationTokenException.class)
@@ -27,7 +33,7 @@ public class AcceptTokenHandler {
             TokenExpiredResponse expiredResponse =
             new TokenExpiredResponse(expiredException.getMessage(), expiredException.getFailedEmailFor());
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Location", "/request_new_token_activation");
+            headers.add("Location", urlBase.baseUrl() + "/request_new_token_activation");
             return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(expiredResponse);
         }
         if(e instanceof ActivationTokenEmailMismatchException emailMismatchException){
