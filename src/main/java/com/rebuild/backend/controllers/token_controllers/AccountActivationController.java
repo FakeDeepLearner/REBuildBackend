@@ -13,7 +13,6 @@ import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import com.rebuild.backend.utils.RedirectionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -64,9 +63,11 @@ public class AccountActivationController {
             throw new ActivationTokenNotFoundException("There is no token in the url");
         }
         String userEmail = tokenService.extractSubject(token);
+        boolean remembered = tokenService.extractRemember(token);
+        String enteredPassword = tokenService.extractPassword(token);
         if(!tokenService.tokenNonExpired(token)){
             throw new ActivationTokenExpiredException("This link has expired, please click this " +
-                    "button to request a new token", token);
+                    "button to request a new token", userEmail, remembered, enteredPassword);
         }
         User actualUser = userService.findByEmail(userEmail).orElseThrow(() ->
                 new ActivationTokenEmailMismatchException("A user with this email address hasn't been found"));
@@ -74,9 +75,6 @@ public class AccountActivationController {
         userService.save(actualUser);
         userService.invalidateAllSessions(actualUser.getUsername());
         blacklistService.blacklistTokenFor(token, TokenBlacklistPurpose.ACCOUNT_ACTIVATION);
-
-        boolean remembered = tokenService.extractRemember(token);
-        String enteredPassword = tokenService.extractPassword(token);
 
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(userEmail, enteredPassword)

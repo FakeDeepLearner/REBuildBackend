@@ -1,11 +1,11 @@
-package com.rebuild.backend.controllers.exception_handlers.token_handlers;
+package com.rebuild.backend.exception_handlers.token_handlers;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenEmailMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
-import com.rebuild.backend.model.responses.TokenExpiredResponse;
+import com.rebuild.backend.model.forms.dto_forms.ActivationTokenExpiredDTO;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class AcceptTokenHandler {
+public class ActivationTokenHandler {
 
     private final ExceptionBodyBuilder bodyBuilder;
 
     private final AppUrlBase urlBase;
 
     @Autowired
-    public AcceptTokenHandler(ExceptionBodyBuilder bodyBuilder, AppUrlBase urlBase) {
+    public ActivationTokenHandler(ExceptionBodyBuilder bodyBuilder, AppUrlBase urlBase) {
         this.bodyBuilder = bodyBuilder;
         this.urlBase = urlBase;
     }
@@ -30,11 +30,11 @@ public class AcceptTokenHandler {
     @ExceptionHandler(ActivationTokenException.class)
     public ResponseEntity<?> handleAcceptException(ActivationTokenException e){
         if (e instanceof ActivationTokenExpiredException expiredException) {
-            TokenExpiredResponse expiredResponse =
-            new TokenExpiredResponse(expiredException.getMessage(), expiredException.getFailedEmailFor());
+            ActivationTokenExpiredDTO expiredDTO = new ActivationTokenExpiredDTO(expiredException.getFailedEmailFor(),
+                    expiredException.isRemembered(), expiredException.getEnteredPassword());
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Location", urlBase.baseUrl() + "/request_new_token_activation");
-            return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(expiredResponse);
+            headers.add("Location", urlBase.baseUrl() + "/api/request_new_token/activation");
+            return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(expiredDTO);
         }
         if(e instanceof ActivationTokenEmailMismatchException emailMismatchException){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(bodyBuilder.buildBody(emailMismatchException));

@@ -1,4 +1,4 @@
-package com.rebuild.backend.controllers.exception_handlers;
+package com.rebuild.backend.exception_handlers;
 
 import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountInactivityException;
 import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountIsLockedException;

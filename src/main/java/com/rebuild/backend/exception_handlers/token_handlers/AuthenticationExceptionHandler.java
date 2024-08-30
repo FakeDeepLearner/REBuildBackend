@@ -1,4 +1,4 @@
-package com.rebuild.backend.controllers.exception_handlers.token_handlers;
+package com.rebuild.backend.exception_handlers.token_handlers;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchException;
