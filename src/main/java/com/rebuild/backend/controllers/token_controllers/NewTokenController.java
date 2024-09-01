@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.forms.dto_forms.ActivationTokenExpiredDTO;
+import com.rebuild.backend.model.forms.dto_forms.EmailChangeDTO;
 import com.rebuild.backend.model.forms.dto_forms.ResetTokenExpiredDTO;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,5 +42,16 @@ public class NewTokenController {
         );
         tokenService.sendProperEmail(newToken, timeCount, timeUnit);
 
+    }
+
+    @GetMapping("/email")
+    public void sendEmailChangeToken(@RequestBody EmailChangeDTO changeDTO){
+        long timeCount = 10L;
+        ChronoUnit timeUnit = ChronoUnit.MINUTES;
+        String newToken = tokenService.generateTokenForEmailChange(
+                changeDTO.oldEmail(), changeDTO.newEmail(),
+                timeCount, timeUnit, TokenType.CHANGE_EMAIL.typeName
+        );
+        tokenService.sendProperEmail(newToken, timeCount, timeUnit);
     }
 }

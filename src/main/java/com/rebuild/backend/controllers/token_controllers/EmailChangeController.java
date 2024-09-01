@@ -1,6 +1,9 @@
 package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenExpiredException;
+import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenMismatchException;
+import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenNotFoundException;
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
@@ -54,13 +57,19 @@ public class EmailChangeController {
     @GetMapping("/api/change_email")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<EmailChangeResponse> changeUserEmail(@RequestParam(required = false) String token){
-        //TODO: Add a new exception here (and handle it)
-        if(!tokenService.tokenNonExpired(token)){
-            throw new RuntimeException();
+        if (token == null){
+            throw new EmailTokenNotFoundException("There is no token in the url");
         }
+        //Here, "subject" is the current email address of the user
         String subject = tokenService.extractSubject(token);
         String newMail = tokenService.extractNewMail(token);
-        User user = userService.findByEmail(subject).orElseThrow(() -> new UserNotFoundException("Email not found"));
+        if(!tokenService.tokenNonExpired(token)){
+            throw new EmailTokenExpiredException("This token has expired, please request a new one",
+                    subject, newMail);
+        }
+
+        User user = userService.findByEmail(subject).orElseThrow(() -> new EmailTokenMismatchException("" +
+                "A user with this email address hasn't been found"));
 
         userService.changeEmail(user.getId(), newMail);
         userService.invalidateAllSessions(user.getUsername());

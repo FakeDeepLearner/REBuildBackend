@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class ResetTokenHandler {
+public class ResetPasswordHandler {
 
     private final ExceptionBodyBuilder bodyBuilder;
 
     private final AppUrlBase urlBase;
 
     @Autowired
-    public ResetTokenHandler(ExceptionBodyBuilder bodyBuilder, AppUrlBase urlBase) {
+    public ResetPasswordHandler(ExceptionBodyBuilder bodyBuilder, AppUrlBase urlBase) {
         this.bodyBuilder = bodyBuilder;
         this.urlBase = urlBase;
     }

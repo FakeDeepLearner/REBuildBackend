@@ -2,4 +2,3 @@ TODO: Finish implementing resume downloads via pdf and setting up twilio sms
 TODO: Set up users having optional phone numbers
 TODO: Scan for general todos in the other files
 TODO: Check and see if all http requests created in the backend are served over https instead
-TODO: Create a way for email change jwt tokens to be able to be resent as well.

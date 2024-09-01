@@ -70,8 +70,6 @@ public class JWTTokenService {
     }
 
     public String generateGivenBothEmails(String oldEmail, String newEmail, long amount ,ChronoUnit unit){
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("purpose", "email_change");
 
         Instant curr = Instant.now();
         JwtClaimsSet claimsSet = JwtClaimsSet.builder().
@@ -79,7 +77,8 @@ public class JWTTokenService {
                 issuedAt(curr).
                 expiresAt(curr.plus(amount, unit)).
                 subject(oldEmail).
-                claims((claimSet) -> claims.put("new_email", newEmail)).
+                claim("purpose", "email_change").
+                claim("new_email", newEmail).
                 build();
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
