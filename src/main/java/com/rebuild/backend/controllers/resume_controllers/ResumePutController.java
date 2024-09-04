@@ -16,7 +16,7 @@ import java.time.Duration;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/api/put")
+@RequestMapping(value = "/api/put", method = RequestMethod.PUT)
 @ResponseStatus(HttpStatus.OK)
 public class ResumePutController {
     private final ResumeService resumeService;

@@ -16,7 +16,7 @@ import java.time.Duration;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/api/post")
+@RequestMapping(value = "/api/post", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.CREATED)
 public class ResumePostController {
     private final ResumeService resumeService;
