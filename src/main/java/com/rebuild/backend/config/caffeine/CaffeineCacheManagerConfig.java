@@ -28,7 +28,7 @@ public class CaffeineCacheManagerConfig{
     @Bean
     public CacheManager caffeineCacheManager() {
         SimpleCacheManager manager = new SimpleCacheManager();
-        Cache resumeCacheWrapper = new CaffeineCacheAbstraction<>("resume_cache", resumeLoadingCache);
+        Cache resumeCacheWrapper = new CaffeineCacheAbstraction<UUID, Resume>("resume_cache", resumeLoadingCache);
         manager.setCaches(Collections.singletonList(resumeCacheWrapper));
 
         return manager;
