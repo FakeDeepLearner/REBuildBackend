@@ -1,7 +1,7 @@
-package com.rebuild.backend.controllers;
+package com.rebuild.backend.controllers.otp_controllers;
 
-import com.rebuild.backend.model.entities.enums.EmailOTPGenerationPurpose;
-import com.rebuild.backend.model.forms.dto_forms.OTPVerificationEmailDTO;
+import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
+import com.rebuild.backend.model.forms.dto_forms.otp_dto.OTPVerificationEmailDTO;
 import com.rebuild.backend.service.OTPService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class ReactivationOTPController {
     @GetMapping("/api/get_otp/reactivate/{email}")
     @ResponseStatus(HttpStatus.OK)
     public int getEmailOtpForUnlock(@PathVariable String email){
-        return otpService.generateOtpFor(email, EmailOTPGenerationPurpose.REACTIVATE_CREDENTIALS);
+        return otpService.generateOtpFor(email, OTPGenerationPurpose.REACTIVATE_CREDENTIALS);
     }
 
     @PostMapping("/api/verify_otp/reactivate")
@@ -31,7 +31,7 @@ public class ReactivationOTPController {
     public void verifyOtp(@RequestBody OTPVerificationEmailDTO verificationEmailDTO, HttpServletResponse response)
             throws IOException {
         otpService.validateOtpFor(verificationEmailDTO.email(), verificationEmailDTO.enteredOtp(),
-                EmailOTPGenerationPurpose.REACTIVATE_CREDENTIALS);
+                OTPGenerationPurpose.REACTIVATE_CREDENTIALS);
         response.sendRedirect("/login");
     }
 }

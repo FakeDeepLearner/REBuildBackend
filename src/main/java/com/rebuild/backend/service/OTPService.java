@@ -5,9 +5,8 @@ import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException
 import com.rebuild.backend.exceptions.otp_exceptions.InvalidOtpException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPAlreadyGeneratedException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPExpiredException;
-import com.rebuild.backend.model.entities.enums.EmailOTPGenerationPurpose;
+import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
@@ -51,10 +50,10 @@ public class OTPService {
     }
 
 
-    public int generateOtpFor(String email, EmailOTPGenerationPurpose purpose){
+    public int generateOtpFor(String email, OTPGenerationPurpose purpose){
         int generatedOtp = generateRandomOtp();
         Cache emailsCache;
-        if (purpose.equals(EmailOTPGenerationPurpose.ACCOUNT_UNLOCK)){
+        if (purpose.equals(OTPGenerationPurpose.ACCOUNT_UNLOCK)){
             emailsCache = otpCacheManager.getCache("email_otp");
         }
         else{
@@ -72,11 +71,11 @@ public class OTPService {
         }
     }
 
-    public int generateOtpFor(PhoneNumber phoneNumber){
+    public int generateOtpFor(String phoneNumber){
         int generatedOtp = generateRandomOtp();
         Cache emailsCache = otpCacheManager.getCache("phone_otp");
         assert emailsCache != null;
-        Cache.ValueWrapper wrapper = emailsCache.putIfAbsent(phoneNumber.fullNumber(), generatedOtp);
+        Cache.ValueWrapper wrapper = emailsCache.putIfAbsent(phoneNumber, generatedOtp);
         if(wrapper == null){
             return generatedOtp;
         }
@@ -86,9 +85,9 @@ public class OTPService {
     }
 
 
-    public void validateOtpFor(String email, int enteredOtp, EmailOTPGenerationPurpose purpose){
+    public void validateOtpFor(String email, int enteredOtp, OTPGenerationPurpose purpose){
         Cache emailsCache;
-        if(purpose.equals(EmailOTPGenerationPurpose.ACCOUNT_UNLOCK)){
+        if(purpose.equals(OTPGenerationPurpose.ACCOUNT_UNLOCK)){
             emailsCache = otpCacheManager.getCache("email_otp");
         }
         else{
@@ -105,7 +104,7 @@ public class OTPService {
                 throw new InvalidOtpException("Wrong passcode, please try again");
             }
             else{
-                if(purpose.equals(EmailOTPGenerationPurpose.ACCOUNT_UNLOCK)) {
+                if(purpose.equals(OTPGenerationPurpose.ACCOUNT_UNLOCK)) {
                     Cache connectionsCache = blockedCacheManager.getCache("email_connections");
                     assert connectionsCache != null;
                     connectionsCache.evict(email);
@@ -122,10 +121,10 @@ public class OTPService {
         }
     }
 
-    public void validateOtpFor(PhoneNumber phoneNumber, int enteredOtp){
+    public void validateOtpFor(String phoneNumber, int enteredOtp){
         Cache emailsCache = otpCacheManager.getCache("phone_otp");
         assert emailsCache != null;
-        Cache.ValueWrapper wrapper = emailsCache.get(phoneNumber.fullNumber());
+        Cache.ValueWrapper wrapper = emailsCache.get(phoneNumber);
         if(wrapper == null){
             throw new OTPExpiredException("The requested passcode has expired, please request a new one");
         }

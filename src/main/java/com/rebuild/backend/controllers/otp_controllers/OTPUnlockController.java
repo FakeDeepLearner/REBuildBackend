@@ -1,7 +1,7 @@
-package com.rebuild.backend.controllers;
+package com.rebuild.backend.controllers.otp_controllers;
 
-import com.rebuild.backend.model.entities.enums.EmailOTPGenerationPurpose;
-import com.rebuild.backend.model.forms.dto_forms.OTPVerificationEmailDTO;
+import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
+import com.rebuild.backend.model.forms.dto_forms.otp_dto.OTPVerificationEmailDTO;
 import com.rebuild.backend.service.OTPService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class OTPUnlockController {
     @GetMapping("/api/get_otp/unlock/{email}")
     @ResponseStatus(HttpStatus.OK)
     public int getEmailOtpForUnlock(@PathVariable String email){
-        return otpService.generateOtpFor(email, EmailOTPGenerationPurpose.ACCOUNT_UNLOCK);
+        return otpService.generateOtpFor(email, OTPGenerationPurpose.ACCOUNT_UNLOCK);
     }
 
 
@@ -32,7 +32,7 @@ public class OTPUnlockController {
     public void verifyOtp(@RequestBody OTPVerificationEmailDTO verificationEmailDTO,
                           HttpServletResponse response) throws IOException {
         otpService.validateOtpFor(verificationEmailDTO.email(), verificationEmailDTO.enteredOtp(),
-                EmailOTPGenerationPurpose.ACCOUNT_UNLOCK);
+                OTPGenerationPurpose.ACCOUNT_UNLOCK);
         response.sendRedirect("/login");
 
     }
