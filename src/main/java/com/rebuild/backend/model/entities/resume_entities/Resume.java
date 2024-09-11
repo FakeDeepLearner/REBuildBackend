@@ -25,6 +25,15 @@ public class Resume {
     )
     private UUID id;
 
+    @Column(name = "metadata", nullable = false)
+    @OneToOne(mappedBy = "resume", fetch = FetchType.LAZY, cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE,
+            CascadeType.REFRESH,
+            CascadeType.DETACH
+    })
+    private TemplateMetadata templateMetadata;
+
     @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Header header;
 

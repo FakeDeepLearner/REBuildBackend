@@ -147,12 +147,7 @@ public class ResumeService {
 
 
     public byte[] returnResumeAsPdf(Resume resume){
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PdfWriter writer = new PdfWriter(outputStream);
-        PdfDocument pdfDoc = new PdfDocument(writer);
-        Document mainDocument = new Document(pdfDoc);
-        return outputStream.toByteArray();
-
+        return null;
 
     }
 
