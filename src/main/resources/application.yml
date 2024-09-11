@@ -93,3 +93,7 @@ twilio:
 
 app:
   base-url: https://localhost:8443
+
+google:
+  client-id: classpath:google/client_id.txt
+  client-secret: classpath:google/client_secret.txt

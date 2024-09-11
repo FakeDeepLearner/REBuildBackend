@@ -5,10 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.Email
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenNotFoundException;
-import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEmailMismatchException;
-import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNotFoundException;
-import com.rebuild.backend.model.forms.dto_forms.EmailChangeDTO;
-import com.rebuild.backend.service.token_services.JWTTokenService;
+import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.EmailChangeDTO;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;

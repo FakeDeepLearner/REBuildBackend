@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.otp_controllers;
 
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
-import com.rebuild.backend.model.forms.dto_forms.otp_dto.OTPVerificationEmailDTO;
+import com.rebuild.backend.model.forms.dtos.otp_dto.OTPVerificationEmailDTO;
 import com.rebuild.backend.service.OTPService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;

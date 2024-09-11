@@ -6,7 +6,7 @@ import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNo
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
-import com.rebuild.backend.model.forms.dto_forms.AccountActivationDTO;
+import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccountActivationDTO;
 import com.rebuild.backend.model.forms.auth_forms.PasswordResetForm;
 import com.rebuild.backend.model.responses.PasswordResetResponse;
 import com.rebuild.backend.service.UserService;
@@ -15,7 +15,6 @@ import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import com.rebuild.backend.utils.RedirectionUtility;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

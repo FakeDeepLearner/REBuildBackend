@@ -1,9 +1,9 @@
 package com.rebuild.backend.controllers.token_controllers;
 
 import com.rebuild.backend.model.entities.enums.TokenType;
-import com.rebuild.backend.model.forms.dto_forms.ActivationTokenExpiredDTO;
-import com.rebuild.backend.model.forms.dto_forms.EmailChangeDTO;
-import com.rebuild.backend.model.forms.dto_forms.ResetTokenExpiredDTO;
+import com.rebuild.backend.model.forms.dtos.ActivationTokenExpiredDTO;
+import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.EmailChangeDTO;
+import com.rebuild.backend.model.forms.dtos.ResetTokenExpiredDTO;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

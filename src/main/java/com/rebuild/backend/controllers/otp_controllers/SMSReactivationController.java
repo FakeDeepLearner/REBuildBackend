@@ -2,7 +2,7 @@ package com.rebuild.backend.controllers.otp_controllers;
 
 import com.rebuild.backend.config.properties.TwilioCredentials;
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
-import com.rebuild.backend.model.forms.dto_forms.otp_dto.OTPVerificationPhoneNumberDTO;
+import com.rebuild.backend.model.forms.dtos.otp_dto.OTPVerificationPhoneNumberDTO;
 import com.rebuild.backend.service.OTPService;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;

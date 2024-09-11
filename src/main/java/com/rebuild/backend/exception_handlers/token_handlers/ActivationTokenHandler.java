@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.Activat
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
-import com.rebuild.backend.model.forms.dto_forms.ActivationTokenExpiredDTO;
+import com.rebuild.backend.model.forms.dtos.ActivationTokenExpiredDTO;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;

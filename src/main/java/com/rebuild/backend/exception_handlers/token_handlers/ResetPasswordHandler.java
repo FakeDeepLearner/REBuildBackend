@@ -6,7 +6,7 @@ import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenEm
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.reset_tokens.ResetTokenNotFoundException;
-import com.rebuild.backend.model.forms.dto_forms.ResetTokenExpiredDTO;
+import com.rebuild.backend.model.forms.dtos.ResetTokenExpiredDTO;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
