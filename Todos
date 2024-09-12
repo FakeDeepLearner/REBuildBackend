@@ -1,2 +1,1 @@
 TODO: Implement generating templates on the server side (with Thymeleaf) and then converting the HTML to pdf files.
-TODO: Set up users having optional phone numbers

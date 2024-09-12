@@ -1,5 +1,6 @@
 package com.rebuild.backend.exception_handlers;
 
+import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberMissingException;
 import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberParseException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
@@ -40,6 +41,13 @@ public class NotFoundHandler {
     @ExceptionHandler(PhoneNumberParseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handlePhoneNumberParse(PhoneNumberParseException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(PhoneNumberMissingException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseEntity<Map<String, String>> handleNumberMissing(PhoneNumberMissingException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.badRequest().body(body);
     }

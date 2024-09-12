@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.otp_controllers;
 
 import com.rebuild.backend.config.properties.TwilioCredentials;
+import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberMissingException;
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
 import com.rebuild.backend.model.forms.dtos.otp_dto.OTPVerificationPhoneNumberDTO;
 import com.rebuild.backend.service.OTPService;
@@ -29,6 +30,10 @@ public class SMSReactivationController {
     @GetMapping("/api/get_otp/reactivate/{phone_number}")
     @ResponseStatus(HttpStatus.OK)
     public int getPhoneOtpForReactivation(@PathVariable String phone_number){
+        if(phone_number == null){
+            throw new PhoneNumberMissingException("Your request can't be processed because you do not " +
+                    "currently have a registered phone number");
+        }
         int otp = otpService.generateOtpFor(phone_number);
         Message.creator(
                 new PhoneNumber(phone_number),
