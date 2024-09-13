@@ -1,22 +1,17 @@
 package com.rebuild.backend.service;
 
 
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.repository.ResumeRepository;
-import com.rebuild.backend.repository.UserRepository;
+
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayOutputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
