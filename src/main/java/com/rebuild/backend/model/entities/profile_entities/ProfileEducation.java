@@ -1,0 +1,33 @@
+package com.rebuild.backend.model.entities.profile_entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+
+import java.util.List;
+import java.util.UUID;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@RequiredArgsConstructor
+@Entity
+@Table(name = "profile_educations")
+public class ProfileEducation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NonNull
+    private String schoolName;
+
+    @NonNull
+    @ElementCollection
+    @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
+    private List<String> relevantCoursework;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id", referencedColumnName = "id", foreignKey =
+    @ForeignKey(name = "fk_profile_education_id"))
+    private UserProfile profile;
+}

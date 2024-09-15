@@ -1,1 +1,3 @@
-TODO: Implement generating templates on the server side (with Thymeleaf) and then converting the HTML to pdf files.
+TODO: Continue the implementation of user profiles, especially the ability to prefill resume data with profile information
+
+TODO: Finish altering the database schema for the profiles, and setting up proper cascading

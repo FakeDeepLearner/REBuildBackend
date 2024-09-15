@@ -140,12 +140,6 @@ public class ResumeService {
         resumeRepository.deleteById(id);
     }
 
-
-    public byte[] returnResumeAsPdf(Resume resume){
-        return null;
-
-    }
-
     public void deleteEducation(UUID resID){
         Resume resume = findById(resID);
         resume.setEducation(null);

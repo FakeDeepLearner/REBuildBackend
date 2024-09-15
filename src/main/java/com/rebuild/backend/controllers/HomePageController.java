@@ -59,24 +59,6 @@ public class HomePageController {
         resumeService.deleteById(res_id);
     }
 
-    @GetMapping("/api/download/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<InputStreamResource> downloadResumeAsPdf(@PathVariable UUID id){
-        Resume fetchedResume = resumeService.findById(id);
-
-        byte[] pdfAsBytes = resumeService.returnResumeAsPdf(fetchedResume);
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(pdfAsBytes);
-        InputStreamResource body = new InputStreamResource(inputStream);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=resume.pdf");
-
-        return ResponseEntity.ok().
-                contentType(MediaType.APPLICATION_PDF).
-                headers(headers).
-                body(body);
-
-    }
 
     @DeleteMapping("/api/delete_phone/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

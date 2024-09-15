@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.persistence.*;
@@ -58,6 +59,8 @@ public class User implements UserDetails {
     @NonNull
     private PhoneNumber phoneNumber;
 
+    @OneToOne(orphanRemoval = true, mappedBy = "user")
+    private UserProfile profile;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Resume> resumes;
