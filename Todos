@@ -1,3 +1,7 @@
 TODO: Continue the implementation of user profiles, especially the ability to prefill resume data with profile information
 
 TODO: Finish altering the database schema for the profiles, and setting up proper cascading
+
+TODO: Set up proper validation for the new profile forms
+
+TODO: Set up exception handling for the 2 new profile exceptions

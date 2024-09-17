@@ -163,4 +163,16 @@ public class ResumeService {
         resume.setExperiences(newExperiences);
         return resumeRepository.save(resume);
     }
+
+    public Resume setHeader(UUID resID, Header newHeader){
+        Resume resume = findById(resID);
+        resume.setHeader(newHeader);
+        return resumeRepository.save(resume);
+    }
+
+    public Resume setEducation(UUID resID, Education newEducation){
+        Resume resume = findById(resID);
+        resume.setEducation(newEducation);
+        return resumeRepository.save(resume);
+    }
 }

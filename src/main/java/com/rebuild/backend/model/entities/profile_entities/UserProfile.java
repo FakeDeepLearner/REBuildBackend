@@ -20,15 +20,12 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NonNull
     @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
     private ProfileHeader header;
 
-    @NonNull
     @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
     private ProfileEducation education;
 
-    @NonNull
     @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true)
     private List<ProfileExperience> experienceList;
 
@@ -36,4 +33,11 @@ public class UserProfile {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    public UserProfile(ProfileHeader profileHeader,
+                       ProfileEducation newEducation,
+                       List<ProfileExperience> experiences) {
+        this.header = profileHeader;
+        this.education = newEducation;
+        this.experienceList = experiences;
+    }
 }

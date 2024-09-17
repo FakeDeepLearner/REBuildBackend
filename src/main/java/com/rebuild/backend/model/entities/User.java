@@ -59,7 +59,9 @@ public class User implements UserDetails {
     @NonNull
     private PhoneNumber phoneNumber;
 
-    @OneToOne(orphanRemoval = true, mappedBy = "user")
+    @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
+    })
     private UserProfile profile;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true)
