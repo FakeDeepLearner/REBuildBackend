@@ -1,5 +1,6 @@
 package com.rebuild.backend.service;
 
+import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;
@@ -15,8 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileService {
@@ -69,8 +71,30 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-    public void deleteProfile(UserProfile profileToDelete){
-        profileRepository.delete(profileToDelete);
+    public void deleteProfile(UUID user_id){
+        profileRepository.deleteUserProfileByUserId(user_id);
+    }
+
+    public void deleteProfileExperiences(UUID user_id){
+        profileRepository.deleteProfileExperiencesByUserId(user_id);
+    }
+
+    public void deleteProfileEducation(UUID user_id){
+        profileRepository.deleteProfileEducationByUserId(user_id);
+    }
+
+    public void deleteProfileHeader(UUID user_id){
+        profileRepository.deleteProfileHeaderByUserId(user_id);
+    }
+    
+    public UserProfile deleteSpecificProfileExperience(UUID user_id, UUID experience_id){
+        UserProfile profile = profileRepository.findByUserId(user_id).orElseThrow(() ->
+                new NoProfileException("Profile not found for this user"));
+        profile.getExperienceList().
+                removeIf(profileExperience ->
+                profileExperience.getId().equals(experience_id)
+        );
+        return profileRepository.save(profile);
     }
 
 

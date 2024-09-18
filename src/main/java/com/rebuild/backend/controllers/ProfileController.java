@@ -87,12 +87,31 @@ public class ProfileController {
     @DeleteMapping("/delete/{user_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProfile(@PathVariable UUID user_id){
-        User deletingUser = userService.findByID(user_id).orElseThrow(() ->
-                new UserNotFoundException("User with id " + user_id + " not found"));
-        if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found to delete");
-        }
-        UserProfile profile = deletingUser.getProfile();
-        profileService.deleteProfile(profile);
+        profileService.deleteProfile(user_id);
+    }
+
+    @DeleteMapping("/delete/header/{user_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProfileHeader(@PathVariable UUID user_id){
+        profileService.deleteProfileHeader(user_id);
+    }
+
+    @DeleteMapping("/delete/education/{user_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProfileEducation(@PathVariable UUID user_id){
+        profileService.deleteProfileEducation(user_id);
+    }
+
+    @DeleteMapping("/delete/experiences/{user_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProfileExperience(@PathVariable UUID user_id){
+        profileService.deleteProfileExperiences(user_id);
+    }
+
+    @DeleteMapping("/delete/experiences/{user_id}/{experience_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile deleteSpecificExperience(@PathVariable UUID user_id,
+                                                @PathVariable UUID experience_id){
+        return profileService.deleteSpecificProfileExperience(user_id, experience_id);
     }
 }

@@ -14,6 +14,17 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "profiles")
+@NamedQueries({
+        @NamedQuery(name = "UserProfile.deleteProfileHeaderByUserId",
+                query = "UPDATE UserProfile p SET p.header = null WHERE p.user.id = ?1"),
+        @NamedQuery(name = "UserProfile.deleteProfileEducationByUserId",
+                query = "UPDATE UserProfile p SET p.education = null WHERE p.user.id = ?1"),
+        @NamedQuery(name = "UserProfile.deleteProfileExperiencesByUserId",
+                query = "UPDATE UserProfile p SET p.experienceList = null WHERE p.user.id = ?1")
+
+}
+)
+
 public class UserProfile {
 
     @Id
