@@ -26,8 +26,8 @@ public class ProfileEducation {
     @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
     private List<String> relevantCoursework;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "profile_id", referencedColumnName = "id", foreignKey =
-    @ForeignKey(name = "fk_profile_education_id"))
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_profile_education_id"))
     private UserProfile profile;
 }

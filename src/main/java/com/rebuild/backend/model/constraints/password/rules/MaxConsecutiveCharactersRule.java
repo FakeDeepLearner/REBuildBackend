@@ -16,8 +16,6 @@ public class MaxConsecutiveCharactersRule implements Rule {
 
     private final int maxConsecutiveCharacters;
 
-    private final String errorCode = "PASSWORD_CHARACTER_ERROR";
-
     private final String errorMessage;
 
     @Autowired
@@ -34,6 +32,7 @@ public class MaxConsecutiveCharactersRule implements Rule {
         Pattern pattern = Pattern.compile(String.format("[a-zA-Z]{%d,}", maxConsecutiveCharacters + 1));
         if(pattern.matcher(password).find()){
             RuleResult returnedResult = new RuleResult(false);
+            String errorCode = "PASSWORD_CHARACTER_ERROR";
             returnedResult.getDetails().add(new RuleResultDetail(errorCode, Map.of(errorCode, errorMessage)));
             return returnedResult;
         }
@@ -41,7 +40,4 @@ public class MaxConsecutiveCharactersRule implements Rule {
         return new RuleResult(true);
     }
 
-    public String getErrorCode() {
-        return errorCode;
-    }
 }

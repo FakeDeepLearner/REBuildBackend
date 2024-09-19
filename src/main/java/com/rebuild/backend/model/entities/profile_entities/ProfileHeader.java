@@ -37,8 +37,8 @@ public class ProfileHeader {
     @NonNull
     private String email;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "profile_id", referencedColumnName = "id", foreignKey =
-    @ForeignKey(name = "fk_profile_header_id"))
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_profile_header_id"))
     private UserProfile profile;
 }

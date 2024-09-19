@@ -28,6 +28,8 @@ public class PasswordMessageResolver implements MessageResolver {
                 properties.minDigit()));
         errorMessages.put("INSUFFICIENT_SPECIAL", String.format("The password must contain at least %d special characters",
                 properties.minSpecialCharacter()));
+        errorMessages.put("PASSWORD_NUMBER_ERROR", "The password can't contain more " +
+                "than %d numbers in a row".formatted(properties.consecutiveNumbersLimit()));
         if(properties.canContainSpaces()){
             errorMessages.put("PROHIBITED_WHITESPACE", "The password may not contain spaces");
         }
