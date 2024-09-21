@@ -132,8 +132,12 @@ public class ResumeService {
         return education;
     }
 
-    public Resume save(Resume resume){
-        return resumeRepository.save(resume);
+    public ResumeSection createNewSection(UUID resID, String sectionTitle, List<String> sectionBullets){
+        Resume resume = findById(resID);
+        ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
+        resume.addSection(newSection);
+        resumeRepository.save(resume);
+        return newSection;
     }
 
     public void deleteById(UUID id){
@@ -151,6 +155,13 @@ public class ResumeService {
         resume.getExperiences().removeIf(experience -> experience.getId().equals(expID));
         resumeRepository.save(resume);
     }
+
+    public void deleteSection(UUID resID, UUID sectionID){
+        Resume resume = findById(resID);
+        resume.getSections().removeIf(section -> section.getId().equals(sectionID));
+        resumeRepository.save(resume);
+    }
+    
 
     public void deleteHeader(UUID resID){
         Resume resume = findById(resID);

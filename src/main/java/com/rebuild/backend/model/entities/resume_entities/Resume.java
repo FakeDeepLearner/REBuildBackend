@@ -25,15 +25,6 @@ public class Resume {
     )
     private UUID id;
 
-    @Column(name = "metadata", nullable = false)
-    @OneToOne(mappedBy = "resume", fetch = FetchType.LAZY, cascade = {
-            CascadeType.PERSIST,
-            CascadeType.MERGE,
-            CascadeType.REFRESH,
-            CascadeType.DETACH
-    })
-    private TemplateMetadata templateMetadata;
-
     @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Header header;
 
@@ -45,6 +36,10 @@ public class Resume {
     }, orphanRemoval = true)
     @NonNull
     private List<Experience> experiences;
+
+    @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResumeSection> sections;
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -61,9 +56,20 @@ public class Resume {
         this.experiences = new ArrayList<>();
         this.education = new Education();
         this.header = new Header();
+        this.sections = null;
     }
 
     public void addExperience(Experience experience){
         experiences.add(experience);
+    }
+
+    public void addSection(ResumeSection section){
+        if (sections == null){
+            sections = new ArrayList<>();
+            sections.add(section);
+        }
+        else{
+            sections.add(section);
+        }
     }
 }
