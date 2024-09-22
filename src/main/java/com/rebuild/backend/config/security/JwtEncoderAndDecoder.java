@@ -37,13 +37,6 @@ public class JwtEncoderAndDecoder {
         this.properties = properties;
     }
 
-    @Bean
-    public AuthenticationManager authManager(@Qualifier("details") UserDetailsService detailsService){
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(detailsService);
-        return new ProviderManager(provider);
-    }
-
 
     @Bean
     public JwtDecoder decoder() {

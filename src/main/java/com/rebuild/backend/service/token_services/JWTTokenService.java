@@ -221,7 +221,7 @@ public class JWTTokenService {
         String refresh_token = extractTokenFromRequest(request);
         removeTokenPair(refresh_token);
         String subject = extractSubject(refresh_token);
-        UserDetails details = detailsService.loadUserByEmail(subject);
+        UserDetails details = detailsService.loadUserByUsername(subject);
         Instant curr = Instant.now();
         String claim = details.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));

@@ -56,7 +56,7 @@ public class JWTVerificationFilter extends OncePerRequestFilter implements Order
             String subject = tokenService.extractSubject(accessToken);
             //The user is not authenticated yet
             if (subject != null && SecurityContextHolder.getContext().getAuthentication() != null){
-                UserDetails details = detailsService.loadUserByEmail(subject);
+                UserDetails details = detailsService.loadUserByUsername(subject);
                 checkUserDetails(details);
                 if (tokenService.isTokenValid(accessToken, details)){
                     UsernamePasswordAuthenticationToken newToken = new UsernamePasswordAuthenticationToken(
