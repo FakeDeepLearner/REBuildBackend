@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.password_utils;
 
 import com.rebuild.backend.config.properties.PepperValue;
 import org.springframework.beans.factory.annotation.Autowired;

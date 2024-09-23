@@ -1,4 +1,4 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
@@ -13,7 +13,6 @@ import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.session.SessionInformation;

@@ -5,12 +5,11 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.responses.GetHomePageResponse;
 import com.rebuild.backend.service.ResumeService;
-import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController

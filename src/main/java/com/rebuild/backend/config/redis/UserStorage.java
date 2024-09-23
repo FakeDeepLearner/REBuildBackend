@@ -1,7 +1,7 @@
 package com.rebuild.backend.config.redis;
 
 import com.rebuild.backend.config.redis.writers.UserConnectionsCacheWriter;
-import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

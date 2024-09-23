@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers.token_controllers;
 
-import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenExpiredException;
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenMismatchException;
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenNotFoundException;
@@ -9,12 +8,11 @@ import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.auth_forms.EmailChangeForm;
 import com.rebuild.backend.model.responses.EmailChangeResponse;
-import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.service.user_services.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import com.rebuild.backend.utils.RedirectionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

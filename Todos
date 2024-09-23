@@ -1,3 +1,1 @@
-/TODO: Make a method in the user service that gets a user without the optional, and change all classes to use that instead
-
-TODO (Not certain, potentially): Make the coursework an actual entity instead of just a string, for more control over it
+TODO: Start implementing websockets, in order to implement live collaboration with multiple users.

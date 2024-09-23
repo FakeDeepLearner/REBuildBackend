@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.jwt_exceptions.JWTCredentialsMismatchExcep
 import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.model.entities.enums.TokenType;
-import com.rebuild.backend.service.CustomUserDetailsService;
+import com.rebuild.backend.service.user_services.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;

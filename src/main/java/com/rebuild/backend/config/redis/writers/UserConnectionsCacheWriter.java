@@ -1,6 +1,6 @@
 package com.rebuild.backend.config.redis.writers;
 
-import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.service.user_services.UserService;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.cache.CacheStatistics;

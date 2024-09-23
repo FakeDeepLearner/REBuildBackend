@@ -1,4 +1,4 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.repository.UserRepository;

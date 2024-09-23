@@ -8,7 +8,7 @@ import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccountActivationDTO;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
-import com.rebuild.backend.service.UserService;
+import com.rebuild.backend.service.user_services.UserService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import com.rebuild.backend.utils.RedirectionUtility;

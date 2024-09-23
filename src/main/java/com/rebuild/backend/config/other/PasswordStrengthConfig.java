@@ -4,7 +4,7 @@ import com.rebuild.backend.config.properties.PasswordProperties;
 import com.rebuild.backend.model.constraints.password.rules.IllegalWhitespacesRule;
 import com.rebuild.backend.model.constraints.password.rules.MaxConsecutiveCharactersRule;
 import com.rebuild.backend.model.constraints.password.rules.MaxConsecutiveNumbersRule;
-import com.rebuild.backend.utils.PasswordMessageResolver;
+import com.rebuild.backend.utils.password_utils.PasswordMessageResolver;
 import org.passay.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

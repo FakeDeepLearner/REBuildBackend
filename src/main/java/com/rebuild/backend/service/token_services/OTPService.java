@@ -1,4 +1,4 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.token_services;
 
 import com.rebuild.backend.config.properties.MailAppCredentials;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
@@ -7,6 +7,7 @@ import com.rebuild.backend.exceptions.otp_exceptions.OTPAlreadyGeneratedExceptio
 import com.rebuild.backend.exceptions.otp_exceptions.OTPExpiredException;
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
 import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;

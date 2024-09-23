@@ -1,10 +1,9 @@
 package com.rebuild.backend.config.security.filters;
 
-import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountInactivityException;
 import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountIsLockedException;
 import com.rebuild.backend.exceptions.unauthorized_exceptions.AccountNotActivatedException;
-import com.rebuild.backend.service.CustomUserDetailsService;
+import com.rebuild.backend.service.user_services.CustomUserDetailsService;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,7 +1,6 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
-import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;
 import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
@@ -11,14 +10,13 @@ import com.rebuild.backend.model.forms.profile_forms.ProfileEducationForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileExperienceForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileHeaderForm;
 import com.rebuild.backend.repository.ProfileRepository;
-import com.rebuild.backend.utils.ProfileObjectConverter;
+import com.rebuild.backend.utils.converters.ProfileObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class ProfileService {

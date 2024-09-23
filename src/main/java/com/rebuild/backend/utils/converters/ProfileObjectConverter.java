@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.converters;
 
 import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;

@@ -4,7 +4,7 @@ import com.rebuild.backend.config.properties.TwilioCredentials;
 import com.rebuild.backend.exceptions.not_found_exceptions.PhoneNumberMissingException;
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
 import com.rebuild.backend.model.forms.dtos.otp_dto.OTPVerificationPhoneNumberDTO;
-import com.rebuild.backend.service.OTPService;
+import com.rebuild.backend.service.token_services.OTPService;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import jakarta.servlet.http.HttpServletResponse;

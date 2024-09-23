@@ -10,7 +10,7 @@ import com.rebuild.backend.model.entities.resume_entities.Experience;
 import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.service.ResumeService;
-import com.rebuild.backend.utils.ProfileObjectConverter;
+import com.rebuild.backend.utils.converters.ProfileObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
