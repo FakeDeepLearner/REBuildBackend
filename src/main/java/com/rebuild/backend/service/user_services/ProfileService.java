@@ -11,15 +11,16 @@ import com.rebuild.backend.model.forms.profile_forms.ProfileEducationForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileExperienceForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileHeaderForm;
 import com.rebuild.backend.repository.ProfileRepository;
-import com.rebuild.backend.utils.converters.ProfileObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
