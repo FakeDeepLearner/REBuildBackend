@@ -36,7 +36,10 @@ public class Header {
     @NonNull
     private String email;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+    })
     @JoinColumn(name = "resume_id", referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "head_fk_resume_id"))
     private Resume resume;

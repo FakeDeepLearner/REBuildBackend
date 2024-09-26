@@ -2,6 +2,7 @@ package com.rebuild.backend.model.forms.resume_forms;
 
 import com.rebuild.backend.model.entities.resume_entities.Experience;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSection;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -23,5 +24,7 @@ public record FullResumeForm(@NotBlank(message = "Name may not be blank") String
                              List<String> relevantCoursework,
 
                              @NotEmpty(message = "The experience list may not be empty")
-                             List<Experience> experiences) {
+                             List<Experience> experiences,
+
+                             List<ResumeSection> sections) {
 }

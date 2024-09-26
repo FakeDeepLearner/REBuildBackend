@@ -5,6 +5,7 @@ import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedExcepti
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import org.hibernate.exception.ConstraintViolationException;
@@ -26,12 +27,12 @@ public class ResumeService {
         this.resumeRepository = resumeRepository;
     }
 
-    public Header changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber){
+    public Resume changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber){
         Resume resume = findById(resID);
-        Header newHeader = new Header(newPhoneNumber, newName, newEmail);
-        resume.setHeader(newHeader);
-        resumeRepository.save(resume);
-        return newHeader;
+        resume.getHeader().setEmail(newEmail);
+        resume.getHeader().setNumber(newPhoneNumber);
+        resume.getHeader().setName(newName);
+        return resumeRepository.save(resume);
     }
 
     public Resume createNewResumeFor(User user){
@@ -52,7 +53,7 @@ public class ResumeService {
         return resumeRepository.findById(id).orElseThrow(RuntimeException::new);
     }
 
-    public Experience changeExperienceInfo(UUID resID, UUID expID,
+    public Resume changeExperienceInfo(UUID resID, UUID expID,
                                            String newCompanyName,
                                            List<String> newTechnologies,
                                            Duration newDuration,
@@ -74,8 +75,7 @@ public class ResumeService {
                 }
             }
 
-            resumeRepository.save(resume);
-            return newExperience;
+            return resumeRepository.save(resume);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -87,18 +87,18 @@ public class ResumeService {
         }
     }
 
-    public Education changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
+    public Resume changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
         Resume resume = findById(resID);
-        Education education = new Education(newSchoolName, newCourseWork);
-        resume.setEducation(education);
-        resumeRepository.save(resume);
-        return education;
+        resume.getEducation().setRelevantCoursework(newCourseWork);
+        resume.getEducation().setSchoolName(newSchoolName);
+        return resumeRepository.save(resume);
     }
 
     public Header createNewHeader(UUID resID, String name, String email, PhoneNumber phoneNumber){
         Resume resume = findById(resID);
         Header newHeader = new Header(phoneNumber, name, email);
         resume.setHeader(newHeader);
+        newHeader.setResume(resume);
         resumeRepository.save(resume);
         return newHeader;
 
@@ -111,6 +111,7 @@ public class ResumeService {
             Resume resume = findById(resID);
             Experience newExperience = new Experience(companyName, technologies, duration, bullets);
             resume.addExperience(newExperience);
+            newExperience.setResume(resume);
             resumeRepository.save(resume);
             return newExperience;
         }
@@ -128,6 +129,7 @@ public class ResumeService {
         Resume resume = findById(resID);
         Education education = new Education(schoolName, courseWork);
         resume.setEducation(education);
+        education.setResume(resume);
         resumeRepository.save(resume);
         return education;
     }
@@ -136,6 +138,7 @@ public class ResumeService {
         Resume resume = findById(resID);
         ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
         resume.addSection(newSection);
+        newSection.setResume(resume);
         resumeRepository.save(resume);
         return newSection;
     }
@@ -184,6 +187,18 @@ public class ResumeService {
     public Resume setEducation(UUID resID, Education newEducation){
         Resume resume = findById(resID);
         resume.setEducation(newEducation);
+        return resumeRepository.save(resume);
+    }
+
+    public Resume fullUpdate(UUID resID, FullResumeForm resumeForm){
+        Resume resume = findById(resID);
+        resume.getHeader().setName(resumeForm.name());
+        resume.getHeader().setEmail(resumeForm.email());
+        resume.getHeader().setNumber(resumeForm.phoneNumber());
+        resume.getEducation().setSchoolName(resumeForm.schoolName());
+        resume.getEducation().setRelevantCoursework(resumeForm.relevantCoursework());
+        resume.setExperiences(resumeForm.experiences());
+        resume.setSections(resumeForm.sections());
         return resumeRepository.save(resume);
     }
 }

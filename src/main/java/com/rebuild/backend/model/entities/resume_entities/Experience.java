@@ -44,7 +44,10 @@ public class Experience {
     @NonNull
     private List<String> bullets;
 
-    @ManyToOne(fetch =  FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch =  FetchType.LAZY, cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+    })
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
         foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
     private Resume resume;

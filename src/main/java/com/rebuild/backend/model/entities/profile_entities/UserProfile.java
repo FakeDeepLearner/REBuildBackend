@@ -7,10 +7,12 @@ import lombok.*;
 import java.util.List;
 import java.util.UUID;
 
+import static jakarta.persistence.CascadeType.*;
+
 
 @Data
 @RequiredArgsConstructor
-@NoArgsConstructor
+// @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "profiles")
@@ -24,23 +26,28 @@ import java.util.UUID;
 
 }
 )
-
 public class UserProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = {
+            ALL
+    })
     private ProfileHeader header;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
     private ProfileEducation education;
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
     private List<ProfileExperience> experienceList;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = {
+            PERSIST,
+            MERGE,
+            REFRESH
+    })
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

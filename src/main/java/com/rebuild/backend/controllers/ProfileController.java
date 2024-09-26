@@ -38,11 +38,7 @@ public class ProfileController {
                                         @Valid @RequestBody FullProfileForm fullProfileForm) {
         User creatingUser = userService.findByID(user_id).orElseThrow(() ->
                 new UserNotFoundException("User not found"));
-        UserProfile newProfile = profileService.createProfile(fullProfileForm);
-        newProfile.setUser(creatingUser);
-        creatingUser.setProfile(newProfile);
-        userService.save(creatingUser);
-        return newProfile;
+        return profileService.createProfileFor(fullProfileForm, creatingUser);
     }
 
     @PatchMapping("/patch/header/{user_id}")

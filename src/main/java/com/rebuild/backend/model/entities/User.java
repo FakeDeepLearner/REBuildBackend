@@ -64,7 +64,12 @@ public class User implements UserDetails {
     })
     private UserProfile profile;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
+    cascade = {
+            CascadeType.REMOVE,
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+    })
     private List<Resume> resumes;
 
     @JsonIgnore

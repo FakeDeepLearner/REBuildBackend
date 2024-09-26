@@ -26,7 +26,10 @@ public class Education {
     @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
     private List<String> relevantCoursework;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+    })
     @JoinColumn(name = "resume_id", referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "ed_fk_resume_id"))
     private Resume resume;

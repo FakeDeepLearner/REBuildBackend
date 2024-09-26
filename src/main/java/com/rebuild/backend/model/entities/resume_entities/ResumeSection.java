@@ -27,6 +27,7 @@ public class ResumeSection {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {
             CascadeType.PERSIST,
+            CascadeType.MERGE
     })
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "section_fk_resume_id"))

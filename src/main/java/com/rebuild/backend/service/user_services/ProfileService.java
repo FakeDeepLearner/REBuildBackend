@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
+import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;
 import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
@@ -22,29 +23,30 @@ import java.util.UUID;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
-    private final ProfileObjectConverter converter;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository,
-                          ProfileObjectConverter converter) {
+    public ProfileService(ProfileRepository profileRepository) {
         this.profileRepository = profileRepository;
-        this.converter = converter;
     }
 
-    public UserProfile createProfile(FullProfileForm profileForm) {
+    public UserProfile createProfileFor(FullProfileForm profileForm, User creatingUser) {
         ProfileHeader profileHeader = new ProfileHeader(profileForm.phoneNumber(),
                 profileForm.name(),
                 profileForm.email());
         ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
                 profileForm.relevantCoursework());
 
-        return new UserProfile(profileHeader, newEducation, profileForm.experiences());
+        UserProfile newProfile = new UserProfile(profileHeader, newEducation, profileForm.experiences());
+        newProfile.setUser(creatingUser);
+        creatingUser.setProfile(newProfile);
+        return profileRepository.save(newProfile);
     }
 
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
         ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.name(), headerForm.email());
         userProfile.setHeader(newHeader);
+        newHeader.setProfile(userProfile);
         return profileRepository.save(userProfile);
     }
 
@@ -53,6 +55,7 @@ public class ProfileService {
         ProfileEducation newEducation = new ProfileEducation(educationForm.schoolName(),
                 educationForm.relevantCoursework());
         userProfile.setEducation(newEducation);
+        newEducation.setProfile(userProfile);
         return profileRepository.save(userProfile);
     }
 
@@ -62,8 +65,11 @@ public class ProfileService {
                 map((rawExperience) -> {
                     Duration experienceDuration = Duration.between(rawExperience.startDate(),
                             rawExperience.endDate());
-                    return new ProfileExperience(rawExperience.companyName(), rawExperience.technologies(),
+                    ProfileExperience newExperience =
+                            new ProfileExperience(rawExperience.companyName(), rawExperience.technologies(),
                             experienceDuration, rawExperience.bullets());
+                    newExperience.setProfile(profile);
+                    return newExperience;
                 }).toList();
         profile.setExperienceList(transformedExperiences);
         return profileRepository.save(profile);
