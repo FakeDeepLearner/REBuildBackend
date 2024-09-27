@@ -2,3 +2,12 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 
 TODO: Before fully implementing websockets, write an extensive test suite
+
+TODO: Implement some sort of a version history tracking system (will probably be very difficult)
+
+TODO: Create a feature that allows a user to duplicate one of their resumes (the copy will be a different object)
+
+TODO: (Really simple) Allow users to give specific names to their resumes
+
+TODO: Implement a feature that allows a resume to be downloaded as a .txt file, and (optionally)
+implement a feature that allows users to prefill resume data by uploading a .txt or a .docx (or any other file that contains text)
