@@ -1,6 +1,7 @@
 package com.rebuild.backend.service;
 
 
+import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateNameException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.User;
@@ -38,17 +39,28 @@ public class ResumeService {
         return resumeRepository.save(resume);
     }
 
-    public Resume createNewResumeFor(User user){
+    public Resume createNewResumeFor(String resume_name, User user){
         if(user.maxResumeLimitReached()){
             throw new MaxResumesReachedException("You have reached the maximum number of resumes you can have" +
                     "as a free user. In order to create more resumes, please upgrade to the paid version");
         }
         else{
-            Resume newResume = new Resume(user);
-            user.getResumes().add(newResume);
-            return resumeRepository.save(newResume);
-        }
+            try {
+                Resume newResume = new Resume(resume_name, user);
+                user.getResumes().add(newResume);
+                return resumeRepository.save(newResume);
+            }
+            catch (DataIntegrityViolationException e){
+                Throwable cause = e.getCause();
+                if(cause instanceof ConstraintViolationException violationException &&
+                violationException.getConstraintName().equals("uk_same_user_resume_name")){
+                    throw new DuplicateNameException("You already have a resume with this name");
+                }
+            }
 
+        }
+        // Should never get there
+        return null;
     }
 
     //TODO: Throw a proper exception here and handle it properly
@@ -60,10 +72,10 @@ public class ResumeService {
                                            String newCompanyName,
                                            List<String> newTechnologies,
                                            Duration newDuration,
-                                           List<String> newBullets){
-        try {
 
-            Resume resume = findById(resID);
+                                           List<String> newBullets){
+        Resume resume = findById(resID);
+        try {
             Experience newExperience = new Experience(newCompanyName, newTechnologies, newDuration, newBullets);
             List<Experience> experiences = resume.getExperiences();
             int indexCounter = 0;
@@ -86,8 +98,8 @@ public class ResumeService {
                     && violationException.getConstraintName().equals("uk_resume_company")){
                 throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
             }
-            throw e;
         }
+        return resume;
     }
 
     public Resume changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
@@ -203,5 +215,22 @@ public class ResumeService {
         resume.setExperiences(resumeForm.experiences());
         resume.setSections(resumeForm.sections());
         return resumeRepository.save(resume);
+    }
+
+    public Resume changeName(UUID resID, String newName){
+        Resume changingResume = findById(resID);
+        try{
+            changingResume.setName(newName);
+            return resumeRepository.save(changingResume);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if(cause instanceof ConstraintViolationException violationException &&
+                    violationException.getConstraintName().equals("uk_same_user_resume_name")){
+                throw new DuplicateNameException("You already have a resume with this name");
+            }
+            //Should never get here
+        }
+        return changingResume;
     }
 }

@@ -1,5 +1,6 @@
 package com.rebuild.backend.exception_handlers;
 
+import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateNameException;
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
@@ -58,6 +59,12 @@ public class ConflictStatusHandler {
 
     @ExceptionHandler(PhoneNumberAlreadyExistsException.class)
     public ResponseEntity<Map<String, String>> handlePhoneNumberAlreadyExists(PhoneNumberAlreadyExistsException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(DuplicateNameException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateName(DuplicateNameException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }

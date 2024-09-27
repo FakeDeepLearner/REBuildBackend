@@ -41,10 +41,10 @@ public class HomePageController {
 
     @PostMapping("/api/{user_id}/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public Resume createNewResume(@PathVariable UUID user_id){
+    public Resume createNewResume(@PathVariable UUID user_id, @RequestBody String name){
         User creatingUser = userService.findByID(user_id).
                 orElseThrow(() -> new UserNotFoundException("User not found with the given id"));
-        return resumeService.createNewResumeFor(creatingUser);
+        return resumeService.createNewResumeFor(name, creatingUser);
     }
 
     @DeleteMapping("/api/delete/{res_id}")

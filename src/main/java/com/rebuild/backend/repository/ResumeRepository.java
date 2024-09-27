@@ -17,4 +17,6 @@ import java.util.UUID;
 public interface ResumeRepository extends CrudRepository<Resume, UUID> {
 
     void deleteById(@NonNull UUID ID);
+
+
 }
