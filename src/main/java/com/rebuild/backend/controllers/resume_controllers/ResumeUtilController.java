@@ -21,4 +21,10 @@ public class ResumeUtilController {
     public Resume changeResumeName(@PathVariable UUID res_id, @RequestBody String newName) {
         return resumeService.changeName(res_id, newName);
     }
+
+    @PostMapping("/api/resume/copy/{res_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Resume copyResume(@PathVariable UUID res_id) {
+        return resumeService.copyResume(res_id);
+    }
 }

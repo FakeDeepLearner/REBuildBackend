@@ -233,4 +233,11 @@ public class ResumeService {
         }
         return changingResume;
     }
+
+    public Resume copyResume(UUID resID){
+        Resume copiedResume = findById(resID);
+        Resume newResume = new Resume(copiedResume);
+        return resumeRepository.save(newResume);
+
+    }
 }

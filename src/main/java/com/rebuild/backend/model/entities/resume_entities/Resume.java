@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -52,6 +53,7 @@ public class Resume {
             foreignKey = @ForeignKey(name = "fk_user_id"))
     private User user;
 
+
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;
         this.experiences = new ArrayList<>();
@@ -59,6 +61,31 @@ public class Resume {
         this.header = new Header();
         this.sections = null;
         this.name = resume_name;
+    }
+
+    public Resume(@NonNull Resume originalResume){
+        if(originalResume.getUser().maxResumeLimitReached()){
+            throw new MaxResumesReachedException("You have reached the maximum number of resumes you can create");
+        }
+        Education originalEducation = originalResume.getEducation();
+        Header originalHeader = originalResume.getHeader();
+        List<Experience> originalExperiences = originalResume.getExperiences();
+        List<ResumeSection> originalSections = originalResume.getSections();
+        this.name = originalResume.getName();
+        this.user = originalResume.getUser();
+        this.education = new Education(originalEducation.getSchoolName(),
+                originalEducation.getRelevantCoursework());
+        this.header = new Header(originalHeader.getNumber(), originalHeader.getName(), originalHeader.getEmail());
+        this.experiences = originalExperiences.stream().map(
+                experience -> new Experience(experience.getCompanyName(), experience.getTechnologyList(),
+                        experience.getTimePeriod(), experience.getBullets())
+        ).toList();
+        this.sections = originalSections.stream().map(
+                section -> new ResumeSection(section.getTitle(), section.getBullets())
+        ).toList();
+        //Necessary in order for cascading to work properly
+        this.getUser().getResumes().add(this);
+
     }
 
     public void addExperience(Experience experience){
