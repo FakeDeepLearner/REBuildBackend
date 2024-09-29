@@ -8,7 +8,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "headers")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
@@ -43,4 +45,12 @@ public class Header {
     @JoinColumn(name = "resume_id", referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "head_fk_resume_id"))
     private Resume resume;
+
+    @Override
+    public String toString() {
+        return "HEADER:\n" +
+                "\tPhone Number: " + number.fullNumber() + "\n" +
+                "\tName: " + name + "\n" +
+                "\tEmail: " + email + "\n\n\n";
+    }
 }

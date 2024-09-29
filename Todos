@@ -5,6 +5,6 @@ TODO: Before fully implementing websockets, write an extensive test suite
 
 TODO: Implement some sort of a version history tracking system (will probably be very difficult)
 
+TODO: Support more download formats, such as .docx (pdf downloads will be handled by the frontend)
 
-TODO: Implement a feature that allows a resume to be downloaded as a .txt file, and (optionally)
-implement a feature that allows users to prefill resume data by uploading a .txt or a .docx (or any other file that contains text)
+TODO: Implement a feature that allows users to prefill resume data by uploading a .txt or a .docx (or any other file that contains text)

@@ -94,6 +94,7 @@ public class User implements UserDetails {
     @JsonIgnore
     private LocalDateTime signUpTime = LocalDateTime.now();
 
+    @Setter
     @JsonIgnore
     private LocalDateTime lastLoginTime = LocalDateTime.now();
 
@@ -137,4 +138,5 @@ public class User implements UserDetails {
     public boolean maxResumeLimitReached(){
         return authority.equals(Authority.USER_FREE) && numberOfResumes == MAX_RESUME_LIMIT;
     }
+
 }

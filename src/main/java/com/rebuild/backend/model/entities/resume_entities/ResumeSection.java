@@ -6,7 +6,9 @@ import lombok.*;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 @RequiredArgsConstructor
 @AllArgsConstructor
@@ -32,4 +34,10 @@ public class ResumeSection {
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "section_fk_resume_id"))
     private Resume resume;
+
+    public String toString() {
+        return "\tSECTION:\n" +
+                "\t\tTitle: " + title + "\n" +
+                "\t\tBullets: " + bullets + "\n";
+    }
 }

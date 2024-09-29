@@ -1,10 +1,12 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +15,9 @@ import java.util.UUID;
 @Table(name = "resumes", uniqueConstraints = {
         @UniqueConstraint(name = "uk_same_user_resume_name", columnNames = {"user_id", "name"})
 })
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
@@ -53,6 +57,11 @@ public class Resume {
             foreignKey = @ForeignKey(name = "fk_user_id"))
     private User user;
 
+    @JsonIgnore
+    private LocalDateTime creationTime = LocalDateTime.now();
+
+    @JsonIgnore
+    private LocalDateTime lastModifiedTime = LocalDateTime.now();
 
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;
@@ -100,5 +109,16 @@ public class Resume {
         else{
             sections.add(section);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(header.toString() + education.toString());
+        sb.append("\nEXPERIENCES:\n");
+        experiences.forEach(experience -> sb.append(experience.toString())
+        );
+        sb.append("\nSECTIONS:\n");
+        sections.forEach(section -> sb.append(section.toString()));
+        return sb.toString();
     }
 }

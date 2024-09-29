@@ -11,7 +11,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "experiences",
         uniqueConstraints = {@UniqueConstraint(name = "uk_resume_company", columnNames = {"companyName", "resume_id"})})
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
@@ -51,5 +53,13 @@ public class Experience {
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
         foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
     private Resume resume;
+
+    public String toString() {
+        return "\tEXPERIENCE:\n" +
+                "\t\tCompany Name: " + companyName + "\n" +
+                "\t\tTechnologies: " + technologyList + "\n" +
+                "\t\tBullets: " + bullets + "\n" +
+                "\t\tTime Period: " + timePeriod + "\n";
+    }
 
 }
