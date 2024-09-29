@@ -72,6 +72,7 @@ public class Resume {
         this.name = resume_name;
     }
 
+    @SuppressWarnings("CopyConstructorMissesField")
     public Resume(@NonNull Resume originalResume){
         if(originalResume.getUser().maxResumeLimitReached()){
             throw new MaxResumesReachedException("You have reached the maximum number of resumes you can create");
@@ -82,6 +83,7 @@ public class Resume {
         List<ResumeSection> originalSections = originalResume.getSections();
         this.name = originalResume.getName();
         this.user = originalResume.getUser();
+        // We are creating new objects here, because we do not want them to be a reference to the original ones.
         this.education = new Education(originalEducation.getSchoolName(),
                 originalEducation.getRelevantCoursework());
         this.header = new Header(originalHeader.getNumber(), originalHeader.getName(), originalHeader.getEmail());
@@ -94,6 +96,10 @@ public class Resume {
         ).toList();
         //Necessary in order for cascading to work properly
         this.getUser().getResumes().add(this);
+        this.creationTime = LocalDateTime.now();
+        // Technically, the LocalDataTime.now() call will be different from the one above,
+        // and we want these dates to match initially
+        this.lastModifiedTime = this.creationTime;
 
     }
 

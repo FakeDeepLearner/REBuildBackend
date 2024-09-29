@@ -43,9 +43,15 @@ spring:
       # The limits are within one second
       ip-request-limit: 5
       user-request-limit: 10
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
 
   main:
     banner-mode: off
+    allow-bean-definition-overriding: true
 
   docker:
     compose:
@@ -97,3 +103,4 @@ app:
 google:
   client-id: classpath:google/client_id.txt
   client-secret: classpath:google/client_secret.txt
+

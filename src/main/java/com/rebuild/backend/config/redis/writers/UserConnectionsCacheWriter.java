@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class UserConnectionsCacheWriter implements RedisCacheWriter {
@@ -32,8 +33,20 @@ public class UserConnectionsCacheWriter implements RedisCacheWriter {
     }
 
     @Override
+    public @NonNull CompletableFuture<Void> store(@NonNull String name, byte @NonNull [] key,
+                                                  byte @NonNull [] value, Duration ttl) {
+        return writer.store(name, key, value, ttl);
+    }
+
+    @Override
     public byte[] get(@NonNull String name, byte @NonNull [] key) {
         return writer.get(name, key);
+    }
+
+    @Override
+    public @NonNull CompletableFuture<byte[]> retrieve(@NonNull String name,
+                                                       byte @NonNull [] key, Duration ttl) {
+        return writer.retrieve(name, key, ttl);
     }
 
     @Override
