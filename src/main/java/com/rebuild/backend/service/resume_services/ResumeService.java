@@ -1,4 +1,4 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.resume_services;
 
 
 import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateNameException;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -74,7 +75,6 @@ public class ResumeService {
                                            String newCompanyName,
                                            List<String> newTechnologies,
                                            Duration newDuration,
-
                                            List<String> newBullets){
         Resume resume = findById(resID);
         try {
@@ -97,7 +97,7 @@ public class ResumeService {
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException
-                    && violationException.getConstraintName().equals("uk_resume_company")){
+                    && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
             }
         }

@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-import com.rebuild.backend.service.ResumeService;
+import com.rebuild.backend.service.resume_services.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

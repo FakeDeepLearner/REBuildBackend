@@ -4,7 +4,7 @@ import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.User;
 import com.rebuild.backend.model.responses.GetHomePageResponse;
-import com.rebuild.backend.service.ResumeService;
+import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

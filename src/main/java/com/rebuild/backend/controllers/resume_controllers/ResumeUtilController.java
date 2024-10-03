@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.service.ResumeService;
+import com.rebuild.backend.service.resume_services.ResumeService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

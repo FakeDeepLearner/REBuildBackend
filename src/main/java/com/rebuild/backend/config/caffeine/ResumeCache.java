@@ -3,9 +3,8 @@ package com.rebuild.backend.config.caffeine;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.service.ResumeService;
+import com.rebuild.backend.service.resume_services.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

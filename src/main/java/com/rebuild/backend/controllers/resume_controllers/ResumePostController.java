@@ -6,7 +6,7 @@ import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
-import com.rebuild.backend.service.ResumeService;
+import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
