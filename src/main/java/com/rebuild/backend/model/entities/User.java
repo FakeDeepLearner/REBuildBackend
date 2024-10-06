@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
+import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
@@ -73,6 +74,11 @@ public class User implements UserDetails {
     private List<Resume> resumes;
 
     @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+            mappedBy = "author", fetch = FetchType.LAZY)
+    private List<Comment> madeComments;
+
+    @JsonIgnore
     private int numberOfResumes = 0;
 
     @Enumerated(EnumType.STRING)
@@ -94,7 +100,6 @@ public class User implements UserDetails {
     @JsonIgnore
     private LocalDateTime signUpTime = LocalDateTime.now();
 
-    @Setter
     @JsonIgnore
     private LocalDateTime lastLoginTime = LocalDateTime.now();
 
