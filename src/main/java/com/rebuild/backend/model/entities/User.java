@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
+import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
@@ -13,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -75,8 +77,13 @@ public class User implements UserDetails {
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY, mappedBy = "creatingUser")
+    private List<ForumPost> madePosts = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "author", fetch = FetchType.LAZY)
-    private List<Comment> madeComments;
+    private List<Comment> madeComments = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;

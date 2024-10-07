@@ -63,6 +63,10 @@ public class UserService{
         return repository.findByEmail(email);
     }
 
+    public User findByEmailNoOptional(String email){
+        return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+    }
+
 
     public void changePassword(UUID userID, String newPassword){
         String newHashedPassword = encoder.encode(newPassword);
