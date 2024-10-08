@@ -18,5 +18,7 @@ public interface ResumeRepository extends CrudRepository<Resume, UUID> {
 
     void deleteById(@NonNull UUID ID);
 
+    int countByIdAndUserId(UUID id, UUID userID);
+
 
 }

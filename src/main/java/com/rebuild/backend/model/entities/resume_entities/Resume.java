@@ -15,6 +15,12 @@ import java.util.UUID;
 @Table(name = "resumes", uniqueConstraints = {
         @UniqueConstraint(name = "uk_same_user_resume_name", columnNames = {"user_id", "name"})
 })
+@NamedQueries(
+        value = {
+                @NamedQuery(name = "Resume.countByIdAndUserId",
+                query = "SELECT COUNT(*) FROM Resume r WHERE r.id=?1 and r.user.id=?2")
+        }
+)
 @Getter
 @Setter
 @EqualsAndHashCode

@@ -11,6 +11,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "posts")
+@NamedQueries(
+        value = {
+                @NamedQuery(name = "ForumPost.countByIdAndUserId",
+                        query = "SELECT COUNT(*) FROM ForumPost p WHERE p.id=?1 and p.creatingUser.id=?2")
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor

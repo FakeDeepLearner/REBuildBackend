@@ -66,6 +66,10 @@ public class ResumeService {
         return null;
     }
 
+    public boolean resumeBelongsToUser(UUID resumeID, UUID userID){
+        return resumeRepository.countByIdAndUserId(resumeID, userID) > 0;
+    }
+
     //TODO: Throw a proper exception here and handle it properly
     public Resume findById(UUID id){
         return resumeRepository.findById(id).orElseThrow(RuntimeException::new);

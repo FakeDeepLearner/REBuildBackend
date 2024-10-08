@@ -12,6 +12,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "comments")
+@NamedQueries(
+        value = {
+                @NamedQuery(name = "Comment.countByIdAndUserId",
+                query = "SELECT COUNT(*) FROM Comment c WHERE c.id=?1 and c.author.id=?2")
+        }
+)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
