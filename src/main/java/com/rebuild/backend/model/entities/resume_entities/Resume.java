@@ -2,7 +2,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 

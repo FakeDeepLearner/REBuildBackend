@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.Activat
 import com.rebuild.backend.exceptions.token_exceptions.activation_tokens.ActivationTokenNotFoundException;
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccountActivationDTO;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.service.user_services.UserService;

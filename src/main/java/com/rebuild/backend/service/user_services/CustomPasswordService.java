@@ -1,6 +1,6 @@
 package com.rebuild.backend.service.user_services;
 
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;

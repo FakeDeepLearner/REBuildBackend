@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.Email
 import com.rebuild.backend.exceptions.token_exceptions.email_change_tokens.EmailTokenNotFoundException;
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.entities.enums.TokenType;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.EmailChangeForm;
 import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.service.user_services.UserService;

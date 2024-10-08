@@ -2,13 +2,11 @@ package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.exceptions.forum_exceptions.PostForbiddenException;
 import com.rebuild.backend.exceptions.forum_exceptions.ResumeForbiddenException;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.service.ForumService;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.service.user_services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

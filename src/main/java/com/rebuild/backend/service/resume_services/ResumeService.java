@@ -4,7 +4,7 @@ package com.rebuild.backend.service.resume_services;
 import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateNameException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.repository.ResumeRepository;

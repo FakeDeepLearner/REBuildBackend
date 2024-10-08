@@ -6,7 +6,7 @@ import com.rebuild.backend.exceptions.otp_exceptions.InvalidOtpException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPAlreadyGeneratedException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPExpiredException;
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

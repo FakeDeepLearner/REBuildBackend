@@ -5,6 +5,4 @@ TODO: Before fully implementing websockets, write an extensive test suite
 
 TODO: Implement some sort of a version history tracking system (will probably be very difficult)
 
-TODO: Support more download formats, such as .docx (pdf downloads will be handled by the frontend)
-
-TODO: Implement a feature that allows users to prefill resume data by uploading a .txt or a .docx (or any other file that contains text)
+TODO: Move all of the forum-related stuff to the ForumUser class, and change the forum code to operate with them instead.

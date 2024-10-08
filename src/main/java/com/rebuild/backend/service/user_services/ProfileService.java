@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;
 import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;

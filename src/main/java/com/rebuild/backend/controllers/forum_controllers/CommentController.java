@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.exceptions.forum_exceptions.CommentForbiddenException;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.service.ForumService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,7 @@
 package com.rebuild.backend.utils;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.model.responses.PasswordResetResponse;

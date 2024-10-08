@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities;
+package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
@@ -9,6 +9,7 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Check;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +31,12 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("NORMAL_USER")
+//This constraint means that, if we are actually a ForumUser, our forum username and password columns aren't nullable
+//Otherwise, they are nullable
+@Check(constraints = "(type == 'NORMAL_USER' OR (forumUsername IS NOT NULL AND forumPassword IS NOT NULL))")
 public class User implements UserDetails {
 
     private static final int MAX_RESUME_LIMIT = 15;

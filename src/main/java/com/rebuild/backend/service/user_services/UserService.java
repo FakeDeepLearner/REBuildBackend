@@ -7,7 +7,7 @@ import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsE
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;

@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
-import com.rebuild.backend.model.entities.User;
+import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
