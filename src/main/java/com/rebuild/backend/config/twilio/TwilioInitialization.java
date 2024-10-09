@@ -18,7 +18,7 @@ public class TwilioInitialization {
 
     @Bean
     public CommandLineRunner twilioInit(){
-        Twilio.init(twilioCredentials.accountSid(), twilioCredentials.authToken());
-        return null;
+        return args -> Twilio.init(twilioCredentials.accountSid(), twilioCredentials.authToken());
+
     }
 }

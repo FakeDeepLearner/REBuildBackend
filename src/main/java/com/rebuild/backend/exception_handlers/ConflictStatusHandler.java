@@ -27,7 +27,7 @@ public class ConflictStatusHandler {
         this.bodyBuilder = bodyBuilder;
     }
 
-    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Map<String, String>> handleEmailTaken(EmailAlreadyExistsException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);

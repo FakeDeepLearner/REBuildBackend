@@ -8,12 +8,12 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 @Configuration
-public class ConnectionFactory {
+public class ConnectionFactoryBean {
 
-    @Value("{spring.data.redis.host}")
+    @Value("${spring.data.redis.host}")
     private String host;
 
-    @Value("{spring.data.redis.port}")
+    @Value("${spring.data.redis.port}")
     private int port;
 
     @Bean

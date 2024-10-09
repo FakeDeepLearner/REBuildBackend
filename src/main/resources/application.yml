@@ -17,6 +17,8 @@ spring:
       content-type: "application/json"
   cache:
     type: redis
+  thymeleaf:
+    check-template-location: false
 
   jpa:
     hibernate:
@@ -25,8 +27,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     database: postgresql
+    open-in-view: off
 
   security:
     user:
@@ -56,6 +58,10 @@ spring:
   docker:
     compose:
       lifecycle-management: start_only
+  cloud:
+    aws:
+      s3:
+        region: us-east-2
 
 logging:
   level:
@@ -75,10 +81,10 @@ server:
   port: 443
   ssl:
     enabled: true
-    key-store: classpath:/sslkey.jks
-    key-password: 12Eren89
+    key-store: src/main/resources/sslkey.jks
     key-alias: reformkey
     key-store-type: JKS
+    key-store-password: 12Eren89
 
 
 password-rules:

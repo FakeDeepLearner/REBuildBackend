@@ -1,9 +1,11 @@
 package com.rebuild.backend.config.redis;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
@@ -23,6 +25,7 @@ public class TokenStorage {
     }
 
     @Bean
+    @Primary
     public RedisCacheManager tokenCacheManager(){
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofMinutes(15)).

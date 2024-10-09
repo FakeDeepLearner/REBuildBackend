@@ -50,7 +50,7 @@ public class ResetPasswordController {
         tokenService.sendProperEmail(newToken, resetForm.timeCount(), resetForm.timeUnit());
     }
 
-    @PostMapping("/api/reset")
+    @PostMapping("/api/reset/trigger")
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public ResponseEntity<PasswordResetResponse> changeUserPassword(@RequestParam(required = false) String token,
                                              @Valid @RequestBody PasswordResetForm resetForm){

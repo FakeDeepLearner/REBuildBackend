@@ -2,6 +2,7 @@ package com.rebuild.backend.repository;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import lombok.NonNull;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public interface ResumeRepository extends CrudRepository<Resume, UUID> {
+public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     void deleteById(@NonNull UUID ID);
 

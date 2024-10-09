@@ -2,6 +2,7 @@ package com.rebuild.backend.repository;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public interface UserRepository extends CrudRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 

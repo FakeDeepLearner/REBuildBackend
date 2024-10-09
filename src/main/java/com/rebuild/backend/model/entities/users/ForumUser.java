@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class ForumUser extends User{
     private String forumUsername;
 
