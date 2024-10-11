@@ -30,12 +30,6 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("NORMAL_USER")
-//This constraint means that, if we are actually a ForumUser, our forum username and password columns aren't nullable
-//Otherwise, they are nullable
-@Check(constraints = "(type == 'NORMAL_USER' OR (forumUsername IS NOT NULL AND forumPassword IS NOT NULL))")
 public class User implements UserDetails {
 
     private static final int MAX_RESUME_LIMIT = 15;
@@ -80,6 +74,11 @@ public class User implements UserDetails {
             CascadeType.MERGE
     })
     private List<Resume> resumes;
+
+    private String forumUsername;
+
+    //Just like the regular password, it will also be hashed and then stored.
+    private String forumPassword;
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,

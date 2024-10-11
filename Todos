@@ -5,4 +5,5 @@ TODO: Before fully implementing websockets, write an extensive test suite
 
 TODO: Implement some sort of a version history tracking system (will probably be very difficult)
 
-TODO: Move all of the forum-related stuff to the ForumUser class, and change the forum code to operate with them instead.
+TODO: Move most of the controller methods to use @AuthenticationPrincipal, 
+therefore no longer requiring the client to pass in id's
