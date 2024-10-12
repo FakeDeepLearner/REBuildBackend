@@ -17,12 +17,12 @@ import static jakarta.persistence.CascadeType.*;
 @Entity
 @Table(name = "profiles")
 @NamedQueries({
-        @NamedQuery(name = "UserProfile.deleteProfileHeaderByUserId",
-                query = "UPDATE UserProfile p SET p.header = null WHERE p.user.id = ?1"),
-        @NamedQuery(name = "UserProfile.deleteProfileEducationByUserId",
-                query = "UPDATE UserProfile p SET p.education = null WHERE p.user.id = ?1"),
-        @NamedQuery(name = "UserProfile.deleteProfileExperiencesByUserId",
-                query = "UPDATE UserProfile p SET p.experienceList = null WHERE p.user.id = ?1")
+        @NamedQuery(name = "UserProfile.deleteProfileHeaderById",
+                query = "UPDATE UserProfile p SET p.header = null WHERE p.id = ?1"),
+        @NamedQuery(name = "UserProfile.deleteProfileEducationById",
+                query = "UPDATE UserProfile p SET p.education = null WHERE p.id = ?1"),
+        @NamedQuery(name = "UserProfile.deleteProfileExperiencesById",
+                query = "UPDATE UserProfile p SET p.experienceList = null WHERE p.id = ?1")
 
 }
 )

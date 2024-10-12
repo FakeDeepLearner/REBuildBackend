@@ -4,6 +4,3 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 TODO: Before fully implementing websockets, write an extensive test suite
 
 TODO: Implement some sort of a version history tracking system (will probably be very difficult)
-
-TODO: Move most of the controller methods to use @AuthenticationPrincipal, 
-therefore no longer requiring the client to pass in id's

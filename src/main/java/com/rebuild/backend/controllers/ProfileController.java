@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
@@ -13,6 +12,8 @@ import com.rebuild.backend.service.user_services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,21 +33,19 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
-    @PostMapping("/create/{user_id}")
+    @PostMapping("/create_profile")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserProfile createProfileFor(@PathVariable UUID user_id,
-                                        @Valid @RequestBody FullProfileForm fullProfileForm) {
-        User creatingUser = userService.findByID(user_id).orElseThrow(() ->
-                new UserNotFoundException("User not found"));
+    public UserProfile createProfileFor(@Valid @RequestBody FullProfileForm fullProfileForm,
+                                        @AuthenticationPrincipal UserDetails creatingUserDetails) {
+        User creatingUser = userService.findByEmailNoOptional(creatingUserDetails.getUsername());
         return profileService.createProfileFor(fullProfileForm, creatingUser);
     }
 
-    @PatchMapping("/patch/header/{user_id}")
+    @PatchMapping("/patch/header")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileHeader(@PathVariable UUID user_id,
-                                           @Valid @RequestBody ProfileHeaderForm headerForm){
-        User updatingUser = userService.findByID(user_id).orElseThrow(() ->
-                new UserNotFoundException("User with id " + user_id + " not found"));
+    public UserProfile updateProfileHeader(@Valid @RequestBody ProfileHeaderForm headerForm,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        User updatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
         if(updatingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
@@ -54,12 +53,11 @@ public class ProfileController {
         return profileService.updateProfileHeader(profile, headerForm);
     }
 
-    @PatchMapping("/patch/education/{user_id}")
+    @PatchMapping("/patch/education")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileHeader(@PathVariable UUID user_id,
-                                           @Valid @RequestBody ProfileEducationForm educationForm){
-        User updatingUser = userService.findByID(user_id).orElseThrow(() ->
-                new UserNotFoundException("User with id " + user_id + " not found"));
+    public UserProfile updateProfileHeader(@Valid @RequestBody ProfileEducationForm educationForm,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        User updatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
         if(updatingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
@@ -67,12 +65,11 @@ public class ProfileController {
         return profileService.updateProfileEducation(profile, educationForm);
     }
 
-    @PatchMapping("/patch/experiences/{user_id}")
+    @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileHeader(@PathVariable UUID user_id,
-                                           @Valid @RequestBody List<ProfileExperienceForm> experienceFormList){
-        User updatingUser = userService.findByID(user_id).orElseThrow(() ->
-                new UserNotFoundException("User with id " + user_id + " not found"));
+    public UserProfile updateProfileHeader(@Valid @RequestBody List<ProfileExperienceForm> experienceFormList,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        User updatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
         if(updatingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
@@ -80,34 +77,34 @@ public class ProfileController {
         return profileService.updateProfileExperiences(profile, experienceFormList);
     }
 
-    @DeleteMapping("/delete/{user_id}")
+    @DeleteMapping("/delete/{profile_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfile(@PathVariable UUID user_id){
-        profileService.deleteProfile(user_id);
+    public void deleteProfile(@PathVariable UUID profile_id){
+        profileService.deleteProfile(profile_id);
     }
 
-    @DeleteMapping("/delete/header/{user_id}")
+    @DeleteMapping("/delete/header/{profile_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileHeader(@PathVariable UUID user_id){
-        profileService.deleteProfileHeader(user_id);
+    public void deleteProfileHeader(@PathVariable UUID profile_id){
+        profileService.deleteProfileHeader(profile_id);
     }
 
-    @DeleteMapping("/delete/education/{user_id}")
+    @DeleteMapping("/delete/education/{profile_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileEducation(@PathVariable UUID user_id){
-        profileService.deleteProfileEducation(user_id);
+    public void deleteProfileEducation(@PathVariable UUID profile_id){
+        profileService.deleteProfileEducation(profile_id);
     }
 
-    @DeleteMapping("/delete/experiences/{user_id}")
+    @DeleteMapping("/delete/experiences/{profile_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileExperience(@PathVariable UUID user_id){
-        profileService.deleteProfileExperiences(user_id);
+    public void deleteProfileExperience(@PathVariable UUID profile_id){
+        profileService.deleteProfileExperiences(profile_id);
     }
 
-    @DeleteMapping("/delete/experiences/{user_id}/{experience_id}")
+    @DeleteMapping("/delete/experiences/{profile_id}/{experience_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteSpecificExperience(@PathVariable UUID user_id,
+    public UserProfile deleteSpecificExperience(@PathVariable UUID profile_id,
                                                 @PathVariable UUID experience_id){
-        return profileService.deleteSpecificProfileExperience(user_id, experience_id);
+        return profileService.deleteSpecificProfileExperience(profile_id, experience_id);
     }
 }

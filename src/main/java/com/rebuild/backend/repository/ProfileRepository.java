@@ -14,15 +14,11 @@ import java.util.UUID;
 @Transactional
 public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
 
-    Optional<UserProfile> findByUserId(@NonNull UUID userId);
+    void deleteProfileHeaderById(@NonNull UUID id);
 
-    void deleteUserProfileByUserId(@NonNull UUID id);
+    void deleteProfileEducationById(@NonNull UUID id);
 
-    void deleteProfileHeaderByUserId(@NonNull UUID id);
-
-    void deleteProfileEducationByUserId(@NonNull UUID id);
-
-    void deleteProfileExperiencesByUserId(@NonNull UUID id);
+    void deleteProfileExperiencesById(@NonNull UUID id);
 
 
 }

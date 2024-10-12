@@ -39,6 +39,7 @@ public class User implements UserDetails {
     @Column(
             name = "id"
     )
+    @JsonIgnore
     private UUID id;
 
 

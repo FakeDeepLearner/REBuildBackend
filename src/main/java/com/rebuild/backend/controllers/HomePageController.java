@@ -8,6 +8,8 @@ import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -31,19 +33,18 @@ public class HomePageController {
         return resumeService.findById(resume_id);
     }
 
-    @GetMapping("/home/{user_id}")
+    @GetMapping("/home")
     @ResponseStatus(HttpStatus.OK)
-    public GetHomePageResponse getAllResumes(@PathVariable UUID user_id){
-        User associatedUser = userService.findByID(user_id).
-                orElseThrow(() -> new UserNotFoundException("User not found"));
+    public GetHomePageResponse getAllResumes(@AuthenticationPrincipal UserDetails userDetails) {
+        User associatedUser = userService.findByEmailNoOptional(userDetails.getUsername());
         return new GetHomePageResponse(associatedUser.getResumes(), associatedUser.getProfile());
     }
 
-    @PostMapping("/api/{user_id}/create")
+    @PostMapping("/api/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public Resume createNewResume(@PathVariable UUID user_id, @RequestBody String name){
-        User creatingUser = userService.findByID(user_id).
-                orElseThrow(() -> new UserNotFoundException("User not found with the given id"));
+    public Resume createNewResume(@RequestBody String name,
+                                  @AuthenticationPrincipal UserDetails userDetails) {
+        User creatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
         return resumeService.createNewResumeFor(name, creatingUser);
     }
 
@@ -54,10 +55,11 @@ public class HomePageController {
     }
 
 
-    @DeleteMapping("/api/delete_phone/{id}")
+    @DeleteMapping("/api/delete_phone")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removePhoneNumber(@PathVariable UUID id){
-        userService.removePhoneOf(id);
+    public void removePhoneNumber(@AuthenticationPrincipal UserDetails userDetails) {
+        User associatedUser = userService.findByEmailNoOptional(userDetails.getUsername());
+        userService.removePhoneOf(associatedUser);
     }
 
 }

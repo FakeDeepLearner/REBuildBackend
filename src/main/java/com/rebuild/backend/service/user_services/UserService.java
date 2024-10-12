@@ -107,9 +107,7 @@ public class UserService{
 
     }
 
-    public void removePhoneOf(UUID userID){
-        User deletingUser = findByID(userID).orElseThrow(
-                () -> new UserNotFoundException("A user hasn't been found with the given id"));
+    public void removePhoneOf(User deletingUser){
         deletingUser.setPhoneNumber(null);
         save(deletingUser);
     }

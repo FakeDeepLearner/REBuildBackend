@@ -76,25 +76,25 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-    public void deleteProfile(UUID user_id){
-        profileRepository.deleteUserProfileByUserId(user_id);
+    public void deleteProfile(UUID profile_id){
+        profileRepository.deleteById(profile_id);
     }
 
-    public void deleteProfileExperiences(UUID user_id){
-        profileRepository.deleteProfileExperiencesByUserId(user_id);
+    public void deleteProfileExperiences(UUID profile_id){
+        profileRepository.deleteProfileExperiencesById(profile_id);
     }
 
-    public void deleteProfileEducation(UUID user_id){
-        profileRepository.deleteProfileEducationByUserId(user_id);
+    public void deleteProfileEducation(UUID profile_id){
+        profileRepository.deleteProfileEducationById(profile_id);
     }
 
-    public void deleteProfileHeader(UUID user_id){
-        profileRepository.deleteProfileHeaderByUserId(user_id);
+    public void deleteProfileHeader(UUID profile_id){
+        profileRepository.deleteProfileHeaderById(profile_id);
     }
     
-    public UserProfile deleteSpecificProfileExperience(UUID user_id, UUID experience_id){
-        UserProfile profile = profileRepository.findByUserId(user_id).orElseThrow(() ->
-                new NoProfileException("Profile not found for this user"));
+    public UserProfile deleteSpecificProfileExperience(UUID profile_id, UUID experience_id){
+        UserProfile profile = profileRepository.findById(profile_id).orElseThrow(() ->
+                new NoProfileException("Profile not found"));
         profile.getExperienceList().
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)
