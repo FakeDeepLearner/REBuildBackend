@@ -54,6 +54,10 @@ public class Experience {
         foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
     private Resume resume;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "associated_version_id", referencedColumnName = "id", nullable = false)
+    private ResumeVersion associatedVersion;
+
     public String toString() {
         return "\tEXPERIENCE:\n" +
                 "\t\tCompany Name: " + companyName + "\n" +

@@ -46,6 +46,13 @@ public class Header {
     foreignKey = @ForeignKey(name = "head_fk_resume_id"))
     private Resume resume;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = {
+            CascadeType.MERGE,
+            CascadeType.PERSIST
+    })
+    @JoinColumn(name = "associated_version_id", referencedColumnName = "id")
+    private ResumeVersion associatedVersion;
+
     @Override
     public String toString() {
         return "HEADER:\n" +
@@ -53,4 +60,6 @@ public class Header {
                 "\tName: " + name + "\n" +
                 "\tEmail: " + email + "\n\n\n";
     }
+
+
 }

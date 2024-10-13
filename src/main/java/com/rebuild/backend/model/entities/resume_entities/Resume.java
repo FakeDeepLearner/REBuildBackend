@@ -63,6 +63,10 @@ public class Resume {
             foreignKey = @ForeignKey(name = "fk_user_id"))
     private User user;
 
+    @OneToMany(mappedBy = "associatedResume", fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResumeVersion> savedVersions;
+
     @JsonIgnore
     private LocalDateTime creationTime = LocalDateTime.now();
 
