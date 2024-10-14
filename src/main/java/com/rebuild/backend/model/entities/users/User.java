@@ -21,10 +21,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_username", columnNames = {"username"}),
         @UniqueConstraint(name = "uk_email", columnNames = {"email"}),
         //Even if we set up a unique constraint on phone numbers, postgresql allows for multiple null values
-        @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"})
+        @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"}),
+        @UniqueConstraint(name = "uk_forum_username", columnNames = {"forumUsername"})
 }, indexes = {@Index(columnList = "lastLoginTime")})
 @RequiredArgsConstructor
 @Data
@@ -76,10 +76,10 @@ public class User implements UserDetails {
     })
     private List<Resume> resumes;
 
-    private String forumUsername;
+    private String forumUsername = null;
 
     //Just like the regular password, it will also be hashed and then stored.
-    private String forumPassword;
+    private String forumPassword = null;
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,

@@ -35,17 +35,15 @@ public class HomePageController {
 
     @GetMapping("/home")
     @ResponseStatus(HttpStatus.OK)
-    public GetHomePageResponse getAllResumes(@AuthenticationPrincipal UserDetails userDetails) {
-        User associatedUser = userService.findByEmailNoOptional(userDetails.getUsername());
-        return new GetHomePageResponse(associatedUser.getResumes(), associatedUser.getProfile());
+    public GetHomePageResponse getAllResumes(@AuthenticationPrincipal User authenticatedUser) {
+        return new GetHomePageResponse(authenticatedUser.getResumes(), authenticatedUser.getProfile());
     }
 
     @PostMapping("/api/create")
     @ResponseStatus(HttpStatus.CREATED)
     public Resume createNewResume(@RequestBody String name,
-                                  @AuthenticationPrincipal UserDetails userDetails) {
-        User creatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
-        return resumeService.createNewResumeFor(name, creatingUser);
+                                  @AuthenticationPrincipal User authenticatedUser) {
+        return resumeService.createNewResumeFor(name, authenticatedUser);
     }
 
     @DeleteMapping("/api/delete/{res_id}")
@@ -57,9 +55,9 @@ public class HomePageController {
 
     @DeleteMapping("/api/delete_phone")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removePhoneNumber(@AuthenticationPrincipal UserDetails userDetails) {
-        User associatedUser = userService.findByEmailNoOptional(userDetails.getUsername());
-        userService.removePhoneOf(associatedUser);
+    public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {
+
+        userService.removePhoneOf(authenticatedUser);
     }
 
 }

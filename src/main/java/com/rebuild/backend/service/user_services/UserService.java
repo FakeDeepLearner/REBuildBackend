@@ -123,16 +123,41 @@ public class UserService{
             if (cause instanceof ConstraintViolationException violationException){
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
-                    case "uk_username" -> throw new UsernameAlreadyExistsException("This username is taken.");
                     case "uk_email" -> throw new
                             EmailAlreadyExistsException("This email address is taken");
                     case "uk_phone_number" -> throw new PhoneNumberAlreadyExistsException("This phone number is " +
                             "already associated with another account");
 
+                    //This should never happen
+                    case null -> {}
+                    default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
                 }
             }
             throw integrityViolationException;
         }
+    }
+
+    public User signUserUpToForum(String forumUsername, String rawForumPassword, User userSigningUp){
+        try{
+            userSigningUp.setForumUsername(forumUsername);
+            String encodedPassword = encoder.encode(rawForumPassword);
+            userSigningUp.setPassword(encodedPassword);
+            return save(userSigningUp);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException){
+                String violatedConstraint = violationException.getConstraintName();
+                switch (violatedConstraint){
+                    case "uk_forum_username" -> throw new UsernameAlreadyExistsException("This form username already exists");
+                    case null -> {}
+                    default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
+                }
+            }
+        }
+
+        //Should never get here
+        return userSigningUp;
     }
 
     public User save(User user){

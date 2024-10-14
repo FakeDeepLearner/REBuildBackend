@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.resume_services;
 
 
-import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateNameException;
+import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateResumeNameException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.users.User;
@@ -57,7 +57,7 @@ public class ResumeService {
                 Throwable cause = e.getCause();
                 if(cause instanceof ConstraintViolationException violationException &&
                 violationException.getConstraintName().equals("uk_same_user_resume_name")){
-                    throw new DuplicateNameException("You already have a resume with this name");
+                    throw new DuplicateResumeNameException("You already have a resume with this name");
                 }
             }
 
@@ -247,7 +247,7 @@ public class ResumeService {
             Throwable cause = e.getCause();
             if(cause instanceof ConstraintViolationException violationException &&
                     violationException.getConstraintName().equals("uk_same_user_resume_name")){
-                throw new DuplicateNameException("You already have a resume with this name");
+                throw new DuplicateResumeNameException("You already have a resume with this name");
             }
             //Should never get here
         }

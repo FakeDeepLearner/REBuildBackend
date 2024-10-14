@@ -36,44 +36,40 @@ public class ProfileController {
     @PostMapping("/create_profile")
     @ResponseStatus(HttpStatus.CREATED)
     public UserProfile createProfileFor(@Valid @RequestBody FullProfileForm fullProfileForm,
-                                        @AuthenticationPrincipal UserDetails creatingUserDetails) {
-        User creatingUser = userService.findByEmailNoOptional(creatingUserDetails.getUsername());
-        return profileService.createProfileFor(fullProfileForm, creatingUser);
+                                        @AuthenticationPrincipal User authenticatedUser) {
+        return profileService.createProfileFor(fullProfileForm, authenticatedUser);
     }
 
     @PatchMapping("/patch/header")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileHeader(@Valid @RequestBody ProfileHeaderForm headerForm,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User updatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
-        if(updatingUser.getProfile() == null){
+                                           @AuthenticationPrincipal User authenticatedUser) {
+        if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        UserProfile profile = updatingUser.getProfile();
+        UserProfile profile = authenticatedUser.getProfile();
         return profileService.updateProfileHeader(profile, headerForm);
     }
 
     @PatchMapping("/patch/education")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileHeader(@Valid @RequestBody ProfileEducationForm educationForm,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User updatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
-        if(updatingUser.getProfile() == null){
+                                           @AuthenticationPrincipal User authenticatedUser) {
+        if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        UserProfile profile = updatingUser.getProfile();
+        UserProfile profile = authenticatedUser.getProfile();
         return profileService.updateProfileEducation(profile, educationForm);
     }
 
     @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileHeader(@Valid @RequestBody List<ProfileExperienceForm> experienceFormList,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User updatingUser = userService.findByEmailNoOptional(userDetails.getUsername());
-        if(updatingUser.getProfile() == null){
+                                           @AuthenticationPrincipal User authenticatedUser) {
+        if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        UserProfile profile = updatingUser.getProfile();
+        UserProfile profile = authenticatedUser.getProfile();
         return profileService.updateProfileExperiences(profile, experienceFormList);
     }
 

@@ -5,7 +5,7 @@ import com.rebuild.backend.exceptions.forum_exceptions.ResumeForbiddenException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
-import com.rebuild.backend.service.ForumService;
+import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +18,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping("api/forum/posts")
 @Transactional
 public class PostController {
 
     private final ResumeService resumeService;
 
-    private final ForumService forumService;
+    private final ForumPostAndCommentService forumPostAndCommentService;
 
     @Autowired
-    public PostController(ResumeService resumeService, ForumService forumService) {
+    public PostController(ResumeService resumeService, ForumPostAndCommentService forumPostAndCommentService) {
         this.resumeService = resumeService;
-        this.forumService = forumService;
+        this.forumPostAndCommentService = forumPostAndCommentService;
     }
 
     @PostMapping("/create/{resume_id}")
@@ -41,7 +41,7 @@ public class PostController {
         if (!resumeService.resumeBelongsToUser(resume_id, actualUser.getId())) {
             throw new ResumeForbiddenException("That resume does not belong to you");
         }
-        return forumService.createNewPost(postForm.title(), postForm.content(), resume_id, actualUser);
+        return forumPostAndCommentService.createNewPost(postForm.title(), postForm.content(), resume_id, actualUser);
     }
 
     @DeleteMapping("/delete/{post_id}")
@@ -49,9 +49,9 @@ public class PostController {
     public void deletePost(@PathVariable UUID post_id,
                            @AuthenticationPrincipal UserDetails deletingDetails) {
         User deletingUser = (User) deletingDetails;
-        if(!forumService.postBelongsToUser(post_id, deletingUser.getId())) {
+        if(!forumPostAndCommentService.postBelongsToUser(post_id, deletingUser.getId())) {
             throw new PostForbiddenException("That post does not belong to you");
         }
-        forumService.deletePost(post_id);
+        forumPostAndCommentService.deletePost(post_id);
     }
 }

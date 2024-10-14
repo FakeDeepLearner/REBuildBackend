@@ -1,9 +1,12 @@
 package com.rebuild.backend.utils;
 
 import com.rebuild.backend.exceptions.unauthorized_exceptions.NotAuthenticatedException;
+import com.rebuild.backend.model.entities.users.User;
 import lombok.NonNull;
 import org.springframework.core.MethodParameter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -14,23 +17,25 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.security.Principal;
 
 @Component
-public class AuthenticationPrincipalNullChecker implements HandlerMethodArgumentResolver {
+public class AuthenticationPrincipalResolver implements HandlerMethodArgumentResolver {
 
     //If the parameter has the AuthenticationPrincipal annotation, our resolver will handle it
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(AuthenticationPrincipal.class);
+        return parameter.hasParameterAnnotation(AuthenticationPrincipal.class) &&
+                parameter.getParameterType().isAssignableFrom(UserDetails.class);
     }
 
     @Override
     public UserDetails resolveArgument(@NonNull MethodParameter parameter,
                                        ModelAndViewContainer mavContainer,
-                                       NativeWebRequest webRequest,
+                                       @NonNull NativeWebRequest webRequest,
                                        WebDataBinderFactory binderFactory)  {
-        Principal nativePrincipal = webRequest.getUserPrincipal();
-        if(nativePrincipal == null) {
+        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if(currentAuthentication == null || currentAuthentication.getPrincipal() == null) {
             throw new NotAuthenticatedException("You are not authenticated!");
         }
-        return (UserDetails) nativePrincipal;
+
+        return (User) currentAuthentication.getPrincipal();
     }
 }

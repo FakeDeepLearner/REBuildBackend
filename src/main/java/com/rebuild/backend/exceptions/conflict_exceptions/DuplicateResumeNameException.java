@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.CONFLICT)
-public class DuplicateNameException extends RuntimeException {
-    public DuplicateNameException(String message) {
+public class DuplicateResumeNameException extends IllegalArgumentException {
+    public DuplicateResumeNameException(String message) {
         super(message);
     }
 }

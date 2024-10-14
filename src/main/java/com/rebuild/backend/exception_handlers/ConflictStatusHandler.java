@@ -1,6 +1,6 @@
 package com.rebuild.backend.exception_handlers;
 
-import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateNameException;
+import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateResumeNameException;
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
@@ -11,7 +11,6 @@ import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
@@ -63,8 +62,8 @@ public class ConflictStatusHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
-    @ExceptionHandler(DuplicateNameException.class)
-    public ResponseEntity<Map<String, String>> handleDuplicateName(DuplicateNameException e){
+    @ExceptionHandler(DuplicateResumeNameException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateName(DuplicateResumeNameException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }

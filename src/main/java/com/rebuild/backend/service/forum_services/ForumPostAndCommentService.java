@@ -1,4 +1,4 @@
-package com.rebuild.backend.service;
+package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class ForumService {
+public class ForumPostAndCommentService {
 
     private final ResumeService resumeService;
 
@@ -22,9 +22,9 @@ public class ForumService {
     private final ForumPostRepository postRepository;
 
     @Autowired
-    public ForumService(ResumeService resumeService,
-                        CommentRepository commentRepository,
-                        ForumPostRepository postRepository) {
+    public ForumPostAndCommentService(ResumeService resumeService,
+                                      CommentRepository commentRepository,
+                                      ForumPostRepository postRepository) {
         this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
