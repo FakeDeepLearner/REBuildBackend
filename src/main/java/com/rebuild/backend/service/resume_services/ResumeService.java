@@ -9,6 +9,7 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.repository.ResumeRepository;
 
+import com.rebuild.backend.repository.ResumeVersionRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,9 +29,12 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
 
+    private final ResumeVersionRepository versionRepository;
+
     @Autowired
-    public ResumeService(ResumeRepository resumeRepository) {
+    public ResumeService(ResumeRepository resumeRepository, ResumeVersionRepository versionRepository) {
         this.resumeRepository = resumeRepository;
+        this.versionRepository = versionRepository;
     }
 
     public Resume changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber){
@@ -246,7 +250,7 @@ public class ResumeService {
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if(cause instanceof ConstraintViolationException violationException &&
-                    violationException.getConstraintName().equals("uk_same_user_resume_name")){
+                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
                 throw new DuplicateResumeNameException("You already have a resume with this name");
             }
             //Should never get here
@@ -259,6 +263,33 @@ public class ResumeService {
         Resume newResume = new Resume(copiedResume);
         return resumeRepository.save(newResume);
 
+    }
+
+    public ResumeVersion snapshotCurrentData(UUID resume_id){
+        Resume copiedResume = findById(resume_id);
+        ResumeVersion newVersion = new ResumeVersion(copiedResume.getHeader(), copiedResume.getEducation(),
+                copiedResume.getExperiences(), copiedResume.getSections());
+        copiedResume.getSavedVersions().add(newVersion);
+        newVersion.setAssociatedResume(copiedResume);
+        return versionRepository.save(newVersion);
+    }
+
+    public Resume switchToAnotherVersion(UUID resume_id, UUID version_id){
+        Resume switchingResume = findById(resume_id);
+        //This avoids looking up the database again, saving time in most cases
+        //Also, we need to (in the future) verify that this version does actually belong to this resume.
+        ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
+                stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(null);
+        assert versionToSwitch != null;
+        switchingResume.setHeader(versionToSwitch.getVersionedHeader());
+        switchingResume.setEducation(versionToSwitch.getVersionedEducation());
+        switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
+        switchingResume.setSections(versionToSwitch.getVersionedSections());
+        return resumeRepository.save(switchingResume);
+    }
+
+    public void deleteVersion(UUID version_id){
+        versionRepository.deleteById(version_id);
     }
 
 
