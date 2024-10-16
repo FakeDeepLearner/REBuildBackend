@@ -24,25 +24,23 @@ public class CommentController {
     }
 
     @PostMapping("/create/{post_id}")
+    @ResponseStatus(HttpStatus.CREATED)
     public Comment createTopLevelComment(@PathVariable UUID post_id, @RequestBody String commentBody,
-                                         @AuthenticationPrincipal UserDetails initialDetails){
-        //Since we have only one class that implements UserDetails, we can safely do casting here
-        User actualUser = (User) initialDetails;
-        return forumPostAndCommentService.makeTopLevelComment(commentBody, post_id, actualUser);
+                                         @AuthenticationPrincipal User creatingUser){
+        return forumPostAndCommentService.makeTopLevelComment(commentBody, post_id, creatingUser);
     }
 
     @PostMapping("/reply/{comment_id}")
+    @ResponseStatus(HttpStatus.CREATED)
     public Comment createReply(@PathVariable UUID comment_id, @RequestBody String replyBody,
-                                @AuthenticationPrincipal UserDetails initialDetails){
-        User actualUser = (User) initialDetails;
-        return forumPostAndCommentService.createReplyTo(replyBody, comment_id, actualUser);
+                                @AuthenticationPrincipal User creatingUser){
+        return forumPostAndCommentService.createReplyTo(replyBody, comment_id, creatingUser);
     }
 
     @DeleteMapping("/delete/{comment_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable UUID comment_id,
-                              @AuthenticationPrincipal UserDetails deletingDetails){
-        User deletingUser = (User) deletingDetails;
+                              @AuthenticationPrincipal User deletingUser){
         if(!forumPostAndCommentService.commentBelongsToUser(comment_id, deletingUser.getId())){
             throw new CommentForbiddenException("That comment doesn't belong to you, you can't delete it");
         }

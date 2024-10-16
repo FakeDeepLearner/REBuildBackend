@@ -42,7 +42,6 @@ public class ResumeService {
         resume.getHeader().setEmail(newEmail);
         resume.getHeader().setNumber(newPhoneNumber);
         resume.getHeader().setName(newName);
-        resume.setLastModifiedTime(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
@@ -99,7 +98,6 @@ public class ResumeService {
                     indexCounter += 1;
                 }
             }
-            resume.setLastModifiedTime(LocalDateTime.now());
             return resumeRepository.save(resume);
         }
         catch (DataIntegrityViolationException e){
@@ -116,7 +114,6 @@ public class ResumeService {
         Resume resume = findById(resID);
         resume.getEducation().setRelevantCoursework(newCourseWork);
         resume.getEducation().setSchoolName(newSchoolName);
-        resume.setLastModifiedTime(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
@@ -125,7 +122,6 @@ public class ResumeService {
         Header newHeader = new Header(phoneNumber, name, email);
         resume.setHeader(newHeader);
         newHeader.setResume(resume);
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
         return newHeader;
 
@@ -139,7 +135,6 @@ public class ResumeService {
             Experience newExperience = new Experience(companyName, technologies, duration, bullets);
             resume.addExperience(newExperience);
             newExperience.setResume(resume);
-            resume.setLastModifiedTime(LocalDateTime.now());
             resumeRepository.save(resume);
             return newExperience;
         }
@@ -158,7 +153,6 @@ public class ResumeService {
         Education education = new Education(schoolName, courseWork);
         resume.setEducation(education);
         education.setResume(resume);
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
         return education;
     }
@@ -168,7 +162,6 @@ public class ResumeService {
         ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
         resume.addSection(newSection);
         newSection.setResume(resume);
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
         return newSection;
     }
@@ -180,21 +173,18 @@ public class ResumeService {
     public void deleteEducation(UUID resID){
         Resume resume = findById(resID);
         resume.setEducation(null);
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
     }
 
     public void deleteExperience(UUID resID, UUID expID){
         Resume resume = findById(resID);
         resume.getExperiences().removeIf(experience -> experience.getId().equals(expID));
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
     }
 
     public void deleteSection(UUID resID, UUID sectionID){
         Resume resume = findById(resID);
         resume.getSections().removeIf(section -> section.getId().equals(sectionID));
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
     }
     
@@ -202,28 +192,24 @@ public class ResumeService {
     public void deleteHeader(UUID resID){
         Resume resume = findById(resID);
         resume.setHeader(null);
-        resume.setLastModifiedTime(LocalDateTime.now());
         resumeRepository.save(resume);
     }
 
     public Resume setExperiences(UUID resID, List<Experience> newExperiences){
         Resume resume = findById(resID);
         resume.setExperiences(newExperiences);
-        resume.setLastModifiedTime(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
     public Resume setHeader(UUID resID, Header newHeader){
         Resume resume = findById(resID);
         resume.setHeader(newHeader);
-        resume.setLastModifiedTime(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
     public Resume setEducation(UUID resID, Education newEducation){
         Resume resume = findById(resID);
         resume.setEducation(newEducation);
-        resume.setLastModifiedTime(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
@@ -236,7 +222,6 @@ public class ResumeService {
         resume.getEducation().setRelevantCoursework(resumeForm.relevantCoursework());
         resume.setExperiences(resumeForm.experiences());
         resume.setSections(resumeForm.sections());
-        resume.setLastModifiedTime(LocalDateTime.now());
         return resumeRepository.save(resume);
     }
 
@@ -244,7 +229,6 @@ public class ResumeService {
         Resume changingResume = findById(resID);
         try{
             changingResume.setName(newName);
-            changingResume.setLastModifiedTime(LocalDateTime.now());
             return resumeRepository.save(changingResume);
         }
         catch (DataIntegrityViolationException e){

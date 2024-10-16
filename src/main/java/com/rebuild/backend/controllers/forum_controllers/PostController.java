@@ -35,21 +35,20 @@ public class PostController {
     @PostMapping("/create/{resume_id}")
     public ForumPost createNewPost(@PathVariable UUID resume_id,
                                    @Valid @RequestBody NewPostForm postForm,
-                                   @AuthenticationPrincipal UserDetails creatingDetails) {
-        User actualUser = (User) creatingDetails;
+                                   @AuthenticationPrincipal User creatingUser) {
         //This can't happen normally, the main purpose of this is to protect against malicious attacks.
-        if (!resumeService.resumeBelongsToUser(resume_id, actualUser.getId())) {
+        if (!resumeService.resumeBelongsToUser(resume_id, creatingUser.getId())) {
             throw new ResumeForbiddenException("That resume does not belong to you");
         }
-        return forumPostAndCommentService.createNewPost(postForm.title(), postForm.content(), resume_id, actualUser);
+        return forumPostAndCommentService.createNewPost(postForm.title(), postForm.content(),
+                resume_id, creatingUser);
     }
 
     @DeleteMapping("/delete/{post_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable UUID post_id,
-                           @AuthenticationPrincipal UserDetails deletingDetails) {
-        User deletingUser = (User) deletingDetails;
-        if(!forumPostAndCommentService.postBelongsToUser(post_id, deletingUser.getId())) {
+                           @AuthenticationPrincipal User creatingUser) {
+        if(!forumPostAndCommentService.postBelongsToUser(post_id, creatingUser.getId())) {
             throw new PostForbiddenException("That post does not belong to you");
         }
         forumPostAndCommentService.deletePost(post_id);

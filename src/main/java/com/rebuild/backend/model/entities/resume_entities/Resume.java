@@ -5,6 +5,9 @@ import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedExcepti
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +30,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -68,9 +72,11 @@ public class Resume {
     private List<ResumeVersion> savedVersions;
 
     @JsonIgnore
+    @CreatedDate
     private LocalDateTime creationTime = LocalDateTime.now();
 
     @JsonIgnore
+    @LastModifiedDate
     private LocalDateTime lastModifiedTime = LocalDateTime.now();
 
     public Resume(@NonNull String resume_name, @NonNull User user){

@@ -4,7 +4,11 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +25,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class ForumPost {
 
     @Id
@@ -38,6 +43,12 @@ public class ForumPost {
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private User creatingUser;
+
+    @CreatedDate
+    private LocalDateTime creationDate = LocalDateTime.now();
+
+    @LastModifiedDate
+    private LocalDateTime lastModificationDate = LocalDateTime.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},
             mappedBy = "associatedPost")
