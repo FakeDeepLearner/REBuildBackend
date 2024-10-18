@@ -73,34 +73,41 @@ public class ProfileController {
         return profileService.updateProfileExperiences(profile, experienceFormList);
     }
 
-    @DeleteMapping("/delete/{profile_id}")
+    @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfile(@PathVariable UUID profile_id){
-        profileService.deleteProfile(profile_id);
+    public void deleteProfile(@AuthenticationPrincipal User deletingUser){
+        profileService.deleteProfile(deletingUser.getProfile().getId());
     }
 
-    @DeleteMapping("/delete/header/{profile_id}")
+    @DeleteMapping("/delete/header")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileHeader(@PathVariable UUID profile_id){
-        profileService.deleteProfileHeader(profile_id);
+    public void deleteProfileHeader(@AuthenticationPrincipal User deletingUser){
+        profileService.deleteProfileHeader(deletingUser.getProfile().getId());
     }
 
-    @DeleteMapping("/delete/education/{profile_id}")
+    @DeleteMapping("/delete/education")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileEducation(@PathVariable UUID profile_id){
-        profileService.deleteProfileEducation(profile_id);
+    public void deleteProfileEducation(@AuthenticationPrincipal User deletingUser){
+        profileService.deleteProfileEducation(deletingUser.getProfile().getId());
     }
 
-    @DeleteMapping("/delete/experiences/{profile_id}")
+    @DeleteMapping("/delete/experiences")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileExperience(@PathVariable UUID profile_id){
-        profileService.deleteProfileExperiences(profile_id);
+    public void deleteProfileExperience(@AuthenticationPrincipal User deletingUser){
+        profileService.deleteProfileExperiences(deletingUser.getProfile().getId());
     }
 
-    @DeleteMapping("/delete/experiences/{profile_id}/{experience_id}")
+    @DeleteMapping("/delete/experiences/{experience_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteSpecificExperience(@PathVariable UUID profile_id,
+    public UserProfile deleteSpecificExperience(@AuthenticationPrincipal User deletingUser,
                                                 @PathVariable UUID experience_id){
-        return profileService.deleteSpecificProfileExperience(profile_id, experience_id);
+        return profileService.deleteSpecificProfileExperience(deletingUser.getProfile().getId(),
+                experience_id);
+    }
+
+    @PutMapping("/update_profile")
+    public UserProfile changeEntireProfile(@AuthenticationPrincipal User updatingUser,
+                                           @Valid @RequestBody FullProfileForm profileForm){
+        return profileService.updateEntireProfile(updatingUser.getProfile(), profileForm);
     }
 }

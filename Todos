@@ -3,4 +3,5 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO: Before fully implementing websockets, write an extensive test suite
 
-TODO: Implement some sort of a version history tracking system (will probably be very difficult)
+TODO: Add the ability to have section data in a profile,
+along with the ability to prefill them to a resume, update them, delete them, etc...

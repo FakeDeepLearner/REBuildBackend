@@ -103,4 +103,14 @@ public class ProfileService {
     }
 
 
+    public UserProfile updateEntireProfile(UserProfile updatingProfile, FullProfileForm profileForm){
+        updatingProfile.setExperienceList(profileForm.experiences());
+        updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
+                profileForm.name(), profileForm.email()));
+        updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
+                profileForm.relevantCoursework()));
+        return profileRepository.save(updatingProfile);
+
+    }
+
 }
