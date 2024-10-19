@@ -1,15 +1,9 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
+import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
-import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;
-import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.forms.profile_forms.FullProfileForm;
-import com.rebuild.backend.model.forms.profile_forms.ProfileEducationForm;
-import com.rebuild.backend.model.forms.profile_forms.ProfileExperienceForm;
-import com.rebuild.backend.model.forms.profile_forms.ProfileHeaderForm;
+import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +31,8 @@ public class ProfileService {
         ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
                 profileForm.relevantCoursework());
 
-        UserProfile newProfile = new UserProfile(profileHeader, newEducation, profileForm.experiences());
+        UserProfile newProfile = new UserProfile(profileHeader, newEducation, profileForm.experiences(),
+                profileForm.sections());
         newProfile.setUser(creatingUser);
         creatingUser.setProfile(newProfile);
         return profileRepository.save(newProfile);
@@ -76,6 +71,19 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
+    public UserProfile updateProfileSections(UserProfile profile,
+                                             List<ProfileSectionForm> sectionForms){
+        List<ProfileSection> transformedSections = sectionForms.stream().
+                map((rawSection) -> {
+                    ProfileSection newSection =
+                            new ProfileSection(rawSection.title(), rawSection.bullets());
+                    newSection.setProfile(profile);
+                    return newSection;
+                }).toList();
+        profile.setSections(transformedSections);
+        return profileRepository.save(profile);
+    }
+
     public void deleteProfile(UUID profile_id){
         profileRepository.deleteById(profile_id);
     }
@@ -88,17 +96,27 @@ public class ProfileService {
         profileRepository.deleteProfileEducationById(profile_id);
     }
 
+    public void deleteProfileSections(UUID profile_id){
+        profileRepository.deleteProfileSectionsById(profile_id);
+    }
+
     public void deleteProfileHeader(UUID profile_id){
         profileRepository.deleteProfileHeaderById(profile_id);
     }
     
-    public UserProfile deleteSpecificProfileExperience(UUID profile_id, UUID experience_id){
-        UserProfile profile = profileRepository.findById(profile_id).orElseThrow(() ->
-                new NoProfileException("Profile not found"));
+    public UserProfile deleteSpecificProfileExperience(UserProfile profile, UUID experience_id){
         profile.getExperienceList().
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)
         );
+        return profileRepository.save(profile);
+    }
+
+    public UserProfile deleteSpecificSection(UserProfile profile, UUID experience_id){
+        profile.getSections().
+                removeIf(section ->
+                        section.getId().equals(experience_id)
+                );
         return profileRepository.save(profile);
     }
 
@@ -109,6 +127,7 @@ public class ProfileService {
                 profileForm.name(), profileForm.email()));
         updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
                 profileForm.relevantCoursework()));
+        updatingProfile.setSections(profileForm.sections());
         return profileRepository.save(updatingProfile);
 
     }

@@ -25,6 +25,7 @@ public class FullUpdateController {
     @ResponseStatus(HttpStatus.OK)
     public Resume updateFullResume(@Valid @RequestBody FullResumeForm fullResumeForm,
                                                      @PathVariable UUID res_id){
-        return resumeService.fullUpdate(res_id, fullResumeForm);
+        Resume associatedResume = resumeService.findById(res_id);
+        return resumeService.fullUpdate(associatedResume, fullResumeForm);
     }
 }

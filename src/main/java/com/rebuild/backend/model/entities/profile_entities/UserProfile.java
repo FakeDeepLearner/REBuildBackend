@@ -22,7 +22,10 @@ import static jakarta.persistence.CascadeType.*;
         @NamedQuery(name = "UserProfile.deleteProfileEducationById",
                 query = "UPDATE UserProfile p SET p.education = null WHERE p.id = ?1"),
         @NamedQuery(name = "UserProfile.deleteProfileExperiencesById",
-                query = "UPDATE UserProfile p SET p.experienceList = null WHERE p.id = ?1")
+                query = "UPDATE UserProfile p SET p.experienceList = null WHERE p.id = ?1"),
+        @NamedQuery(name = "UserProfile.deleteProfileSectionsById",
+                query = "UPDATE UserProfile p SET p.sections = null WHERE p.id = ?1")
+
 
 }
 )
@@ -34,14 +37,17 @@ public class UserProfile {
 
     @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = {
             ALL
-    })
+    }, mappedBy = "profile")
     private ProfileHeader header;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
     private ProfileEducation education;
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
     private List<ProfileExperience> experienceList;
+
+    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
+    private List<ProfileSection> sections;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,
@@ -53,9 +59,11 @@ public class UserProfile {
 
     public UserProfile(ProfileHeader profileHeader,
                        ProfileEducation newEducation,
-                       List<ProfileExperience> experiences) {
+                       List<ProfileExperience> experiences,
+                       List<ProfileSection> sections) {
         this.header = profileHeader;
         this.education = newEducation;
         this.experienceList = experiences;
+        this.sections = sections;
     }
 }

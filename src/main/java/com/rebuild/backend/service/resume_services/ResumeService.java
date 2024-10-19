@@ -195,26 +195,27 @@ public class ResumeService {
         resumeRepository.save(resume);
     }
 
-    public Resume setExperiences(UUID resID, List<Experience> newExperiences){
-        Resume resume = findById(resID);
+    public Resume setExperiences(Resume resume, List<Experience> newExperiences){
         resume.setExperiences(newExperiences);
         return resumeRepository.save(resume);
     }
 
-    public Resume setHeader(UUID resID, Header newHeader){
-        Resume resume = findById(resID);
+    public Resume setHeader(Resume resume, Header newHeader){
         resume.setHeader(newHeader);
         return resumeRepository.save(resume);
     }
 
-    public Resume setEducation(UUID resID, Education newEducation){
-        Resume resume = findById(resID);
+    public Resume setEducation(Resume resume, Education newEducation){
         resume.setEducation(newEducation);
         return resumeRepository.save(resume);
     }
 
-    public Resume fullUpdate(UUID resID, FullResumeForm resumeForm){
-        Resume resume = findById(resID);
+    public Resume setSections(Resume resume, List<ResumeSection> newSections){
+        resume.setSections(newSections);
+        return resumeRepository.save(resume);
+    }
+
+    public Resume fullUpdate(Resume resume, FullResumeForm resumeForm){
         resume.getHeader().setName(resumeForm.name());
         resume.getHeader().setEmail(resumeForm.email());
         resume.getHeader().setNumber(resumeForm.phoneNumber());

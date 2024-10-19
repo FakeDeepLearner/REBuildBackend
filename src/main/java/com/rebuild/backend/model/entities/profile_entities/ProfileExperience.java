@@ -44,7 +44,7 @@ public class ProfileExperience {
     @NonNull
     private List<String> bullets;
 
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_profile_experience_id"))
     private UserProfile profile;
