@@ -88,8 +88,7 @@ public class Resume {
         this.name = resume_name;
     }
 
-    @SuppressWarnings("CopyConstructorMissesField")
-    public Resume(@NonNull Resume originalResume){
+    public Resume(@NonNull Resume originalResume, @NonNull String newName){
         if(originalResume.getUser().maxResumeLimitReached()){
             throw new MaxResumesReachedException("You have reached the maximum number of resumes you can create");
         }
@@ -97,7 +96,7 @@ public class Resume {
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
         List<ResumeSection> originalSections = originalResume.getSections();
-        this.name = originalResume.getName();
+        this.name = newName;
         this.user = originalResume.getUser();
         // We are creating new objects here, because we do not want them to be a reference to the original ones.
         this.education = new Education(originalEducation.getSchoolName(),

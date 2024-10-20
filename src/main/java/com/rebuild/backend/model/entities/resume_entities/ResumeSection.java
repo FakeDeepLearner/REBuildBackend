@@ -8,6 +8,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Table(name = "sections", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_resume_section", columnNames = {"resume_id", "title"})
+})
 @EqualsAndHashCode
 @NoArgsConstructor
 @RequiredArgsConstructor

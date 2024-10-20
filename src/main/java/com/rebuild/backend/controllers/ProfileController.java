@@ -32,9 +32,9 @@ public class ProfileController {
 
     @PostMapping("/create_profile")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserProfile createProfileFor(@Valid @RequestBody FullProfileForm fullProfileForm,
+    public UserProfile createFullProfileFor(@Valid @RequestBody FullProfileForm fullProfileForm,
                                         @AuthenticationPrincipal User authenticatedUser) {
-        return profileService.createProfileFor(fullProfileForm, authenticatedUser);
+        return profileService.createFullProfileFor(fullProfileForm, authenticatedUser);
     }
 
     @PatchMapping("/patch/header")

@@ -10,7 +10,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "experiences",
-        uniqueConstraints = {@UniqueConstraint(name = "uk_resume_company", columnNames = {"companyName", "resume_id"})})
+        uniqueConstraints = {@UniqueConstraint(name = "uk_resume_company",
+                columnNames = {"company_name", "resume_id"})})
 @Getter
 @Setter
 @EqualsAndHashCode

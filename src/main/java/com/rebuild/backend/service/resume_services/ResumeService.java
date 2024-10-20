@@ -4,6 +4,7 @@ package com.rebuild.backend.service.resume_services;
 import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateResumeNameException;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
+import com.rebuild.backend.exceptions.resume_exceptions.ResumeSectionConstraintException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
@@ -59,7 +60,7 @@ public class ResumeService {
             catch (DataIntegrityViolationException e){
                 Throwable cause = e.getCause();
                 if(cause instanceof ConstraintViolationException violationException &&
-                violationException.getConstraintName().equals("uk_same_user_resume_name")){
+                        Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
                     throw new DuplicateResumeNameException("You already have a resume with this name");
                 }
             }
@@ -141,7 +142,7 @@ public class ResumeService {
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException
-                    && violationException.getConstraintName().equals("uk_resume_company")){
+                    && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
             }
             throw e;
@@ -159,11 +160,21 @@ public class ResumeService {
 
     public ResumeSection createNewSection(UUID resID, String sectionTitle, List<String> sectionBullets){
         Resume resume = findById(resID);
-        ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
-        resume.addSection(newSection);
-        newSection.setResume(resume);
-        resumeRepository.save(resume);
-        return newSection;
+        try {
+            ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
+            resume.addSection(newSection);
+            newSection.setResume(resume);
+            resumeRepository.save(resume);
+            return newSection;
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException
+                    && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
+                throw new ResumeSectionConstraintException("A resume can't have more than 1 section with the same title");
+            }
+            throw e;
+        }
     }
 
     public void deleteById(UUID id){
@@ -196,8 +207,18 @@ public class ResumeService {
     }
 
     public Resume setExperiences(Resume resume, List<Experience> newExperiences){
-        resume.setExperiences(newExperiences);
-        return resumeRepository.save(resume);
+        try {
+            resume.setExperiences(newExperiences);
+            return resumeRepository.save(resume);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException &&
+                    Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
+                throw new ResumeSectionConstraintException("The new sections can't have more than 1 section with the same title");
+            }
+            throw e;
+        }
     }
 
     public Resume setHeader(Resume resume, Header newHeader){
@@ -211,19 +232,45 @@ public class ResumeService {
     }
 
     public Resume setSections(Resume resume, List<ResumeSection> newSections){
-        resume.setSections(newSections);
-        return resumeRepository.save(resume);
+        try {
+            resume.setSections(newSections);
+            return resumeRepository.save(resume);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException &&
+                    Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
+                throw new ResumeSectionConstraintException("The new sections can't have more than 1 section with the same title");
+            }
+            throw e;
+        }
     }
 
     public Resume fullUpdate(Resume resume, FullResumeForm resumeForm){
-        resume.getHeader().setName(resumeForm.name());
-        resume.getHeader().setEmail(resumeForm.email());
-        resume.getHeader().setNumber(resumeForm.phoneNumber());
-        resume.getEducation().setSchoolName(resumeForm.schoolName());
-        resume.getEducation().setRelevantCoursework(resumeForm.relevantCoursework());
-        resume.setExperiences(resumeForm.experiences());
-        resume.setSections(resumeForm.sections());
-        return resumeRepository.save(resume);
+        try {
+            resume.getHeader().setName(resumeForm.name());
+            resume.getHeader().setEmail(resumeForm.email());
+            resume.getHeader().setNumber(resumeForm.phoneNumber());
+            resume.getEducation().setSchoolName(resumeForm.schoolName());
+            resume.getEducation().setRelevantCoursework(resumeForm.relevantCoursework());
+            resume.setExperiences(resumeForm.experiences());
+            resume.setSections(resumeForm.sections());
+            return resumeRepository.save(resume);
+        }
+        catch(DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException){
+                switch (violationException.getConstraintName()){
+                    case "uk_resume_section": throw new ResumeSectionConstraintException("The new sections can't have more than 1 section with the same title");
+                    case "uk_resume_company": throw new ResumeCompanyConstraintException("The experiences can't have more than experience with the same company");
+                    case null:
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
+                }
+            }
+        }
+        return resume;
     }
 
     public Resume changeName(UUID resID, String newName){
@@ -243,10 +290,22 @@ public class ResumeService {
         return changingResume;
     }
 
-    public Resume copyResume(UUID resID){
+    public Resume copyResume(UUID resID, String newName){
         Resume copiedResume = findById(resID);
-        Resume newResume = new Resume(copiedResume);
-        return resumeRepository.save(newResume);
+        try {
+            Resume newResume = new Resume(copiedResume, newName);
+            return resumeRepository.save(newResume);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if(cause instanceof ConstraintViolationException violationException &&
+                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
+                throw new DuplicateResumeNameException("The copied resume must have a " +
+                        "different name than the original one");
+            }
+            //Should never get here
+        }
+        return copiedResume;
 
     }
 
@@ -266,17 +325,32 @@ public class ResumeService {
         ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
                 stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(null);
         assert versionToSwitch != null;
-        switchingResume.setHeader(versionToSwitch.getVersionedHeader());
-        switchingResume.setEducation(versionToSwitch.getVersionedEducation());
-        switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
-        switchingResume.setSections(versionToSwitch.getVersionedSections());
-        return resumeRepository.save(switchingResume);
+        try {
+            switchingResume.setHeader(versionToSwitch.getVersionedHeader());
+            switchingResume.setEducation(versionToSwitch.getVersionedEducation());
+            switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
+            switchingResume.setSections(versionToSwitch.getVersionedSections());
+        }
+        catch(DataIntegrityViolationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException) {
+                switch (violationException.getConstraintName()) {
+                    case "uk_resume_section":
+                        throw new ResumeSectionConstraintException("The sections from this version can't have more than 1 section with the same title");
+                    case "uk_resume_company":
+                        throw new ResumeCompanyConstraintException("The experiences from this version can't have more than experience with the same company");
+                    case null:
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
+                }
+            }
+        }
+        return switchingResume;
     }
 
     public void deleteVersion(UUID version_id){
         versionRepository.deleteById(version_id);
     }
-
-
 
 }

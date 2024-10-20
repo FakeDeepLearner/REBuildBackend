@@ -1,7 +1,5 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
-import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeVersion;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,6 +13,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "profile_sections", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_profile_sections", columnNames = {
+                "title", "profile_id"
+        })
+})
 public class ProfileSection {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

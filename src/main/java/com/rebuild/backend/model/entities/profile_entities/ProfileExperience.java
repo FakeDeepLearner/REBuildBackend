@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "profile_experiences")
+@Table(name = "profile_experiences", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_profile_experiences", columnNames = {
+                "company_name", "profile_id"
+        })
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

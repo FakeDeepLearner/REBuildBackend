@@ -28,8 +28,8 @@ public class ResumeUtilController {
 
     @PostMapping("/api/resume/copy/{res_id}")
     @ResponseStatus(HttpStatus.OK)
-    public Resume copyResume(@PathVariable UUID res_id) {
-        return resumeService.copyResume(res_id);
+    public Resume copyResume(@PathVariable UUID res_id, @RequestBody String newName) {
+        return resumeService.copyResume(res_id, newName);
     }
 
     @GetMapping("/api/download/{res_id}")
