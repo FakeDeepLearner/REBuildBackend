@@ -8,6 +8,7 @@ import com.rebuild.backend.exceptions.resume_exceptions.ResumeSectionConstraintE
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
+import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
@@ -15,6 +16,10 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -351,6 +356,14 @@ public class ResumeService {
 
     public void deleteVersion(UUID version_id){
         versionRepository.deleteById(version_id);
+    }
+
+    public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){
+        Pageable pageableResult = PageRequest.of(pageNumber, pageSize,
+                Sort.by("creationDate").descending().and(Sort.by("lastModifiedDate").descending()));
+        Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
+        return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
+                resultingPage.getTotalPages(), pageSize, user.getProfile());
     }
 
 }

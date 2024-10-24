@@ -2,6 +2,8 @@ package com.rebuild.backend.repository;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import lombok.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +22,9 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     void deleteById(@NonNull UUID ID);
 
     int countByIdAndUserId(UUID id, UUID userID);
+
+    @NonNull
+    Page<Resume> findAllById(UUID id,  @NonNull Pageable pageable);
 
 
 }

@@ -93,18 +93,11 @@ public class ForumPostAndCommentService {
     public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize){
         //Sort by ascending order of creation dates, so the newest posts show up first
         Pageable pageableResult = PageRequest.of(currentPageNumber, pageSize,
-                Sort.Direction.DESC, "createdAt");
+                Sort.by("creationDate").descending().
+                        and(Sort.by("lastModifiedDate").descending()));
         Page<ForumPost> resultingPage = forumPostRepository.findAll(pageableResult);
-        String prevUrl = "";
-        String nextUrl = "";
-        if(resultingPage.hasPrevious()){
-            prevUrl = base.baseUrl() + "/api/get_posts?page=" + (currentPageNumber - 1) + "&size=" + pageSize;
-        }
-        if(resultingPage.hasNext()){
-            nextUrl = base.baseUrl() + "/api/get_posts?page=" + (currentPageNumber + 1) + "&size=" + pageSize;
-        }
         return new ForumPostPageResponse(resultingPage.getContent(), resultingPage.getNumber(),
-                resultingPage.getTotalElements(), resultingPage.getTotalPages(), prevUrl, nextUrl);
+                resultingPage.getTotalElements(), resultingPage.getTotalPages(), pageSize);
     }
 
 

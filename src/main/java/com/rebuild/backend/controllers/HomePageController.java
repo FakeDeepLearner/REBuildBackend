@@ -1,15 +1,13 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.responses.GetHomePageResponse;
+import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -35,8 +33,10 @@ public class HomePageController {
 
     @GetMapping("/home")
     @ResponseStatus(HttpStatus.OK)
-    public GetHomePageResponse getAllResumes(@AuthenticationPrincipal User authenticatedUser) {
-        return new GetHomePageResponse(authenticatedUser.getResumes(), authenticatedUser.getProfile());
+    public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
+                                     @RequestParam(defaultValue = "0", name = "page") int pageNumber,
+                                     @RequestParam(defaultValue = "10", name = "size") int pageSize) {
+        return resumeService.loadHomePageInformation(authenticatedUser, pageNumber, pageSize);
     }
 
     @PostMapping("/api/create")

@@ -6,5 +6,5 @@ import java.util.List;
 
 public record ForumPostPageResponse(List<ForumPost> displayedPosts, int currentPage,
                                     long totalItems, int totalPages,
-                                    String linkToPrevPage, String linkToNextPage) {
+                                    int pageSize) {
 }
