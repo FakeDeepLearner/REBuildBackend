@@ -360,7 +360,8 @@ public class ResumeService {
 
     public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){
         Pageable pageableResult = PageRequest.of(pageNumber, pageSize,
-                Sort.by("creationDate").descending().and(Sort.by("lastModifiedDate").descending()));
+                Sort.by("creationDate").descending().
+                        and(Sort.by("lastModifiedDate").descending()));
         Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
         return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
                 resultingPage.getTotalPages(), pageSize, user.getProfile());

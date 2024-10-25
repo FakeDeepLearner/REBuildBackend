@@ -7,6 +7,7 @@ import org.passay.PasswordData;
 import org.passay.PasswordValidator;
 import org.passay.RuleResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +16,7 @@ public class PasswordStrengthValidator implements ConstraintValidator<PasswordSt
     private final PasswordValidator validator;
 
     @Autowired
-    public PasswordStrengthValidator(PasswordValidator validator) {
+    public PasswordStrengthValidator(@Qualifier(value = "appLoginValidator") PasswordValidator validator) {
         this.validator = validator;
     }
 

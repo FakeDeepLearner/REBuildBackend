@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.constraints.password.rules;
+package com.rebuild.backend.model.constraints.rules.app_rules;
 
 import org.passay.*;
 
