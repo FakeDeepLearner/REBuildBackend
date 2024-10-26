@@ -62,6 +62,11 @@ public class ProfileService {
         return null;
     }
 
+    public UserProfile changePageSize(UserProfile profile, int newPageSize){
+        profile.setForumPageSize(newPageSize);
+        return profileRepository.save(profile);
+    }
+
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
         ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.name(), headerForm.email());

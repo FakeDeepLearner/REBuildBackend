@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.InvalidForumCredentialsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
@@ -9,6 +10,7 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.forum_forms.ForumLoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,17 +56,9 @@ public class UserService{
         }
     }
 
-    public Optional<User> findByID(UUID userID){
-        return repository.findById(userID);
-    }
-
 
     public Optional<User> findByEmail(String email){
         return repository.findByEmail(email);
-    }
-
-    public User findByEmailNoOptional(String email){
-        return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
 
@@ -135,29 +129,6 @@ public class UserService{
             }
             throw integrityViolationException;
         }
-    }
-
-    public User signUserUpToForum(String forumUsername, String rawForumPassword, User userSigningUp){
-        try{
-            userSigningUp.setForumUsername(forumUsername);
-            String encodedPassword = encoder.encode(rawForumPassword);
-            userSigningUp.setPassword(encodedPassword);
-            return save(userSigningUp);
-        }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException violationException){
-                String violatedConstraint = violationException.getConstraintName();
-                switch (violatedConstraint){
-                    case "uk_forum_username" -> throw new UsernameAlreadyExistsException("This form username already exists");
-                    case null -> {}
-                    default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
-                }
-            }
-        }
-
-        //Should never get here
-        return userSigningUp;
     }
 
     public User save(User user){

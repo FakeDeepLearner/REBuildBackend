@@ -37,6 +37,16 @@ public class ProfileController {
         return profileService.createFullProfileFor(fullProfileForm, authenticatedUser);
     }
 
+    @PatchMapping("/patch/page_size")
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile updatePageSize(@RequestBody int newPageSize,
+                                      @AuthenticationPrincipal User authenticatedUser) {
+        if(authenticatedUser.getProfile() == null){
+            throw new NoProfileException("No profile found for your account");
+        }
+        return profileService.changePageSize(authenticatedUser.getProfile(), newPageSize);
+    }
+
     @PatchMapping("/patch/header")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileHeader(@Valid @RequestBody ProfileHeaderForm headerForm,

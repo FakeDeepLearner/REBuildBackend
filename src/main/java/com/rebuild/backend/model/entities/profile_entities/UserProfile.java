@@ -49,6 +49,9 @@ public class UserProfile {
     @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
     private List<ProfileSection> sections;
 
+    @Column(name = "page_size")
+    private int forumPageSize = 20;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,
             MERGE,
