@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class ForumAuthenticationService {
 
@@ -30,10 +32,10 @@ public class ForumAuthenticationService {
 
     public void validateForumCredentials(User validatingUser, ForumLoginForm loginForm){
         String hashedPassword = encoder.encode(loginForm.password());
-        if (!loginForm.username().equals(validatingUser.getForumUsername())){
+        if (!Objects.equals(validatingUser.getForumUsername(), loginForm.username())) {
             throw new InvalidForumCredentialsException("Invalid username, either it does not exist or it is not yours");
         }
-        if (!loginForm.password().equals(hashedPassword)){
+        if (!Objects.equals(validatingUser.getForumPassword(), hashedPassword)){
             throw new InvalidForumCredentialsException("Invalid password, please try again");
         }
 
