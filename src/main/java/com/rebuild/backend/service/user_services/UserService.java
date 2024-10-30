@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,8 +63,8 @@ public class UserService{
     }
 
 
-    public void changePassword(UUID userID, String newPassword){
-        String newHashedPassword = encoder.encode(newPassword);
+    public void changePassword(UUID userID, String newRawPassword){
+        String newHashedPassword = encoder.encode(newRawPassword);
         repository.changePassword(userID, newHashedPassword);
     }
 
@@ -74,16 +75,13 @@ public class UserService{
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException){
-                if (violationException.getConstraintName().equals("uk_email")){
+                if (Objects.equals(violationException.getConstraintName(), "uk_email")){
                     throw new EmailAlreadyExistsException("This email address already exists");
                 }
             }
         }
     }
 
-    public List<Resume> getAllResumesById(UUID userID){
-        return repository.getAllResumesByID(userID);
-    }
 
     public void validateLoginCredentials(LoginForm form) {
         String formField = form.email();
@@ -157,6 +155,28 @@ public class UserService{
     public void reactivateUserCredentials(User user){
         user.setAccountNonExpired(true);
         save(user);
+    }
+
+    public User modifyForumUsername(User modifyingUser, String newUsername){
+        try {
+            modifyingUser.setForumUsername(newUsername);
+            return save(modifyingUser);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException){
+                if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")){
+                    throw new InvalidForumCredentialsException("This username is taken");
+                }
+            }
+            return modifyingUser;
+        }
+    }
+
+    public User modifyForumPassword(User modifyingUser, String newRawPassword){
+        String encodedPassword = encoder.encode(newRawPassword);
+        modifyingUser.setPassword(encodedPassword);
+        return save(modifyingUser);
     }
 
     //The following method will run every day at midnight (local (EST) time)

@@ -55,4 +55,18 @@ public class ForumAuthenticationController {
                 authenticatedUser.getProfile().getForumPageSize()));
         return ResponseEntity.status(303).headers(headers).build();
     }
+
+    @PostMapping("/change_username")
+    @ResponseStatus(HttpStatus.OK)
+    public User changeUsername(@AuthenticationPrincipal User authenticatedUser,
+                               @RequestBody String newUsername){
+        return userService.modifyForumUsername(authenticatedUser, newUsername);
+    }
+
+    @PostMapping("/change_password")
+    @ResponseStatus(HttpStatus.OK)
+    public User changePassword(@AuthenticationPrincipal User authenticatedUser,
+                               @RequestBody String newRawPassword){
+        return userService.modifyForumPassword(authenticatedUser, newRawPassword);
+    }
 }

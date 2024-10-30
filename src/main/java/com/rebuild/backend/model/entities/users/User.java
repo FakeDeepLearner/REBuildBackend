@@ -76,10 +76,10 @@ public class User implements UserDetails {
     })
     private List<Resume> resumes;
 
-    private String forumUsername = "";
+    private String forumUsername = null;
 
     //Just like the regular password, it will also be hashed and then stored.
-    private String forumPassword = "";
+    private String forumPassword = null;
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,

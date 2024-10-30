@@ -3,3 +3,7 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO: Before fully implementing websockets, write an extensive test suite
 
+TODO: Build a proper logout flow
+
+TODO: Change the forum credential updating process to mimic (more or less) the ones with the other app credentials
+
