@@ -33,7 +33,6 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
         String requestURI = request.getRequestURI();
         TokenBlacklistPurpose purpose = getPurposeFromURI(requestURI);
         String token = request.getParameter("token");
-
         if(token != null && purpose != null){
             if(blacklistService.isTokenBlacklisted(token, purpose)){
                 throw new TokenBlackListedException("This token is blacklisted");
@@ -48,6 +47,9 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
         }
         if (URI.endsWith("/reset")){
             return TokenBlacklistPurpose.PASSWORD_CHANGE;
+        }
+        if(URI.endsWith("/logout") && URI.endsWith("/login")){
+            return TokenBlacklistPurpose.AUTHENTICATION;
         }
         return TokenBlacklistPurpose.EMAIL_CHANGE;
 

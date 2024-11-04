@@ -2,6 +2,9 @@ package com.rebuild.backend.config.security;
 
 
 
+import com.rebuild.backend.config.properties.AppUrlBase;
+import com.rebuild.backend.utils.LogoutController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -21,21 +24,37 @@ import static org.springframework.security.config.Customizer.*;
 @EnableWebSecurity
 public class SecureAuthConfig {
 
+    private final AppUrlBase urlBase;
+
+    private final LogoutController logoutController;
+
+    @Autowired
+    public SecureAuthConfig(AppUrlBase urlBase, LogoutController logoutController) {
+        this.urlBase = urlBase;
+        this.logoutController = logoutController;
+    }
+
     @Bean
     @Order(3)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security) throws Exception {
         security.
                 authorizeHttpRequests(config -> config.
-                        requestMatchers(HttpMethod.GET, "/home/**").authenticated().
-                        requestMatchers(HttpMethod.POST, "/home/**").authenticated().
-                        requestMatchers(HttpMethod.PUT, "/home/**").authenticated().
-                        requestMatchers(HttpMethod.DELETE, "/home/**").authenticated().
-                        requestMatchers(HttpMethod.PATCH, "/home/**").authenticated()).
-                formLogin(login -> login.loginPage("/login")).
+                        requestMatchers(HttpMethod.GET, urlBase.baseUrl() + "/home/**").authenticated().
+                        requestMatchers(HttpMethod.POST, urlBase.baseUrl() + "/home/**").authenticated().
+                        requestMatchers(HttpMethod.PUT, urlBase.baseUrl() + "/home/**").authenticated().
+                        requestMatchers(HttpMethod.DELETE, urlBase.baseUrl() + "/home/**").authenticated().
+                        requestMatchers(HttpMethod.PATCH, urlBase.baseUrl() + "/home/**").authenticated()).
+                formLogin(login -> login.loginPage(urlBase.baseUrl() + "/login").
+                        permitAll().
+                        failureForwardUrl(urlBase.baseUrl() + "/login?error=true")).
                 //oauth2Login(login -> login.loginPage("/login")).
                 oauth2ResourceServer(server -> server.jwt(withDefaults())).
                 exceptionHandling(handler -> handler.accessDeniedHandler(new BearerTokenAccessDeniedHandler()).
-                        authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()));
+                        authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())).
+                logout(config -> config.
+                    logoutUrl(urlBase.baseUrl() + "/logout").
+                    logoutSuccessUrl(urlBase.baseUrl() + "/login?logout=true").
+                    addLogoutHandler(logoutController));
         return security.build();
 
 

@@ -12,7 +12,7 @@ public class ObjectMapperConfig {
     @Bean
     public ObjectMapper mapper(){
         ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         return mapper;
     }
 }

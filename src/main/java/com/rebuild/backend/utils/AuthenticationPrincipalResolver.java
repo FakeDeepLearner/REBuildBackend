@@ -19,7 +19,8 @@ import java.security.Principal;
 @Component
 public class AuthenticationPrincipalResolver implements HandlerMethodArgumentResolver {
 
-    //If the parameter has the AuthenticationPrincipal annotation, our resolver will handle it
+    //If the parameter has the AuthenticationPrincipal annotation,
+    // and actually is a UserDetails,our resolver will handle it
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(AuthenticationPrincipal.class) &&

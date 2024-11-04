@@ -5,7 +5,9 @@ public enum TokenBlacklistPurpose {
 
     PASSWORD_CHANGE("change_password"),
 
-    ACCOUNT_ACTIVATION("activate_account");
+    ACCOUNT_ACTIVATION("activate_account"),
+
+    AUTHENTICATION("auth");
 
     public final String purposeName;
 
