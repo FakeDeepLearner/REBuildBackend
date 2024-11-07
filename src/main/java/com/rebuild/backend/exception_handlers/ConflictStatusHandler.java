@@ -1,11 +1,8 @@
 package com.rebuild.backend.exception_handlers;
 
-import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateResumeNameException;
-import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
-import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
+import com.rebuild.backend.exceptions.conflict_exceptions.*;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
-import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.token_exceptions.TokenAlreadySentException;
 import com.rebuild.backend.utils.ExceptionBodyBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +61,12 @@ public class ConflictStatusHandler {
 
     @ExceptionHandler(DuplicateResumeNameException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateName(DuplicateResumeNameException e){
+        Map<String, String> body = bodyBuilder.buildBody(e);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(AccountCreationException.class)
+    public ResponseEntity<Map<String, String>> handleUsernameTaken(AccountCreationException e){
         Map<String, String> body = bodyBuilder.buildBody(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }

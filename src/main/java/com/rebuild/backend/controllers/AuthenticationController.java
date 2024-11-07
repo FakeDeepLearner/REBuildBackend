@@ -1,7 +1,9 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
+import com.rebuild.backend.exceptions.conflict_exceptions.AccountCreationException;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.error_dtos.CreateUserResult;
 import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccountActivationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
@@ -69,12 +71,19 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> processSignup(@Valid @RequestBody SignupForm signupForm){
+    public ResponseEntity<?> processSignup(@Valid @RequestBody SignupForm signupForm){
 
-        User createdUser =
+        CreateUserResult creationResult =
                 userService.createNewUser(signupForm.password(), signupForm.email(), signupForm.phoneNumber());
+        if(creationResult.optionalUser().isEmpty()){
+            if(creationResult.optionalError().isEmpty()){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error has occurred");
+            }
+            throw new AccountCreationException(creationResult.optionalError().get());
+        }
         AccountActivationDTO form  =
-                new AccountActivationDTO(createdUser.getEmail(), signupForm.password(), 20L, ChronoUnit.MINUTES,
+                new AccountActivationDTO(creationResult.optionalUser().get().getEmail(), signupForm.password(),
+                        20L, ChronoUnit.MINUTES,
                          signupForm.remember());
         HttpEntity<AccountActivationDTO> body = new HttpEntity<>(form);
         return new RestTemplate().postForEntity(urlBase.baseUrl() + "/api/activate", body, Void.TYPE);

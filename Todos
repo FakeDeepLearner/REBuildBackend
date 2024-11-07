@@ -3,9 +3,9 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO: Before fully implementing websockets, write an extensive test suite
 
+TODO(priority 1): Refactor all service methods that use catch DataIntegrityViolationPattern to something similar to the new create user method
 
-TODO: Change authentication to session based authentication instead of jwt's. The other mechanisms will still use jwt tokens.
+TODO (priority 2): Fully change authentication to session based authentication instead of jwt's in order for better integration with spring security. The other mechanisms will still use jwt tokens.
 
-
-TODO: Change the forum credential updating process to mimic (more or less) the ones with the other app credentials
+TODO (might not happen): Change the forum credential updating process to mimic (more or less) the ones with the other app credentials
 

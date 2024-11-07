@@ -60,13 +60,12 @@ public class User implements UserDetails {
     private String email;
 
     @Column(name = "phone_number")
-    @NonNull
     private PhoneNumber phoneNumber;
 
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
     })
-    private UserProfile profile;
+    private UserProfile profile = null;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
     cascade = {
@@ -74,7 +73,7 @@ public class User implements UserDetails {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
-    private List<Resume> resumes;
+    private List<Resume> resumes = new ArrayList<>();
 
     private String forumUsername = null;
 
@@ -115,6 +114,12 @@ public class User implements UserDetails {
 
     @JsonIgnore
     private LocalDateTime lastLoginTime = LocalDateTime.now();
+
+    public User(@NonNull String encodedPassword, @NonNull String email, PhoneNumber phoneNumber) {
+        this.password = encodedPassword;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

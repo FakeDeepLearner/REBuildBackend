@@ -10,6 +10,7 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.dtos.error_dtos.CreateUserResult;
 import com.rebuild.backend.model.forms.forum_forms.ForumLoginForm;
 import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
@@ -104,29 +105,37 @@ public class UserService{
         save(deletingUser);
     }
 
-    public User createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
+    public CreateUserResult createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(encodedPassword, email, phoneNumber);
         try {
-            return save(newUser);
+            return new CreateUserResult(Optional.of(save(newUser)), Optional.empty());
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
             if (cause instanceof ConstraintViolationException violationException){
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
-                    case "uk_email" -> throw new
-                            EmailAlreadyExistsException("This email address is taken");
-                    case "uk_phone_number" -> throw new PhoneNumberAlreadyExistsException("This phone number is " +
-                            "already associated with another account");
+                    case "uk_email" -> {
+                        return new CreateUserResult(Optional.empty(),
+                                Optional.of("This email is taken"));
+
+                    }
+                    case "uk_phone_number" -> {
+                        return new CreateUserResult(Optional.empty(),
+                                Optional.of("This phone is already associated with another account"));
+
+                    }
 
                     //This should never happen
                     case null -> {}
+
                     default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
                 }
             }
-            throw integrityViolationException;
         }
+        //Unknown error, signal http 500
+        return new CreateUserResult(Optional.empty(), Optional.empty());
     }
 
     public User save(User user){
