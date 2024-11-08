@@ -122,6 +122,10 @@ public class Resume {
         experiences.add(experience);
     }
 
+    public void addExperience(int index, Experience experience){
+        experiences.add(index, experience);
+    }
+
     public void addSection(ResumeSection section){
         if (sections == null){
             sections = new ArrayList<>();

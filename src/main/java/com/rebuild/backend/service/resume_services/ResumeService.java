@@ -90,13 +90,17 @@ public class ResumeService {
                                            Duration newDuration,
                                            List<String> newBullets){
         Resume resume = findById(resID);
+        //These variables are guaranteed to be properly initialized after the try block executes
+        Experience removedExperience = null;
+        int removedIndex = 0;
         try {
             Experience newExperience = new Experience(newCompanyName, newTechnologies, newDuration, newBullets);
             List<Experience> experiences = resume.getExperiences();
             int indexCounter = 0;
             for(Experience experience : experiences){
                 if(experience.getId().equals(expID)){
-                    experiences.remove(indexCounter);
+                    removedExperience = experiences.remove(indexCounter);
+                    removedIndex = indexCounter;
                     experiences.add(indexCounter, newExperience);
                     break;
                 }
@@ -108,6 +112,7 @@ public class ResumeService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            resume.addExperience(removedIndex, removedExperience);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
@@ -136,9 +141,9 @@ public class ResumeService {
     public Experience createNewExperience(UUID resID, String companyName,
                                           List<String> technologies,
                                           Duration duration, List<String> bullets){
+        Resume resume = findById(resID);
+        Experience newExperience = new Experience(companyName, technologies, duration, bullets);
         try {
-            Resume resume = findById(resID);
-            Experience newExperience = new Experience(companyName, technologies, duration, bullets);
             resume.addExperience(newExperience);
             newExperience.setResume(resume);
             resumeRepository.save(resume);
@@ -146,6 +151,10 @@ public class ResumeService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            //Remove the element that was added last (the one added in the try block below)
+            resume.getExperiences().removeLast();
+            //No loose ends
+            newExperience.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
@@ -165,8 +174,8 @@ public class ResumeService {
 
     public ResumeSection createNewSection(UUID resID, String sectionTitle, List<String> sectionBullets){
         Resume resume = findById(resID);
+        ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
         try {
-            ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
             resume.addSection(newSection);
             newSection.setResume(resume);
             resumeRepository.save(resume);
@@ -174,6 +183,8 @@ public class ResumeService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            resume.getSections().removeLast();
+            newSection.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 throw new ResumeSectionConstraintException("A resume can't have more than 1 section with the same title");
@@ -212,12 +223,15 @@ public class ResumeService {
     }
 
     public Resume setExperiences(Resume resume, List<Experience> newExperiences){
+        List<Experience> oldExperiences = resume.getExperiences();
         try {
             resume.setExperiences(newExperiences);
             return resumeRepository.save(resume);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            //Restore the old experiences in memory
+            resume.setExperiences(oldExperiences);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
                 throw new ResumeSectionConstraintException("The new sections can't have more than 1 section with the same title");
@@ -237,12 +251,14 @@ public class ResumeService {
     }
 
     public Resume setSections(Resume resume, List<ResumeSection> newSections){
+        List<ResumeSection> oldSections = resume.getSections();
         try {
             resume.setSections(newSections);
             return resumeRepository.save(resume);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            resume.setSections(oldSections);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
                 throw new ResumeSectionConstraintException("The new sections can't have more than 1 section with the same title");
@@ -253,6 +269,7 @@ public class ResumeService {
 
     public Resume fullUpdate(Resume resume, FullResumeForm resumeForm){
         try {
+            //We can directly operate on the result of the getter like this, because java returns by reference
             resume.getHeader().setName(resumeForm.name());
             resume.getHeader().setEmail(resumeForm.email());
             resume.getHeader().setNumber(resumeForm.phoneNumber());
@@ -280,12 +297,14 @@ public class ResumeService {
 
     public Resume changeName(UUID resID, String newName){
         Resume changingResume = findById(resID);
+        String oldName = changingResume.getName();
         try{
             changingResume.setName(newName);
             return resumeRepository.save(changingResume);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            changingResume.setName(oldName);
             if(cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
                 throw new DuplicateResumeNameException("You already have a resume with this name");
