@@ -2,16 +2,12 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.conflict_exceptions.InvalidForumCredentialsException;
-import com.rebuild.backend.exceptions.conflict_exceptions.PhoneNumberAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
-import com.rebuild.backend.exceptions.conflict_exceptions.UsernameAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
-import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
-import com.rebuild.backend.model.forms.dtos.error_dtos.CreateUserResult;
-import com.rebuild.backend.model.forms.forum_forms.ForumLoginForm;
+import com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,11 +101,11 @@ public class UserService{
         save(deletingUser);
     }
 
-    public CreateUserResult createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
+    public OptionalValueAndErrorResult<User> createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(encodedPassword, email, phoneNumber);
         try {
-            return new CreateUserResult(Optional.of(save(newUser)), Optional.empty());
+            return new OptionalValueAndErrorResult<>(Optional.of(save(newUser)), Optional.empty());
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
@@ -117,12 +113,12 @@ public class UserService{
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
                     case "uk_email" -> {
-                        return new CreateUserResult(Optional.empty(),
+                        return new OptionalValueAndErrorResult<>(Optional.empty(),
                                 Optional.of("This email is taken"));
 
                     }
                     case "uk_phone_number" -> {
-                        return new CreateUserResult(Optional.empty(),
+                        return new OptionalValueAndErrorResult<>(Optional.empty(),
                                 Optional.of("This phone is already associated with another account"));
 
                     }
@@ -135,7 +131,7 @@ public class UserService{
             }
         }
         //Unknown error, signal http 500
-        return new CreateUserResult(Optional.empty(), Optional.empty());
+        return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.empty());
     }
 
     public User save(User user){
@@ -166,19 +162,20 @@ public class UserService{
         save(user);
     }
 
-    public User modifyForumUsername(User modifyingUser, String newUsername){
+    public OptionalValueAndErrorResult<User> modifyForumUsername(User modifyingUser, String newUsername){
         try {
             modifyingUser.setForumUsername(newUsername);
-            return save(modifyingUser);
+            return new OptionalValueAndErrorResult<>(Optional.of(save(modifyingUser)), Optional.empty());
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException){
                 if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")){
-                    throw new InvalidForumCredentialsException("This username is taken");
+                    return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.of("This username is taken"));
                 }
             }
-            return modifyingUser;
+            //Unknown error, signal 500
+            return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.empty());
         }
     }
 

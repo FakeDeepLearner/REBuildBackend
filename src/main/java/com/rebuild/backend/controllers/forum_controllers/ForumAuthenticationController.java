@@ -1,7 +1,9 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
+import com.rebuild.backend.exceptions.conflict_exceptions.InvalidForumCredentialsException;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.forum_forms.ForumLoginForm;
 import com.rebuild.backend.model.forms.forum_forms.ForumSignupForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
@@ -58,9 +60,20 @@ public class ForumAuthenticationController {
 
     @PostMapping("/change_username")
     @ResponseStatus(HttpStatus.OK)
-    public User changeUsername(@AuthenticationPrincipal User authenticatedUser,
+    public ResponseEntity<?> changeUsername(@AuthenticationPrincipal User authenticatedUser,
                                @RequestBody String newUsername){
-        return userService.modifyForumUsername(authenticatedUser, newUsername);
+        OptionalValueAndErrorResult<User> changingResult =
+                userService.modifyForumUsername(authenticatedUser, newUsername);
+        if(changingResult.optionalResult().isPresent()) {
+            return ResponseEntity.ok(changingResult.optionalResult().get());
+        }
+        if(changingResult.optionalError().isEmpty()){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
+        else{
+            throw new InvalidForumCredentialsException(changingResult.optionalError().get());
+        }
+
     }
 
     @PostMapping("/change_password")
