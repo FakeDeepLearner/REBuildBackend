@@ -163,12 +163,14 @@ public class UserService{
     }
 
     public OptionalValueAndErrorResult<User> modifyForumUsername(User modifyingUser, String newUsername){
+        String oldUsername = modifyingUser.getForumUsername();
         try {
             modifyingUser.setForumUsername(newUsername);
             return new OptionalValueAndErrorResult<>(Optional.of(save(modifyingUser)), Optional.empty());
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            modifyingUser.setForumUsername(oldUsername);
             if (cause instanceof ConstraintViolationException violationException){
                 if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")){
                     return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.of("This username is taken"));

@@ -151,7 +151,7 @@ public class ResumeService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
-            //Remove the element that was added last (the one added in the try block below)
+            //Remove the element that was added last (the one added in the try block above)
             resume.getExperiences().removeLast();
             //No loose ends
             newExperience.setResume(null);
@@ -268,6 +268,10 @@ public class ResumeService {
     }
 
     public Resume fullUpdate(Resume resume, FullResumeForm resumeForm){
+        Header oldHeader = resume.getHeader();
+        Education oldEducation = resume.getEducation();
+        List<Experience> oldExperiences = resume.getExperiences();
+        List<ResumeSection> oldSections = resume.getSections();
         try {
             //We can directly operate on the result of the getter like this, because java returns by reference
             resume.getHeader().setName(resumeForm.name());
@@ -281,6 +285,10 @@ public class ResumeService {
         }
         catch(DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            resume.setExperiences(oldExperiences);
+            resume.setHeader(oldHeader);
+            resume.setSections(oldSections);
+            resume.setEducation(oldEducation);
             if (cause instanceof ConstraintViolationException violationException){
                 switch (violationException.getConstraintName()){
                     case "uk_resume_section": throw new ResumeSectionConstraintException("The new sections can't have more than 1 section with the same title");
@@ -344,19 +352,33 @@ public class ResumeService {
 
     public Resume switchToAnotherVersion(UUID resume_id, UUID version_id){
         Resume switchingResume = findById(resume_id);
+        Header oldHeader = switchingResume.getHeader();
+        Education oldEducation = switchingResume.getEducation();
+        List<Experience> oldExperiences = switchingResume.getExperiences();
+        List<ResumeSection> oldSections = switchingResume.getSections();
+
         //This avoids looking up the database again, saving time in most cases
         //Also, we need to (in the future) verify that this version does actually belong to this resume.
         ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
-                stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(null);
-        assert versionToSwitch != null;
+                stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(
+                        new ResumeVersion(switchingResume.getHeader(), switchingResume.getEducation(),
+                                switchingResume.getExperiences(), switchingResume.getSections())
+                );
+
         try {
+
             switchingResume.setHeader(versionToSwitch.getVersionedHeader());
             switchingResume.setEducation(versionToSwitch.getVersionedEducation());
             switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
             switchingResume.setSections(versionToSwitch.getVersionedSections());
+            return resumeRepository.save(switchingResume);
         }
         catch(DataIntegrityViolationException e) {
             Throwable cause = e.getCause();
+            switchingResume.setExperiences(oldExperiences);
+            switchingResume.setSections(oldSections);
+            switchingResume.setEducation(oldEducation);
+            switchingResume.setHeader(oldHeader);
             if (cause instanceof ConstraintViolationException violationException) {
                 switch (violationException.getConstraintName()) {
                     case "uk_resume_section":

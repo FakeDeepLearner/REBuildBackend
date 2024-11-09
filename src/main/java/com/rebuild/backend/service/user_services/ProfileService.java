@@ -37,15 +37,17 @@ public class ProfileService {
                 profileForm.email());
         ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
                 profileForm.relevantCoursework());
+        UserProfile newProfile = new UserProfile(profileHeader, newEducation, profileForm.experiences(),
+                profileForm.sections());
         try {
-            UserProfile newProfile = new UserProfile(profileHeader, newEducation, profileForm.experiences(),
-                    profileForm.sections());
             newProfile.setUser(creatingUser);
             creatingUser.setProfile(newProfile);
             return profileRepository.save(newProfile);
         }
         catch(DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            creatingUser.setProfile(null);
+            newProfile.setUser(null);
             if (cause instanceof ConstraintViolationException violationException){
                 switch (violationException.getConstraintName()){
                     case "uk_profile_sections": throw new UniqueProfileSectionsException("The profile sections can't have more " +
@@ -86,6 +88,7 @@ public class ProfileService {
 
     public UserProfile updateProfileExperiences(UserProfile profile,
                                                 List<ProfileExperienceForm> newExperiences){
+        List<ProfileExperience> oldExperiences = profile.getExperienceList();
         List<ProfileExperience> transformedExperiences = newExperiences.stream().
                 map((rawExperience) -> {
                     Duration experienceDuration = Duration.between(rawExperience.startDate(),
@@ -102,6 +105,7 @@ public class ProfileService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            profile.setExperienceList(oldExperiences);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_profile_experiences")){
                 throw new UniqueProfileExperiencesException("The new profile experiences can't have more than 1 " +
@@ -113,6 +117,7 @@ public class ProfileService {
 
     public UserProfile updateProfileSections(UserProfile profile,
                                              List<ProfileSectionForm> sectionForms){
+        List<ProfileSection> oldSections = profile.getSections();
         List<ProfileSection> transformedSections = sectionForms.stream().
                 map((rawSection) -> {
                     ProfileSection newSection =
@@ -126,6 +131,7 @@ public class ProfileService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            profile.setSections(oldSections);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_profile_sections")){
                 throw new UniqueProfileSectionsException("The new profile sections can't have more than 1 section with the same title");
@@ -172,6 +178,10 @@ public class ProfileService {
 
 
     public UserProfile updateEntireProfile(UserProfile updatingProfile, FullProfileForm profileForm){
+        List<ProfileExperience> oldExperiences = updatingProfile.getExperienceList();
+        List<ProfileSection> oldSections = updatingProfile.getSections();
+        ProfileHeader oldHeader = updatingProfile.getHeader();
+        ProfileEducation oldEducation = updatingProfile.getEducation();
         try {
             updatingProfile.setExperienceList(profileForm.experiences());
             updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
@@ -183,6 +193,10 @@ public class ProfileService {
         }
         catch(DataIntegrityViolationException e){
             Throwable cause = e.getCause();
+            updatingProfile.setExperienceList(oldExperiences);
+            updatingProfile.setSections(oldSections);
+            updatingProfile.setHeader(oldHeader);
+            updatingProfile.setEducation(oldEducation);
             if (cause instanceof ConstraintViolationException violationException){
                 switch (violationException.getConstraintName()){
                     case "uk_profile_sections": throw new UniqueProfileSectionsException("The new profile sections can't have more " +
