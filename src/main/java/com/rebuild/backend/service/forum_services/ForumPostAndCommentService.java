@@ -91,9 +91,10 @@ public class ForumPostAndCommentService {
     }
 
     public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize){
-        //Sort by ascending order of creation dates, so the newest posts show up first
+        //Sort by descending order of creation dates, so the newest posts show up first
         Pageable pageableResult = PageRequest.of(currentPageNumber, pageSize,
                 Sort.by("creationDate").descending().
+                        //Break any ties by the last modified dates
                         and(Sort.by("lastModifiedDate").descending()));
         Page<ForumPost> resultingPage = forumPostRepository.findAll(pageableResult);
         return new ForumPostPageResponse(resultingPage.getContent(), resultingPage.getNumber(),

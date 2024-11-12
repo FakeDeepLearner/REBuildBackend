@@ -3,7 +3,9 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO: Before fully implementing websockets, write an extensive test suite
 
-TODO(priority 1): Refactor all service methods that use catch DataIntegrityViolationPattern to something similar to the new create user method
+TODO(IMMEDIATE): Fix all of the controller methods that use the resume service methods, now that it has different return types
+
+TODO(priority 1): Refactor all service methods that use the catch DataIntegrityViolation pattern to something similar to the new create user method
 
 TODO(priority 1, hand in hand with the above): Refactor the database access methods to manually rollback the transaction in memory (tne database will take care of rolling it back in the actual database)
 
