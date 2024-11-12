@@ -377,8 +377,13 @@ public class ResumeService {
         List<Experience> oldExperiences = switchingResume.getExperiences();
         List<ResumeSection> oldSections = switchingResume.getSections();
 
-        //This avoids looking up the database again, saving time in most cases
-        //Also, we need to (in the future) verify that this version does actually belong to this resume.
+        /*
+        * This avoids looking up the database again, saving time in most cases
+        * Additionally, UUID.equals is very fast, since it just compares the most
+        * and least significant bits rather than the entire string, so this algorithm is actually
+        * efficient unless we have a very large number of versions
+        * */
+
         ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
                 stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(
                         new ResumeVersion(switchingResume.getHeader(), switchingResume.getEducation(),
