@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.ResumeSection;
 import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -27,9 +28,9 @@ public class SectionController {
         return resumeService.createNewSection(res_id, form.title(), form.bullets());
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     @DeleteMapping("/delete/{res_id}/{section_id}")
-    public void deleteSection(@PathVariable UUID res_id, @PathVariable UUID section_id){
-        resumeService.deleteSection(res_id, section_id);
+    public Resume deleteSection(@PathVariable UUID res_id, @PathVariable UUID section_id){
+        return resumeService.deleteSection(res_id, section_id);
     }
 }

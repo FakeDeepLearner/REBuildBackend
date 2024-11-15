@@ -1,7 +1,6 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
-import com.rebuild.backend.exceptions.conflict_exceptions.InvalidForumCredentialsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
@@ -105,7 +104,8 @@ public class UserService{
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(encodedPassword, email, phoneNumber);
         try {
-            return new OptionalValueAndErrorResult<>(Optional.of(save(newUser)), Optional.empty());
+            User savedUser = save(newUser);
+            return  OptionalValueAndErrorResult.of(savedUser);
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
@@ -113,13 +113,11 @@ public class UserService{
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
                     case "uk_email" -> {
-                        return new OptionalValueAndErrorResult<>(Optional.empty(),
-                                Optional.of("This email is taken"));
+                        return  OptionalValueAndErrorResult.of("This email is taken");
 
                     }
                     case "uk_phone_number" -> {
-                        return new OptionalValueAndErrorResult<>(Optional.empty(),
-                                Optional.of("This phone is already associated with another account"));
+                        return OptionalValueAndErrorResult.of("This phone is already associated with another account");
 
                     }
 
@@ -131,7 +129,7 @@ public class UserService{
             }
         }
         //Unknown error, signal http 500
-        return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.empty());
+        return OptionalValueAndErrorResult.empty();
     }
 
     public User save(User user){
@@ -166,18 +164,19 @@ public class UserService{
         String oldUsername = modifyingUser.getForumUsername();
         try {
             modifyingUser.setForumUsername(newUsername);
-            return new OptionalValueAndErrorResult<>(Optional.of(save(modifyingUser)), Optional.empty());
+            User savedUser = save(modifyingUser);
+            return OptionalValueAndErrorResult.of(savedUser);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             modifyingUser.setForumUsername(oldUsername);
             if (cause instanceof ConstraintViolationException violationException){
                 if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")){
-                    return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.of("This username is taken"));
+                    return OptionalValueAndErrorResult.of("This username is taken");
                 }
             }
             //Unknown error, signal 500
-            return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.empty());
+            return OptionalValueAndErrorResult.empty();
         }
     }
 
