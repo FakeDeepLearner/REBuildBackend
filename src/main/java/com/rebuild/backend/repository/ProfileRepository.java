@@ -12,13 +12,4 @@ import java.util.UUID;
 @Transactional
 public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
 
-    void deleteProfileHeaderById(@NonNull UUID id);
-
-    void deleteProfileEducationById(@NonNull UUID id);
-
-    void deleteProfileExperiencesById(@NonNull UUID id);
-
-    void deleteProfileSectionsById(@NonNull UUID id);
-
-
 }

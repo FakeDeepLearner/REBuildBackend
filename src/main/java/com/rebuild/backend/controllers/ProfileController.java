@@ -60,7 +60,7 @@ public class ProfileController {
 
     @PatchMapping("/patch/education")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileHeader(@Valid @RequestBody ProfileEducationForm educationForm,
+    public UserProfile updateProfileEducation(@Valid @RequestBody ProfileEducationForm educationForm,
                                            @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
@@ -71,7 +71,7 @@ public class ProfileController {
 
     @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileHeader(@Valid @RequestBody List<ProfileExperienceForm> experienceFormList,
+    public UserProfile updateProfileExperiences(@Valid @RequestBody List<ProfileExperienceForm> experienceFormList,
                                            @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
@@ -101,34 +101,34 @@ public class ProfileController {
     }
 
     @DeleteMapping("/delete/header")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileHeader(@AuthenticationPrincipal User deletingUser){
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile deleteProfileHeader(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        profileService.deleteProfileHeader(deletingUser.getProfile().getId());
+        return profileService.deleteProfileHeader(deletingUser.getProfile());
     }
 
     @DeleteMapping("/delete/education")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileEducation(@AuthenticationPrincipal User deletingUser){
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile deleteProfileEducation(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        profileService.deleteProfileEducation(deletingUser.getProfile().getId());
+        return profileService.deleteProfileEducation(deletingUser.getProfile());
     }
 
     @DeleteMapping("/delete/experiences")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileExperience(@AuthenticationPrincipal User deletingUser){
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile deleteProfileExperiences(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        profileService.deleteProfileExperiences(deletingUser.getProfile().getId());
+        return profileService.deleteProfileExperiences(deletingUser.getProfile());
     }
 
     @DeleteMapping("/delete/experiences/{experience_id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteSpecificExperience(@AuthenticationPrincipal User deletingUser,
                                                 @PathVariable UUID experience_id){
         if(deletingUser.getProfile() == null){
@@ -140,15 +140,15 @@ public class ProfileController {
 
     @DeleteMapping("/delete/sections")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileSections(@AuthenticationPrincipal User deletingUser){
+    public UserProfile deleteProfileSections(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        profileService.deleteProfileSections(deletingUser.getProfile().getId());
+        return profileService.deleteProfileSections(deletingUser.getProfile());
     }
 
     @DeleteMapping("/delete/sections/{section_id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteSpecificSection(@AuthenticationPrincipal User deletingUser,
                                                 @PathVariable UUID section_id){
         if(deletingUser.getProfile() == null){
@@ -159,7 +159,7 @@ public class ProfileController {
     }
 
     @PutMapping("/update_profile")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public UserProfile changeEntireProfile(@AuthenticationPrincipal User updatingUser,
                                            @Valid @RequestBody FullProfileForm profileForm){
         return profileService.updateEntireProfile(updatingUser.getProfile(), profileForm);

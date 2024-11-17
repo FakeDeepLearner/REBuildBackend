@@ -148,20 +148,26 @@ public class ProfileService {
         profileRepository.deleteById(profile_id);
     }
 
-    public void deleteProfileExperiences(UUID profile_id){
-        profileRepository.deleteProfileExperiencesById(profile_id);
+    public UserProfile deleteProfileExperiences(UserProfile profile){
+        profile.setExperienceList(null);
+        return profileRepository.save(profile);
     }
 
-    public void deleteProfileEducation(UUID profile_id){
-        profileRepository.deleteProfileEducationById(profile_id);
+    public UserProfile deleteProfileEducation(UserProfile profile){
+        profile.getEducation().setProfile(null);
+        profile.setEducation(null);
+        return profileRepository.save(profile);
     }
 
-    public void deleteProfileSections(UUID profile_id){
-        profileRepository.deleteProfileSectionsById(profile_id);
+    public UserProfile deleteProfileSections(UserProfile profile){
+        profile.setSections(null);
+        return profileRepository.save(profile);
     }
 
-    public void deleteProfileHeader(UUID profile_id){
-        profileRepository.deleteProfileHeaderById(profile_id);
+    public UserProfile deleteProfileHeader(UserProfile profile){
+        profile.getHeader().setProfile(null);
+        profile.setHeader(null);
+        return profileRepository.save(profile);
     }
     
     public UserProfile deleteSpecificProfileExperience(UserProfile profile, UUID experience_id){

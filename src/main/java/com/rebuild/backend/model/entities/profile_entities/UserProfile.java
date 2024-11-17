@@ -16,19 +16,6 @@ import static jakarta.persistence.CascadeType.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "profiles")
-@NamedQueries({
-        @NamedQuery(name = "UserProfile.deleteProfileHeaderById",
-                query = "UPDATE UserProfile p SET p.header = null WHERE p.id = ?1"),
-        @NamedQuery(name = "UserProfile.deleteProfileEducationById",
-                query = "UPDATE UserProfile p SET p.education = null WHERE p.id = ?1"),
-        @NamedQuery(name = "UserProfile.deleteProfileExperiencesById",
-                query = "UPDATE UserProfile p SET p.experienceList = null WHERE p.id = ?1"),
-        @NamedQuery(name = "UserProfile.deleteProfileSectionsById",
-                query = "UPDATE UserProfile p SET p.sections = null WHERE p.id = ?1")
-
-
-}
-)
 public class UserProfile {
 
     @Id
