@@ -2,11 +2,13 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,9 +43,18 @@ public class HomePageController {
 
     @PostMapping("/api/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public Resume createNewResume(@RequestBody String name,
-                                  @AuthenticationPrincipal User authenticatedUser) {
-        return resumeService.createNewResumeFor(name, authenticatedUser);
+    public ResponseEntity<?> createNewResume(@RequestBody String name,
+                                          @AuthenticationPrincipal User authenticatedUser) {
+        OptionalValueAndErrorResult<Resume> createResult =
+                resumeService.createNewResumeFor(name, authenticatedUser);
+        if(createResult.optionalResult().isPresent()){
+            return new ResponseEntity<>(createResult.optionalResult().get(), HttpStatus.CREATED);
+        }
+        if(createResult.optionalError().isPresent()){
+            return new ResponseEntity<>(createResult.optionalError().get(), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>("An unexpected error occurred, please try again later",
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/api/delete/{res_id}")

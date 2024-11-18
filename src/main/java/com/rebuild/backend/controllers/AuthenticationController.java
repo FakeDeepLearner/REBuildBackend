@@ -3,7 +3,7 @@ package com.rebuild.backend.controllers;
 import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.exceptions.conflict_exceptions.AccountCreationException;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult;
+import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccountActivationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;

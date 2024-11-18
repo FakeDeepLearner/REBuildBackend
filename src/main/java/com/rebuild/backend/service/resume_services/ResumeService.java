@@ -1,13 +1,9 @@
 package com.rebuild.backend.service.resume_services;
 
 
-import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateResumeNameException;
-import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
-import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
-import com.rebuild.backend.exceptions.resume_exceptions.ResumeSectionConstraintException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult;
+import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
@@ -25,12 +21,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @Transactional
@@ -56,25 +56,25 @@ public class ResumeService {
 
     public OptionalValueAndErrorResult<Resume> createNewResumeFor(String resume_name, User user){
         if(user.maxResumeLimitReached()){
-            return OptionalValueAndErrorResult.of("You have reached the maximum number of resumes you can create");
+            return OptionalValueAndErrorResult.of("You have reached the maximum number of " +
+                    "resumes you can create as a free user", CONFLICT);
         }
         else{
             try {
                 Resume newResume = new Resume(resume_name, user);
                 user.getResumes().add(newResume);
                 Resume savedResume = resumeRepository.save(newResume);
-                return OptionalValueAndErrorResult.of(savedResume);
+                return OptionalValueAndErrorResult.of(savedResume, CREATED);
             }
             catch (DataIntegrityViolationException e){
                 Throwable cause = e.getCause();
                 if(cause instanceof ConstraintViolationException violationException &&
                         Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
-                    return OptionalValueAndErrorResult.of("You already have a resume with this name");
+                    return OptionalValueAndErrorResult.of("You already have a resume with this name", CONFLICT);
                 }
             }
 
         }
-        // Should never get there
         return OptionalValueAndErrorResult.empty();
     }
 
@@ -87,7 +87,7 @@ public class ResumeService {
         return resumeRepository.findById(id).orElseThrow(RuntimeException::new);
     }
 
-    public Resume changeExperienceInfo(UUID resID, UUID expID,
+    public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
                                            String newCompanyName,
                                            List<String> newTechnologies,
                                            Duration newDuration,
@@ -111,17 +111,23 @@ public class ResumeService {
                     indexCounter += 1;
                 }
             }
-            return resumeRepository.save(resume);
+            if(removedExperience == null){
+                return OptionalValueAndErrorResult.of(resume, "Experience not found", NOT_FOUND);
+            }
+            Resume savedResume = resumeRepository.save(resume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             resume.addExperience(removedIndex, removedExperience);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
-                throw new ResumeCompanyConstraintException("A resume can't have more than 1 experience with a company");
+                return OptionalValueAndErrorResult.of(resume,
+                        "A resume can't have more than 1 experience with the same company", CONFLICT);
             }
         }
-        return resume;
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred",
+                INTERNAL_SERVER_ERROR);
     }
 
     public Resume changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
@@ -150,7 +156,7 @@ public class ResumeService {
             resume.addExperience(newExperience);
             newExperience.setResume(resume);
             Resume savedResume = resumeRepository.save(resume);
-            return OptionalValueAndErrorResult.of(savedResume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -160,10 +166,11 @@ public class ResumeService {
             newExperience.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
-                return OptionalValueAndErrorResult.of("A resume can't have more than 1 experience with a company");
+                return OptionalValueAndErrorResult.of(resume,
+                        "A resume can't have more than 1 experience with a company", CONFLICT);
             }
         }
-        return OptionalValueAndErrorResult.of(resume);
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public Resume createNewEducation(UUID resID, String schoolName, List<String> courseWork){
@@ -181,7 +188,7 @@ public class ResumeService {
             resume.addSection(newSection);
             newSection.setResume(resume);
             Resume savedResume = resumeRepository.save(resume);
-            return OptionalValueAndErrorResult.of(savedResume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -189,11 +196,12 @@ public class ResumeService {
             newSection.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
-                return OptionalValueAndErrorResult.of("A resume can't have more than 1 section with the same title");
+                return OptionalValueAndErrorResult.of(resume,
+                        "A resume can't have more than 1 section with the same title", CONFLICT);
             }
 
         }
-        return OptionalValueAndErrorResult.of(resume);
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public void deleteById(UUID id){
@@ -229,8 +237,8 @@ public class ResumeService {
         List<Experience> oldExperiences = resume.getExperiences();
         try {
             resume.setExperiences(newExperiences);
-            return new OptionalValueAndErrorResult<>(Optional.of(resumeRepository.save(resume)),
-                    Optional.empty());
+            Resume savedResume = resumeRepository.save(resume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -238,11 +246,11 @@ public class ResumeService {
             resume.setExperiences(oldExperiences);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
-                return new OptionalValueAndErrorResult<>(Optional.empty(),
-                        Optional.of("The new experiences can't have more than 1 experience with a company"));
+                return  OptionalValueAndErrorResult.of(resume,
+                        "A resume can't have more than 1 experience with a company", CONFLICT);
             }
         }
-        return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.empty());
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occured", INTERNAL_SERVER_ERROR);
     }
 
     public Resume setHeader(Resume resume, Header newHeader){
@@ -259,20 +267,20 @@ public class ResumeService {
         List<ResumeSection> oldSections = resume.getSections();
         try {
             resume.setSections(newSections);
-            return new OptionalValueAndErrorResult<>(Optional.of(resumeRepository.save(resume)),
-                    Optional.empty());
+            Resume savedResume = resumeRepository.save(resume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             resume.setSections(oldSections);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
-               return new OptionalValueAndErrorResult<>(Optional.empty(),
-                       Optional.of("The new sections can't have more than 1 section with the same title"));
+               return  OptionalValueAndErrorResult.of(resume,
+                       "The new sections can't have more than 1 section with the same title", CONFLICT);
             }
 
         }
-        return new OptionalValueAndErrorResult<>(Optional.empty(), Optional.empty());
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occured", INTERNAL_SERVER_ERROR);
     }
 
     public OptionalValueAndErrorResult<Resume> fullUpdate(Resume resume, FullResumeForm resumeForm){
@@ -290,7 +298,7 @@ public class ResumeService {
             resume.setExperiences(resumeForm.experiences());
             resume.setSections(resumeForm.sections());
             Resume savedResume = resumeRepository.save(resume);
-            return OptionalValueAndErrorResult.of(savedResume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch(DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -302,10 +310,10 @@ public class ResumeService {
                 switch (violationException.getConstraintName()) {
                     case "uk_resume_section":
                         return OptionalValueAndErrorResult.of(resume,
-                                "The new sections can't have more than 1 section with the same title");
+                                "The new sections can't have more than 1 section with the same title", CONFLICT);
                     case "uk_resume_company":
                         return OptionalValueAndErrorResult.of(resume,
-                                "The new experiences can't have more than 1 experience with the same company");
+                                "The new experiences can't have more than 1 experience with the same company", CONFLICT);
                     case null:
                         break;
                     default:
@@ -313,7 +321,7 @@ public class ResumeService {
                 }
             }
         }
-        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred");
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public OptionalValueAndErrorResult<Resume> changeName(UUID resID, String newName){
@@ -322,36 +330,36 @@ public class ResumeService {
         try{
             changingResume.setName(newName);
             Resume savedResume = resumeRepository.save(changingResume);
-            return OptionalValueAndErrorResult.of(savedResume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             changingResume.setName(oldName);
             if(cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
-                return OptionalValueAndErrorResult.of(changingResume, "You already have a resume with this name");
+                return OptionalValueAndErrorResult.of(changingResume, "You already have a resume with this name", CONFLICT);
             }
             //Should never get here
         }
-        return OptionalValueAndErrorResult.of(changingResume, "An unexpected error occurred");
+        return OptionalValueAndErrorResult.of(changingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public OptionalValueAndErrorResult<Resume> copyResume(UUID resID, String newName){
         Resume copiedResume = findById(resID);
         if(newName.equals(copiedResume.getName())){
             return OptionalValueAndErrorResult.
-                    of("The new resume must have a different name than the original one");
+                    of("The new resume must have a different name than the original one", CONFLICT);
         }
         try {
             Resume newResume = new Resume(copiedResume, newName);
             Resume savedResume = resumeRepository.save(newResume);
-            return OptionalValueAndErrorResult.of(savedResume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if(cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
-                return OptionalValueAndErrorResult.of("The new resume must have a different name than the original one");
+                return OptionalValueAndErrorResult.of("The new resume must have a different name than the original one", CONFLICT);
             }
             //Should never get here
         }
@@ -395,7 +403,7 @@ public class ResumeService {
             switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
             switchingResume.setSections(versionToSwitch.getVersionedSections());
             Resume savedResume = resumeRepository.save(switchingResume);
-            return OptionalValueAndErrorResult.of(savedResume);
+            return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch(DataIntegrityViolationException e) {
             Throwable cause = e.getCause();
@@ -407,10 +415,10 @@ public class ResumeService {
                 switch (violationException.getConstraintName()) {
                     case "uk_resume_section":
                         return OptionalValueAndErrorResult.of(switchingResume,
-                                "The new sections can't have more than 1 section with the same title");
+                                "The new sections can't have more than 1 section with the same title", CONFLICT);
                     case "uk_resume_company":
                         return  OptionalValueAndErrorResult.of(switchingResume,
-                                "The new experiences can't have more than 1 experience with the same company");
+                                "The new experiences can't have more than 1 experience with the same company", CONFLICT);
                     case null:
                         break;
                     default:
@@ -418,7 +426,7 @@ public class ResumeService {
                 }
             }
         }
-        return OptionalValueAndErrorResult.of(switchingResume, "An unexpected error occurred");
+        return OptionalValueAndErrorResult.of(switchingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public void deleteVersion(UUID version_id){

@@ -2,12 +2,13 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult;
+import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +17,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult.*;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
 @Transactional
-/*
-* The "of" and "empty" methods used throughout this class are the ones that are in OptionalValueAndErrorResult.
-* They have been statically imported just above the class definition, mostly to save the inconvenience of typing the class name every time
-* */
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
@@ -45,7 +45,7 @@ public class ProfileService {
             newProfile.setUser(creatingUser);
             creatingUser.setProfile(newProfile);
             UserProfile savedProfile = profileRepository.save(newProfile);
-            return of(savedProfile);
+            return OptionalValueAndErrorResult.of(savedProfile, CREATED);
         }
         catch(DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -54,9 +54,11 @@ public class ProfileService {
             if (cause instanceof ConstraintViolationException violationException){
                 switch (violationException.getConstraintName()){
                     case "uk_profile_sections":
-                        return of("The profile sections can't have more than 1 section with the same title");
+                        return OptionalValueAndErrorResult.of(
+                                "The profile sections can't have more than 1 section with the same title", CONFLICT);
                     case "uk_profile_experiences":
-                        return of("The profile experiences can't have more than 1 experience with the same company");
+                        return OptionalValueAndErrorResult.of(
+                                "The profile experiences can't have more than 1 experience with the same company", CONFLICT);
                     case null:
                         break;
                     default:
@@ -64,7 +66,7 @@ public class ProfileService {
                 }
             }
         }
-        return empty();
+        return OptionalValueAndErrorResult.empty();
     }
 
     public UserProfile changePageSize(UserProfile profile, int newPageSize){
@@ -105,17 +107,18 @@ public class ProfileService {
         try {
             profile.setExperienceList(transformedExperiences);
             UserProfile savedProfile = profileRepository.save(profile);
-            return of(savedProfile);
+            return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             profile.setExperienceList(oldExperiences);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_profile_experiences")){
-                return of(profile, "The new experiences can't have more than 1 experience with the same company");
+                return OptionalValueAndErrorResult.of(profile,
+                        "The new experiences can't have more than 1 experience with the same company", CONFLICT);
             }
         }
-        return of(profile, "An unexpected error has occurred");
+        return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
     }
 
     public OptionalValueAndErrorResult<UserProfile> updateProfileSections(UserProfile profile,
@@ -131,17 +134,19 @@ public class ProfileService {
         try {
             profile.setSections(transformedSections);
             UserProfile savedProfile = profileRepository.save(profile);
-            return of(savedProfile);
+            return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             profile.setSections(oldSections);
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_profile_sections")){
-                return of(profile, "The new profile sections can't have more than 1 section with the same title");
+                return OptionalValueAndErrorResult.of(profile,
+                        "The new profile sections can't have more than 1 section with the same title", CONFLICT);
             }
         }
-        return of(profile, "An unexpected error has occurred");
+        return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred",
+                INTERNAL_SERVER_ERROR);
     }
 
     public void deleteProfile(UUID profile_id){
@@ -200,7 +205,7 @@ public class ProfileService {
                     profileForm.relevantCoursework()));
             updatingProfile.setSections(profileForm.sections());
             UserProfile savedProfile = profileRepository.save(updatingProfile);
-            return of(savedProfile);
+            return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
         catch(DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -211,12 +216,13 @@ public class ProfileService {
             if (cause instanceof ConstraintViolationException violationException){
                 switch (violationException.getConstraintName()){
                     case "uk_profile_sections":
-                        return of(updatingProfile,
-                                "The new profile sections can't have more than 1 section with the same title");
+                        return OptionalValueAndErrorResult.of(updatingProfile,
+                                "The new profile sections can't have more than 1 section with the same title",
+                                CONFLICT);
                     case "uk_profile_experiences":
-                        return of(updatingProfile,
+                        return OptionalValueAndErrorResult.of(updatingProfile,
                                 "The new profile experiences can't have more " +
-                                        "than experience with the same company");
+                                        "than experience with the same company", CONFLICT);
                     case null:
                         break;
                     default:
@@ -224,7 +230,7 @@ public class ProfileService {
                 }
             }
         }
-        return of(updatingProfile, "An unexpected error has occurred");
+        return OptionalValueAndErrorResult.of(updatingProfile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
 
     }
 

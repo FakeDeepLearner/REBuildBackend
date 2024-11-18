@@ -6,7 +6,7 @@ import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordExceptio
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
-import com.rebuild.backend.model.forms.dtos.error_dtos.OptionalValueAndErrorResult;
+import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
 @Transactional
@@ -105,7 +110,7 @@ public class UserService{
         User newUser = new User(encodedPassword, email, phoneNumber);
         try {
             User savedUser = save(newUser);
-            return  OptionalValueAndErrorResult.of(savedUser);
+            return  OptionalValueAndErrorResult.of(savedUser, CREATED);
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
@@ -113,11 +118,11 @@ public class UserService{
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
                     case "uk_email" -> {
-                        return  OptionalValueAndErrorResult.of("This email is taken");
+                        return  OptionalValueAndErrorResult.of("This email is taken", CONFLICT);
 
                     }
                     case "uk_phone_number" -> {
-                        return OptionalValueAndErrorResult.of("This phone is already associated with another account");
+                        return OptionalValueAndErrorResult.of("This phone is already associated with another account", CONFLICT);
 
                     }
 
@@ -165,18 +170,18 @@ public class UserService{
         try {
             modifyingUser.setForumUsername(newUsername);
             User savedUser = save(modifyingUser);
-            return OptionalValueAndErrorResult.of(savedUser);
+            return OptionalValueAndErrorResult.of(savedUser, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             modifyingUser.setForumUsername(oldUsername);
             if (cause instanceof ConstraintViolationException violationException){
                 if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")){
-                    return OptionalValueAndErrorResult.of("This username is taken");
+                    return OptionalValueAndErrorResult.of(modifyingUser, "This username is taken", CONFLICT);
                 }
             }
             //Unknown error, signal 500
-            return OptionalValueAndErrorResult.empty();
+            return OptionalValueAndErrorResult.of(modifyingUser, INTERNAL_SERVER_ERROR);
         }
     }
 
