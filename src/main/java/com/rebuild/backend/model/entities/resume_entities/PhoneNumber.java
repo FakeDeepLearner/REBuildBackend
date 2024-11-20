@@ -29,12 +29,4 @@ public class PhoneNumber {
         return countryCode + "-" + areaCode + "-" + restOfNumber;
     }
 
-    public String maskedNumber(){
-        String unmaskedNumber = fullNumber();
-        int firstUnmaskedIndex = unmaskedNumber.length() - 4;
-        String lastPart = unmaskedNumber.substring(firstUnmaskedIndex);
-        return "*".repeat(firstUnmaskedIndex) + lastPart;
-    }
-
-
 }

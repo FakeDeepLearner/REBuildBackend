@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.utils.converters.DurationToStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,6 +26,7 @@ public class ProfileExperience {
     @Column(
             name = "id"
     )
+    @JsonIgnore
     private UUID id;
 
     @Column(name = "company_name", nullable = false)
@@ -51,5 +53,6 @@ public class ProfileExperience {
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_profile_experience_id"))
+    @JsonIgnore
     private UserProfile profile;
 }

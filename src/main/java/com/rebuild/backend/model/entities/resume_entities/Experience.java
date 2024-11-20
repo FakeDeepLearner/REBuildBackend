@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.utils.converters.DurationToStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,6 +25,7 @@ public class Experience {
     @Column(
             name = "id"
     )
+    @JsonIgnore
     private UUID id;
 
     @Column(name = "company_name", nullable = false)
@@ -57,6 +59,7 @@ public class Experience {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "associated_version_id", referencedColumnName = "id", nullable = false)
+    @JsonIgnore
     private ResumeVersion associatedVersion;
 
     public String toString() {

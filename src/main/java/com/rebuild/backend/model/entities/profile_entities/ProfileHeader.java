@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,6 +18,7 @@ public class ProfileHeader {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @Embedded
@@ -40,5 +42,6 @@ public class ProfileHeader {
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_profile_header_id"))
+    @JsonIgnore
     private UserProfile profile;
 }

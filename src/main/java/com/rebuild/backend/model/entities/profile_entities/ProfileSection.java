@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class ProfileSection {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @NonNull
@@ -34,5 +36,6 @@ public class ProfileSection {
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_profile_section_id"))
+    @JsonIgnore
     private UserProfile profile;
 }

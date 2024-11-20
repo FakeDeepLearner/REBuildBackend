@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class ResumeSection {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @NonNull
@@ -36,10 +38,12 @@ public class ResumeSection {
     })
     @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "section_fk_resume_id"))
+    @JsonIgnore
     private Resume resume;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "associated_version_id", referencedColumnName = "id", nullable = false)
+    @JsonIgnore
     private ResumeVersion associatedVersion;
 
     public String toString() {

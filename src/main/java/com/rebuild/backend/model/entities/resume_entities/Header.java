@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -51,6 +52,7 @@ public class Header {
             CascadeType.PERSIST
     })
     @JoinColumn(name = "associated_version_id", referencedColumnName = "id")
+    @JsonIgnore
     private ResumeVersion associatedVersion;
 
     @Override

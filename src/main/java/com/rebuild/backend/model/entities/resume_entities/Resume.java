@@ -37,6 +37,7 @@ public class Resume {
     @Column(
             name = "id"
     )
+    @JsonIgnore
     private UUID id;
 
     @Column(name = "name", nullable = false)
@@ -65,6 +66,7 @@ public class Resume {
     })
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_user_id"))
+    @JsonIgnore
     private User user;
 
     @OneToMany(mappedBy = "associatedResume", fetch = FetchType.LAZY,

@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class Education {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @NonNull
@@ -41,6 +43,7 @@ public class Education {
             CascadeType.PERSIST,
     })
     @JoinColumn(name = "associated_version_id", referencedColumnName = "id")
+    @JsonIgnore
     private ResumeVersion associatedVersion;
 
     public String toString() {

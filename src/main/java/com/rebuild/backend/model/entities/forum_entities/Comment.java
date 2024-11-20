@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
@@ -31,6 +32,7 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

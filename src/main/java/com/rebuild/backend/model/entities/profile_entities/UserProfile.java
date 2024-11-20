@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,6 +21,7 @@ public class UserProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = {
@@ -45,6 +47,7 @@ public class UserProfile {
             REFRESH
     })
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
     private User user;
 
     public UserProfile(ProfileHeader profileHeader,

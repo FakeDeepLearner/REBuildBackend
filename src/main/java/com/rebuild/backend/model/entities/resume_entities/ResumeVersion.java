@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +17,7 @@ public class ResumeVersion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     private UUID id;
 
     @OneToOne(mappedBy = "associatedVersion", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
