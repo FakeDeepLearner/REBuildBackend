@@ -3,11 +3,11 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO: Before fully implementing websockets, write an extensive test suite
 
-TODO(IMMEDIATE): Fix all of the controller methods that use the resume service methods, now that it has different return types
+TODO(ASAP): Fix all of the controller methods that use the resume service methods, now that it has different return types
 
-TODO(IMMEDIATE): Replicate the above for the profile service methods, now that they have been changed as well
+TODO(ASAP): Replicate the above for the profile service methods, now that they have been changed as well
 
-TODO(priority 1): Change the necessary user profile methods that update an existing profile to return the new state of the profile instead of returning void
+TODO(priority 1): Use Specifications along  with pagination to filter posts based on selected properties by the user.
 
 TODO (priority 2): Fully change authentication to session based authentication instead of jwt's in order for better integration with spring security. The other mechanisms will still use jwt tokens.
 
