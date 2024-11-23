@@ -9,13 +9,18 @@ import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.utils.ForumPostSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -90,13 +95,43 @@ public class ForumPostAndCommentService {
         return commentRepository.countByIdAndUserId(commentID, userID) > 0;
     }
 
-    public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize){
+    private Specification<ForumPost> deriveSpecification(String username,
+                                                         LocalDateTime latest, LocalDateTime earliest,
+                                                         String titleHas, String bodyHas){
+        List<Specification<ForumPost>> basicSpecs = new ArrayList<>();
+
+        if(username != null){
+            basicSpecs.add(ForumPostSpecifications.isPostedBy(username));
+        }
+        if(latest != null){
+            basicSpecs.add(ForumPostSpecifications.isPostedBefore(latest));
+        }
+        if(earliest != null){
+            basicSpecs.add(ForumPostSpecifications.isPostedAfter(earliest));
+        }
+        if(titleHas != null){
+            basicSpecs.add(ForumPostSpecifications.titleContains(titleHas));
+        }
+        if(bodyHas != null){
+            basicSpecs.add(ForumPostSpecifications.bodyContains(bodyHas));
+        }
+
+        return Specification.allOf(basicSpecs);
+
+    }
+
+    public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize,
+                                                  String username,
+                                                  LocalDateTime latest, LocalDateTime earliest,
+                                                  String titleHas, String bodyHas){
+        Specification<ForumPost> derivedSpecification = deriveSpecification(
+                username, latest, earliest, titleHas, bodyHas);
         //Sort by descending order of creation dates, so the newest posts show up first
         Pageable pageableResult = PageRequest.of(currentPageNumber, pageSize,
                 Sort.by("creationDate").descending().
                         //Break any ties by the last modified dates
                         and(Sort.by("lastModifiedDate").descending()));
-        Page<ForumPost> resultingPage = forumPostRepository.findAll(pageableResult);
+        Page<ForumPost> resultingPage = forumPostRepository.findAll(derivedSpecification, pageableResult);
         return new ForumPostPageResponse(resultingPage.getContent(), resultingPage.getNumber(),
                 resultingPage.getTotalElements(), resultingPage.getTotalPages(), pageSize);
     }
