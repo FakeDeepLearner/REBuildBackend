@@ -1,6 +1,5 @@
 TODO: Start implementing websockets, in order to implement live collaboration with multiple users.
 
-
 TODO: Before fully implementing websockets, write an extensive test suite
 
 TODO(ASAP): Fix all of the controller methods that use the resume service methods, now that it has different return types
@@ -8,6 +7,9 @@ TODO(ASAP): Fix all of the controller methods that use the resume service method
 TODO(ASAP): Replicate the above for the profile service methods, now that they have been changed as well
 
 TODO (priority 1): Fully change authentication to session based authentication instead of jwt's in order for better integration with spring security. The other mechanisms will still use jwt tokens.
+
+TODO(priority 2): Implement upvoting and downvoting forum posts and comments. Add abilities to filter posts by those parameters.
+Additionally, make the comments of a post be displayed starting from how much they have been upvoted.
 
 TODO (might not happen): Change the forum credential updating process to mimic (more or less) the ones with the other app credentials
 
