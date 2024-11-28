@@ -1,13 +1,18 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
+import com.rebuild.backend.exceptions.ServerError;
+import com.rebuild.backend.exceptions.resume_exceptions.ResumeCompanyConstraintException;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
+import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -31,12 +36,35 @@ public class ResumePutController {
     }
 
     @PutMapping("/experience/{res_id}/{exp_id}")
-    public Resume modifyExperience(@PathVariable UUID res_id, @PathVariable UUID exp_id,
-                                       @Valid @RequestBody ExperienceForm experienceForm){
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public ResponseEntity<?> modifyExperience(@PathVariable UUID res_id, @PathVariable UUID exp_id,
+                                                   @Valid @RequestBody ExperienceForm experienceForm){
         Duration duration = Duration.between(experienceForm.startDate(), experienceForm.endDate());
-        return resumeService.changeExperienceInfo(res_id, exp_id, experienceForm.companyName(),
+        OptionalValueAndErrorResult<Resume> updateResult =
+                resumeService.changeExperienceInfo(res_id, exp_id, experienceForm.companyName(),
                 experienceForm.technologies(), duration, experienceForm.bullets());
+        switch (updateResult.returnedStatus()){
+            case OK -> {
+                return ResponseEntity.ok(updateResult.optionalResult().get());
+            }
 
+            case NOT_FOUND -> {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
+                                updateResult.optionalError().get()));
+            }
+
+            case CONFLICT -> {
+                throw new ResumeCompanyConstraintException(updateResult.optionalError().get());
+            }
+
+            case INTERNAL_SERVER_ERROR -> {
+                return  ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
+                        updateResult.optionalResult().get(),
+                        updateResult.optionalError().get()));
+            }
+        }
+        return null;
     }
 
     @PutMapping("/education/{res_id}")

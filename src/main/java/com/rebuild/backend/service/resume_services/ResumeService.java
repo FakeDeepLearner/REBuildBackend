@@ -23,14 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @Service
 @Transactional
@@ -57,7 +52,7 @@ public class ResumeService {
     public OptionalValueAndErrorResult<Resume> createNewResumeFor(String resume_name, User user){
         if(user.maxResumeLimitReached()){
             return OptionalValueAndErrorResult.of("You have reached the maximum number of " +
-                    "resumes you can create as a free user", CONFLICT);
+                    "resumes you can create as a free user", PAYMENT_REQUIRED);
         }
         else{
             try {
@@ -250,7 +245,7 @@ public class ResumeService {
                         "A resume can't have more than 1 experience with a company", CONFLICT);
             }
         }
-        return OptionalValueAndErrorResult.of(resume, "An unexpected error occured", INTERNAL_SERVER_ERROR);
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public Resume setHeader(Resume resume, Header newHeader){
@@ -280,7 +275,7 @@ public class ResumeService {
             }
 
         }
-        return OptionalValueAndErrorResult.of(resume, "An unexpected error occured", INTERNAL_SERVER_ERROR);
+        return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
     public OptionalValueAndErrorResult<Resume> fullUpdate(Resume resume, FullResumeForm resumeForm){
