@@ -1,10 +1,6 @@
 TODO: Start implementing websockets, in order to implement live collaboration with multiple users.
 
-TODO: Before fully implementing websockets, write an extensive test suite
-
-TODO(ASAP): Fix all of the controller methods that use the resume service methods, now that it has different return types
-
-TODO(ASAP): Replicate the above for the profile service methods, now that they have been changed as well
+TODO(priority 2): Before fully implementing websockets, write an extensive test suite
 
 TODO(ASAP) Use the newly created like tables to create methods to like comments and posts
 (and set up batch processing infrastructure)

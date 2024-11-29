@@ -8,7 +8,6 @@ import com.rebuild.backend.repository.ProfileRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +53,7 @@ public class ProfileService {
             if (cause instanceof ConstraintViolationException violationException){
                 switch (violationException.getConstraintName()){
                     case "uk_profile_sections":
-                        return OptionalValueAndErrorResult.of(
+                        return OptionalValueAndErrorResult.of(newProfile,
                                 "The profile sections can't have more than 1 section with the same title", CONFLICT);
                     case "uk_profile_experiences":
                         return OptionalValueAndErrorResult.of(
