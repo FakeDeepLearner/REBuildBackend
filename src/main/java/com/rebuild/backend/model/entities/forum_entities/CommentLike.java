@@ -2,9 +2,7 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -12,6 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@RequiredArgsConstructor
 @Table(name = "comment_likes", uniqueConstraints =
         {
                 @UniqueConstraint(name = "uk_unique_comment_like",
@@ -24,10 +23,12 @@ public class CommentLike {
 
     @ManyToOne
     @JoinColumn(name = "comment_id", referencedColumnName = "id", nullable = false)
+    @NonNull
     private Comment likedComment;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @NonNull
     private User likingUser;
 }
 

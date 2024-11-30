@@ -2,15 +2,14 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 @Data
 @Table(name = "post_likes", uniqueConstraints =
         {
@@ -23,9 +22,11 @@ public class PostLike {
 
     @ManyToOne
     @JoinColumn(name = "post_id", referencedColumnName = "id", nullable = false)
+    @NonNull
     private ForumPost likedPost;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @NonNull
     private User likingUser;
 }
