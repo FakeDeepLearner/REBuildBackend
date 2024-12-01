@@ -8,8 +8,11 @@ import com.rebuild.backend.model.responses.PasswordResetResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
 
 @Component
 public class RedirectionUtility {
@@ -27,7 +30,14 @@ public class RedirectionUtility {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", urlBase.baseUrl() + "/home/" + user.getId());
         if(remembered){
-            headers.add(HttpHeaders.SET_COOKIE, accessToken);
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
+                    secure(true).
+                    httpOnly(true).
+                    path("/").
+                    sameSite("Strict").
+                    maxAge(Duration.ofDays(14L)).
+                    build();
+            headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
         }
         AccountActivationResponse body = new AccountActivationResponse(user.getEmail(), accessToken, refreshToken);
         return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);

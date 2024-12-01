@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 @RestController
@@ -61,8 +62,15 @@ public class AuthenticationController {
         tokenService.addTokenPair(accessToken, refreshToken);
         AuthResponse responseBody = new AuthResponse(accessToken, refreshToken);
         if(form.remember()) {
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
+                    secure(true).
+                    httpOnly(true).
+                    path("/").
+                    sameSite("Strict").
+                    maxAge(Duration.ofDays(14L)).
+                    build();
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.SET_COOKIE, accessToken);
+            headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
             return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseBody);
         }
         else{
