@@ -61,21 +61,20 @@ public class AuthenticationController {
         String refreshToken = tokenService.generateRefreshToken(auth);
         tokenService.addTokenPair(accessToken, refreshToken);
         AuthResponse responseBody = new AuthResponse(accessToken, refreshToken);
-        if(form.remember()) {
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
-                    secure(true).
-                    httpOnly(true).
-                    path("/").
-                    sameSite("Strict").
-                    maxAge(Duration.ofDays(14L)).
-                    build();
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
-            return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseBody);
-        }
-        else{
-            return ResponseEntity.ok(responseBody);
-        }
+        Duration tokenExpiryDuration = tokenService.getExpiryDuration(refreshToken);
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
+                secure(true).
+                httpOnly(true).
+                path("/").
+                sameSite("Strict").
+                maxAge(tokenExpiryDuration).
+                build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseBody);
+
     }
 
     @PostMapping("/signup")
@@ -101,7 +100,7 @@ public class AuthenticationController {
     @ResponseStatus(HttpStatus.SEE_OTHER)
     public AuthResponse generateRefreshToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = tokenService.issueNewAccessToken(request);
-        String refreshToken = tokenService.extractTokenFromRequest(request);
+        String refreshToken = tokenService.obtainRefreshTokenFromCookie(request);
         tokenService.addTokenPair(newAccessToken, refreshToken);
         String originalUrl = request.getRequestURL().toString();
         //Redirect back to where the request originally came from.

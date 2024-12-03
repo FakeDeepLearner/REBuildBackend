@@ -6,6 +6,7 @@ import com.rebuild.backend.exceptions.jwt_exceptions.JWTTokenExpiredException;
 import com.rebuild.backend.exceptions.jwt_exceptions.NoJWTTokenException;
 import com.rebuild.backend.model.entities.enums.TokenType;
 import com.rebuild.backend.service.user_services.CustomUserDetailsService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
@@ -52,6 +54,21 @@ public class JWTTokenService {
         this.detailsService = detailsService;
         this.mailSender = mailSender;
         this.credentials = credentials;
+    }
+
+    public String obtainRefreshTokenFromCookie(HttpServletRequest request) {
+        if(request.getCookies() == null){
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if (cookie.getName().equals("refreshToken")) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+
     }
 
     private String generateTokenGivenExpiration(Authentication auth, long amount, ChronoUnit unit){
@@ -186,6 +203,12 @@ public class JWTTokenService {
         return allClaims.getClaimAsInstant("exp");
     }
 
+    public Duration getExpiryDuration(String token){
+        Jwt allClaims = extractAllClaims(token);
+        Instant expiryTime = allClaims.getClaimAsInstant("exp");
+        return Duration.between(Instant.now(), expiryTime);
+    }
+
     private boolean tokenCredentialsMatch(String token, UserDetails details) {
         String tokenUsername = extractSubject(token);
         String actualUsername = details.getUsername();
@@ -210,7 +233,7 @@ public class JWTTokenService {
         return tokenCredentialsMatch(token, details) && tokenNonExpired(token);
     }
 
-    private void removeTokenPair(String refresh){
+    public void removeTokenPair(String refresh){
         String correspondingAccess = refreshAndAccessTokens.get(refresh);
         accessAndRefreshTokens.remove(correspondingAccess);
         refreshAndAccessTokens.remove(refresh);

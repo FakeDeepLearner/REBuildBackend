@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.responses.AccountActivationResponse;
 import com.rebuild.backend.model.responses.EmailChangeResponse;
 import com.rebuild.backend.model.responses.PasswordResetResponse;
+import com.rebuild.backend.service.token_services.JWTTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,12 @@ import java.time.Duration;
 public class RedirectionUtility {
 
     private final AppUrlBase urlBase;
+    private final JWTTokenService tokenService;
 
     @Autowired
-    public RedirectionUtility(AppUrlBase urlBase) {
+    public RedirectionUtility(AppUrlBase urlBase, JWTTokenService tokenService) {
         this.urlBase = urlBase;
+        this.tokenService = tokenService;
     }
 
     public ResponseEntity<AccountActivationResponse> redirectUserToLogin(User user,
@@ -29,16 +32,17 @@ public class RedirectionUtility {
                                                                           String refreshToken){
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", urlBase.baseUrl() + "/home/" + user.getId());
-        if(remembered){
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
-                    secure(true).
-                    httpOnly(true).
-                    path("/").
-                    sameSite("Strict").
-                    maxAge(Duration.ofDays(14L)).
-                    build();
-            headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
-        }
+        Duration tokenExpiryDuration = tokenService.getExpiryDuration(refreshToken);
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
+                secure(true).
+                httpOnly(true).
+                path("/").
+                sameSite("Strict").
+                maxAge(tokenExpiryDuration).
+                build();
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
         AccountActivationResponse body = new AccountActivationResponse(user.getEmail(), accessToken, refreshToken);
         return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(headers).body(body);
 

@@ -8,9 +8,12 @@ TODO(ASAP) Use the newly created like tables to create methods to like comments 
 TODO (priority 1): Fully change authentication to session based authentication instead of jwt's in order for
 better integration with spring security. The other mechanisms will still use jwt tokens.
 
-TODO(priority 1): Set up the ability for the frontend to unload the comments when they leave the viewport,
+TODO: Change the mechanisms to obtain, and "store" the refresh tokens; and reimplement the "remember me" feature
+
+TODO (might not happen): Change the forum credential
+updating process to mimic (more or less) the ones with the other app credentials
+
+TODO(might not happen): Set up the ability for the frontend to unload the comments when they leave the viewport,
 by providing api functions that it can call with the index. Set up prefetching
 and caching the next set of comments to be shown to increase performance
-
-TODO (might not happen): Change the forum credential updating process to mimic (more or less) the ones with the other app credentials
 

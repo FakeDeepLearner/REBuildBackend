@@ -1,6 +1,7 @@
 package com.rebuild.backend;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -23,6 +24,7 @@ import java.util.Optional;
 @EnableScheduling
 @EnableJpaRepositories
 @EnableJpaAuditing
+@EnableBatchProcessing
 public class BackendApplication {
 
 	public static void main(String[] args) {

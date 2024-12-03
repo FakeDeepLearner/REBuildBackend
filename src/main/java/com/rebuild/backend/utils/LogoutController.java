@@ -5,11 +5,14 @@ import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.model.entities.enums.TokenBlacklistPurpose;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccessAndRefreshTokensDTO;
+import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.token_services.TokenBlacklistService;
 import com.rebuild.backend.service.user_services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
@@ -27,15 +30,18 @@ public class LogoutController implements LogoutHandler {
 
     private final ObjectMapper objectMapper;
 
+    private final JWTTokenService tokenService;
+
     private final AppUrlBase base;
 
     @Autowired
     public LogoutController(TokenBlacklistService tokenBlacklistService,
                             UserService userService,
-                            ObjectMapper objectMapper, AppUrlBase base) {
+                            ObjectMapper objectMapper, JWTTokenService tokenService, AppUrlBase base) {
         this.tokenBlacklistService = tokenBlacklistService;
         this.userService = userService;
         this.objectMapper = objectMapper;
+        this.tokenService = tokenService;
         this.base = base;
     }
 
@@ -52,6 +58,17 @@ public class LogoutController implements LogoutHandler {
                         TokenBlacklistPurpose.AUTHENTICATION);
             }
             userService.invalidateAllSessions(authentication.getName());
+            //Setting the max age to a negative number instructs the browser to delete it
+            ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", "").
+                    httpOnly(true).
+                    secure(true).
+                    sameSite("Strict").
+                    maxAge(-1).
+                    path("/").
+                    build();
+            response.setHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
+            String refreshToken = tokenService.obtainRefreshTokenFromCookie(request);
+            tokenService.removeTokenPair(refreshToken);
             //We do not need to perform redirection here, the logout configuration already does it for us.
             response.setStatus(HttpServletResponse.SC_SEE_OTHER);
         }
