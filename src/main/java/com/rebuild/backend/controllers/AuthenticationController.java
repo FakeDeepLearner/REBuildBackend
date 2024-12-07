@@ -7,7 +7,6 @@ import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.dtos.jwt_tokens_dto.AccountActivationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
-import com.rebuild.backend.model.responses.AuthResponse;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.user_services.UserService;
 import com.rebuild.backend.utils.password_utils.RandomPasswordGenerator;
@@ -21,7 +20,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
@@ -52,15 +53,13 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<AuthResponse> processLogin(@Valid @RequestBody LoginForm form){
+    public ResponseEntity<String> processLogin(@Valid @RequestBody LoginForm form){
         userService.validateLoginCredentials(form);
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         form.email(), form.password()));
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
-        //tokenService.addTokenPair(accessToken, refreshToken);
-        AuthResponse responseBody = new AuthResponse(accessToken, refreshToken);
         Duration tokenExpiryDuration = tokenService.getExpiryDuration(refreshToken);
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken).
@@ -73,7 +72,7 @@ public class AuthenticationController {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseBody);
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(accessToken);
 
     }
 
@@ -88,34 +87,36 @@ public class AuthenticationController {
             }
             throw new AccountCreationException(creationResult.optionalError().get());
         }
+
         AccountActivationDTO form  =
                 new AccountActivationDTO(creationResult.optionalResult().get().getEmail(), signupForm.password(),
                         20L, ChronoUnit.MINUTES,
                          signupForm.remember());
-        HttpEntity<AccountActivationDTO> body = new HttpEntity<>(form);
-        return new RestTemplate().postForEntity(urlBase.baseUrl() + "/api/activate", body, Void.TYPE);
+        String urlToMakePost = UriComponentsBuilder.
+                fromHttpUrl(urlBase.baseUrl() + "/api/activate").toUriString();
+        URI postingURI = URI.create(urlToMakePost);
+        RequestEntity<AccountActivationDTO> request = RequestEntity.post(postingURI).body(form);
+
+        return new RestTemplate().exchange(request, Void.TYPE);
     }
 
     @PostMapping("/api/refresh_token")
     @ResponseStatus(HttpStatus.SEE_OTHER)
-    public AuthResponse generateRefreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public void refreshExpiredToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = tokenService.issueNewAccessToken(request);
-        String refreshToken = tokenService.obtainRefreshTokenFromCookie(request);
         String originalUrl = request.getRequestURL().toString();
         //Redirect back to where the request originally came from.
-        response.setStatus(303);
+        response.setStatus(HttpStatus.SEE_OTHER.value());
         response.addHeader("Location", originalUrl);
         response.addHeader("Authorization", "Bearer " + newAccessToken);
-        return new AuthResponse(newAccessToken, refreshToken);
     }
 
 
     @GetMapping("/api/random_password")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> generateRandomPassword(){
+    public String generateRandomPassword(){
         //The generator already has all the data it needs
-        String generatedPassword = passwordGenerator.generateRandom();
-        return ResponseEntity.ok(generatedPassword);
+        return passwordGenerator.generateRandom();
     }
 
 }
