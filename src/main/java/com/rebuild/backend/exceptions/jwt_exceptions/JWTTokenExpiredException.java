@@ -1,14 +1,14 @@
 package com.rebuild.backend.exceptions.jwt_exceptions;
 
+import lombok.Getter;
+
+@Getter
 public class JWTTokenExpiredException extends IllegalStateException{
-    private final String refreshToken;
+    private final String expiredToken;
 
-    public JWTTokenExpiredException(String message, String refreshToken){
+    public JWTTokenExpiredException(String message, String expiredToken){
         super(message);
-        this.refreshToken = refreshToken;
+        this.expiredToken = expiredToken;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
-    }
 }

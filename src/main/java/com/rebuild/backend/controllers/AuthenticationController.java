@@ -59,7 +59,7 @@ public class AuthenticationController {
                         form.email(), form.password()));
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
-        tokenService.addTokenPair(accessToken, refreshToken);
+        //tokenService.addTokenPair(accessToken, refreshToken);
         AuthResponse responseBody = new AuthResponse(accessToken, refreshToken);
         Duration tokenExpiryDuration = tokenService.getExpiryDuration(refreshToken);
 
@@ -101,11 +101,11 @@ public class AuthenticationController {
     public AuthResponse generateRefreshToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = tokenService.issueNewAccessToken(request);
         String refreshToken = tokenService.obtainRefreshTokenFromCookie(request);
-        tokenService.addTokenPair(newAccessToken, refreshToken);
         String originalUrl = request.getRequestURL().toString();
         //Redirect back to where the request originally came from.
         response.setStatus(303);
         response.addHeader("Location", originalUrl);
+        response.addHeader("Authorization", "Bearer " + newAccessToken);
         return new AuthResponse(newAccessToken, refreshToken);
     }
 

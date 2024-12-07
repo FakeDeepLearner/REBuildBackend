@@ -30,7 +30,7 @@ public class AuthenticationExceptionHandler {
     @ExceptionHandler(JWTTokenExpiredException.class)
     public ResponseEntity<Map<String, String>> handleTokenExpired(JWTTokenExpiredException e){
         HttpHeaders reqHeaders = new HttpHeaders();
-        reqHeaders.add("Authorization", "Bearer " + e.getRefreshToken());
+        reqHeaders.add("Authorization", "Bearer " + e.getExpiredToken());
         Map<String, String> reqBody = bodyBuilder.buildBody(e);
         HttpEntity<Map<String, String>> httpEntity = new HttpEntity<>(reqBody, reqHeaders);
         String urlToPost = urlBase.baseUrl() + "/api/refresh_token";

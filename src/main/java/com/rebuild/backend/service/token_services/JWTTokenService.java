@@ -35,10 +35,6 @@ public class JWTTokenService {
 
     private final CustomUserDetailsService detailsService;
 
-    private final Map<String, String> accessAndRefreshTokens = new ConcurrentHashMap<>();
-
-    private final Map<String, String> refreshAndAccessTokens = new ConcurrentHashMap<>();
-
     private final JavaMailSender mailSender;
 
     private final MailAppCredentials credentials;
@@ -150,10 +146,6 @@ public class JWTTokenService {
         return encoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
 
-    public void addTokenPair(String access, String refresh){
-        accessAndRefreshTokens.put(access, refresh);
-        refreshAndAccessTokens.put(refresh, access);
-    }
 
     public String generateRefreshToken(Authentication auth){
         return generateTokenGivenExpiration(auth, 2, ChronoUnit.HOURS);
@@ -221,10 +213,9 @@ public class JWTTokenService {
 
     public boolean tokenNonExpired(String token) {
         Instant tokenExpiration = extractExpiration(token);
-        String correspondingRefreshToken = accessAndRefreshTokens.get(token);
         boolean result = tokenExpiration.isBefore(Instant.now());
         if (!result){
-            throw new JWTTokenExpiredException("Token expired", correspondingRefreshToken);
+            throw new JWTTokenExpiredException("Token expired", token);
         }
         return true;
     }
@@ -233,15 +224,9 @@ public class JWTTokenService {
         return tokenCredentialsMatch(token, details) && tokenNonExpired(token);
     }
 
-    public void removeTokenPair(String refresh){
-        String correspondingAccess = refreshAndAccessTokens.get(refresh);
-        accessAndRefreshTokens.remove(correspondingAccess);
-        refreshAndAccessTokens.remove(refresh);
-    }
 
     public String issueNewAccessToken(HttpServletRequest request){
-        String refresh_token = extractTokenFromRequest(request);
-        removeTokenPair(refresh_token);
+        String refresh_token = obtainRefreshTokenFromCookie(request);
         String subject = extractSubject(refresh_token);
         UserDetails details = detailsService.loadUserByUsername(subject);
         Instant curr = Instant.now();

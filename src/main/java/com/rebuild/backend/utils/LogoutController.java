@@ -67,8 +67,6 @@ public class LogoutController implements LogoutHandler {
                     path("/").
                     build();
             response.setHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
-            String refreshToken = tokenService.obtainRefreshTokenFromCookie(request);
-            tokenService.removeTokenPair(refreshToken);
             //We do not need to perform redirection here, the logout configuration already does it for us.
             response.setStatus(HttpServletResponse.SC_SEE_OTHER);
         }

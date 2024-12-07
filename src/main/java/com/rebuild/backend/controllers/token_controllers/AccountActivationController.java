@@ -81,7 +81,6 @@ public class AccountActivationController {
         );
         String accessToken = tokenService.generateAccessToken(auth);
         String refreshToken = tokenService.generateRefreshToken(auth);
-        tokenService.addTokenPair(accessToken, refreshToken);
         return redirectionUtility.redirectUserToLogin(actualUser, remembered, accessToken, refreshToken);
     }
 }
