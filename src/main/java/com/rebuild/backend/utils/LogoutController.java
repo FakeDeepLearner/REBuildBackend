@@ -58,7 +58,7 @@ public class LogoutController implements LogoutHandler {
                         TokenBlacklistPurpose.AUTHENTICATION);
             }
             userService.invalidateAllSessions(authentication.getName());
-            //Setting the max age to a negative number instructs the browser to delete it
+            //Setting the max age to a negative number instructs the browser to delete this cookie
             ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", "").
                     httpOnly(true).
                     secure(true).

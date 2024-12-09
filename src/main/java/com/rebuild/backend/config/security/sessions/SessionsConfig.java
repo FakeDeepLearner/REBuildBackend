@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.security.sessions;
 
+import org.springframework.batch.item.amqp.builder.AmqpItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,9 +34,10 @@ public class SessionsConfig {
                         invalidSessionStrategy(new SessionInvalidationCustomStrategy()).
                         sessionConcurrency(concurrency -> concurrency.maximumSessions(-1)).
                         sessionAuthenticationStrategy(new RegisterSessionAuthenticationStrategy(sessionRegistry())).
-                        maximumSessions(-1).
+                        maximumSessions(1).
                         sessionRegistry(sessionRegistry()).
-                        expiredUrl("/expired")).
+                        expiredUrl("/expired").
+                        maxSessionsPreventsLogin(true)).
                 exceptionHandling(handling -> handling.authenticationEntryPoint(new InvalidSessionAuthenticationEntry())).
                 build();
     }

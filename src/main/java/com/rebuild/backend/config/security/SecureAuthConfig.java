@@ -4,6 +4,7 @@ package com.rebuild.backend.config.security;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.utils.LogoutController;
+import org.springframework.batch.item.amqp.AmqpItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,7 +55,7 @@ public class SecureAuthConfig {
                 logout(config -> config.
                     logoutUrl(urlBase.baseUrl() + "/logout").
                     logoutSuccessUrl(urlBase.baseUrl() + "/login?logout=true").
-                    addLogoutHandler(logoutController));
+                    addLogoutHandler(logoutController).deleteCookies("JSESSIONID"));
         return security.build();
 
 

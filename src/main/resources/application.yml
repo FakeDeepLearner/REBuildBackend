@@ -82,6 +82,11 @@ server:
   servlet:
     session:
       timeout: 10m
+      cookie:
+        name: SESSIONID
+        http-only: true
+        secure: true
+        same-site: strict
   port: 443
   ssl:
     enabled: true
