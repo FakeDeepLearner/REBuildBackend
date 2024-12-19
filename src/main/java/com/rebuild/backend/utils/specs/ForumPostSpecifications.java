@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.specs;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.users.User;

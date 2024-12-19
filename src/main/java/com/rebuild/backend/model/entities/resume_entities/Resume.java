@@ -50,12 +50,12 @@ public class Resume {
     @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Education education;
 
-    @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER, cascade = {
+    @OneToMany(mappedBy = "resume", fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true)
     private List<Experience> experiences;
 
-    @OneToMany(mappedBy = "resume", fetch = FetchType.EAGER,
+    @OneToMany(mappedBy = "resume", fetch = FetchType.LAZY,
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResumeSection> sections;
 
