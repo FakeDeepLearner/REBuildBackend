@@ -9,6 +9,9 @@ TODO(priority 1): Make a more complicated rate limiting mechanism
 
 TODO(ASAP): Reimplement the "remember me" feature
 
+TODO(ASAP): Create a detailed specification system for resumes, that allow the user to create
+subfilters based on education, experiences and the other sections
+
 TODO (might not happen): Change the forum credential
 updating process to mimic (more or less) the ones with the other app credentials
 

@@ -30,7 +30,7 @@ public class ForumPostSpecifications {
     public static Specification<ForumPost> titleContains(String substring) {
         return (root, query, builder) ->
                 builder.like(root.get("title"), "%" + substring + "%");
-    }
+    }   
 
     public static Specification<ForumPost> bodyContains(String substring) {
         return (root, query, builder) ->

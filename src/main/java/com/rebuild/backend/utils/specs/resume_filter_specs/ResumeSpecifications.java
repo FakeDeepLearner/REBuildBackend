@@ -1,6 +1,8 @@
-package com.rebuild.backend.utils.specs;
+package com.rebuild.backend.utils.specs.resume_filter_specs;
 
+import com.rebuild.backend.model.entities.resume_entities.Education;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
@@ -40,7 +42,6 @@ public class ResumeSpecifications {
         return (root, query, builder) ->
                 builder.like(root.get("name"), "%" + name + "%");
     }
-
 
 
 
