@@ -9,7 +9,6 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Check;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +31,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class User implements UserDetails {
 
-    private static final int MAX_RESUME_LIMIT = 15;
+    private static final int FREE_MAX_RESUME_LIMIT = 25;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -159,7 +158,7 @@ public class User implements UserDetails {
     }
 
     public boolean maxResumeLimitReached(){
-        return authority.equals(Authority.USER_FREE) && numberOfResumes == MAX_RESUME_LIMIT;
+        return authority.equals(Authority.USER_FREE) && numberOfResumes == FREE_MAX_RESUME_LIMIT;
     }
 
 }
