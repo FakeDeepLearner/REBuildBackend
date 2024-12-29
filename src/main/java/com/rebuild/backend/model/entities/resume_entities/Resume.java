@@ -103,7 +103,9 @@ public class Resume {
         // We are creating new objects here, because we do not want them to be a reference to the original ones.
         this.education = new Education(originalEducation.getSchoolName(),
                 originalEducation.getRelevantCoursework());
-        this.header = new Header(originalHeader.getNumber(), originalHeader.getName(), originalHeader.getEmail());
+        this.header = new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
+                originalHeader.getLastName(),
+                originalHeader.getEmail());
         this.experiences = originalExperiences.stream().map(
                 experience -> new Experience(experience.getCompanyName(), experience.getTechnologyList(),
                         experience.getTimePeriod(), experience.getBullets())

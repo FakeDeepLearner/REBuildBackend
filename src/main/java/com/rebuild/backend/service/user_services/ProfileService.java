@@ -34,7 +34,8 @@ public class ProfileService {
 
     public OptionalValueAndErrorResult<UserProfile> createFullProfileFor(FullProfileForm profileForm, User creatingUser) {
         ProfileHeader profileHeader = new ProfileHeader(profileForm.phoneNumber(),
-                profileForm.name(),
+                profileForm.firstName(),
+                profileForm.lastName(),
                 profileForm.email());
         ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
                 profileForm.relevantCoursework());
@@ -75,7 +76,8 @@ public class ProfileService {
 
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
-        ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.name(), headerForm.email());
+        ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.firstName(),
+                headerForm.lastName(),headerForm.email());
         userProfile.setHeader(newHeader);
         newHeader.setProfile(userProfile);
         return profileRepository.save(userProfile);
@@ -199,7 +201,7 @@ public class ProfileService {
         try {
             updatingProfile.setExperienceList(profileForm.experiences());
             updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
-                    profileForm.name(), profileForm.email()));
+                    profileForm.firstName(), profileForm.lastName(), profileForm.email()));
             updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
                     profileForm.relevantCoursework()));
             updatingProfile.setSections(profileForm.sections());

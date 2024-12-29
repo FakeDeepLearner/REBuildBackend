@@ -33,7 +33,8 @@ public class ResumePostController {
 
     @PostMapping("/header/{res_id}")
     public Header createNewHeader(@PathVariable UUID res_id, @Valid @RequestBody HeaderForm headerForm){
-        return resumeService.createNewHeader(res_id, headerForm.name(), headerForm.email(), headerForm.number());
+        return resumeService.createNewHeader(res_id, headerForm.firstName(), headerForm.lastName(),
+                headerForm.email(), headerForm.number());
     }
 
     @PostMapping("/experience/{res_id}")

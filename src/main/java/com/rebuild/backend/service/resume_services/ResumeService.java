@@ -41,11 +41,12 @@ public class ResumeService {
         this.versionRepository = versionRepository;
     }
 
-    public Resume changeHeaderInfo(UUID resID, String newName, String newEmail, PhoneNumber newPhoneNumber){
+    public Resume changeHeaderInfo(UUID resID, String newFirstName, String newLastName, String newEmail, PhoneNumber newPhoneNumber){
         Resume resume = findById(resID);
         resume.getHeader().setEmail(newEmail);
         resume.getHeader().setNumber(newPhoneNumber);
-        resume.getHeader().setName(newName);
+        resume.getHeader().setFirstName(newFirstName);
+        resume.getHeader().setLastName(newLastName);
         return resumeRepository.save(resume);
     }
 
@@ -132,9 +133,9 @@ public class ResumeService {
         return resumeRepository.save(resume);
     }
 
-    public Header createNewHeader(UUID resID, String name, String email, PhoneNumber phoneNumber){
+    public Header createNewHeader(UUID resID, String firstName, String lastName, String email, PhoneNumber phoneNumber){
         Resume resume = findById(resID);
-        Header newHeader = new Header(phoneNumber, name, email);
+        Header newHeader = new Header(phoneNumber, firstName, lastName, email);
         resume.setHeader(newHeader);
         newHeader.setResume(resume);
         resumeRepository.save(resume);
@@ -285,7 +286,8 @@ public class ResumeService {
         List<ResumeSection> oldSections = resume.getSections();
         try {
             //We can directly operate on the result of the getter like this, because java returns by reference
-            resume.getHeader().setName(resumeForm.name());
+            resume.getHeader().setFirstName(resumeForm.firstName());
+            resume.getHeader().setLastName(resumeForm.lastName());
             resume.getHeader().setEmail(resumeForm.email());
             resume.getHeader().setNumber(resumeForm.phoneNumber());
             resume.getEducation().setSchoolName(resumeForm.schoolName());

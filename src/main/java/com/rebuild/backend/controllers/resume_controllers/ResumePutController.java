@@ -31,7 +31,7 @@ public class ResumePutController {
 
     @PutMapping("/header/{res_id}")
     public Resume modifyHeader(@PathVariable UUID res_id, @Valid @RequestBody HeaderForm headerForm){
-        return resumeService.changeHeaderInfo(res_id, headerForm.name(),
+        return resumeService.changeHeaderInfo(res_id, headerForm.firstName(), headerForm.lastName(),
                 headerForm.email(), headerForm.number());
     }
 

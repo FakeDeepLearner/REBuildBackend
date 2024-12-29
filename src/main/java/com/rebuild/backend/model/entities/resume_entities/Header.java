@@ -30,10 +30,13 @@ public class Header {
     @NonNull
     private PhoneNumber number;
 
-
-    @Column(name = "name", nullable = false)
+    @Column(name = "first_name", nullable = false)
     @NonNull
-    private String name;
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    @NonNull
+    private String lastName;
 
     @Column(name = "email", nullable = false)
     @NonNull
@@ -59,7 +62,7 @@ public class Header {
     public String toString() {
         return "HEADER:\n" +
                 "\tPhone Number: " + number.fullNumber() + "\n" +
-                "\tName: " + name + "\n" +
+                "\tName: " + firstName + " " + lastName + "\n" +
                 "\tEmail: " + email + "\n\n\n";
     }
 

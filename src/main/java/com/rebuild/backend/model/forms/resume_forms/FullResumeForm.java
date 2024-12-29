@@ -9,7 +9,10 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record FullResumeForm(@NotBlank(message = "Name may not be blank") String name,
+public record FullResumeForm(@NotBlank(message = "First name may not be blank") String firstName,
+
+                             @NotBlank(message = "Last name may not be blank")
+                             String lastName,
 
                              @NotBlank(message = "Email may not be blank")
                              @Email(message = "Must be a valid email")

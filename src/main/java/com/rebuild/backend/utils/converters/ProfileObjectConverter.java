@@ -20,7 +20,7 @@ public class ProfileObjectConverter{
     }
 
     public Header convertToHeader(ProfileHeader profileHeader){
-        return new Header(profileHeader.getNumber(), profileHeader.getName(),
+        return new Header(profileHeader.getNumber(), profileHeader.getFirstName(), profileHeader.getLastName(),
                 profileHeader.getEmail());
     }
 
