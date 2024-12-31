@@ -39,11 +39,11 @@ public class ResumePostController {
 
     @PostMapping("/experience/{res_id}")
     public ResponseEntity<?> createNewExperience(@PathVariable UUID res_id, @Valid @RequestBody ExperienceForm experienceForm){
-        Duration duration = Duration.between(experienceForm.startDate(), experienceForm.endDate());
+
 
         OptionalValueAndErrorResult<Resume> createResult =
                 resumeService.createNewExperience(res_id, experienceForm.companyName(), experienceForm.technologies(),
-                duration, experienceForm.bullets());
+                experienceForm.startDate(), experienceForm.endDate(), experienceForm.bullets());
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());

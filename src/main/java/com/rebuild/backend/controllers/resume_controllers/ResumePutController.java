@@ -39,10 +39,10 @@ public class ResumePutController {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ResponseEntity<?> modifyExperience(@PathVariable UUID res_id, @PathVariable UUID exp_id,
                                                    @Valid @RequestBody ExperienceForm experienceForm){
-        Duration duration = Duration.between(experienceForm.startDate(), experienceForm.endDate());
+
         OptionalValueAndErrorResult<Resume> updateResult =
                 resumeService.changeExperienceInfo(res_id, exp_id, experienceForm.companyName(),
-                experienceForm.technologies(), duration, experienceForm.bullets());
+                experienceForm.technologies(), experienceForm.startDate(), experienceForm.endDate(), experienceForm.bullets());
         switch (updateResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(updateResult.optionalResult().get());

@@ -9,6 +9,7 @@ import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
+import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -86,14 +88,17 @@ public class ResumeService {
     public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
                                            String newCompanyName,
                                            List<String> newTechnologies,
-                                           Duration newDuration,
+                                           String startDate,
+                                           String endDate,
                                            List<String> newBullets){
         Resume resume = findById(resID);
         //These variables are guaranteed to be properly initialized after the try block executes
         Experience removedExperience = null;
         int removedIndex = 0;
         try {
-            Experience newExperience = new Experience(newCompanyName, newTechnologies, newDuration, newBullets);
+            YearMonth start = YearMonthStringOperations.getYearMonth(startDate);
+            YearMonth end = YearMonthStringOperations.getYearMonth(endDate);
+            Experience newExperience = new Experience(newCompanyName, newTechnologies, start, end, newBullets);
             List<Experience> experiences = resume.getExperiences();
             int indexCounter = 0;
             for(Experience experience : experiences){
@@ -145,9 +150,11 @@ public class ResumeService {
 
     public OptionalValueAndErrorResult<Resume> createNewExperience(UUID resID, String companyName,
                                           List<String> technologies,
-                                          Duration duration, List<String> bullets){
+                                            String startDate, String endDate, List<String> bullets){
         Resume resume = findById(resID);
-        Experience newExperience = new Experience(companyName, technologies, duration, bullets);
+        YearMonth start = YearMonthStringOperations.getYearMonth(startDate);
+        YearMonth end = YearMonthStringOperations.getYearMonth(endDate);
+        Experience newExperience = new Experience(companyName, technologies, start, end, bullets);
         try {
             resume.addExperience(newExperience);
             newExperience.setResume(resume);

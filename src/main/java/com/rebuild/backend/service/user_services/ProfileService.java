@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
+import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -96,12 +98,13 @@ public class ProfileService {
                                                 List<ProfileExperienceForm> newExperiences){
         List<ProfileExperience> oldExperiences = profile.getExperienceList();
         List<ProfileExperience> transformedExperiences = newExperiences.stream().
+
                 map((rawExperience) -> {
-                    Duration experienceDuration = Duration.between(rawExperience.startDate(),
-                            rawExperience.endDate());
+                    YearMonth startDate = YearMonthStringOperations.getYearMonth(rawExperience.startDate());
+                    YearMonth endDate = YearMonthStringOperations.getYearMonth(rawExperience.endDate());
                     ProfileExperience newExperience =
                             new ProfileExperience(rawExperience.companyName(), rawExperience.technologies(),
-                            experienceDuration, rawExperience.bullets());
+                            startDate, endDate, rawExperience.bullets());
                     newExperience.setProfile(profile);
                     return newExperience;
                 }).toList();

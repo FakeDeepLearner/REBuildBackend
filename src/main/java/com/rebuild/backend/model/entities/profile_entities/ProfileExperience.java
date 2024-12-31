@@ -2,11 +2,15 @@ package com.rebuild.backend.model.entities.profile_entities;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.rebuild.backend.utils.YearMonthSerializer;
 import com.rebuild.backend.utils.converters.DurationToStringConverter;
+import com.rebuild.backend.utils.converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Duration;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,10 +43,17 @@ public class ProfileExperience {
     @NonNull
     private List<String> technologyList;
 
-    @Column(name = "time_period", nullable = false)
+    @Column(name = "start_date", nullable = false)
     @NonNull
-    @Convert(converter = DurationToStringConverter.class)
-    private Duration timePeriod;
+    @JsonSerialize(using = YearMonthSerializer.class)
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth startDate;
+
+    @Column(name = "end_date", nullable = false)
+    @NonNull
+    @JsonSerialize(using = YearMonthSerializer.class)
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth endDate;
 
     @ElementCollection
     @CollectionTable(name = "bullets", joinColumns = @JoinColumn(name = "experience_id"))

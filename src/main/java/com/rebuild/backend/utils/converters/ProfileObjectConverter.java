@@ -16,7 +16,7 @@ public class ProfileObjectConverter{
 
     public Experience convertToExperience(ProfileExperience profileExperience){
         return new Experience(profileExperience.getCompanyName(), profileExperience.getTechnologyList(),
-                profileExperience.getTimePeriod(), profileExperience.getBullets());
+                profileExperience.getStartDate(), profileExperience.getEndDate(), profileExperience.getBullets());
     }
 
     public Header convertToHeader(ProfileHeader profileHeader){

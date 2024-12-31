@@ -108,7 +108,7 @@ public class Resume {
                 originalHeader.getEmail());
         this.experiences = originalExperiences.stream().map(
                 experience -> new Experience(experience.getCompanyName(), experience.getTechnologyList(),
-                        experience.getTimePeriod(), experience.getBullets())
+                        experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
         this.sections = originalSections.stream().map(
                 section -> new ResumeSection(section.getTitle(), section.getBullets())
