@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -56,9 +57,11 @@ public class Comment {
     private List<Comment> replies = new ArrayList<>();
 
     @CreatedDate
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate;
 
     @LastModifiedDate
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime modificationDate;
 
     @NonNull

@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -75,10 +76,12 @@ public class Resume {
 
     @JsonIgnore
     @CreatedDate
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationTime = LocalDateTime.now();
 
     @JsonIgnore
     @LastModifiedDate
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime lastModifiedTime = LocalDateTime.now();
 
     public Resume(@NonNull String resume_name, @NonNull User user){

@@ -7,6 +7,8 @@ import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
+import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -41,8 +43,6 @@ public class User implements UserDetails {
     @JsonIgnore
     private UUID id;
 
-
-
     @Column(
             nullable = false,
             name = "password"
@@ -59,6 +59,7 @@ public class User implements UserDetails {
     private String email;
 
     @Column(name = "phone_number")
+    @Convert(converter = PhoneAndStringDatabaseConverter.class)
     private PhoneNumber phoneNumber;
 
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
@@ -109,9 +110,11 @@ public class User implements UserDetails {
     private boolean enabled = false;
 
     @JsonIgnore
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime signUpTime = LocalDateTime.now();
 
     @JsonIgnore
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime lastLoginTime = LocalDateTime.now();
 
     public User(@NonNull String encodedPassword, @NonNull String email, PhoneNumber phoneNumber) {

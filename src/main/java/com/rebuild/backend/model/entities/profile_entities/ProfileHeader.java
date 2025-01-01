@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
+import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,7 @@ public class ProfileHeader {
             @AttributeOverride(name = "restOfNumber", column = @Column(name = "phone_remainder")),
     })
     @NonNull
+    @Convert(converter = PhoneAndStringDatabaseConverter.class)
     private PhoneNumber number;
 
     @Column(name = "first_name", nullable = false)

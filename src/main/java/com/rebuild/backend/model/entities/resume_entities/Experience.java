@@ -3,7 +3,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.rebuild.backend.utils.YearMonthSerializer;
-import com.rebuild.backend.utils.converters.YearMonthDatabaseConverter;
+import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 

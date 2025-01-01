@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.converters;
+package com.rebuild.backend.utils.converters.database_converters;
 
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import jakarta.persistence.AttributeConverter;

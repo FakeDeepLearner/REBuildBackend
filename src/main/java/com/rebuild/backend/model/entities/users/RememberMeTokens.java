@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.users;
 
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -31,5 +32,6 @@ public class RememberMeTokens {
 
     @Column(nullable = false, name = "last_used")
     @NonNull
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime lastUsedTime;
 }
