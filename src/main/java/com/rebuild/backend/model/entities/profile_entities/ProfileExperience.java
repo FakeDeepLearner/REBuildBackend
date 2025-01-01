@@ -4,12 +4,10 @@ package com.rebuild.backend.model.entities.profile_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.rebuild.backend.utils.YearMonthSerializer;
-import com.rebuild.backend.utils.converters.DurationToStringConverter;
 import com.rebuild.backend.utils.converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Duration;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;

@@ -83,7 +83,7 @@ public class LogoutController implements LogoutHandler {
         InputStream requestStream = request.getInputStream();
         if(method.equals("POST")){
             //Delimit based on network newlines
-            Scanner scanner = new Scanner(requestStream, StandardCharsets.UTF_8).useDelimiter("\r\n");
+            Scanner scanner = new Scanner(requestStream, StandardCharsets.UTF_8).useDelimiter("\\A");
             while(scanner.hasNext()){
                 String nextLine = scanner.next();
                 builder.append(nextLine);

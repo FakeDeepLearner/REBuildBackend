@@ -65,7 +65,6 @@ public class ResumePostController {
 
     @PostMapping("/education/{res_id}")
     public Resume createNewEducation(@PathVariable UUID res_id, @Valid @RequestBody EducationForm educationForm){
-        return resumeService.createNewEducation(res_id, educationForm.schoolName(),
-                educationForm.relevantCoursework());
+        return resumeService.createNewEducation(res_id, educationForm);
     }
 }

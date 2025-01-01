@@ -11,6 +11,7 @@ public record FullProfileForm(PhoneNumber phoneNumber,
                               String lastName,
                               String email,
                               String schoolName, List<String> relevantCoursework,
+                              String schoolStartDate, String schoolEndDate,
                               List<ProfileExperience> experiences,
                               List<ProfileSection> sections) {
 }

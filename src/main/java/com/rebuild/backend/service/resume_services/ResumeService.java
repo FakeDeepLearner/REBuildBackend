@@ -3,6 +3,7 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.model.responses.HomePageData;
@@ -176,9 +177,12 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
-    public Resume createNewEducation(UUID resID, String schoolName, List<String> courseWork){
+    public Resume createNewEducation(UUID resID, EducationForm educationForm){
         Resume resume = findById(resID);
-        Education education = new Education(schoolName, courseWork);
+        YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
+        YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
+        Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
+                startDate, endDate);
         resume.setEducation(education);
         education.setResume(resume);
         return resumeRepository.save(resume);

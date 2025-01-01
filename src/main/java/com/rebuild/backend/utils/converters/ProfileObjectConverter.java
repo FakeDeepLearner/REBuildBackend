@@ -26,7 +26,8 @@ public class ProfileObjectConverter{
 
 
     public Education convertToEducation(ProfileEducation profileEducation){
-        return new Education(profileEducation.getSchoolName(), profileEducation.getRelevantCoursework());
+        return new Education(profileEducation.getSchoolName(), profileEducation.getRelevantCoursework(),
+                profileEducation.getStartDate(), profileEducation.getEndDate());
     }
 
     public ResumeSection convertToSection(ProfileSection profileSection){

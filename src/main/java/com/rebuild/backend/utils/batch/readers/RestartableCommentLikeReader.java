@@ -35,4 +35,9 @@ public class RestartableCommentLikeReader extends AmqpItemReader<CommentLikeRequ
         currentIndex += 1;
         executionContext.putLong(CURRENT, currentIndex);
     }
+
+    @Override
+    public CommentLikeRequest read() {
+        return super.read();
+    }
 }

@@ -102,7 +102,7 @@ public class Resume {
         this.user = originalResume.getUser();
         // We are creating new objects here, because we do not want them to be a reference to the original ones.
         this.education = new Education(originalEducation.getSchoolName(),
-                originalEducation.getRelevantCoursework());
+                originalEducation.getRelevantCoursework(), originalEducation.getStartDate(), originalEducation.getEndDate());
         this.header = new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
                 originalHeader.getLastName(),
                 originalHeader.getEmail());

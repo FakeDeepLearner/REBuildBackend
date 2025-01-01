@@ -12,11 +12,6 @@ TODO(ASAP): Reimplement the "remember me" feature
 TODO(ASAP): Create a detailed specification system for resumes, that allow the user to create
 subfilters based on education, experiences and the other sections
 
-TODO(ASAP): Refactor the Experience class to store not a duration, but s start and end date separately.
-This can help us obtain a duration if we need, and we will also be able to write specifications about
-them much more easily. Additionally, create more date attributes for other classes that might need them.
-(such as ResumeSection)
-
 TODO (might not happen): Change the forum credential
 updating process to mimic (more or less) the ones with the other app credentials
 

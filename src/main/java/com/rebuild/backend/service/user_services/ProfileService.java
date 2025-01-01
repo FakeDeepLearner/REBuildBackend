@@ -35,14 +35,7 @@ public class ProfileService {
     }
 
     public OptionalValueAndErrorResult<UserProfile> createFullProfileFor(FullProfileForm profileForm, User creatingUser) {
-        ProfileHeader profileHeader = new ProfileHeader(profileForm.phoneNumber(),
-                profileForm.firstName(),
-                profileForm.lastName(),
-                profileForm.email());
-        ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
-                profileForm.relevantCoursework());
-        UserProfile newProfile = new UserProfile(profileHeader, newEducation, profileForm.experiences(),
-                profileForm.sections());
+        UserProfile newProfile = getUserProfile(profileForm);
         try {
             newProfile.setUser(creatingUser);
             creatingUser.setProfile(newProfile);
@@ -71,6 +64,19 @@ public class ProfileService {
         return OptionalValueAndErrorResult.empty();
     }
 
+    private UserProfile getUserProfile(FullProfileForm profileForm) {
+        YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.schoolStartDate());
+        YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.schoolEndDate());
+        ProfileHeader profileHeader = new ProfileHeader(profileForm.phoneNumber(),
+                profileForm.firstName(),
+                profileForm.lastName(),
+                profileForm.email());
+        ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
+                profileForm.relevantCoursework(), startDate, endDate);
+        return new UserProfile(profileHeader, newEducation, profileForm.experiences(),
+                profileForm.sections());
+    }
+
     public UserProfile changePageSize(UserProfile profile, int newPageSize){
         profile.setForumPageSize(newPageSize);
         return profileRepository.save(profile);
@@ -87,8 +93,10 @@ public class ProfileService {
 
     public UserProfile updateProfileEducation(UserProfile userProfile,
                                               ProfileEducationForm educationForm) {
+        YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
+        YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         ProfileEducation newEducation = new ProfileEducation(educationForm.schoolName(),
-                educationForm.relevantCoursework());
+                educationForm.relevantCoursework(), startDate, endDate);
         userProfile.setEducation(newEducation);
         newEducation.setProfile(userProfile);
         return profileRepository.save(userProfile);
@@ -201,12 +209,14 @@ public class ProfileService {
         List<ProfileSection> oldSections = updatingProfile.getSections();
         ProfileHeader oldHeader = updatingProfile.getHeader();
         ProfileEducation oldEducation = updatingProfile.getEducation();
+        YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.schoolStartDate());
+        YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.schoolEndDate());
         try {
             updatingProfile.setExperienceList(profileForm.experiences());
             updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
                     profileForm.firstName(), profileForm.lastName(), profileForm.email()));
             updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
-                    profileForm.relevantCoursework()));
+                    profileForm.relevantCoursework(), startDate, endDate));
             updatingProfile.setSections(profileForm.sections());
             UserProfile savedProfile = profileRepository.save(updatingProfile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
