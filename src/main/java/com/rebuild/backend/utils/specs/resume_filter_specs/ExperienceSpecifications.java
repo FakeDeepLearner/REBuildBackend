@@ -3,7 +3,6 @@ package com.rebuild.backend.utils.specs.resume_filter_specs;
 import com.rebuild.backend.model.entities.resume_entities.Experience;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
 
 public class ExperienceSpecifications {
 
@@ -18,5 +17,11 @@ public class ExperienceSpecifications {
     }
 
     //TODO: Write time based specifications after the date refactor
+
+    public static Specification<Experience> startDateAfter(String inputDate){
+        return (root, query, criteriaBuilder) ->{
+
+        };
+    }
 
 }
