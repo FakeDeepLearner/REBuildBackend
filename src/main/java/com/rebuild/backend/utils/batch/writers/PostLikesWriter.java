@@ -7,6 +7,7 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class PostLikesWriter implements ItemWriter<PostLike> {
@@ -20,6 +21,7 @@ public class PostLikesWriter implements ItemWriter<PostLike> {
 
 
     @Override
+    @Transactional
     public void write(@NonNull Chunk<? extends PostLike> chunk) throws Exception {
         postLikeRepository.saveAll(chunk);
     }

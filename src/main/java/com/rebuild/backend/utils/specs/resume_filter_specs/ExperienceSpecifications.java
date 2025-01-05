@@ -18,10 +18,5 @@ public class ExperienceSpecifications {
 
     //TODO: Write time based specifications after the date refactor
 
-    public static Specification<Experience> startDateAfter(String inputDate){
-        return (root, query, criteriaBuilder) ->{
-
-        };
-    }
 
 }
