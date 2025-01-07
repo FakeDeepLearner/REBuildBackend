@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.rabbitmq;
 
+import com.rebuild.backend.config.properties.BatchChunkSize;
 import com.rebuild.backend.model.entities.forum_entities.PostLike;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.utils.batch.processors.PostLikeProcessor;
@@ -27,19 +28,22 @@ public class PostLikeBatchStepsConfig {
 
     private final PostLikesWriter postLikesWriter;
 
+    private final BatchChunkSize chunkSize;
+
     @Autowired
     public PostLikeBatchStepsConfig(RestartablePostLikeReader postLikeReader,
                                     PostLikeProcessor postLikeProcessor,
-                                    PostLikesWriter postLikesWriter) {
+                                    PostLikesWriter postLikesWriter, BatchChunkSize chunkSize) {
         this.postLikeReader = postLikeReader;
         this.postLikeProcessor = postLikeProcessor;
         this.postLikesWriter = postLikesWriter;
+        this.chunkSize = chunkSize;
     }
 
     @Bean
     public Step postLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("postLikeStep", jobRepository).
-                <PostLikeRequest, PostLike>chunk(15, transactionManager).
+                <PostLikeRequest, PostLike>chunk(chunkSize.size(), transactionManager).
                 reader(postLikeReader).
                 processor(postLikeProcessor).
                 writer(postLikesWriter).build();

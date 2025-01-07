@@ -157,7 +157,8 @@ public class UserService{
         user.setAccountNonLocked(true);
         save(user);
     }
-    public void blockInactiveUsers(LocalDateTime cutoff){
+
+    private void blockInactiveUsers(LocalDateTime cutoff){
         List<User> inactiveUsers = repository.findByLastLoginTimeBefore(cutoff);
         inactiveUsers.forEach((user) -> {
             user.setAccountNonExpired(false);

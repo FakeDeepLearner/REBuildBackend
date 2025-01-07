@@ -65,6 +65,7 @@ public class User implements UserDetails {
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
     })
+    @JsonIgnore
     private UserProfile profile = null;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
@@ -74,6 +75,13 @@ public class User implements UserDetails {
             CascadeType.MERGE
     })
     private List<Resume> resumes = new ArrayList<>();
+
+    @OneToOne(orphanRemoval = true, mappedBy = "user",
+    cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
+    })
+    @JsonIgnore
+    private RememberMeToken associatedRememberMeToken = null;
 
     private String forumUsername = null;
 

@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.rabbitmq;
 
+import com.rebuild.backend.config.properties.BatchChunkSize;
 import com.rebuild.backend.model.entities.forum_entities.CommentLike;
 import com.rebuild.backend.model.entities.forum_entities.PostLike;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
@@ -29,19 +30,22 @@ public class CommentLikeBatchStepsConfig {
 
     private final CommentLikeProcessor likeProcessor;
 
+    private final BatchChunkSize chunkSize;
+
     @Autowired
     public CommentLikeBatchStepsConfig(RestartableCommentLikeReader likeReader,
                                        CommentsWriter commentsWriter,
-                                       CommentLikeProcessor likeProcessor) {
+                                       CommentLikeProcessor likeProcessor, BatchChunkSize chunkSize) {
         this.likeReader = likeReader;
         this.commentsWriter = commentsWriter;
         this.likeProcessor = likeProcessor;
+        this.chunkSize = chunkSize;
     }
 
     @Bean
     public Step commentLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("commentLikeStep", jobRepository).
-                <CommentLikeRequest, CommentLike>chunk(15, transactionManager).
+                <CommentLikeRequest, CommentLike>chunk(chunkSize.size(), transactionManager).
                 reader(likeReader).
                 processor(likeProcessor).
                 writer(commentsWriter).build();
