@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
+import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,25 +30,8 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size")
                                           int pageSize,
 
-                                          @RequestParam(name = "username", required = false)
-                                          String username,
+                                          @RequestBody ForumSpecsDTO forumSpecsDTO) {
 
-                                          @RequestParam(name = "latest", required = false)
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                                          LocalDateTime latest,
-
-                                          @RequestParam(name = "earliest", required = false)
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                                          LocalDateTime earliest,
-
-                                          @RequestParam(name = "title_has", required = false)
-                                          String titleHas,
-
-                                          @RequestParam(name = "body_has", required = false)
-                                          String bodyHas) {
-
-        return postAndCommentService.getPageResponses(pageNumber, pageSize,
-                username, latest, earliest,
-                titleHas, bodyHas);
+        return postAndCommentService.getPageResponses(pageNumber, pageSize, forumSpecsDTO);
     }
 }

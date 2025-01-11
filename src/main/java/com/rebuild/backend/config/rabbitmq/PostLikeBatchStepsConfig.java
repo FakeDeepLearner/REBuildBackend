@@ -46,7 +46,8 @@ public class PostLikeBatchStepsConfig {
                 <PostLikeRequest, PostLike>chunk(chunkSize.size(), transactionManager).
                 reader(postLikeReader).
                 processor(postLikeProcessor).
-                writer(postLikesWriter).build();
+                writer(postLikesWriter).
+                build();
     }
 
     @Bean

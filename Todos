@@ -2,20 +2,10 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO(priority 2): Before fully implementing websockets, write an extensive test suite
 
-TODO(ASAP): Use the newly created like tables to create methods to like comments and posts
-(and set up batch processing infrastructure)
-
 TODO(priority 1): Make a more complicated rate limiting mechanism
 
-TODO(ASAP): Reimplement the "remember me" feature
-
-TODO(ASAP): Create a detailed specification system for resumes, that allow the user to create
-subfilters based on education, experiences and the other sections
+TODO(ASAP): Reimplement the "remember me" feature properly using Spring Security beans
 
 TODO (might not happen): Change the forum credential
 updating process to mimic (more or less) the ones with the other app credentials
-
-TODO(might not happen): Set up the ability for the frontend to unload the comments when they leave the viewport,
-by providing api functions that it can call with the index. Set up prefetching
-and caching the next set of comments to be shown to increase performance
 

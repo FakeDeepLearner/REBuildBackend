@@ -14,7 +14,7 @@ import java.util.UUID;
 @Table(name = "comment_likes", uniqueConstraints =
         {
                 @UniqueConstraint(name = "uk_unique_comment_like",
-                        columnNames = {"id", "comment_id", "user_id"})
+                        columnNames = {"comment_id", "user_id"})
         })
 public class CommentLike {
     @Id

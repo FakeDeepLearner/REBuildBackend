@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
@@ -99,7 +100,13 @@ public class ForumPostAndCommentService {
 
     private Specification<ForumPost> deriveSpecification(String username,
                                                          LocalDateTime latest, LocalDateTime earliest,
-                                                         String titleHas, String bodyHas){
+                                                         String titleHas, String bodyHas,
+                                                         String titleStarts,
+                                                         String bodyStarts,
+                                                         String bodyEnds,
+                                                         String titleEnds,
+                                                         Integer bodyMinSize,
+                                                         Integer bodyMaxSize){
         List<Specification<ForumPost>> basicSpecs = new ArrayList<>();
 
         if(username != null){
@@ -118,16 +125,42 @@ public class ForumPostAndCommentService {
             basicSpecs.add(ForumPostSpecifications.bodyContains(bodyHas));
         }
 
+        if(titleStarts != null){
+            basicSpecs.add(ForumPostSpecifications.titleStartsWith(titleStarts));
+        }
+
+        if(bodyStarts != null){
+            basicSpecs.add(ForumPostSpecifications.bodyStartsWith(bodyStarts));
+        }
+
+        if(bodyEnds != null){
+            basicSpecs.add(ForumPostSpecifications.bodyEndsWith(bodyEnds));
+        }
+
+        if(titleEnds != null){
+            basicSpecs.add(ForumPostSpecifications.titleEndsWith(titleEnds));
+        }
+
+        if(bodyMinSize != null){
+            basicSpecs.add(ForumPostSpecifications.bodyMinSize(bodyMinSize));
+        }
+
+        if(bodyMaxSize != null){
+            basicSpecs.add(ForumPostSpecifications.bodyMaxSize(bodyMaxSize));
+        }
+
         return Specification.allOf(basicSpecs);
 
     }
 
     public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize,
-                                                  String username,
-                                                  LocalDateTime latest, LocalDateTime earliest,
-                                                  String titleHas, String bodyHas){
+                                                  ForumSpecsDTO forumSpecsDTO){
         Specification<ForumPost> derivedSpecification = deriveSpecification(
-                username, latest, earliest, titleHas, bodyHas);
+                forumSpecsDTO.postedUsername(), forumSpecsDTO.postAfterCutoff(), forumSpecsDTO.postBeforeCutoff(),
+                forumSpecsDTO.titleContains(), forumSpecsDTO.bodyContains(),
+                forumSpecsDTO.titleStartsWith(), forumSpecsDTO.bodyStartsWith(),
+                forumSpecsDTO.titleEndsWith(), forumSpecsDTO.bodyEndsWith(),
+                forumSpecsDTO.bodyMinSize(), forumSpecsDTO.bodyMaxSize());
         //Sort by descending order of creation dates, so the newest posts show up first
         Pageable pageableResult = PageRequest.of(currentPageNumber, pageSize,
                 Sort.by("creationDate").descending().

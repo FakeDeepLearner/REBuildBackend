@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @Table(name = "post_likes", uniqueConstraints =
         {
-                @UniqueConstraint(name = "uk_unique_post_like", columnNames = {"id", "post_id", "user_id"})
+                @UniqueConstraint(name = "uk_unique_post_like", columnNames = {"post_id", "user_id"})
         })
 public class PostLike {
     @Id

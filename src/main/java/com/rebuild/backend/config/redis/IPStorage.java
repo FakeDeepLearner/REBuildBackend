@@ -13,8 +13,8 @@ import java.time.Duration;
 
 @Configuration
 public class IPStorage{
-    private final RedisConnectionFactory connectionFactory;
 
+    private final RedisConnectionFactory connectionFactory;
 
     private final int hoursBlocked;
 

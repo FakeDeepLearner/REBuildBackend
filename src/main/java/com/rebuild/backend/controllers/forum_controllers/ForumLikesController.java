@@ -34,7 +34,7 @@ public class ForumLikesController {
     }
 
     @PostMapping("/post")
-    public ResponseEntity<String> likeComment(@RequestBody PostLikeRequest likeRequest){
+    public ResponseEntity<String> likePost(@RequestBody PostLikeRequest likeRequest){
         try{
             producingService.sendPostLike(likeRequest);
             return ResponseEntity.ok("Comment liked");

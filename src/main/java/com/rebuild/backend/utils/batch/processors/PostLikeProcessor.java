@@ -1,7 +1,5 @@
 package com.rebuild.backend.utils.batch.processors;
 
-import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.CommentLike;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.PostLike;
 import com.rebuild.backend.model.entities.users.User;
