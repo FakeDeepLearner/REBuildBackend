@@ -6,6 +6,8 @@ TODO(priority 1): Make a more complicated rate limiting mechanism
 
 TODO(ASAP): Reimplement the "remember me" feature properly using Spring Security beans
 
+TODO(ASAP): Change all LocalDateTime fields into LocalDate fields, since the times are not needed
+
 TODO (might not happen): Change the forum credential
 updating process to mimic (more or less) the ones with the other app credentials
 
