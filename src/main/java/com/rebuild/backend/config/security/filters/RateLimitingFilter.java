@@ -45,6 +45,8 @@ public class RateLimitingFilter extends OncePerRequestFilter implements Ordered 
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String ipAddress = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+
         ipRateLimitingService.registerConnection(ipAddress);
         if (ipRateLimitingService.isAddressBlocked(ipAddress)){
             throw new IPAddressBlockedException("Due to making too many requests in a short time, " +
