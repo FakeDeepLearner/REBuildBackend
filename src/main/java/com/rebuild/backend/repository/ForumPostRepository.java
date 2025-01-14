@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface ForumPostRepository extends JpaRepository<ForumPost, UUID>, JpaSpecificationExecutor<ForumPost> {
 
     int countByIdAndUserId(UUID id, UUID userId);

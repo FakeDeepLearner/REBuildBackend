@@ -11,10 +11,12 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
 @Service
+@Transactional(readOnly = true)
 public class ForumAuthenticationService {
 
     private final PepperedEncoder encoder;
@@ -41,6 +43,7 @@ public class ForumAuthenticationService {
 
     }
 
+    @Transactional
     public void signUserUpToForum(String forumUsername, String rawForumPassword, User userSigningUp){
         try{
             userSigningUp.setForumUsername(forumUsername);

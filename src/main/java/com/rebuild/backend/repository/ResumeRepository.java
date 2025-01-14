@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface ResumeRepository extends JpaRepository<Resume, UUID>, JpaSpecificationExecutor<Resume> {
 
     void deleteById(@NonNull UUID ID);

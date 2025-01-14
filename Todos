@@ -2,12 +2,11 @@ TODO: Start implementing websockets, in order to implement live collaboration wi
 
 TODO(priority 2): Before fully implementing websockets, write an extensive test suite
 
+TODO(priority 2): Set up a read replica (with AWS RDS)
+
 TODO(priority 1): Make a more complicated rate limiting mechanism
 
+TODO(Priority 1): Switch to session authentication and authorization. (For real this time)
+
 TODO(ASAP): Reimplement the "remember me" feature properly using Spring Security beans
-
-TODO(ASAP): Change all LocalDateTime fields into LocalDate fields, since the times are not needed
-
-TODO (might not happen): Change the forum credential
-updating process to mimic (more or less) the ones with the other app credentials
 

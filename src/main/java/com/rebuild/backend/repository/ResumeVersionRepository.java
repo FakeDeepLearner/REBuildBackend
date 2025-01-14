@@ -8,6 +8,5 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface ResumeVersionRepository extends JpaRepository<ResumeVersion, UUID> {
 }

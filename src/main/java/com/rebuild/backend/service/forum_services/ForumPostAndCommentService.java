@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class ForumPostAndCommentService {
 
     private final ResumeService resumeService;
@@ -49,6 +49,7 @@ public class ForumPostAndCommentService {
         this.base = base;
     }
 
+    @Transactional
     public ForumPost createNewPost(String title, String content,
                                    UUID resumeID,
                                    User creatingUser){
@@ -60,14 +61,17 @@ public class ForumPostAndCommentService {
         return postRepository.save(newPost);
     }
 
+    @Transactional
     public void deletePost(UUID postID){
         postRepository.deleteById(postID);
     }
 
+    @Transactional
     public void deleteComment(UUID commentID){
         commentRepository.deleteById(commentID);
     }
 
+    @Transactional
     public Comment makeTopLevelComment(String content, UUID post_id, User creatingUser){
         ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
         Comment newComment = new Comment(content);
@@ -80,6 +84,7 @@ public class ForumPostAndCommentService {
 
     }
 
+    @Transactional
     public Comment createReplyTo(String content, UUID commend_id, User creatingUser){
         Comment parentComment = commentRepository.findById(commend_id).orElseThrow(RuntimeException::new);
         Comment newComment = new Comment(content);
@@ -89,6 +94,7 @@ public class ForumPostAndCommentService {
         newComment.setAuthor(creatingUser);
         return commentRepository.save(newComment);
     }
+
 
     public boolean postBelongsToUser(UUID postID, UUID userID){
         return postRepository.countByIdAndUserId(postID, userID) > 0;

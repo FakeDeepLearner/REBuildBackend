@@ -41,7 +41,7 @@ public class HomePageController {
     public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize) {
-        return resumeService.loadHomePageInformation(authenticatedUser, pageNumber, pageSize);
+        return userService.loadHomePageInformation(authenticatedUser, pageNumber, pageSize);
     }
 
     @PostMapping("/api/create")

@@ -4,14 +4,21 @@ import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsExce
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -31,7 +38,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class UserService{
 
 
@@ -41,14 +48,18 @@ public class UserService{
 
     private final SessionRegistry sessionRegistry;
 
+    private final ResumeRepository resumeRepository;
+
 
     @Autowired
     public UserService(UserRepository repository,
                        @Qualifier("peppered") PasswordEncoder encoder,
-                       SessionRegistry sessionRegistry){
+                       SessionRegistry sessionRegistry,
+                       ResumeRepository resumeRepository){
         this.repository = repository;
         this.encoder = encoder;
         this.sessionRegistry = sessionRegistry;
+        this.resumeRepository = resumeRepository;
     }
 
     public void invalidateAllSessions(String username){
@@ -69,11 +80,13 @@ public class UserService{
     }
 
 
+    @Transactional
     public void changePassword(UUID userID, String newRawPassword){
         String newHashedPassword = encoder.encode(newRawPassword);
         repository.changePassword(userID, newHashedPassword);
     }
 
+    @Transactional
     public void changeEmail(UUID userID, String newEmail){
         try {
             repository.changeEmail(userID, newEmail);
@@ -105,11 +118,13 @@ public class UserService{
 
     }
 
+    @Transactional
     public void removePhoneOf(User deletingUser){
         deletingUser.setPhoneNumber(null);
         save(deletingUser);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<User> createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
         String encodedPassword = encoder.encode(rawPassword);
         User newUser = new User(encodedPassword, email, phoneNumber);
@@ -142,23 +157,27 @@ public class UserService{
         return OptionalValueAndErrorResult.empty();
     }
 
+    @Transactional
     public User save(User user){
         return repository.save(user);
     }
 
+    @Transactional
     public void lockUserAccount(String email){
         User user = repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(""));
         user.setAccountNonLocked(false);
         save(user);
     }
 
+    @Transactional
     public void unlockUserAccount(String email){
         User user = repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(""));
         user.setAccountNonLocked(true);
         save(user);
     }
 
-    private void blockInactiveUsers(LocalDateTime cutoff){
+    @Transactional
+    protected void blockInactiveUsers(LocalDateTime cutoff){
         List<User> inactiveUsers = repository.findByLastLoginTimeBefore(cutoff);
         inactiveUsers.forEach((user) -> {
             user.setAccountNonExpired(false);
@@ -166,11 +185,14 @@ public class UserService{
         });
     }
 
+    @Transactional
     public void reactivateUserCredentials(User user){
         user.setAccountNonExpired(true);
         save(user);
     }
 
+
+    @Transactional
     public OptionalValueAndErrorResult<User> modifyForumUsername(User modifyingUser, String newUsername){
         String oldUsername = modifyingUser.getForumUsername();
         try {
@@ -191,14 +213,25 @@ public class UserService{
         }
     }
 
+    @Transactional
     public User modifyForumPassword(User modifyingUser, String newRawPassword){
         String encodedPassword = encoder.encode(newRawPassword);
         modifyingUser.setPassword(encodedPassword);
         return save(modifyingUser);
     }
 
+    public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){
+        Pageable pageableResult = PageRequest.of(pageNumber, pageSize,
+                Sort.by("creationDate").descending().
+                        and(Sort.by("lastModifiedDate").descending()));
+        Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
+        return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
+                resultingPage.getTotalPages(), pageSize, user.getProfile());
+    }
+
     //The following method will run every day at midnight (local (EST) time)
     @Scheduled(cron = "@midnight")
+    @Transactional
     public void blockingScheduledTask(){
         //Block all users that haven't logged in for (at least) 6 months
         LocalDateTime cutoff = LocalDateTime.now().minusMonths(6);

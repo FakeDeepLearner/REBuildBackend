@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
     int countByIdAndUserId(UUID id, UUID userId);

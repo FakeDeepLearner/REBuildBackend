@@ -24,7 +24,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
@@ -34,6 +34,7 @@ public class ProfileService {
         this.profileRepository = profileRepository;
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<UserProfile> createFullProfileFor(FullProfileForm profileForm, User creatingUser) {
         UserProfile newProfile = getUserProfile(profileForm);
         try {
@@ -64,6 +65,7 @@ public class ProfileService {
         return OptionalValueAndErrorResult.empty();
     }
 
+
     private UserProfile getUserProfile(FullProfileForm profileForm) {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.schoolStartDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.schoolEndDate());
@@ -77,11 +79,13 @@ public class ProfileService {
                 profileForm.sections());
     }
 
+    @Transactional
     public UserProfile changePageSize(UserProfile profile, int newPageSize){
         profile.setForumPageSize(newPageSize);
         return profileRepository.save(profile);
     }
 
+    @Transactional
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
         ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.firstName(),
@@ -91,6 +95,7 @@ public class ProfileService {
         return profileRepository.save(userProfile);
     }
 
+    @Transactional
     public UserProfile updateProfileEducation(UserProfile userProfile,
                                               ProfileEducationForm educationForm) {
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
@@ -102,6 +107,7 @@ public class ProfileService {
         return profileRepository.save(userProfile);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateProfileExperiences(UserProfile profile,
                                                 List<ProfileExperienceForm> newExperiences){
         List<ProfileExperience> oldExperiences = profile.getExperienceList();
@@ -133,6 +139,7 @@ public class ProfileService {
         return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateProfileSections(UserProfile profile,
                                              List<ProfileSectionForm> sectionForms){
         List<ProfileSection> oldSections = profile.getSections();
@@ -161,32 +168,38 @@ public class ProfileService {
                 INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public void deleteProfile(UUID profile_id){
         profileRepository.deleteById(profile_id);
     }
 
+    @Transactional
     public UserProfile deleteProfileExperiences(UserProfile profile){
         profile.setExperienceList(null);
         return profileRepository.save(profile);
     }
 
+    @Transactional
     public UserProfile deleteProfileEducation(UserProfile profile){
         profile.getEducation().setProfile(null);
         profile.setEducation(null);
         return profileRepository.save(profile);
     }
 
+    @Transactional
     public UserProfile deleteProfileSections(UserProfile profile){
         profile.setSections(null);
         return profileRepository.save(profile);
     }
 
+    @Transactional
     public UserProfile deleteProfileHeader(UserProfile profile){
         profile.getHeader().setProfile(null);
         profile.setHeader(null);
         return profileRepository.save(profile);
     }
-    
+
+    @Transactional
     public UserProfile deleteSpecificProfileExperience(UserProfile profile, UUID experience_id){
         profile.getExperienceList().
                 removeIf(profileExperience ->
@@ -195,6 +208,7 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
+    @Transactional
     public UserProfile deleteSpecificSection(UserProfile profile, UUID experience_id){
         profile.getSections().
                 removeIf(section ->
@@ -203,7 +217,7 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-
+    @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateEntireProfile(UserProfile updatingProfile, FullProfileForm profileForm){
         List<ProfileExperience> oldExperiences = updatingProfile.getExperienceList();
         List<ProfileSection> oldSections = updatingProfile.getSections();

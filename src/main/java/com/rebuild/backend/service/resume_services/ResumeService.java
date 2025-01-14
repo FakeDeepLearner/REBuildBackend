@@ -31,7 +31,7 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.*;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class ResumeService {
 
     private final ResumeRepository resumeRepository;
@@ -44,6 +44,7 @@ public class ResumeService {
         this.versionRepository = versionRepository;
     }
 
+    @Transactional
     public Resume changeHeaderInfo(UUID resID, String newFirstName, String newLastName, String newEmail, PhoneNumber newPhoneNumber){
         Resume resume = findById(resID);
         resume.getHeader().setEmail(newEmail);
@@ -53,6 +54,7 @@ public class ResumeService {
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> createNewResumeFor(String resume_name, User user){
         if(user.maxResumeLimitReached()){
             return OptionalValueAndErrorResult.of("You have reached the maximum number of " +
@@ -77,6 +79,7 @@ public class ResumeService {
         return OptionalValueAndErrorResult.empty();
     }
 
+
     public boolean resumeBelongsToUser(UUID resumeID, UUID userID){
         return resumeRepository.countByIdAndUserId(resumeID, userID) > 0;
     }
@@ -86,6 +89,7 @@ public class ResumeService {
         return resumeRepository.findById(id).orElseThrow(RuntimeException::new);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
                                            String newCompanyName,
                                            List<String> newTechnologies,
@@ -132,6 +136,7 @@ public class ResumeService {
                 INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public Resume changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
         Resume resume = findById(resID);
         resume.getEducation().setRelevantCoursework(newCourseWork);
@@ -139,6 +144,7 @@ public class ResumeService {
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public Header createNewHeader(UUID resID, String firstName, String lastName, String email, PhoneNumber phoneNumber){
         Resume resume = findById(resID);
         Header newHeader = new Header(phoneNumber, firstName, lastName, email);
@@ -149,6 +155,7 @@ public class ResumeService {
 
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> createNewExperience(UUID resID, String companyName,
                                           List<String> technologies,
                                             String startDate, String endDate, List<String> bullets){
@@ -177,6 +184,7 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public Resume createNewEducation(UUID resID, EducationForm educationForm){
         Resume resume = findById(resID);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
@@ -188,6 +196,7 @@ public class ResumeService {
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> createNewSection(UUID resID, String sectionTitle, List<String> sectionBullets){
         Resume resume = findById(resID);
         ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
@@ -211,35 +220,40 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public void deleteById(UUID id){
         resumeRepository.deleteById(id);
     }
 
+    @Transactional
     public Resume deleteEducation(UUID resID){
         Resume resume = findById(resID);
         resume.setEducation(null);
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public Resume deleteExperience(UUID resID, UUID expID){
         Resume resume = findById(resID);
         resume.getExperiences().removeIf(experience -> experience.getId().equals(expID));
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public Resume deleteSection(UUID resID, UUID sectionID){
         Resume resume = findById(resID);
         resume.getSections().removeIf(section -> section.getId().equals(sectionID));
         return resumeRepository.save(resume);
     }
-    
 
+    @Transactional
     public Resume deleteHeader(UUID resID){
         Resume resume = findById(resID);
         resume.setHeader(null);
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> setExperiences(Resume resume, List<Experience> newExperiences){
         List<Experience> oldExperiences = resume.getExperiences();
         try {
@@ -260,16 +274,19 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public Resume setHeader(Resume resume, Header newHeader){
         resume.setHeader(newHeader);
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public Resume setEducation(Resume resume, Education newEducation){
         resume.setEducation(newEducation);
         return resumeRepository.save(resume);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> setSections(Resume resume, List<ResumeSection> newSections){
         List<ResumeSection> oldSections = resume.getSections();
         try {
@@ -290,6 +307,7 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> fullUpdate(Resume resume, FullResumeForm resumeForm){
         Header oldHeader = resume.getHeader();
         Education oldEducation = resume.getEducation();
@@ -332,6 +350,7 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(resume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> changeName(UUID resID, String newName){
         Resume changingResume = findById(resID);
         String oldName = changingResume.getName();
@@ -352,6 +371,7 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(changingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> copyResume(UUID resID, String newName){
         Resume copiedResume = findById(resID);
         if(newName.equals(copiedResume.getName())){
@@ -375,6 +395,7 @@ public class ResumeService {
 
     }
 
+    @Transactional
     public ResumeVersion snapshotCurrentData(UUID resume_id){
         Resume copiedResume = findById(resume_id);
         ResumeVersion newVersion = new ResumeVersion(copiedResume.getHeader(), copiedResume.getEducation(),
@@ -384,6 +405,7 @@ public class ResumeService {
         return versionRepository.save(newVersion);
     }
 
+    @Transactional
     public OptionalValueAndErrorResult<Resume> switchToAnotherVersion(UUID resume_id, UUID version_id){
         Resume switchingResume = findById(resume_id);
         Header oldHeader = switchingResume.getHeader();
@@ -437,17 +459,11 @@ public class ResumeService {
         return OptionalValueAndErrorResult.of(switchingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
+    @Transactional
     public void deleteVersion(UUID version_id){
         versionRepository.deleteById(version_id);
     }
 
-    public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){
-        Pageable pageableResult = PageRequest.of(pageNumber, pageSize,
-                Sort.by("creationDate").descending().
-                        and(Sort.by("lastModifiedDate").descending()));
-        Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
-        return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
-                resultingPage.getTotalPages(), pageSize, user.getProfile());
-    }
+
 
 }

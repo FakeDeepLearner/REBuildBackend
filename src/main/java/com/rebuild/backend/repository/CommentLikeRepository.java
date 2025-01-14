@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface CommentLikeRepository extends JpaRepository<CommentLike, UUID>{
 
     Optional<CommentLike> findByLikingUserAndLikedCommentId(@NonNull User likingUser,
