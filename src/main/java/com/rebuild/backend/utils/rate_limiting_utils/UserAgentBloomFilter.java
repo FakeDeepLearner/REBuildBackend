@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.rate_limiting_utils;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashSet;
 
 @Component
 @SuppressWarnings("UnstableApiUsage")
@@ -21,15 +22,19 @@ public class UserAgentBloomFilter {
 
     private double falsePositiveChance = 0.01;
 
+    private Collection<String> addedAgents;
+
     public UserAgentBloomFilter() {
 
         this.bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8),
                 expectedInsertions, falsePositiveChance);
         this.numAgentsAdded = 0;
+        addedAgents = new HashSet<>();
     }
 
     public void addAgent(String agent) {
         bloomFilter.put(agent);
+        addedAgents.add(agent);
         numAgentsAdded += 1;
     }
 
@@ -41,16 +46,15 @@ public class UserAgentBloomFilter {
         return numAgentsAdded == expectedInsertions;
     }
 
-    public void change(int newExpectedInsertions, double newFalsePositiveProbability,
-                                             Collection<String> allNewItems) {
+    public void change(int newExpectedInsertions, double newFalsePositiveProbability) {
         BloomFilter<String> newFilter = BloomFilter.create(
                 Funnels.stringFunnel(StandardCharsets.UTF_8),
                 newExpectedInsertions, newFalsePositiveProbability
         );
         setExpectedInsertions(newExpectedInsertions);
         setFalsePositiveChance(newFalsePositiveProbability);
-        allNewItems.forEach(newFilter::put);
-        setNumAgentsAdded(allNewItems.size());
+        addedAgents.forEach(newFilter::put);
+        setNumAgentsAdded(addedAgents.size());
         setBloomFilter(newFilter);
     }
 }
