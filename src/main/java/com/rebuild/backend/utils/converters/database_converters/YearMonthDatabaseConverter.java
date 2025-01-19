@@ -6,8 +6,7 @@ import jakarta.persistence.Converter;
 
 import java.time.YearMonth;
 
-@Converter(autoApply = true)
-
+@Converter
 public class YearMonthDatabaseConverter implements AttributeConverter<YearMonth, String> {
 
     private String determineMonthString(int monthValue){

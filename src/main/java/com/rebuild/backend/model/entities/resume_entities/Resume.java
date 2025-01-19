@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -43,6 +44,7 @@ public class Resume {
 
     @Column(name = "name", nullable = false)
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String name;
 
     @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

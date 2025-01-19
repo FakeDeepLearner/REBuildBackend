@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
 import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
@@ -27,6 +28,7 @@ public class Education {
     private UUID id;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String schoolName;
 
     @NonNull

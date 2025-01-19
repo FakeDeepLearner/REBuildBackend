@@ -4,6 +4,7 @@ package com.rebuild.backend.model.entities.profile_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,14 +35,17 @@ public class ProfileHeader {
 
     @Column(name = "first_name", nullable = false)
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String lastName;
 
     @Column(name = "email", nullable = false)
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String email;
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)

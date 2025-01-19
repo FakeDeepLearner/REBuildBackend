@@ -9,6 +9,7 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -56,6 +57,7 @@ public class User implements UserDetails {
             name = "email"
     )
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String email;
 
     @Column(name = "phone_number")
@@ -83,6 +85,7 @@ public class User implements UserDetails {
     @JsonIgnore
     private RememberMeToken associatedRememberMeToken = null;
 
+    @Convert(converter = DatabaseEncryptor.class)
     private String forumUsername = null;
 
     //Just like the regular password, it will also be hashed and then stored.

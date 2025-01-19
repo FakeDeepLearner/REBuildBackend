@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -36,9 +37,11 @@ public class ForumPost {
     private UUID id;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String content;
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})

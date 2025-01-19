@@ -6,7 +6,7 @@ import jakarta.persistence.Converter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@Converter(autoApply = true)
+@Converter
 public class LocalDateTimeDatabaseConverter implements AttributeConverter<LocalDateTime, String> {
     @Override
     public String convertToDatabaseColumn(LocalDateTime localDateTime) {

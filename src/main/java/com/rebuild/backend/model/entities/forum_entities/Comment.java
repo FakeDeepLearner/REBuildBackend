@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -65,5 +66,6 @@ public class Comment {
     private LocalDateTime modificationDate;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String content;
 }

@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,7 @@ public class ResumeSection {
     private UUID id;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @NonNull

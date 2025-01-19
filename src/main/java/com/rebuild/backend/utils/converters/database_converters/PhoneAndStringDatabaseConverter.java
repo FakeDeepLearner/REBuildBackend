@@ -4,7 +4,7 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-@Converter(autoApply = true)
+@Converter
 public class PhoneAndStringDatabaseConverter implements AttributeConverter<PhoneNumber, String> {
     @Override
     public String convertToDatabaseColumn(PhoneNumber phoneNumber) {

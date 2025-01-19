@@ -121,3 +121,7 @@ google:
 
 batch:
   size: 20
+encryption:
+  algorithm: classpath:encryption/algorithm.txt
+  password: classpath:encryption/password.txt
+  salt: classpath:encryption/salt.txt

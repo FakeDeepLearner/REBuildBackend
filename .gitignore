@@ -11,6 +11,7 @@ target/
 /src/main/resources/twilio/
 src/main/resources/sslkey.jks
 /src/main/resources/google/
+/src/main/resources/encryption/
 ### STS ###
 .apt_generated
 .classpath
