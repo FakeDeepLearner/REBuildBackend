@@ -1,13 +1,25 @@
 package com.rebuild.backend.utils.converters.database_converters;
 
 
+import com.rebuild.backend.exceptions.ServerError;
+import com.rebuild.backend.utils.converters.encrypt.EncryptUtil;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.YearMonth;
 
+@Component
 @Converter
 public class YearMonthDatabaseConverter implements AttributeConverter<YearMonth, String> {
+
+    private final EncryptUtil encryptUtil;
+
+    @Autowired
+    public YearMonthDatabaseConverter(EncryptUtil encryptUtil) {
+        this.encryptUtil = encryptUtil;
+    }
 
     private String determineMonthString(int monthValue){
         return switch (monthValue) {
@@ -50,13 +62,24 @@ public class YearMonthDatabaseConverter implements AttributeConverter<YearMonth,
     public String convertToDatabaseColumn(YearMonth yearMonth) {
         int year = yearMonth.getYear();
         int month = yearMonth.getMonthValue();
-        return determineMonthString(month) + " " + year;
+        String combinedPlainText = determineMonthString(month) + " " + year;
+        try {
+            return encryptUtil.encrypt(combinedPlainText);
+        } catch (Exception e) {
+            throw new ServerError();
+        }
     }
 
     @Override
-    public YearMonth convertToEntityAttribute(String s) {
-        String monthString = s.split(" ")[0];
-        int year = Integer.parseInt(s.split(" ")[1]);
+    public YearMonth convertToEntityAttribute(String cipherText) {
+        String plainYearMonth;
+        try {
+            plainYearMonth = encryptUtil.decrypt(cipherText);
+        } catch (Exception e) {
+            throw new ServerError();
+        }
+        String monthString = plainYearMonth.split(" ")[0];
+        int year = Integer.parseInt(plainYearMonth.split(" ")[1]);
         int month = determineStringMonth(monthString);
         return YearMonth.of(year, month);
     }
