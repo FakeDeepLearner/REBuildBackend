@@ -191,6 +191,15 @@ public class UserService{
         save(user);
     }
 
+    //The following method will run every day at midnight (local (EST) time)
+    @Scheduled(cron = "@midnight")
+    @Transactional
+    public void blockingScheduledTask(){
+        //Block all users that haven't logged in for (at least) 6 months
+        LocalDateTime cutoff = LocalDateTime.now().minusMonths(6);
+        blockInactiveUsers(cutoff);
+    }
+
 
     @Transactional
     public OptionalValueAndErrorResult<User> modifyForumUsername(User modifyingUser, String newUsername){
@@ -227,15 +236,6 @@ public class UserService{
         Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
         return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
                 resultingPage.getTotalPages(), pageSize, user.getProfile());
-    }
-
-    //The following method will run every day at midnight (local (EST) time)
-    @Scheduled(cron = "@midnight")
-    @Transactional
-    public void blockingScheduledTask(){
-        //Block all users that haven't logged in for (at least) 6 months
-        LocalDateTime cutoff = LocalDateTime.now().minusMonths(6);
-        blockInactiveUsers(cutoff);
     }
 
 }

@@ -49,6 +49,7 @@ public class User implements UserDetails {
             name = "password"
     )
     @NonNull
+    @JsonIgnore
     private String password;
 
 
@@ -89,6 +90,7 @@ public class User implements UserDetails {
     private String forumUsername = null;
 
     //Just like the regular password, it will also be hashed and then stored.
+    @JsonIgnore
     private String forumPassword = null;
 
     @JsonIgnore
