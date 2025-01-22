@@ -5,14 +5,13 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
-import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.specs.YearMonthStringOperations;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;

@@ -6,23 +6,17 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
-import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
-import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.specs.YearMonthStringOperations;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;

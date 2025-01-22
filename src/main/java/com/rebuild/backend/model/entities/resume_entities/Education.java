@@ -32,7 +32,7 @@ public class Education implements ResumeProperty{
     private String schoolName;
 
     @NonNull
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
     private List<String> relevantCoursework;
 
