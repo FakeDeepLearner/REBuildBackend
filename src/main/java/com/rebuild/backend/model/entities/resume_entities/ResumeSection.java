@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-public class ResumeSection {
+public class ResumeSection implements ResumeProperty{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

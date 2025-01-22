@@ -22,7 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Experience {
+public class Experience implements ResumeProperty{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(

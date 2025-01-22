@@ -10,7 +10,7 @@ import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.utils.specs.ForumPostSpecifications;
+import com.rebuild.backend.specs.ForumPostSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

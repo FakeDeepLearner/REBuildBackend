@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "educations")
-public class Education {
+public class Education implements ResumeProperty{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JsonIgnore
