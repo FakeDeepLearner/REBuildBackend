@@ -47,27 +47,60 @@ public class SpecificationUtils {
     }
 
 
-    public static <T> Specification<T> createDateComparisonSpecification(String inputDate,
-                                                                         String dataBaseDate,
+    //TODO: Add support for months carrying over into another year
+    public static <T> Specification<T> createDateComparisonSpecification(Expression<String> dataBaseDate,
+                                                                         String inputDate,
                                                                          CompareCriteria criteria,
                                                                          ComparisonMethod method,
                                                                          int cutoff){
 
         return (root, query, criteriaBuilder) -> {
-            int result = YearMonthStringOperations.compare(inputDate, dataBaseDate,
-                    criteria, method);
-            Expression<Integer> resultExpression = criteriaBuilder.literal(result);
-            //Below, we use the ge and le methods
 
-            //At least cutoff months or years ahead
-            if(method == ComparisonMethod.AFTER){
-                return criteriaBuilder.ge(resultExpression, cutoff);
+            Expression<Integer> cutoffLiteral = criteriaBuilder.literal(cutoff);
+
+            String[] inputDateParts = inputDate.split("-");
+            String inputYear = inputDateParts[1];
+            String inputMonth = inputDateParts[0];
+
+            int inputYearInt = Integer.parseInt(inputYear);
+            int inputMonthInt = Integer.parseInt(inputMonth);
+
+            Expression<String> monthExpr = criteriaBuilder.function("SUBSTRING", String.class,
+                    dataBaseDate, criteriaBuilder.literal(1), criteriaBuilder.literal(2));
+            Expression<String> yearExpr = criteriaBuilder.function("SUBSTRING", String.class,
+                    dataBaseDate, criteriaBuilder.literal(4), criteriaBuilder.literal(4));
+
+            Expression<Integer> databaseMonthExpression =
+                    criteriaBuilder.function("CAST", Integer.class,
+                            monthExpr);
+            Expression<Integer> databaseYearExpression =
+                    criteriaBuilder.function("CAST", Integer.class,
+                            yearExpr);
+
+            if(criteria == CompareCriteria.YEAR){
+                if(method == ComparisonMethod.AFTER){
+                    return criteriaBuilder.ge(databaseYearExpression, inputYearInt + cutoff);
+                }
+                else{
+                    return criteriaBuilder.le(
+                            criteriaBuilder.sum(databaseYearExpression, cutoffLiteral),
+                            inputYearInt
+                    );
+                }
             }
-            //At least cutoff months or years behind
-            else{
-                return criteriaBuilder.le(criteriaBuilder.literal(-cutoff),
-                        resultExpression);
+
+            if(criteria == CompareCriteria.MONTH){
+                if(method == ComparisonMethod.AFTER){
+                    return criteriaBuilder.ge(databaseMonthExpression, inputMonthInt + cutoff);
+                }
+                else{
+                    return criteriaBuilder.le(
+                            criteriaBuilder.sum(databaseMonthExpression, cutoffLiteral),
+                            inputMonthInt
+                    );
+                }
             }
+            return null;
         };
     }
 
