@@ -10,11 +10,6 @@ TODO(Priority 1): Switch to session authentication and authorization. (For real 
 
 TODO(ASAP): Reimplement the "remember me" feature properly using Spring Security beans
 
-<<<<<<< HEAD
 TODO(Specific for this branch)(ASAP): Make more date-based specifications,
 now that the biggest barrier is out of the way
-=======
-TODO(Specific for this branch)(ASAP): Make a mechanism that tightly couples our YearMonth comparison mechanisms with
-JPA specifications
->>>>>>> e616d8e (Start on spec system)
 
