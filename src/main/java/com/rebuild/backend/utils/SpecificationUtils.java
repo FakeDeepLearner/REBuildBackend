@@ -4,12 +4,10 @@ import com.rebuild.backend.model.entities.enums.CompareCriteria;
 import com.rebuild.backend.model.entities.enums.ComparisonMethod;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.specs.YearMonthStringOperations;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.YearMonth;
 import java.util.List;
 
 public class SpecificationUtils {
@@ -47,7 +45,70 @@ public class SpecificationUtils {
     }
 
 
-    //TODO: Add support for months carrying over into another year
+    private static Predicate createMonthAfterPredicate(Expression<Integer> databaseMonthExpression,
+                                                       Expression<Integer> databaseYearExpression,
+                                                       int inputYearInt,
+                                                       int inputMonthInt,
+                                                       int cutoff,
+                                                       CriteriaBuilder criteriaBuilder) {
+        //This is the lower limit, the dates in the database must be at or beyond this point
+        YearMonth lowerLimit = YearMonth.of(inputYearInt, inputMonthInt).plusMonths(cutoff);
+        int newYear = lowerLimit.getYear();
+        int newMonth = lowerLimit.getMonthValue();
+        Expression<Integer> newYearExpr = criteriaBuilder.literal(newYear);
+        Expression<Integer> newMonthExpr = criteriaBuilder.literal(newMonth);
+        return criteriaBuilder.or(
+                /*
+                 * The reason that we also have to check for equality here is that,
+                 * if we don't, the query will return all the objects with their years being more
+                 * OR their months being more, so if the years are not greater than the database year
+                 * we still must check them for equality before checking for months being greater.
+                 * Additionally, since ge also returns true on equality,
+                 * we have to check this condition first to ensure
+                 * that the month check happens if the years are equal
+                 * */
+                criteriaBuilder.and(
+                        criteriaBuilder.equal(databaseYearExpression, newYearExpr),
+                        //If the years are equal, the difference between the months must be >= cutoff
+                        criteriaBuilder.ge(
+                                criteriaBuilder.diff(databaseMonthExpression, newMonthExpr),
+                                cutoff
+                        )
+                ),
+                criteriaBuilder.ge(databaseYearExpression, newYearExpr)
+        );
+
+    }
+
+
+    private static Predicate createMonthBeforePredicate(Expression<Integer> databaseMonthExpression,
+                                                       Expression<Integer> databaseYearExpression,
+                                                       int inputYearInt,
+                                                       int inputMonthInt,
+                                                       int cutoff,
+                                                       CriteriaBuilder criteriaBuilder){
+
+        //This is the upper limit, we are looking for dates that are at or before this point
+        YearMonth upperLimit = YearMonth.of(inputYearInt, inputMonthInt).minusMonths(cutoff);
+        int newYear = upperLimit.getYear();
+        int newMonth = upperLimit.getMonthValue();
+        Expression<Integer> newYearExpr = criteriaBuilder.literal(newYear);
+        Expression<Integer> newMonthExpr = criteriaBuilder.literal(newMonth);
+        return criteriaBuilder.or(
+                //The exact same logic in the function above applies here
+                criteriaBuilder.and(
+                        criteriaBuilder.equal(newYearExpr, databaseYearExpression),
+                        //The exact same logic also applies here, but in the opposite direction
+                        criteriaBuilder.ge(
+                                criteriaBuilder.diff(newMonthExpr, databaseMonthExpression),
+                                cutoff
+                        )
+                ),
+                criteriaBuilder.le(databaseYearExpression, newYearExpr)
+        );
+    }
+
+
     public static <T> Specification<T> createDateComparisonSpecification(Expression<String> dataBaseDate,
                                                                          String inputDate,
                                                                          CompareCriteria criteria,
@@ -55,9 +116,6 @@ public class SpecificationUtils {
                                                                          int cutoff){
 
         return (root, query, criteriaBuilder) -> {
-
-            Expression<Integer> cutoffLiteral = criteriaBuilder.literal(cutoff);
-
             String[] inputDateParts = inputDate.split("-");
             String inputYear = inputDateParts[1];
             String inputMonth = inputDateParts[0];
@@ -81,24 +139,18 @@ public class SpecificationUtils {
                 if(method == ComparisonMethod.AFTER){
                     return criteriaBuilder.ge(databaseYearExpression, inputYearInt + cutoff);
                 }
-                else{
-                    return criteriaBuilder.le(
-                            criteriaBuilder.sum(databaseYearExpression, cutoffLiteral),
-                            inputYearInt
-                    );
-                }
+                return criteriaBuilder.le(databaseYearExpression, inputYearInt - cutoff);
             }
 
             if(criteria == CompareCriteria.MONTH){
                 if(method == ComparisonMethod.AFTER){
-                    return criteriaBuilder.ge(databaseMonthExpression, inputMonthInt + cutoff);
+                    return createMonthAfterPredicate(databaseMonthExpression,
+                            databaseYearExpression, inputYearInt,
+                            inputMonthInt, cutoff, criteriaBuilder);
                 }
-                else{
-                    return criteriaBuilder.le(
-                            criteriaBuilder.sum(databaseMonthExpression, cutoffLiteral),
-                            inputMonthInt
-                    );
-                }
+                return createMonthBeforePredicate(databaseMonthExpression,
+                        databaseYearExpression, inputYearInt,
+                        inputMonthInt, cutoff, criteriaBuilder);
             }
             return null;
         };
