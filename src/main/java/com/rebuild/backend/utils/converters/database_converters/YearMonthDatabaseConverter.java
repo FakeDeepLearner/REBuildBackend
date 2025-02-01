@@ -62,24 +62,13 @@ public class YearMonthDatabaseConverter implements AttributeConverter<YearMonth,
     public String convertToDatabaseColumn(YearMonth yearMonth) {
         int year = yearMonth.getYear();
         int month = yearMonth.getMonthValue();
-        String combinedPlainText = determineMonthString(month) + " " + year;
-        try {
-            return encryptUtil.encrypt(combinedPlainText);
-        } catch (Exception e) {
-            throw new ServerError();
-        }
+        return determineMonthString(month) + " " + year;
     }
 
     @Override
-    public YearMonth convertToEntityAttribute(String cipherText) {
-        String plainYearMonth;
-        try {
-            plainYearMonth = encryptUtil.decrypt(cipherText);
-        } catch (Exception e) {
-            throw new ServerError();
-        }
-        String monthString = plainYearMonth.split(" ")[0];
-        int year = Integer.parseInt(plainYearMonth.split(" ")[1]);
+    public YearMonth convertToEntityAttribute(String s) {
+        String monthString = s.split(" ")[0];
+        int year = Integer.parseInt(s.split(" ")[1]);
         int month = determineStringMonth(monthString);
         return YearMonth.of(year, month);
     }
