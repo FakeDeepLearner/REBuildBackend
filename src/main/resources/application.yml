@@ -66,6 +66,9 @@ spring:
     aws:
       s3:
         region: us-east-2
+  batch:
+    job:
+      enabled: true
 
 logging:
   level:
@@ -83,7 +86,7 @@ server:
     session:
       timeout: 10m
       cookie:
-        name: SESSIONID
+        name: JSESSIONID
         http-only: true
         secure: true
         same-site: strict

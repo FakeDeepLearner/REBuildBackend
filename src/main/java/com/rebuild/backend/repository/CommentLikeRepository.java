@@ -13,7 +13,6 @@ import java.util.UUID;
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, UUID>{
 
-    Optional<CommentLike> findByLikingUserAndLikedCommentId(@NonNull User likingUser,
-                                                            UUID likedCommentId);
-
+    Optional<CommentLike> findByLikingUserEmailAndLikedCommentId(@NonNull String likingUser_email,
+                                                                 UUID likedComment_id);
 }

@@ -1,5 +1,6 @@
 package com.rebuild.backend.repository;
 
+import com.rebuild.backend.model.entities.forum_entities.CommentLike;
 import com.rebuild.backend.model.entities.forum_entities.PostLike;
 import com.rebuild.backend.model.entities.users.User;
 import lombok.NonNull;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Repository
 public interface PostLikeRepository extends JpaRepository<PostLike, UUID> {
 
-    Optional<PostLike> findByLikingUserAndLikedPostId(@NonNull User likingUser,
-                                                      UUID likedPost_id);
+    Optional<PostLike> findByLikingUserEmailAndLikedPostId(@NonNull String likingUser_email,
+                                                                 UUID likedPost_id);
 
 }
