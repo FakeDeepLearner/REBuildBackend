@@ -50,6 +50,10 @@ public class ForumPost {
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private User creatingUser;
 
+    @NonNull
+    @Column(name = "num_likes", nullable = false)
+    private Integer numberOfLikes = 0;
+
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate = LocalDateTime.now();

@@ -57,6 +57,10 @@ public class Comment {
             cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     private List<Comment> replies = new ArrayList<>();
 
+    @Column(name = "num_likes", nullable = false)
+    @NonNull
+    private Integer numberOfLikes = 0;
+
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate;
