@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +26,8 @@ import java.util.UUID;
                 query = "SELECT COUNT(*) FROM Comment c WHERE c.id=?1 and c.author.id=?2")
         }
 )
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
@@ -63,13 +65,26 @@ public class Comment {
 
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationDate;
+    @Column(name = "creation_date", nullable = false)
+    private LocalDateTime creationDate = LocalDateTime.now();
 
     @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime modificationDate;
+    @Column(name = "last_modified_date", nullable = false)
+    private LocalDateTime lastModificationDate = LocalDateTime.now();
 
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
     private String content;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Comment comment)) return false;
+        return Objects.equals(getId(), comment.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
 }

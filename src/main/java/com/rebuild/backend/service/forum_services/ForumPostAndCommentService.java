@@ -95,6 +95,22 @@ public class ForumPostAndCommentService {
         return commentRepository.save(newComment);
     }
 
+    @Transactional
+    public Comment incrementCommentLikesBy(UUID commentID, int incrementCount){
+        Comment likedComment =
+                commentRepository.findById(commentID).orElseThrow(RuntimeException::new);
+        likedComment.setNumberOfLikes(likedComment.getNumberOfLikes() + incrementCount);
+        return commentRepository.save(likedComment);
+    }
+
+    @Transactional
+    public ForumPost incrementPostLikesBy(UUID postID, int incrementCount){
+        ForumPost likedPost =
+                postRepository.findById(postID).orElseThrow(RuntimeException::new);
+        likedPost.setNumberOfLikes(likedPost.getNumberOfLikes() + incrementCount);
+        return postRepository.save(likedPost);
+    }
+
 
     public boolean postBelongsToUser(UUID postID, UUID userID){
         return postRepository.countByIdAndUserId(postID, userID) > 0;

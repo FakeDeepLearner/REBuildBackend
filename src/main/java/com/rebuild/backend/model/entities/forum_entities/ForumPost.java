@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -27,7 +28,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Data
+@Getter
+@Setter
 @EntityListeners(AuditingEntityListener.class)
 public class ForumPost {
 
@@ -56,14 +58,26 @@ public class ForumPost {
 
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
+    @Column(name = "creation_date", nullable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
 
     @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
+    @Column(name = "last_modified_date", nullable = false)
     private LocalDateTime lastModificationDate = LocalDateTime.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},
             mappedBy = "associatedPost")
     private List<Comment> comments = new ArrayList<>();
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ForumPost forumPost)) return false;
+        return Objects.equals(getId(), forumPost.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
 }
