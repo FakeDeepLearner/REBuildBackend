@@ -19,24 +19,29 @@ import java.util.UUID;
 @Table(name = "comment_likes", uniqueConstraints =
         {
                 @UniqueConstraint(name = "uk_unique_comment_like",
-                        columnNames = {"comment_id", "user_id"})
+                        columnNames = {"liked_comment_id", "user_email"})
         }, indexes = {
-        @Index(name = "comment_user_index", columnList = "comment_id, user_id")
+        @Index(name = "comment_user_index", columnList = "liked_comment_id, user_email")
 })
+@NamedQueries(
+        value = {
+                @NamedQuery(name = "CommentLike.countByPostIdAndEmail",
+                        query = "SELECT COUNT(*) FROM CommentLike l WHERE l.likedCommentID=?1 AND l.likingUserEmail=?2")
+        }
+)
 public class CommentLike {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "comment_id", referencedColumnName = "id", nullable = false)
+    @Column(name = "liked_comment_id", nullable = false)
     @NonNull
-    private Comment likedComment;
+    private UUID likedCommentID;
 
-    @ManyToOne
-    @JoinColumn(name = "user_email", referencedColumnName = "email", nullable = false)
+
+    @Column(name = "user_email", nullable = false)
     @NonNull
-    private User likingUser;
+    private String likingUserEmail;
 
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)

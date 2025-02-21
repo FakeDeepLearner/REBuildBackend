@@ -26,9 +26,6 @@ public class PostLikeProcessor implements ItemProcessor<PostLikeRequest, PostLik
 
     @Override
     public PostLike process(@NonNull PostLikeRequest item) throws Exception {
-        User likingUser = userService.findByEmailNoOptional(item.likingUserEmail());
-        ForumPost likedPost = postRepository.findById(item.likedPostId()).orElse(null);
-        assert likedPost != null;
-        return new PostLike(likedPost, likingUser);
+        return new PostLike(item.likedPostId(), item.likingUserEmail());
     }
 }

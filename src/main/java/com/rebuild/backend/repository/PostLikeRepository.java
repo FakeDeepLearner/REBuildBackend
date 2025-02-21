@@ -15,7 +15,6 @@ import java.util.UUID;
 @Repository
 public interface PostLikeRepository extends JpaRepository<PostLike, UUID> {
 
-    Optional<PostLike> findByLikingUserEmailAndLikedPostId(@NonNull String likingUser_email,
-                                                                 UUID likedPost_id);
+    int countByPostIdAndEmail(UUID postId, String email);
 
 }
