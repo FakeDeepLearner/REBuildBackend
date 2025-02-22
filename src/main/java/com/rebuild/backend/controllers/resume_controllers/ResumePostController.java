@@ -42,8 +42,7 @@ public class ResumePostController {
 
 
         OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewExperience(res_id, experienceForm.companyName(), experienceForm.technologies(),
-                experienceForm.startDate(), experienceForm.endDate(), experienceForm.bullets());
+                resumeService.createNewExperience(res_id, experienceForm);
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());

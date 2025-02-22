@@ -7,6 +7,7 @@ import java.util.List;
 
 public record ProfileExperienceForm(@NotBlank(message = "Company name can't be empty") String companyName,
                                     @NotEmpty(message = "Technologies can't be empty") List<String> technologies,
+                                    String location,
                                     String startDate,
                                    String endDate,
                                    @NotEmpty(message = "Bullets can't be empty") List<String> bullets) {

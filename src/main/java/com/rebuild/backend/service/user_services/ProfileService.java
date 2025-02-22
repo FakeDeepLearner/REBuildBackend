@@ -74,7 +74,7 @@ public class ProfileService {
                 profileForm.lastName(),
                 profileForm.email());
         ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
-                profileForm.relevantCoursework(), startDate, endDate);
+                profileForm.relevantCoursework(), profileForm.schoolLocation(), startDate, endDate);
         return new UserProfile(profileHeader, newEducation, profileForm.experiences(),
                 profileForm.sections());
     }
@@ -101,7 +101,7 @@ public class ProfileService {
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         ProfileEducation newEducation = new ProfileEducation(educationForm.schoolName(),
-                educationForm.relevantCoursework(), startDate, endDate);
+                educationForm.relevantCoursework(), educationForm.location(), startDate, endDate);
         userProfile.setEducation(newEducation);
         newEducation.setProfile(userProfile);
         return profileRepository.save(userProfile);
@@ -111,14 +111,15 @@ public class ProfileService {
     public OptionalValueAndErrorResult<UserProfile> updateProfileExperiences(UserProfile profile,
                                                 List<ProfileExperienceForm> newExperiences){
         List<ProfileExperience> oldExperiences = profile.getExperienceList();
-        List<ProfileExperience> transformedExperiences = newExperiences.stream().
 
-                map((rawExperience) -> {
-                    YearMonth startDate = YearMonthStringOperations.getYearMonth(rawExperience.startDate());
-                    YearMonth endDate = YearMonthStringOperations.getYearMonth(rawExperience.endDate());
+        List<ProfileExperience> transformedExperiences = newExperiences.stream().
+                map((rawExperienceData) -> {
+                    YearMonth startDate = YearMonthStringOperations.getYearMonth(rawExperienceData.startDate());
+                    YearMonth endDate = YearMonthStringOperations.getYearMonth(rawExperienceData.endDate());
                     ProfileExperience newExperience =
-                            new ProfileExperience(rawExperience.companyName(), rawExperience.technologies(),
-                            startDate, endDate, rawExperience.bullets());
+                            new ProfileExperience(rawExperienceData.companyName(), rawExperienceData.technologies(),
+                            rawExperienceData.location(),
+                            startDate, endDate, rawExperienceData.bullets());
                     newExperience.setProfile(profile);
                     return newExperience;
                 }).toList();
@@ -230,7 +231,7 @@ public class ProfileService {
             updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
                     profileForm.firstName(), profileForm.lastName(), profileForm.email()));
             updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
-                    profileForm.relevantCoursework(), startDate, endDate));
+                    profileForm.relevantCoursework(), profileForm.schoolLocation(), startDate, endDate));
             updatingProfile.setSections(profileForm.sections());
             UserProfile savedProfile = profileRepository.save(updatingProfile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);

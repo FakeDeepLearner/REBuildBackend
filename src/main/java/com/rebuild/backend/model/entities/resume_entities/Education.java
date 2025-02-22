@@ -36,6 +36,10 @@ public class Education {
     @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
     private List<String> relevantCoursework;
 
+    @Column(name = "location", nullable = false)
+    @NonNull
+    private String location;
+
     @Column(name = "start_date", nullable = false)
     @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)

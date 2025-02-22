@@ -43,6 +43,10 @@ public class ProfileExperience {
     @NonNull
     private List<String> technologyList;
 
+    @Column(name = "location", nullable = false)
+    @NonNull
+    private String location;
+
     @Column(name = "start_date", nullable = false)
     @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)

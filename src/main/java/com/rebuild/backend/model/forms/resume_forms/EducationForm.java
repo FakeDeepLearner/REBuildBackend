@@ -9,6 +9,7 @@ public record EducationForm(@NotBlank(message = "The school name may not be blan
                             String schoolName,
                             @NotEmpty(message = "The coursework may not be empty")
                             List<String> relevantCoursework,
+                            String location,
                             String startDate,
                             String endDate) {
 }

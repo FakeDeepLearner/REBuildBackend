@@ -41,8 +41,7 @@ public class ResumePutController {
                                                    @Valid @RequestBody ExperienceForm experienceForm){
 
         OptionalValueAndErrorResult<Resume> updateResult =
-                resumeService.changeExperienceInfo(res_id, exp_id, experienceForm.companyName(),
-                experienceForm.technologies(), experienceForm.startDate(), experienceForm.endDate(), experienceForm.bullets());
+                resumeService.changeExperienceInfo(res_id, exp_id, experienceForm);
         switch (updateResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(updateResult.optionalResult().get());

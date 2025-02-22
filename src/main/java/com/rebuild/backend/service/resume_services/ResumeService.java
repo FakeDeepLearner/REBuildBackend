@@ -4,6 +4,7 @@ package com.rebuild.backend.service.resume_services;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
+import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.model.responses.HomePageData;
@@ -91,19 +92,16 @@ public class ResumeService {
 
     @Transactional
     public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
-                                           String newCompanyName,
-                                           List<String> newTechnologies,
-                                           String startDate,
-                                           String endDate,
-                                           List<String> newBullets){
+                                           ExperienceForm experienceForm){
         Resume resume = findById(resID);
         //These variables are guaranteed to be properly initialized after the try block executes
         Experience removedExperience = null;
         int removedIndex = 0;
         try {
-            YearMonth start = YearMonthStringOperations.getYearMonth(startDate);
-            YearMonth end = YearMonthStringOperations.getYearMonth(endDate);
-            Experience newExperience = new Experience(newCompanyName, newTechnologies, start, end, newBullets);
+            YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
+            YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
+            Experience newExperience = new Experience(experienceForm.companyName(), experienceForm.technologies(),
+                    experienceForm.location(), start, end, experienceForm.bullets());
             List<Experience> experiences = resume.getExperiences();
             int indexCounter = 0;
             for(Experience experience : experiences){
@@ -156,13 +154,14 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> createNewExperience(UUID resID, String companyName,
-                                          List<String> technologies,
-                                            String startDate, String endDate, List<String> bullets){
+    public OptionalValueAndErrorResult<Resume> createNewExperience(UUID resID,
+                                                                   ExperienceForm experienceForm){
         Resume resume = findById(resID);
-        YearMonth start = YearMonthStringOperations.getYearMonth(startDate);
-        YearMonth end = YearMonthStringOperations.getYearMonth(endDate);
-        Experience newExperience = new Experience(companyName, technologies, start, end, bullets);
+        YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
+        YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
+        Experience newExperience = new Experience(experienceForm.companyName(),
+                experienceForm.technologies(), experienceForm.location(),
+                start, end, experienceForm.bullets());
         try {
             resume.addExperience(newExperience);
             newExperience.setResume(resume);
@@ -190,6 +189,7 @@ public class ResumeService {
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
+                educationForm.location(),
                 startDate, endDate);
         resume.setEducation(education);
         education.setResume(resume);
