@@ -16,6 +16,7 @@ public class ProfileObjectConverter{
 
     public Experience convertToExperience(ProfileExperience profileExperience){
         return new Experience(profileExperience.getCompanyName(), profileExperience.getTechnologyList(),
+                profileExperience.getLocation(),
                 profileExperience.getStartDate(), profileExperience.getEndDate(), profileExperience.getBullets());
     }
 
@@ -27,6 +28,7 @@ public class ProfileObjectConverter{
 
     public Education convertToEducation(ProfileEducation profileEducation){
         return new Education(profileEducation.getSchoolName(), profileEducation.getRelevantCoursework(),
+                profileEducation.getLocation(),
                 profileEducation.getStartDate(), profileEducation.getEndDate());
     }
 

@@ -9,6 +9,8 @@ public record ExperienceForm(@NotBlank(message = "Company name may not be blank"
 
                              @NotEmpty(message = "The technologies may not be empty")
                              List<String> technologies,
+
+                             String location,
                              String startDate,
                              String endDate,
                              @NotEmpty(message = "The bullets may not be empty") List<String> bullets) {
