@@ -81,6 +81,7 @@ public class Experience {
         return "\tEXPERIENCE:\n" +
                 "\t\tCompany Name: " + companyName + "\n" +
                 "\t\tTechnologies: " + technologyList + "\n" +
+                "\t\tLocation: " + location + "\n" +
                 "\t\tBullets: " + bullets + "\n" +
                 "\t\tStart Date: " + startDate + "\n" +
                 "\t\tEnd Date: " + endDate + "\n";

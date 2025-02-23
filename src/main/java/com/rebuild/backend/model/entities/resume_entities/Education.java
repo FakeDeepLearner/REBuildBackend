@@ -71,6 +71,8 @@ public class Education {
     public String toString() {
         return "EDUCATION:\n" +
                 "\tSchool Name: " + schoolName + "\n" +
-                "\tCoursework: " + relevantCoursework + "\n\n\n";
+                "\tCoursework: " + relevantCoursework + "\n" +
+                "\tLocation: " + location +
+                "\n\n\n";
     }
 }

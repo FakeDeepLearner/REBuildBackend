@@ -25,6 +25,10 @@ public class ResumeSection {
     @JsonIgnore
     private UUID id;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,
+    mappedBy = "associatedSection")
+    private List<ResumeSectionEntry> entries;
+
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
     private String title;
