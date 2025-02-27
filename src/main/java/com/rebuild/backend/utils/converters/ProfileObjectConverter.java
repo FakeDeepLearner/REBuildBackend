@@ -1,15 +1,11 @@
 package com.rebuild.backend.utils.converters;
 
 import com.google.api.client.util.PemReader;
-import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
-import com.rebuild.backend.model.entities.profile_entities.ProfileExperience;
-import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
-import com.rebuild.backend.model.entities.profile_entities.ProfileSection;
-import com.rebuild.backend.model.entities.resume_entities.Education;
-import com.rebuild.backend.model.entities.resume_entities.Experience;
-import com.rebuild.backend.model.entities.resume_entities.Header;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSection;
+import com.rebuild.backend.model.entities.profile_entities.*;
+import com.rebuild.backend.model.entities.resume_entities.*;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class ProfileObjectConverter{
@@ -33,6 +29,15 @@ public class ProfileObjectConverter{
     }
 
     public ResumeSection convertToSection(ProfileSection profileSection){
-        return new ResumeSection(profileSection.getTitle(), profileSection.getBullets());
+        List<ProfileSectionEntry> entries = profileSection.getEntries();
+        List<ResumeSectionEntry> convertedEntries = entries.stream()
+                .map(this::convertToResumeSectionEntry).toList();
+        return new ResumeSection(profileSection.getTitle(), convertedEntries);
+    }
+
+    private ResumeSectionEntry convertToResumeSectionEntry(ProfileSectionEntry profileSectionEntry){
+        return new ResumeSectionEntry(profileSectionEntry.getTitle(),
+                profileSectionEntry.getToolsUsed(), profileSectionEntry.getLocation(),
+                profileSectionEntry.getBullets());
     }
 }

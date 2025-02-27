@@ -5,6 +5,7 @@ import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,10 +31,10 @@ public class ProfileSection {
     @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "associatedSection"
+            , orphanRemoval = true)
     @NonNull
-    @ElementCollection
-    @CollectionTable(name = "profile_section_bullets", joinColumns = @JoinColumn(name = "profile_section_bullet_id"))
-    private List<String> bullets;
+    private List<ProfileSectionEntry> entries = new ArrayList<>();
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",

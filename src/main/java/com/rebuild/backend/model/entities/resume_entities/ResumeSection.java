@@ -5,12 +5,13 @@ import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
-@Table(name = "sections", uniqueConstraints = {
+@Table(name = "resume_sections", uniqueConstraints = {
         @UniqueConstraint(name = "uk_resume_section", columnNames = {"resume_id", "title"})
 })
 @EqualsAndHashCode
@@ -25,18 +26,14 @@ public class ResumeSection {
     @JsonIgnore
     private UUID id;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,
-    mappedBy = "associatedSection")
-    private List<ResumeSectionEntry> entries;
-
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @NonNull
-    @ElementCollection
-    @CollectionTable(name = "section_bullets", joinColumns = @JoinColumn(name = "section_bullet_id"))
-    private List<String> bullets;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,
+            mappedBy = "associatedSection")
+    private List<ResumeSectionEntry> entries;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {
             CascadeType.PERSIST,
@@ -54,7 +51,6 @@ public class ResumeSection {
 
     public String toString() {
         return "\tSECTION:\n" +
-                "\t\tTitle: " + title + "\n" +
-                "\t\tBullets: " + bullets + "\n";
+                entries;
     }
 }
