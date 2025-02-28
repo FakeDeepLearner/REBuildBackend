@@ -10,4 +10,4 @@ TODO(Priority 1): Switch to session authentication and authorization. (For real 
 
 TODO(ASAP): Reimplement the "remember me" feature properly using Spring Security beans
 
-TODO: Refactor the resume and profile sections, using the newly created entry type
+TODO: Fix the bugs in the resume field updating logic, specifically initializing resume attributes in the newly assigned attributes
