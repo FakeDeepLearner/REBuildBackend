@@ -30,7 +30,7 @@ public class SectionController {
     @PostMapping("/add_new/{res_id}")
     public ResponseEntity<?> addNewSection(@PathVariable UUID res_id, @Valid @RequestBody SectionForm form){
         OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewSection(res_id, form.title(), form.bullets());
+                resumeService.createNewSection(res_id, form);
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());

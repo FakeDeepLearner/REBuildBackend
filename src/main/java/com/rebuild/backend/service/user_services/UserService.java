@@ -7,6 +7,7 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
@@ -125,9 +126,9 @@ public class UserService{
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<User> createNewUser(String rawPassword, String email, PhoneNumber phoneNumber){
-        String encodedPassword = encoder.encode(rawPassword);
-        User newUser = new User(encodedPassword, email, phoneNumber);
+    public OptionalValueAndErrorResult<User> createNewUser(SignupForm signupForm){
+        String encodedPassword = encoder.encode(signupForm.password());
+        User newUser = new User(encodedPassword, signupForm.email(), signupForm.phoneNumber());
         try {
             User savedUser = save(newUser);
             return  OptionalValueAndErrorResult.of(savedUser, CREATED);

@@ -80,7 +80,7 @@ public class AuthenticationController {
     public ResponseEntity<?> processSignup(@Valid @RequestBody SignupForm signupForm){
 
         OptionalValueAndErrorResult<User> creationResult =
-                userService.createNewUser(signupForm.password(), signupForm.email(), signupForm.phoneNumber());
+                userService.createNewUser(signupForm);
         if(creationResult.optionalResult().isEmpty()){
             if(creationResult.optionalError().isEmpty()){
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error has occurred");

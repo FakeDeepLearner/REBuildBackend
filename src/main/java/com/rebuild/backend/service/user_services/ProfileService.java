@@ -6,14 +6,15 @@ import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
 import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,9 +30,13 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
+    private final ObjectConverter objectConverter;
+
     @Autowired
-    public ProfileService(ProfileRepository profileRepository) {
+    public ProfileService(ProfileRepository profileRepository,
+                          ObjectConverter objectConverter) {
         this.profileRepository = profileRepository;
+        this.objectConverter = objectConverter;
     }
 
     @Transactional
@@ -75,8 +80,15 @@ public class ProfileService {
                 profileForm.email());
         ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
                 profileForm.relevantCoursework(), profileForm.schoolLocation(), startDate, endDate);
-        return new UserProfile(profileHeader, newEducation, profileForm.experiences(),
-                profileForm.sections());
+        List<ProfileSection> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
+
+        UserProfile newProfile =  new UserProfile(profileHeader, newEducation,
+                new ArrayList<>(),
+                sections);
+        List<ProfileExperience> experiences = objectConverter.
+                extractProfileExperiences(profileForm.experienceForms(), newProfile);
+        newProfile.setExperienceList(experiences);
+        return newProfile;
     }
 
     @Transactional
@@ -144,13 +156,7 @@ public class ProfileService {
     public OptionalValueAndErrorResult<UserProfile> updateProfileSections(UserProfile profile,
                                              List<ProfileSectionForm> sectionForms){
         List<ProfileSection> oldSections = profile.getSections();
-        List<ProfileSection> transformedSections = sectionForms.stream().
-                map((rawSection) -> {
-                    ProfileSection newSection =
-                            new ProfileSection(rawSection.title(), rawSection.bullets());
-                    newSection.setProfile(profile);
-                    return newSection;
-                }).toList();
+        List<ProfileSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
         try {
             profile.setSections(transformedSections);
             UserProfile savedProfile = profileRepository.save(profile);
@@ -227,12 +233,13 @@ public class ProfileService {
         YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.schoolStartDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.schoolEndDate());
         try {
-            updatingProfile.setExperienceList(profileForm.experiences());
+            updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
+                    updatingProfile));
             updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
                     profileForm.firstName(), profileForm.lastName(), profileForm.email()));
             updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
                     profileForm.relevantCoursework(), profileForm.schoolLocation(), startDate, endDate));
-            updatingProfile.setSections(profileForm.sections());
+            updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sectionForms()));
             UserProfile savedProfile = profileRepository.save(updatingProfile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }

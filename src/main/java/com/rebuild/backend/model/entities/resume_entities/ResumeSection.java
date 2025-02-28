@@ -30,7 +30,6 @@ public class ResumeSection {
     @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
-    @NonNull
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,
             mappedBy = "associatedSection")
     private List<ResumeSectionEntry> entries;

@@ -3,15 +3,14 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.forms.resume_forms.EducationForm;
-import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
+import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
-import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
 import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,19 +38,26 @@ public class ResumeService {
 
     private final ResumeVersionRepository versionRepository;
 
+    private final ObjectConverter objectConverter;
+
     @Autowired
-    public ResumeService(ResumeRepository resumeRepository, ResumeVersionRepository versionRepository) {
+    public ResumeService(ResumeRepository resumeRepository,
+                         ResumeVersionRepository versionRepository,
+                         ObjectConverter objectConverter) {
         this.resumeRepository = resumeRepository;
         this.versionRepository = versionRepository;
+        this.objectConverter = objectConverter;
     }
 
     @Transactional
-    public Resume changeHeaderInfo(UUID resID, String newFirstName, String newLastName, String newEmail, PhoneNumber newPhoneNumber){
+    public Resume changeHeaderInfo(UUID resID,
+                                   HeaderForm headerForm){
         Resume resume = findById(resID);
-        resume.getHeader().setEmail(newEmail);
-        resume.getHeader().setNumber(newPhoneNumber);
-        resume.getHeader().setFirstName(newFirstName);
-        resume.getHeader().setLastName(newLastName);
+        Header header = resume.getHeader();
+        header.setEmail(headerForm.email());
+        header.setNumber(headerForm.number());
+        header.setFirstName(headerForm.firstName());
+        header.setLastName(headerForm.lastName());
         return resumeRepository.save(resume);
     }
 
@@ -135,17 +141,22 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume changeEducationInfo(UUID resID, String newSchoolName, List<String> newCourseWork){
+    public Resume changeEducationInfo(UUID resID, EducationForm educationForm){
         Resume resume = findById(resID);
-        resume.getEducation().setRelevantCoursework(newCourseWork);
-        resume.getEducation().setSchoolName(newSchoolName);
+        Education education = resume.getEducation();
+        education.setRelevantCoursework(educationForm.relevantCoursework());
+        education.setSchoolName(educationForm.schoolName());
+        education.setLocation(educationForm.location());
+        education.setStartDate(YearMonthStringOperations.getYearMonth(educationForm.startDate()));
+        education.setEndDate(YearMonthStringOperations.getYearMonth(educationForm.endDate()));
         return resumeRepository.save(resume);
     }
 
     @Transactional
-    public Header createNewHeader(UUID resID, String firstName, String lastName, String email, PhoneNumber phoneNumber){
+    public Header createNewHeader(UUID resID, HeaderForm headerForm){
         Resume resume = findById(resID);
-        Header newHeader = new Header(phoneNumber, firstName, lastName, email);
+        Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
+                headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
         newHeader.setResume(resume);
         resumeRepository.save(resume);
@@ -197,9 +208,14 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> createNewSection(UUID resID, String sectionTitle, List<String> sectionBullets){
+    public OptionalValueAndErrorResult<Resume> createNewSection(UUID resID,
+                                                                SectionForm sectionForm){
         Resume resume = findById(resID);
-        ResumeSection newSection = new ResumeSection(sectionTitle, sectionBullets);
+        ResumeSection newSection = new ResumeSection(sectionForm.title());
+
+        List<ResumeSectionEntry> transformedEntries = objectConverter.
+                extractResumeSectionEntries(sectionForm.entryForms(), newSection);
+        newSection.setEntries(transformedEntries);
         try {
             resume.addSection(newSection);
             newSection.setResume(resume);
@@ -314,13 +330,20 @@ public class ResumeService {
         List<Experience> oldExperiences = resume.getExperiences();
         List<ResumeSection> oldSections = resume.getSections();
         try {
-            //We can directly operate on the result of the getter like this, because java returns by reference
-            resume.getHeader().setFirstName(resumeForm.firstName());
-            resume.getHeader().setLastName(resumeForm.lastName());
-            resume.getHeader().setEmail(resumeForm.email());
-            resume.getHeader().setNumber(resumeForm.phoneNumber());
-            resume.getEducation().setSchoolName(resumeForm.schoolName());
-            resume.getEducation().setRelevantCoursework(resumeForm.relevantCoursework());
+
+            //We can't modify the resume's fields directly here, as that would also modify the variables that
+            // we declared outside the try block, causing a bug.
+            Header newHeader = new Header(resumeForm.phoneNumber(), resumeForm.firstName(),
+                    resumeForm.lastName(), resumeForm.email());
+            newHeader.setResume(resume);
+            resume.setHeader(newHeader);
+
+            Education newEducation = new Education(resumeForm.schoolName(), resumeForm.relevantCoursework(),
+                    resumeForm.schoolLocation(),
+                    YearMonthStringOperations.getYearMonth(resumeForm.schoolStartDate()),
+                    YearMonthStringOperations.getYearMonth(resumeForm.schoolEndDate()));
+            newEducation.setResume(resume);
+            resume.setEducation(newEducation);
             resume.setExperiences(resumeForm.experiences());
             resume.setSections(resumeForm.sections());
             Resume savedResume = resumeRepository.save(resume);

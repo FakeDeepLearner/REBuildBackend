@@ -31,8 +31,7 @@ public class ResumePutController {
 
     @PutMapping("/header/{res_id}")
     public Resume modifyHeader(@PathVariable UUID res_id, @Valid @RequestBody HeaderForm headerForm){
-        return resumeService.changeHeaderInfo(res_id, headerForm.firstName(), headerForm.lastName(),
-                headerForm.email(), headerForm.number());
+        return resumeService.changeHeaderInfo(res_id, headerForm);
     }
 
     @PutMapping("/experience/{res_id}/{exp_id}")
@@ -68,7 +67,6 @@ public class ResumePutController {
 
     @PutMapping("/education/{res_id}")
     public Resume modifyEducation(@PathVariable UUID res_id, @Valid @RequestBody EducationForm educationForm){
-        return resumeService.changeEducationInfo(res_id, educationForm.schoolName(),
-                educationForm.relevantCoursework());
+        return resumeService.changeEducationInfo(res_id, educationForm);
     }
 }

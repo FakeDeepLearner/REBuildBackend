@@ -33,8 +33,7 @@ public class ProfileSection {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "associatedSection"
             , orphanRemoval = true)
-    @NonNull
-    private List<ProfileSectionEntry> entries = new ArrayList<>();
+    private List<ProfileSectionEntry> entries;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",

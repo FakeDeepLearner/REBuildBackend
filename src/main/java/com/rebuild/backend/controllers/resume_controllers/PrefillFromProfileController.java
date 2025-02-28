@@ -9,7 +9,7 @@ import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
-import com.rebuild.backend.utils.converters.ProfileObjectConverter;
+import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +22,14 @@ import java.util.UUID;
 @RequestMapping("/api/profile/prefill")
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class PrefillFromProfileController {
-    private final ProfileObjectConverter profileObjectConverter;
+    private final ObjectConverter objectConverter;
 
     private final ResumeService resumeService;
 
     @Autowired
-    public PrefillFromProfileController(ProfileObjectConverter profileObjectConverter,
+    public PrefillFromProfileController(ObjectConverter objectConverter,
                                         ResumeService resumeService) {
-        this.profileObjectConverter = profileObjectConverter;
+        this.objectConverter = objectConverter;
         this.resumeService = resumeService;
     }
 
@@ -45,7 +45,7 @@ public class PrefillFromProfileController {
             throw new NoAttributeInProfileException("Your profile does not have a header set");
         }
         ProfileHeader originalHeader = resumeUser.getProfile().getHeader();
-        Header transformedHeader = profileObjectConverter.convertToHeader(originalHeader);
+        Header transformedHeader = objectConverter.convertToHeader(originalHeader);
         return resumeService.setHeader(associatedResume, transformedHeader);
     }
 
@@ -61,7 +61,7 @@ public class PrefillFromProfileController {
             throw new NoAttributeInProfileException("Your profile does not have an education set");
         }
         ProfileEducation originalEducation = resumeUser.getProfile().getEducation();
-        Education transformedEducation = profileObjectConverter.convertToEducation(originalEducation);
+        Education transformedEducation = objectConverter.convertToEducation(originalEducation);
         return resumeService.setEducation(associatedResume, transformedEducation);
     }
 
@@ -77,7 +77,7 @@ public class PrefillFromProfileController {
             throw new NoAttributeInProfileException("Your profile does not have experiences set");
         }
         List<Experience> convertedExperiences = resumeUser.getProfile().getExperienceList().
-                stream().map(profileObjectConverter::convertToExperience).
+                stream().map(objectConverter::convertToExperience).
                 toList();
         OptionalValueAndErrorResult<Resume> prefillResult =
         resumeService.setExperiences(associatedResume, convertedExperiences);
@@ -115,7 +115,7 @@ public class PrefillFromProfileController {
         }
 
         List<ResumeSection> convertedSections = resumeUser.getProfile().getSections().
-                stream().map(profileObjectConverter::convertToSection).
+                stream().map(objectConverter::convertToSection).
                 toList();
         OptionalValueAndErrorResult<Resume> prefillResult =
                 resumeService.setSections(associatedResume, convertedSections);

@@ -119,8 +119,11 @@ public class Resume {
                         experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
         this.sections = originalSections.stream().map(
-                section -> new ResumeSection(section.getTitle(), section.getEntries())
-        ).toList();
+                section -> {
+                    ResumeSection newSection = new ResumeSection(section.getTitle());
+                    newSection.setEntries(section.getEntries());
+                    return newSection;
+                }).toList();
         //Necessary in order for cascading to work properly
         this.getUser().getResumes().add(this);
         this.creationTime = LocalDateTime.now();

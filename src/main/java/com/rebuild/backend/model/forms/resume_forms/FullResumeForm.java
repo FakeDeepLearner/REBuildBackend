@@ -26,6 +26,8 @@ public record FullResumeForm(@NotBlank(message = "First name may not be blank") 
                              @NotEmpty(message = "The coursework may not be empty")
                              List<String> relevantCoursework,
 
+                             String schoolLocation,
+
                              String schoolStartDate,
 
                              String schoolEndDate,
