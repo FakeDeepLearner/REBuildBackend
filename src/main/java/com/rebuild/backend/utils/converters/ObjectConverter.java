@@ -11,6 +11,9 @@ import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class ObjectConverter {
@@ -47,6 +50,14 @@ public class ObjectConverter {
         return new ResumeSectionEntry(profileSectionEntry.getTitle(),
                 profileSectionEntry.getToolsUsed(), profileSectionEntry.getLocation(),
                 profileSectionEntry.getBullets());
+    }
+
+    private <I, O> List<O> convertToOutputList(List<I> inputList, Function<I, O> converter){
+        return inputList.stream().map(converter).collect(Collectors.toList());
+    }
+
+    private <I, O, R> List<O> convertToOutputList(List<I> inputList, R root, BiFunction<I, R, O> converter){
+        return inputList.stream().map(input -> converter.apply(input, root)).collect(Collectors.toList());
     }
 
     public List<ProfileSection> extractProfileSections(List<ProfileSectionForm> profileSectionForms){
