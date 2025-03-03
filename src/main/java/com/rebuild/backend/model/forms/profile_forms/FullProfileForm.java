@@ -6,12 +6,8 @@ import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 
 import java.util.List;
 
-public record FullProfileForm(PhoneNumber phoneNumber,
-                              String firstName,
-                              String lastName,
-                              String email,
-                              String schoolName, List<String> relevantCoursework, String schoolLocation,
-                              String schoolStartDate, String schoolEndDate,
+public record FullProfileForm(ProfileHeaderForm headerForm,
+                              ProfileEducationForm educationForm,
                               List<ProfileExperienceForm> experienceForms,
                               List<ProfileSectionForm> sectionForms) {
 }

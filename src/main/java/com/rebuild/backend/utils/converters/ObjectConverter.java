@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.profile_forms.ProfileExperienceForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileSectionEntryForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileSectionForm;
+import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSectionEntryForm;
 import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import com.rebuild.backend.utils.YearMonthStringOperations;
@@ -62,65 +63,75 @@ public class ObjectConverter {
 
     public List<ProfileSection> extractProfileSections(List<ProfileSectionForm> profileSectionForms){
 
-        return profileSectionForms.stream().map(
-                rawForm -> {
-                    ProfileSection newSection = new ProfileSection(rawForm.title());
-                    List<ProfileSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms(),
-                            newSection);
-                    newSection.setEntries(sectionEntries);
-                    return newSection;
-                }
-        ).toList();
+        return convertToOutputList(profileSectionForms, rawForm -> {
+            ProfileSection newSection = new ProfileSection(rawForm.title());
+            List<ProfileSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms(),
+                    newSection);
+            newSection.setEntries(sectionEntries);
+            return newSection;
+        });
     }
 
     private List<ProfileSectionEntry> extractProfileSectionEntries(List<ProfileSectionEntryForm>
                                                                    entryForms, ProfileSection section){
-        return entryForms.stream().
-                map(rawForm -> {
-                    ProfileSectionEntry newEntry =
-                            new ProfileSectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                                    rawForm.location(), rawForm.bullets());
-                    newEntry.setAssociatedSection(section);
-                    return newEntry;
-                }).toList();
+
+        return convertToOutputList(entryForms, section, (rawForm, root) -> {
+            ProfileSectionEntry newEntry =
+                    new ProfileSectionEntry(rawForm.title(), rawForm.toolsUsed(),
+                            rawForm.location(), rawForm.bullets());
+            newEntry.setAssociatedSection(section);
+            return newEntry;
+        });
     }
 
-    public List<ResumeSection> extractResumeSections(List<SectionForm> sectionForms){
-        return sectionForms.stream().map(
-                rawForm -> {
-                    ResumeSection newSection = new ResumeSection(rawForm.title());
-                    List<ResumeSectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms(),
-                            newSection);
-                    newSection.setEntries(sectionEntries);
-                    return newSection;
-                }
-        ).toList();
+    public List<ResumeSection> extractResumeSections(List<SectionForm> sectionForms, Resume associatedResume){
+
+        return convertToOutputList(sectionForms, rawForm -> {
+            ResumeSection newSection = new ResumeSection(rawForm.title());
+            List<ResumeSectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms(),
+                    newSection);
+            newSection.setEntries(sectionEntries);
+            newSection.setResume(associatedResume);
+            return newSection;
+        });
     }
 
     public List<ResumeSectionEntry> extractResumeSectionEntries(List<ResumeSectionEntryForm>
                                                                  entryForms, ResumeSection section){
-        return entryForms.stream().
-                map(rawForm -> {
-                    ResumeSectionEntry newEntry =
-                            new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                                    rawForm.location(), rawForm.bullets());
-                    newEntry.setAssociatedSection(section);
-                    return newEntry;
-                }).toList();
+
+        return convertToOutputList(entryForms, section, (rawForm , root) -> {
+            ResumeSectionEntry newEntry =
+                    new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
+                            rawForm.location(), rawForm.bullets());
+            newEntry.setAssociatedSection(section);
+            return newEntry;
+        });
+
     }
 
     public List<ProfileExperience> extractProfileExperiences(List<ProfileExperienceForm> profileExperienceForms,
                                                              UserProfile profile){
-        return profileExperienceForms.stream().
-                map(rawForm -> {
-                    ProfileExperience newExperience = new ProfileExperience(rawForm.companyName(),
-                            rawForm.technologies(), rawForm.location(),
-                            YearMonthStringOperations.getYearMonth(rawForm.startDate()),
-                            YearMonthStringOperations.getYearMonth(rawForm.endDate()),
-                            rawForm.bullets());
-                    newExperience.setProfile(profile);
-                    return newExperience;
-                }).toList();
+        return convertToOutputList(profileExperienceForms, rawForm -> {
+            ProfileExperience newExperience = new ProfileExperience(rawForm.companyName(),
+                    rawForm.technologies(), rawForm.location(),
+                    YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                    YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                    rawForm.bullets());
+            newExperience.setProfile(profile);
+            return newExperience;
+        });
 
+    }
+
+    public List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
+        return convertToOutputList(experienceForms, rawForm -> {
+            Experience newExperience  = new Experience(rawForm.companyName(),
+                    rawForm.technologies(), rawForm.location(),
+                    YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                    YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                    rawForm.bullets());
+            newExperience.setResume(associatedResume);
+            return newExperience;
+        });
     }
 }

@@ -72,14 +72,15 @@ public class ProfileService {
 
 
     private UserProfile getUserProfile(FullProfileForm profileForm) {
-        YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.schoolStartDate());
-        YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.schoolEndDate());
-        ProfileHeader profileHeader = new ProfileHeader(profileForm.phoneNumber(),
-                profileForm.firstName(),
-                profileForm.lastName(),
-                profileForm.email());
-        ProfileEducation newEducation = new ProfileEducation(profileForm.schoolName(),
-                profileForm.relevantCoursework(), profileForm.schoolLocation(), startDate, endDate);
+        YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
+        YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
+        ProfileHeader profileHeader = new ProfileHeader(profileForm.headerForm().number(),
+                profileForm.headerForm().firstName(),
+                profileForm.headerForm().lastName(),
+                profileForm.headerForm().email());
+        ProfileEducation newEducation = new ProfileEducation(profileForm.educationForm().schoolName(),
+                profileForm.educationForm().relevantCoursework(),
+                profileForm.educationForm().location(), startDate, endDate);
         List<ProfileSection> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
 
         UserProfile newProfile =  new UserProfile(profileHeader, newEducation,
@@ -230,15 +231,17 @@ public class ProfileService {
         List<ProfileSection> oldSections = updatingProfile.getSections();
         ProfileHeader oldHeader = updatingProfile.getHeader();
         ProfileEducation oldEducation = updatingProfile.getEducation();
-        YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.schoolStartDate());
-        YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.schoolEndDate());
+        YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
+        YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
         try {
             updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
                     updatingProfile));
-            updatingProfile.setHeader(new ProfileHeader(profileForm.phoneNumber(),
-                    profileForm.firstName(), profileForm.lastName(), profileForm.email()));
-            updatingProfile.setEducation(new ProfileEducation(profileForm.schoolName(),
-                    profileForm.relevantCoursework(), profileForm.schoolLocation(), startDate, endDate));
+            updatingProfile.setHeader(new ProfileHeader(profileForm.headerForm().number(),
+                    profileForm.headerForm().firstName(),
+                    profileForm.headerForm().lastName(), profileForm.headerForm().email()));
+            updatingProfile.setEducation(new ProfileEducation(profileForm.educationForm().schoolName(),
+                    profileForm.educationForm().relevantCoursework(),
+                    profileForm.educationForm().location(), startDate, endDate));
             updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sectionForms()));
             UserProfile savedProfile = profileRepository.save(updatingProfile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);

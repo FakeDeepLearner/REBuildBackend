@@ -333,19 +333,21 @@ public class ResumeService {
 
             //We can't modify the resume's fields directly here, as that would also modify the variables that
             // we declared outside the try block, causing a bug.
-            Header newHeader = new Header(resumeForm.phoneNumber(), resumeForm.firstName(),
-                    resumeForm.lastName(), resumeForm.email());
+            Header newHeader = new Header(resumeForm.headerForm().number(),
+                    resumeForm.headerForm().firstName(),
+                    resumeForm.headerForm().lastName(), resumeForm.headerForm().email());
             newHeader.setResume(resume);
             resume.setHeader(newHeader);
 
-            Education newEducation = new Education(resumeForm.schoolName(), resumeForm.relevantCoursework(),
-                    resumeForm.schoolLocation(),
-                    YearMonthStringOperations.getYearMonth(resumeForm.schoolStartDate()),
-                    YearMonthStringOperations.getYearMonth(resumeForm.schoolEndDate()));
+            Education newEducation = new Education(resumeForm.educationForm().schoolName(),
+                    resumeForm.educationForm().relevantCoursework(),
+                    resumeForm.educationForm().location(),
+                    YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
+                    YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
             newEducation.setResume(resume);
             resume.setEducation(newEducation);
-            resume.setExperiences(resumeForm.experiences());
-            resume.setSections(resumeForm.sections());
+            resume.setExperiences(objectConverter.extractExperiences(resumeForm.experiences(), resume));
+            resume.setSections(objectConverter.extractResumeSections(resumeForm.sections(), resume));
             Resume savedResume = resumeRepository.save(resume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }

@@ -93,7 +93,7 @@ public class AuthenticationController {
                         20L, ChronoUnit.MINUTES,
                          signupForm.remember());
         String urlToMakePost = UriComponentsBuilder.
-                fromHttpUrl(urlBase.baseUrl() + "/api/activate").toUriString();
+                fromPath(urlBase.baseUrl() + "/api/activate").toUriString();
         URI postingURI = URI.create(urlToMakePost);
         RequestEntity<AccountActivationDTO> request = RequestEntity.post(postingURI).body(form);
 
