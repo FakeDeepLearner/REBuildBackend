@@ -1,12 +1,15 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
+import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
+import com.rebuild.backend.model.forms.forum_forms.CreateReplyForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
+import com.rebuild.backend.repository.CommentReplyRepository;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -33,20 +36,23 @@ public class ForumPostAndCommentService {
 
     private final CommentRepository commentRepository;
 
+    private final CommentReplyRepository replyRepository;
+
     private final ForumPostRepository postRepository;
-    private final ForumPostRepository forumPostRepository;
 
     private final AppUrlBase base;
+    private final CommentReplyRepository commentReplyRepository;
 
     @Autowired
     public ForumPostAndCommentService(ResumeService resumeService,
-                                      CommentRepository commentRepository,
-                                      ForumPostRepository postRepository, ForumPostRepository forumPostRepository, AppUrlBase base) {
+                                      CommentRepository commentRepository, CommentReplyRepository replyRepository,
+                                      ForumPostRepository postRepository, AppUrlBase base, CommentReplyRepository commentReplyRepository) {
         this.resumeService = resumeService;
         this.commentRepository = commentRepository;
+        this.replyRepository = replyRepository;
         this.postRepository = postRepository;
-        this.forumPostRepository = forumPostRepository;
         this.base = base;
+        this.commentReplyRepository = commentReplyRepository;
     }
 
     @Transactional
@@ -75,7 +81,6 @@ public class ForumPostAndCommentService {
     public Comment makeTopLevelComment(String content, UUID post_id, User creatingUser){
         ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
         Comment newComment = new Comment(content);
-        newComment.setParentComment(null);
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
         creatingUser.getMadeComments().add(newComment);
@@ -85,14 +90,18 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public Comment createReplyTo(String content, UUID commend_id, User creatingUser){
-        Comment parentComment = commentRepository.findById(commend_id).orElseThrow(RuntimeException::new);
-        Comment newComment = new Comment(content);
-        newComment.setParentComment(parentComment);
-        newComment.setAssociatedPost(parentComment.getAssociatedPost());
-        creatingUser.getMadeComments().add(newComment);
-        newComment.setAuthor(creatingUser);
-        return commentRepository.save(newComment);
+    public CommentReply createReplyTo(UUID top_level_comment_id, User creatingUser,
+                                      CreateReplyForm replyForm){
+        Comment parentComment = commentRepository.findById(top_level_comment_id).
+                orElseThrow(RuntimeException::new);
+        CommentReply parentReply = commentReplyRepository.
+                findByParentReplyId(replyForm.parent_reply_id()).orElse(null);
+        CommentReply newReply = new CommentReply(replyForm.content());
+        newReply.setAuthor(creatingUser);
+        creatingUser.getMadeReplies().add(newReply);
+        newReply.setParentReply(parentReply);
+        newReply.setTopLevelComment(parentComment);
+        return commentReplyRepository.save(newReply);
     }
 
 
@@ -172,7 +181,7 @@ public class ForumPostAndCommentService {
                 Sort.by("creationDate").descending().
                         //Break any ties by the last modified dates
                         and(Sort.by("lastModifiedDate").descending()));
-        Page<ForumPost> resultingPage = forumPostRepository.findAll(derivedSpecification, pageableResult);
+        Page<ForumPost> resultingPage = postRepository.findAll(derivedSpecification, pageableResult);
         return new ForumPostPageResponse(resultingPage.getContent(), resultingPage.getNumber(),
                 resultingPage.getTotalElements(), resultingPage.getTotalPages(), pageSize);
     }

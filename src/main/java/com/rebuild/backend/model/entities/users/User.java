@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.users;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
+import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
@@ -15,6 +16,8 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -102,6 +105,11 @@ public class User implements UserDetails {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "author", fetch = FetchType.LAZY)
     private List<Comment> madeComments = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+    mappedBy = "author", fetch = FetchType.LAZY)
+    private List<CommentReply> madeReplies;
 
     @JsonIgnore
     private int numberOfResumes = 0;

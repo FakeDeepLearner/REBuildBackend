@@ -1,9 +1,12 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.exceptions.forum_exceptions.CommentForbiddenException;
+import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
+import com.rebuild.backend.model.forms.forum_forms.CreateReplyForm;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,11 +33,11 @@ public class CommentController {
         return forumPostAndCommentService.makeTopLevelComment(commentBody, post_id, creatingUser);
     }
 
-    @PostMapping("/reply/{comment_id}")
+    @PostMapping("/reply/{top_level_comment_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Comment createReply(@PathVariable UUID comment_id, @RequestBody String replyBody,
-                                @AuthenticationPrincipal User creatingUser){
-        return forumPostAndCommentService.createReplyTo(replyBody, comment_id, creatingUser);
+    public CommentReply createReply(@PathVariable UUID top_level_comment_id, @RequestBody @Valid CreateReplyForm replyBody,
+                                    @AuthenticationPrincipal User creatingUser){
+        return forumPostAndCommentService.createReplyTo(top_level_comment_id, creatingUser, replyBody);
     }
 
     @DeleteMapping("/delete/{comment_id}")

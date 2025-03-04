@@ -45,25 +45,17 @@ public class Comment {
     @JoinColumn(name = "post_id")
     private ForumPost associatedPost;
 
-    //parent being null will mean that this comment is a top level comment
-    @JsonBackReference
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parentComment;
-
-    //replies being null (or empty) will mean that we have reached the end of this branch of recursion
-    @JsonManagedReference
-    @OneToMany(mappedBy = "parentComment", orphanRemoval = true,
+    @OneToMany(mappedBy = "topLevelComment", orphanRemoval = true,
             cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
-    private List<Comment> replies = new ArrayList<>();
+    private List<CommentReply> replies = new ArrayList<>();
 
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationDate;
+    private LocalDateTime creationDate = LocalDateTime.now();
 
     @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime modificationDate;
+    private LocalDateTime modificationDate = LocalDateTime.now();
 
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
