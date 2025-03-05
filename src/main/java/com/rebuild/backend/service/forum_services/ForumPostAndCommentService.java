@@ -80,6 +80,7 @@ public class ForumPostAndCommentService {
     @Transactional
     public Comment makeTopLevelComment(String content, UUID post_id, User creatingUser){
         ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
+        post.setCommentCount(post.getCommentCount() + 1);
         Comment newComment = new Comment(content);
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
@@ -92,15 +93,25 @@ public class ForumPostAndCommentService {
     @Transactional
     public CommentReply createReplyTo(UUID top_level_comment_id, User creatingUser,
                                       CreateReplyForm replyForm){
-        Comment parentComment = commentRepository.findById(top_level_comment_id).
+        Comment topLevelComment = commentRepository.findById(top_level_comment_id).
                 orElseThrow(RuntimeException::new);
         CommentReply parentReply = commentReplyRepository.
                 findByParentReplyId(replyForm.parent_reply_id()).orElse(null);
+
+        //If we have a parent comment reply, we increase its number of children
+        if(parentReply != null){
+            parentReply.setChildRepliesCount(parentReply.getChildRepliesCount() + 1);
+        }
+        //If we don't have a parent comment, this means that this is a top level reply, and we are
+        // a children of the top level actual comment directly.
+        else{
+            topLevelComment.setRepliesCount(topLevelComment.getRepliesCount() + 1);
+        }
         CommentReply newReply = new CommentReply(replyForm.content());
         newReply.setAuthor(creatingUser);
         creatingUser.getMadeReplies().add(newReply);
         newReply.setParentReply(parentReply);
-        newReply.setTopLevelComment(parentComment);
+        newReply.setTopLevelComment(topLevelComment);
         return commentReplyRepository.save(newReply);
     }
 

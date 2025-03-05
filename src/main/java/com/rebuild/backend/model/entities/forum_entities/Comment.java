@@ -8,14 +8,13 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.usertype.UserType;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "comments")
@@ -48,6 +47,8 @@ public class Comment {
     @OneToMany(mappedBy = "topLevelComment", orphanRemoval = true,
             cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     private List<CommentReply> replies = new ArrayList<>();
+
+    private int repliesCount = 0;
 
     @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)

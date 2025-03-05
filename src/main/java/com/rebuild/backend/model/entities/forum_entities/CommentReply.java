@@ -2,6 +2,8 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
+import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -27,6 +29,7 @@ public class CommentReply {
     private UUID id;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String content;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -36,6 +39,8 @@ public class CommentReply {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY,
             mappedBy = "parentReply")
     private List<CommentReply> childReplies = new ArrayList<>();
+
+    private int childRepliesCount = 0;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "parent_reply_id", referencedColumnName = "id")
@@ -47,9 +52,11 @@ public class CommentReply {
     private User author;
 
     @CreatedDate
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate = LocalDateTime.now();
 
     @LastModifiedDate
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime modifiedDate = creationDate;
 
 

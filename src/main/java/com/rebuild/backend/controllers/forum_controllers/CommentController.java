@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,6 +39,18 @@ public class CommentController {
     public CommentReply createReply(@PathVariable UUID top_level_comment_id, @RequestBody @Valid CreateReplyForm replyBody,
                                     @AuthenticationPrincipal User creatingUser){
         return forumPostAndCommentService.createReplyTo(top_level_comment_id, creatingUser, replyBody);
+    }
+
+    @GetMapping("/{top_level_comment_id}/replies")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentReply> getReplies(@PathVariable UUID top_level_comment_id){
+        return null;
+    }
+
+    @GetMapping("/{top_level_comment_id}/{reply_id}/expand")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentReply> expandReplies(){
+        return null;
     }
 
     @DeleteMapping("/delete/{comment_id}")

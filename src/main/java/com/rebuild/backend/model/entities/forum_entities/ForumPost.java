@@ -62,4 +62,6 @@ public class ForumPost {
             mappedBy = "associatedPost")
     private List<Comment> comments = new ArrayList<>();
 
+    private int commentCount = 0;
+
 }
