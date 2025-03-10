@@ -28,7 +28,6 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class Comment {
 
     @Id
@@ -50,11 +49,9 @@ public class Comment {
 
     private int repliesCount = 0;
 
-    @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate = LocalDateTime.now();
 
-    @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime modificationDate = LocalDateTime.now();
 

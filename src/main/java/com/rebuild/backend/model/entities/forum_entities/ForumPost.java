@@ -28,7 +28,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-@EntityListeners(AuditingEntityListener.class)
 public class ForumPost {
 
     @Id
@@ -50,11 +49,9 @@ public class ForumPost {
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private User creatingUser;
 
-    @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate = LocalDateTime.now();
 
-    @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime lastModificationDate = LocalDateTime.now();
 

@@ -21,7 +21,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class CommentReply {
 
     @Id
@@ -51,11 +50,9 @@ public class CommentReply {
     @JoinColumn(name = "author_id", referencedColumnName = "id")
     private User author;
 
-    @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate = LocalDateTime.now();
 
-    @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime modifiedDate = creationDate;
 

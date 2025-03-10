@@ -32,7 +32,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -77,12 +76,10 @@ public class Resume {
     private List<ResumeVersion> savedVersions;
 
     @JsonIgnore
-    @CreatedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationTime = LocalDateTime.now();
 
     @JsonIgnore
-    @LastModifiedDate
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime lastModifiedTime = LocalDateTime.now();
 

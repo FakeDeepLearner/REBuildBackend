@@ -13,7 +13,7 @@ import static jakarta.persistence.CascadeType.*;
 
 @Data
 @RequiredArgsConstructor
-// @NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "profiles")
