@@ -1,14 +1,12 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.specs;
 
 import com.rebuild.backend.model.entities.enums.CompareCriteria;
 import com.rebuild.backend.model.entities.enums.ComparisonMethod;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.specs.YearMonthStringOperations;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.YearMonth;
-import java.util.List;
 
 public class SpecificationUtils {
 

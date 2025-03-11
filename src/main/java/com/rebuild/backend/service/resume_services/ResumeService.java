@@ -9,7 +9,7 @@ import com.rebuild.backend.model.forms.resume_forms.FullResumeForm;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
-import com.rebuild.backend.specs.YearMonthStringOperations;
+import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 

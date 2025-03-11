@@ -1,4 +1,4 @@
-package com.rebuild.backend.specs;
+package com.rebuild.backend.utils;
 
 
 import com.rebuild.backend.model.entities.enums.CompareCriteria;

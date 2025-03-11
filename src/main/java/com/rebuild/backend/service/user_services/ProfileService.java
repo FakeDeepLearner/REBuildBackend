@@ -5,7 +5,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
-import com.rebuild.backend.specs.YearMonthStringOperations;
+import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
