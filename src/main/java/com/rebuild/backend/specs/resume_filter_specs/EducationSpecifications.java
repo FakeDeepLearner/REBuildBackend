@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
+import org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor;
 import org.springframework.data.jpa.domain.Specification;
 
 public class EducationSpecifications {

@@ -13,6 +13,9 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public interface ReusableJoinSpecification<T> extends Specification<T> {
 
+    //Declaring a variable in an interface makes it static.
+    //This is usually not desirable, but we want it in this case,
+    //because every instance of this interface will have the same map.
     Map<String, Join<?, ?>> joins = new HashMap<>();
 
     JoinType defaultJoinType = JoinType.INNER;
