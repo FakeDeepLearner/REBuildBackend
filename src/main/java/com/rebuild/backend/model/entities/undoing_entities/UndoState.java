@@ -11,9 +11,9 @@ public abstract sealed class UndoState<T>
 permits ProfileUndoState, ResumeUndoState
 {
 
-    T originalState;
+    protected T originalState;
 
     /* Transforms the current state back into the original state
         */
-    public abstract T undoAction(T currentState);
+    public abstract T returnUndoneState(T currentState);
 }
