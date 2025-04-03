@@ -71,9 +71,8 @@ public class Resume {
     @JsonIgnore
     private User user;
 
-    @OneToMany(mappedBy = "associatedResume", fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ResumeVersion> savedVersions;
+    @Column(name = "version_count", nullable = false)
+    private int versionCount = 0;
 
     @JsonIgnore
     @Convert(converter = LocalDateTimeDatabaseConverter.class)

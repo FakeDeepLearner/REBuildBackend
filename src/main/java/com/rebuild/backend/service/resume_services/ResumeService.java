@@ -423,9 +423,10 @@ public class ResumeService {
     @Transactional
     public ResumeVersion snapshotCurrentData(UUID resume_id){
         Resume copiedResume = findById(resume_id);
-        ResumeVersion newVersion = new ResumeVersion(copiedResume.getHeader(), copiedResume.getEducation(),
+        ResumeVersion newVersion = new ResumeVersion(copiedResume.getName(),
+                copiedResume.getHeader(), copiedResume.getEducation(),
                 copiedResume.getExperiences(), copiedResume.getSections());
-        copiedResume.getSavedVersions().add(newVersion);
+        copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
         newVersion.setAssociatedResume(copiedResume);
         return versionRepository.save(newVersion);
     }
@@ -443,7 +444,7 @@ public class ResumeService {
         * Additionally, UUID.equals is very fast, since it just compares the most
         * and least significant bits rather than the entire string, so this algorithm is actually
         * efficient unless we have a very large number of versions
-        * */
+        *
 
         ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
                 stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(
@@ -451,8 +452,12 @@ public class ResumeService {
                                 switchingResume.getExperiences(), switchingResume.getSections())
                 );
 
-        try {
+        */
 
+        ResumeVersion versionToSwitch = versionRepository.findById(version_id).orElse(null);
+        assert versionToSwitch != null;
+        try {
+            switchingResume.setName(versionToSwitch.getVersionedName());
             switchingResume.setHeader(versionToSwitch.getVersionedHeader());
             switchingResume.setEducation(versionToSwitch.getVersionedEducation());
             switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
