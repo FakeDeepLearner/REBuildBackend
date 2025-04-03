@@ -8,7 +8,9 @@ import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.service.undo_services.UndoService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
+import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,11 +28,14 @@ public class PrefillFromProfileController {
 
     private final ResumeService resumeService;
 
+    private final UndoAdder undoAdder;
+
     @Autowired
     public PrefillFromProfileController(ObjectConverter objectConverter,
-                                        ResumeService resumeService) {
+                                        ResumeService resumeService, UndoAdder undoAdder) {
         this.objectConverter = objectConverter;
         this.resumeService = resumeService;
+        this.undoAdder = undoAdder;
     }
 
     @GetMapping("/header/{resume_id}")
@@ -44,6 +49,7 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getHeader() == null){
             throw new NoAttributeInProfileException("Your profile does not have a header set");
         }
+        undoAdder.addUndoResumeState(resume_id, associatedResume);
         ProfileHeader originalHeader = resumeUser.getProfile().getHeader();
         Header transformedHeader = objectConverter.convertToHeader(originalHeader);
         return resumeService.setHeader(associatedResume, transformedHeader);
@@ -60,6 +66,7 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getEducation() == null){
             throw new NoAttributeInProfileException("Your profile does not have an education set");
         }
+        undoAdder.addUndoResumeState(resume_id, associatedResume);
         ProfileEducation originalEducation = resumeUser.getProfile().getEducation();
         Education transformedEducation = objectConverter.convertToEducation(originalEducation);
         return resumeService.setEducation(associatedResume, transformedEducation);
@@ -76,6 +83,7 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getExperienceList() == null){
             throw new NoAttributeInProfileException("Your profile does not have experiences set");
         }
+        undoAdder.addUndoResumeState(resume_id, associatedResume);
         List<Experience> convertedExperiences = resumeUser.getProfile().getExperienceList().
                 stream().map(objectConverter::convertToExperience).
                 toList();
@@ -87,12 +95,14 @@ public class PrefillFromProfileController {
                 return ResponseEntity.ok(prefillResult.optionalResult().get());
             }
             case CONFLICT -> {
+                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
                         (prefillResult.optionalResult().get(),
                                 prefillResult.optionalError().get()));
             }
 
             case INTERNAL_SERVER_ERROR -> {
+                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
                         prefillResult.optionalResult().get(),
                         prefillResult.optionalError().get()));
@@ -114,6 +124,7 @@ public class PrefillFromProfileController {
             throw new NoAttributeInProfileException("Your profile does not have sections set");
         }
 
+        undoAdder.addUndoResumeState(resume_id, associatedResume);
         List<ResumeSection> convertedSections = resumeUser.getProfile().getSections().
                 stream().map(objectConverter::convertToSection).
                 toList();
@@ -125,12 +136,15 @@ public class PrefillFromProfileController {
                 return ResponseEntity.ok(prefillResult.optionalResult().get());
             }
             case CONFLICT -> {
+                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
                         (prefillResult.optionalResult().get(),
                                 prefillResult.optionalError().get()));
+
             }
 
             case INTERNAL_SERVER_ERROR -> {
+                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
                         prefillResult.optionalResult().get(),
                         prefillResult.optionalError().get()));

@@ -26,6 +26,7 @@ public class ResumeUtilController {
     @PutMapping("/api/resume/change_name/{res_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeResumeName(@PathVariable UUID res_id, @RequestBody String newName) {
+
         OptionalValueAndErrorResult<Resume> changingResult =
                 resumeService.changeName(res_id, newName);
 

@@ -9,6 +9,7 @@ import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
+import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.hibernate.exception.ConstraintViolationException;
@@ -40,19 +41,24 @@ public class ResumeService {
 
     private final ObjectConverter objectConverter;
 
+    private final UndoAdder undoAdder;
+
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          ResumeVersionRepository versionRepository,
-                         ObjectConverter objectConverter) {
+                         ObjectConverter objectConverter,
+                         UndoAdder undoAdder) {
         this.resumeRepository = resumeRepository;
         this.versionRepository = versionRepository;
         this.objectConverter = objectConverter;
+        this.undoAdder = undoAdder;
     }
 
     @Transactional
     public Resume changeHeaderInfo(UUID resID,
                                    HeaderForm headerForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         Header header = resume.getHeader();
         header.setEmail(headerForm.email());
         header.setNumber(headerForm.number());
@@ -100,6 +106,7 @@ public class ResumeService {
     public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
                                            ExperienceForm experienceForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         //These variables are guaranteed to be properly initialized after the try block executes
         Experience removedExperience = null;
         int removedIndex = 0;
@@ -130,6 +137,7 @@ public class ResumeService {
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             resume.addExperience(removedIndex, removedExperience);
+            undoAdder.removeUndoState(resID);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 return OptionalValueAndErrorResult.of(resume,
@@ -143,6 +151,7 @@ public class ResumeService {
     @Transactional
     public Resume changeEducationInfo(UUID resID, EducationForm educationForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         Education education = resume.getEducation();
         education.setRelevantCoursework(educationForm.relevantCoursework());
         education.setSchoolName(educationForm.schoolName());
@@ -155,6 +164,7 @@ public class ResumeService {
     @Transactional
     public Header createNewHeader(UUID resID, HeaderForm headerForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
@@ -168,6 +178,7 @@ public class ResumeService {
     public OptionalValueAndErrorResult<Resume> createNewExperience(UUID resID,
                                                                    ExperienceForm experienceForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         Experience newExperience = new Experience(experienceForm.companyName(),
@@ -183,6 +194,7 @@ public class ResumeService {
             Throwable cause = e.getCause();
             //Remove the element that was added last (the one added in the try block above)
             resume.getExperiences().removeLast();
+            undoAdder.removeUndoState(resID);
             //No loose ends
             newExperience.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
@@ -197,6 +209,7 @@ public class ResumeService {
     @Transactional
     public Resume createNewEducation(UUID resID, EducationForm educationForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
@@ -211,6 +224,7 @@ public class ResumeService {
     public OptionalValueAndErrorResult<Resume> createNewSection(UUID resID,
                                                                 SectionForm sectionForm){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         ResumeSection newSection = new ResumeSection(sectionForm.title());
 
         List<ResumeSectionEntry> transformedEntries = objectConverter.
@@ -223,6 +237,7 @@ public class ResumeService {
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
+            undoAdder.removeUndoState(resID);
             Throwable cause = e.getCause();
             resume.getSections().removeLast();
             newSection.setResume(null);
@@ -244,6 +259,7 @@ public class ResumeService {
     @Transactional
     public Resume deleteEducation(UUID resID){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         resume.setEducation(null);
         return resumeRepository.save(resume);
     }
@@ -251,6 +267,7 @@ public class ResumeService {
     @Transactional
     public Resume deleteExperience(UUID resID, UUID expID){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         resume.getExperiences().removeIf(experience -> experience.getId().equals(expID));
         return resumeRepository.save(resume);
     }
@@ -258,6 +275,7 @@ public class ResumeService {
     @Transactional
     public Resume deleteSection(UUID resID, UUID sectionID){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         resume.getSections().removeIf(section -> section.getId().equals(sectionID));
         return resumeRepository.save(resume);
     }
@@ -265,6 +283,7 @@ public class ResumeService {
     @Transactional
     public Resume deleteHeader(UUID resID){
         Resume resume = findById(resID);
+        undoAdder.addUndoResumeState(resID, resume);
         resume.setHeader(null);
         return resumeRepository.save(resume);
     }
@@ -442,11 +461,12 @@ public class ResumeService {
         * This avoids looking up the database again, saving time in most cases
         * Additionally, UUID.equals is very fast, since it just compares the most
         * and least significant bits rather than the entire string, so this algorithm is actually
-        * efficient unless we have a very large number of versions
+        * efficient unless we have a very large number of versions, which we can control very easily
         * */
 
         ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
-                stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(
+                stream().filter(version -> version.getId().equals(version_id)).
+                findFirst().orElse(
                         new ResumeVersion(switchingResume.getHeader(), switchingResume.getEducation(),
                                 switchingResume.getExperiences(), switchingResume.getSections())
                 );
@@ -488,7 +508,6 @@ public class ResumeService {
     public void deleteVersion(UUID version_id){
         versionRepository.deleteById(version_id);
     }
-
 
 
 }

@@ -99,7 +99,8 @@ public class ProfileController {
 
     @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> updateProfileExperiences(@Valid @RequestBody List<ProfileExperienceForm> experienceFormList,
+    public ResponseEntity<?> updateProfileExperiences(@Valid @RequestBody List<ProfileExperienceForm>
+                                                                  experienceFormList,
                                                    @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");

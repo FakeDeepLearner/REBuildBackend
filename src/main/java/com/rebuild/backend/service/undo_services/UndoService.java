@@ -17,8 +17,12 @@ public class UndoService {
     private final Map<UUID, UndoState<?>> undoStates = new ConcurrentHashMap<>();
 
 
-    public void addUndoState(UUID resume_id, UndoState<?> undoState) {
-        undoStates.put(resume_id, undoState);
+    public void addUndoState(UUID id, UndoState<?> undoState) {
+        undoStates.put(id, undoState);
+    }
+
+    public void removeUndoState(UUID id) {
+        undoStates.remove(id);
     }
 
     public Resume revertResume(UUID id, Resume currentState) {

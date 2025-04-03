@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
+import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.hibernate.exception.ConstraintViolationException;
@@ -32,15 +33,19 @@ public class ProfileService {
 
     private final ObjectConverter objectConverter;
 
+    private final UndoAdder undoAdder;
+
     @Autowired
     public ProfileService(ProfileRepository profileRepository,
-                          ObjectConverter objectConverter) {
+                          ObjectConverter objectConverter, UndoAdder undoAdder) {
         this.profileRepository = profileRepository;
         this.objectConverter = objectConverter;
+        this.undoAdder = undoAdder;
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<UserProfile> createFullProfileFor(FullProfileForm profileForm, User creatingUser) {
+    public OptionalValueAndErrorResult<UserProfile> createFullProfileFor(FullProfileForm profileForm,
+                                                                         User creatingUser) {
         UserProfile newProfile = getUserProfile(profileForm);
         try {
             newProfile.setUser(creatingUser);
@@ -94,6 +99,7 @@ public class ProfileService {
 
     @Transactional
     public UserProfile changePageSize(UserProfile profile, int newPageSize){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.setForumPageSize(newPageSize);
         return profileRepository.save(profile);
     }
@@ -101,6 +107,7 @@ public class ProfileService {
     @Transactional
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
+        undoAdder.addProfileUndoState(userProfile.getId(), userProfile);
         ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(),headerForm.email());
         userProfile.setHeader(newHeader);
@@ -111,6 +118,7 @@ public class ProfileService {
     @Transactional
     public UserProfile updateProfileEducation(UserProfile userProfile,
                                               ProfileEducationForm educationForm) {
+        undoAdder.addProfileUndoState(userProfile.getId(), userProfile);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         ProfileEducation newEducation = new ProfileEducation(educationForm.schoolName(),
@@ -137,11 +145,13 @@ public class ProfileService {
                     return newExperience;
                 }).toList();
         try {
+            undoAdder.addProfileUndoState(profile.getId(), profile);
             profile.setExperienceList(transformedExperiences);
             UserProfile savedProfile = profileRepository.save(profile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
         catch (DataIntegrityViolationException e){
+            undoAdder.removeUndoState(profile.getId());
             Throwable cause = e.getCause();
             profile.setExperienceList(oldExperiences);
             if (cause instanceof ConstraintViolationException violationException &&
@@ -150,6 +160,7 @@ public class ProfileService {
                         "The new experiences can't have more than 1 experience with the same company", CONFLICT);
             }
         }
+        undoAdder.removeUndoState(profile.getId());
         return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
     }
 
@@ -159,11 +170,13 @@ public class ProfileService {
         List<ProfileSection> oldSections = profile.getSections();
         List<ProfileSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
         try {
+            undoAdder.addProfileUndoState(profile.getId(), profile);
             profile.setSections(transformedSections);
             UserProfile savedProfile = profileRepository.save(profile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
         catch (DataIntegrityViolationException e){
+            undoAdder.addProfileUndoState(profile.getId(), profile);
             Throwable cause = e.getCause();
             profile.setSections(oldSections);
             if (cause instanceof ConstraintViolationException violationException &&
@@ -172,6 +185,7 @@ public class ProfileService {
                         "The new profile sections can't have more than 1 section with the same title", CONFLICT);
             }
         }
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred",
                 INTERNAL_SERVER_ERROR);
     }
@@ -183,12 +197,14 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteProfileExperiences(UserProfile profile){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.setExperienceList(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
     public UserProfile deleteProfileEducation(UserProfile profile){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.getEducation().setProfile(null);
         profile.setEducation(null);
         return profileRepository.save(profile);
@@ -196,12 +212,14 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteProfileSections(UserProfile profile){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.setSections(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
     public UserProfile deleteProfileHeader(UserProfile profile){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.getHeader().setProfile(null);
         profile.setHeader(null);
         return profileRepository.save(profile);
@@ -209,6 +227,7 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteSpecificProfileExperience(UserProfile profile, UUID experience_id){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.getExperienceList().
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)
@@ -218,6 +237,7 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteSpecificSection(UserProfile profile, UUID experience_id){
+        undoAdder.addProfileUndoState(profile.getId(), profile);
         profile.getSections().
                 removeIf(section ->
                         section.getId().equals(experience_id)
@@ -226,7 +246,8 @@ public class ProfileService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<UserProfile> updateEntireProfile(UserProfile updatingProfile, FullProfileForm profileForm){
+    public OptionalValueAndErrorResult<UserProfile> updateEntireProfile(UserProfile updatingProfile,
+                                                                        FullProfileForm profileForm){
         List<ProfileExperience> oldExperiences = updatingProfile.getExperienceList();
         List<ProfileSection> oldSections = updatingProfile.getSections();
         ProfileHeader oldHeader = updatingProfile.getHeader();
@@ -234,6 +255,7 @@ public class ProfileService {
         YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
         try {
+            undoAdder.addProfileUndoState(updatingProfile.getId(), updatingProfile);
             updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
                     updatingProfile));
             updatingProfile.setHeader(new ProfileHeader(profileForm.headerForm().number(),
@@ -247,6 +269,7 @@ public class ProfileService {
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
         catch(DataIntegrityViolationException e){
+            undoAdder.removeUndoState(updatingProfile.getId());
             Throwable cause = e.getCause();
             updatingProfile.setExperienceList(oldExperiences);
             updatingProfile.setSections(oldSections);
@@ -269,6 +292,7 @@ public class ProfileService {
                 }
             }
         }
+        undoAdder.removeUndoState(updatingProfile.getId());
         return OptionalValueAndErrorResult.of(updatingProfile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
 
     }
