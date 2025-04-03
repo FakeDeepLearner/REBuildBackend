@@ -20,6 +20,10 @@ public class ResumeVersion {
     @JsonIgnore
     private UUID id;
 
+    @Column(name = "versioned_name", nullable = false)
+    @NonNull
+    private String versionedName;
+
     @OneToOne(mappedBy = "associatedVersion", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @NonNull
     private Header versionedHeader;
