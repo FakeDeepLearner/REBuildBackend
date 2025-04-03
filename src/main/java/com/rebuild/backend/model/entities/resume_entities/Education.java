@@ -60,13 +60,6 @@ public class Education {
     foreignKey = @ForeignKey(name = "ed_fk_resume_id"))
     private Resume resume;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {
-            CascadeType.MERGE,
-            CascadeType.PERSIST,
-    })
-    @JoinColumn(name = "associated_version_id", referencedColumnName = "id")
-    @JsonIgnore
-    private ResumeVersion associatedVersion;
 
     public String toString() {
         return "EDUCATION:\n" +

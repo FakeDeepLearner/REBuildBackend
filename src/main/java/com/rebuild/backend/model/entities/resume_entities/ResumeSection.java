@@ -43,10 +43,6 @@ public class ResumeSection {
     @JsonIgnore
     private Resume resume;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "associated_version_id", referencedColumnName = "id", nullable = false)
-    @JsonIgnore
-    private ResumeVersion associatedVersion;
 
     public String toString() {
         return "\tSECTION:\n" +
