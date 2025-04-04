@@ -24,11 +24,15 @@ public class ResumeVersion {
     @NonNull
     private String versionedName;
 
-    @OneToOne(mappedBy = "associatedVersion", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "header_id")
+    @MapsId
     @NonNull
     private Header versionedHeader;
 
-    @OneToOne(mappedBy = "associatedVersion", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "education_id")
+    @MapsId
     @NonNull
     private Education versionedEducation;
 
@@ -37,14 +41,22 @@ public class ResumeVersion {
     * we do not want to delete the experiences or sections when we delete this version,
     * because those objects are also being used in resumes as well.
     */
-    @OneToMany(mappedBy = "associatedVersion", fetch = FetchType.EAGER,
-            cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany
+    @JoinTable(
+            name = "versions_and_experiences",
+            joinColumns = @JoinColumn(name = "version_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "experience_id", referencedColumnName = "id")
+    )
     @NonNull
     private List<Experience> versionedExperiences;
 
 
-    @OneToMany(mappedBy = "associatedVersion", fetch = FetchType.EAGER,
-            cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany
+    @JoinTable(
+            name = "versions_and_section",
+            joinColumns = @JoinColumn(name = "version_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "section_id", referencedColumnName = "id")
+    )
     @NonNull
     private List<ResumeSection> versionedSections;
 
