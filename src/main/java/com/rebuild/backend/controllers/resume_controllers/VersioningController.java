@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeVersion;
+import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
