@@ -11,3 +11,6 @@ TODO(Priority 1): Switch to session authentication and authorization. (For real 
 TODO(ASAP): Reimplement the "remember me" feature properly using Spring Security beans
 
 TODO: Figure our a way to load the replies of a comment (or another reply), and then to return it to the user as a type.
+
+TODO: Figure out a way to use just one type of entity for profile, resume and version fields,
+instead of separating them.
