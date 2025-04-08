@@ -39,5 +39,5 @@ public class VersionedSection {
     @JoinColumn(name = "version_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "section_fk_version_id"))
     @JsonIgnore
-    private ResumeVersion resume;
+    private ResumeVersion associatedVersion;
 }

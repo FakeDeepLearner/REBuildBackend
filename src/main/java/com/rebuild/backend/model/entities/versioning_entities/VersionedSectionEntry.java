@@ -29,7 +29,8 @@ public class VersionedSectionEntry {
 
     @NonNull
     @ElementCollection
-    @CollectionTable(name = "versioned_section_tools", joinColumns = @JoinColumn(name = "versioned_section_entry_id"))
+    @CollectionTable(name = "versioned_section_tools",
+            joinColumns = @JoinColumn(name = "versioned_section_entry_id"))
     private List<String> toolsUsed;
 
     @Column(nullable = false, name = "location")
@@ -38,7 +39,8 @@ public class VersionedSectionEntry {
 
     @NonNull
     @ElementCollection
-    @CollectionTable(name = "versioned_section_bullets", joinColumns = @JoinColumn(name = "versioned_section_entry_id"))
+    @CollectionTable(name = "versioned_section_bullets",
+            joinColumns = @JoinColumn(name = "versioned_section_entry_id"))
     private List<String> bullets;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})

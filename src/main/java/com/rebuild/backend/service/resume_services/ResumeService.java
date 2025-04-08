@@ -3,7 +3,7 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
+import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.ResumeRepository;
@@ -416,13 +416,10 @@ public class ResumeService {
     }
 
     @Transactional
-    public ResumeVersion snapshotCurrentData(UUID resume_id){
+    public ResumeVersion snapshotCurrentData(UUID resume_id, VersionInclusionForm inclusionForm){
         Resume copiedResume = findById(resume_id);
-        ResumeVersion newVersion = new ResumeVersion(copiedResume.getName(),
-                copiedResume.getHeader(), copiedResume.getEducation(),
-                copiedResume.getExperiences(), copiedResume.getSections());
+        ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
-        newVersion.setAssociatedResume(copiedResume);
         return versionRepository.save(newVersion);
     }
 
@@ -434,33 +431,16 @@ public class ResumeService {
         List<Experience> oldExperiences = switchingResume.getExperiences();
         List<ResumeSection> oldSections = switchingResume.getSections();
 
-        /*
-        * This avoids looking up the database again, saving time in most cases
-        * Additionally, UUID.equals is very fast, since it just compares the most
-        * and least significant bits rather than the entire string, so this algorithm is actually
-        * efficient unless we have a very large number of versions
-        *
-
-        ResumeVersion versionToSwitch = switchingResume.getSavedVersions().
-                stream().filter(version -> version.getId().equals(version_id)).findFirst().orElse(
-                        new ResumeVersion(switchingResume.getHeader(), switchingResume.getEducation(),
-                                switchingResume.getExperiences(), switchingResume.getSections())
-                );
-
-        */
-
         ResumeVersion versionToSwitch = versionRepository.findById(version_id).orElse(null);
         assert versionToSwitch != null;
         try {
-            switchingResume.setName(versionToSwitch.getVersionedName());
-            switchingResume.setHeader(versionToSwitch.getVersionedHeader());
-            switchingResume.setEducation(versionToSwitch.getVersionedEducation());
-            switchingResume.setExperiences(versionToSwitch.getVersionedExperiences());
-            switchingResume.setSections(versionToSwitch.getVersionedSections());
+            handleVersionSwitch(switchingResume, versionToSwitch);
             Resume savedResume = resumeRepository.save(switchingResume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch(DataIntegrityViolationException e) {
+            // If we see an error, restore the old versions in memory. The databse will take care of
+            // rolling back the transaction
             Throwable cause = e.getCause();
             switchingResume.setExperiences(oldExperiences);
             switchingResume.setSections(oldSections);
@@ -483,6 +463,100 @@ public class ResumeService {
         }
         return OptionalValueAndErrorResult.of(switchingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
+
+    private void handleVersionSwitch(Resume resume, ResumeVersion versionToSwitch){
+        if(versionToSwitch.getVersionedName() != null){
+            resume.setName(versionToSwitch.getVersionedName());
+        }
+
+        if(versionToSwitch.getVersionedHeader() != null){
+            VersionedHeader versionedHeader = versionToSwitch.getVersionedHeader();
+            Header newHeader = new Header(versionedHeader.getNumber(),
+                    versionedHeader.getFirstName(), versionedHeader.getLastName(), versionedHeader.getEmail());
+            newHeader.setResume(resume);
+            resume.setHeader(newHeader);
+        }
+
+        if(versionToSwitch.getVersionedEducation() != null){
+            VersionedEducation versionedEducation = versionToSwitch.getVersionedEducation();
+            Education newEducation = new Education(versionedEducation.getSchoolName(), versionedEducation.getRelevantCoursework(),
+                    versionedEducation.getLocation(), versionedEducation.getStartDate(), versionedEducation.getEndDate());
+            newEducation.setResume(resume);
+            resume.setEducation(newEducation);
+        }
+
+        if(versionToSwitch.getVersionedExperiences() != null){
+            List<VersionedExperience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+            List<Experience> newExperiences = versionedExperiences.stream().map(
+                    versionedExperience -> {
+                        Experience newExperience = new Experience(versionedExperience.getCompanyName(),
+                                versionedExperience.getTechnologyList(), versionedExperience.getLocation(),
+                                versionedExperience.getStartDate(), versionedExperience.getEndDate(),
+                                versionedExperience.getBullets());
+                        newExperience.setResume(resume);
+                        return newExperience;
+                    }
+
+            ).toList();
+            resume.setExperiences(newExperiences);
+        }
+
+        if(versionToSwitch.getVersionedSections() != null){
+            List<VersionedSection> versionedSections = versionToSwitch.getVersionedSections();
+
+            /*
+            * Iterate over the versioned sections,
+            * and transform them into regular sections by iterating over each of their versioned entries
+            * and transforming them into regular entries. Then, associate each entry with a section,
+            * and then finally associate those entries collectively to the newly created normal section.
+            * (Double lambdas are fun, yay)
+            */
+            List<ResumeSection> newSections = versionedSections.stream().map(
+                    versionedSection -> {
+                        ResumeSection newSection = new ResumeSection(versionedSection.getTitle());
+                        List<ResumeSectionEntry> transformedEntries = versionedSection.getEntries().
+                                stream().map(
+                                        rawEntry -> {
+                                            ResumeSectionEntry newEntry = new ResumeSectionEntry(
+                                                    rawEntry.getTitle(),
+                                                    rawEntry.getToolsUsed(),
+                                                    rawEntry.getLocation(),
+                                                    rawEntry.getBullets()
+                                            );
+                                            newEntry.setAssociatedSection(newSection);
+                                            return newEntry;
+                                        }
+                                ).toList();
+                        newSection.setEntries(transformedEntries);
+                        return newSection;
+                    }
+            ).toList();
+        }
+    }
+
+    private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){
+        ResumeVersion newVersion = new ResumeVersion();
+        VersionedHeader newHeader = objectConverter.createVersionedHeader(resume.getHeader(),
+                inclusionForm.includeHeader(), newVersion);
+        VersionedEducation newEducation = objectConverter.createVersionedEducation(
+                resume.getEducation(), inclusionForm.includeEducation(), newVersion
+        );
+        List<VersionedExperience> experiences = objectConverter.createVersionedExperiences(
+                resume.getExperiences(), inclusionForm.includeExperience(), newVersion
+        );
+        List<VersionedSection> sections = objectConverter.createVersionedSections(
+                resume.getSections(), inclusionForm.includeSections(), newVersion
+        );
+        String versionedName = inclusionForm.includeName() ? resume.getName() : null;
+        newVersion.setVersionedName(versionedName);
+        newVersion.setVersionedHeader(newHeader);
+        newVersion.setVersionedEducation(newEducation);
+        newVersion.setVersionedExperiences(experiences);
+        newVersion.setVersionedSections(sections);
+        newVersion.setAssociatedResume(resume);
+        return newVersion;
+    }
+
 
     @Transactional
     public void deleteVersion(UUID version_id){

@@ -2,6 +2,7 @@ package com.rebuild.backend.utils.converters;
 
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.forms.profile_forms.ProfileExperienceForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileSectionEntryForm;
 import com.rebuild.backend.model.forms.profile_forms.ProfileSectionForm;
@@ -133,5 +134,86 @@ public class ObjectConverter {
             newExperience.setResume(associatedResume);
             return newExperience;
         });
+    }
+
+    public VersionedHeader createVersionedHeader(Header originalHeader, boolean shouldBeNull,
+                                                 ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return null;
+        }
+
+        VersionedHeader newHeader = new VersionedHeader(originalHeader.getNumber(), originalHeader.getFirstName(),
+                originalHeader.getLastName(), originalHeader.getEmail());
+        newHeader.setAssociatedVersion(resumeVersion);
+        return newHeader;
+    }
+
+
+    public VersionedEducation createVersionedEducation(Education originalEducation, boolean shouldBeNull,
+                                                       ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return null;
+        }
+
+        VersionedEducation newEducation = new VersionedEducation(originalEducation.getSchoolName(), originalEducation.getRelevantCoursework(),
+                originalEducation.getLocation(), originalEducation.getStartDate(), originalEducation.getEndDate());
+        newEducation.setAssociatedVersion(resumeVersion);
+        return newEducation;
+    }
+
+    public List<VersionedExperience> createVersionedExperiences(List<Experience> originalExperiences,
+                                                                boolean shouldBeNull,
+                                                                ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return null;
+        }
+
+        return originalExperiences.stream().map(
+                rawExperience -> {
+                    VersionedExperience newExperience = new VersionedExperience(
+                            rawExperience.getCompanyName(),
+                            rawExperience.getTechnologyList(),
+                            rawExperience.getLocation(),
+                            rawExperience.getStartDate(),
+                            rawExperience.getEndDate(),
+                            rawExperience.getBullets()
+                    );
+                    newExperience.setAssociatedVersion(resumeVersion);
+                    return newExperience;
+                }
+        ).toList();
+    }
+
+    private List<VersionedSectionEntry> createVersionedEntries(List<ResumeSectionEntry> rawEntries,
+                                                               VersionedSection section){
+        return rawEntries.stream().map(
+                rawEntry -> {
+                    VersionedSectionEntry newEntry =  new VersionedSectionEntry(
+                            rawEntry.getTitle(), rawEntry.getToolsUsed(),
+                            rawEntry.getLocation(), rawEntry.getBullets()
+                    );
+                    newEntry.setAssociatedSection(section);
+                    return newEntry;
+                }
+        ).toList();
+    }
+
+    public List<VersionedSection> createVersionedSections(List<ResumeSection> originalSections,
+                                                          boolean shouldBeNull,
+                                                          ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return null;
+        }
+
+        return originalSections.stream().map(
+                rawSection -> {
+                    VersionedSection newSection = new VersionedSection(
+                            rawSection.getTitle()
+                    );
+                    newSection.setEntries(createVersionedEntries(rawSection.getEntries(), newSection));
+                    newSection.setAssociatedVersion(resumeVersion);
+                    return newSection;
+                }
+        ).toList();
     }
 }
