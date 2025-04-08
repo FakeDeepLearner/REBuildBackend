@@ -1,7 +1,8 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeVersion;
+import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
+import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
@@ -25,8 +26,9 @@ public class VersioningController {
 
     @PostMapping("/create_version/{resume_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResumeVersion snapshotVersion(@PathVariable UUID resume_id){
-        return resumeService.snapshotCurrentData(resume_id);
+    public ResumeVersion snapshotVersion(@PathVariable UUID resume_id,
+                                         @RequestBody VersionInclusionForm inclusionForm){
+        return resumeService.snapshotCurrentData(resume_id, inclusionForm);
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")

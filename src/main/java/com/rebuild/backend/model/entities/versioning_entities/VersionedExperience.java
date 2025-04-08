@@ -1,40 +1,46 @@
-package com.rebuild.backend.model.entities.resume_entities;
+package com.rebuild.backend.model.entities.versioning_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
-import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
-
 
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
+@Table(name = "versioned_experiences")
+@Entity
 @Getter
 @Setter
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Entity
-@Table(name = "educations")
-public class Education {
+public class VersionedExperience {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(
+            name = "id"
+    )
     @JsonIgnore
     private UUID id;
 
+    @Column(name = "company_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    private String schoolName;
+    private String companyName;
 
-    @NonNull
     @ElementCollection
-    @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
-    private List<String> relevantCoursework;
+    @CollectionTable(name = "technologies", joinColumns = @JoinColumn(name = "experience_id"))
+    @Column(nullable = false)
+    @NonNull
+    private List<String> technologyList;
 
     @Column(name = "location", nullable = false)
     @NonNull
@@ -52,20 +58,17 @@ public class Education {
     @Convert(converter = YearMonthDatabaseConverter.class)
     private YearMonth endDate;
 
-    @OneToOne(cascade = {
+    @ElementCollection
+    @CollectionTable(name = "bullets", joinColumns = @JoinColumn(name = "experience_id"))
+    @Column(name = "bullets", nullable = false)
+    @NonNull
+    private List<String> bullets;
+
+    @ManyToOne(fetch =  FetchType.LAZY, cascade = {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
-    @JoinColumn(name = "resume_id", referencedColumnName = "id",
-    foreignKey = @ForeignKey(name = "ed_fk_resume_id"))
-    private Resume resume;
-
-
-    public String toString() {
-        return "EDUCATION:\n" +
-                "\tSchool Name: " + schoolName + "\n" +
-                "\tCoursework: " + relevantCoursework + "\n" +
-                "\tLocation: " + location +
-                "\n\n\n";
-    }
+    @JoinColumn(name = "version_id", nullable = false, referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "exp_fk_version_id"))
+    private ResumeVersion associatedVersion;
 }

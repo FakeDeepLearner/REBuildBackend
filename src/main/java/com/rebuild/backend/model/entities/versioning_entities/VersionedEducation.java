@@ -1,27 +1,28 @@
-package com.rebuild.backend.model.entities.resume_entities;
+package com.rebuild.backend.model.entities.versioning_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
-import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
-
 
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
+@Table(name = "versioned_educations")
+@Entity
 @Getter
 @Setter
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Entity
-@Table(name = "educations")
-public class Education {
+public class VersionedEducation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JsonIgnore
@@ -33,7 +34,7 @@ public class Education {
 
     @NonNull
     @ElementCollection
-    @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
+    @CollectionTable(name = "versioned_courses", joinColumns = @JoinColumn(name = "education_id"))
     private List<String> relevantCoursework;
 
     @Column(name = "location", nullable = false)
@@ -56,16 +57,7 @@ public class Education {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
-    @JoinColumn(name = "resume_id", referencedColumnName = "id",
-    foreignKey = @ForeignKey(name = "ed_fk_resume_id"))
-    private Resume resume;
-
-
-    public String toString() {
-        return "EDUCATION:\n" +
-                "\tSchool Name: " + schoolName + "\n" +
-                "\tCoursework: " + relevantCoursework + "\n" +
-                "\tLocation: " + location +
-                "\n\n\n";
-    }
+    @JoinColumn(name = "version_id", referencedColumnName = "id", nullable = false,
+            foreignKey = @ForeignKey(name = "ed_fk_version_id"))
+    private ResumeVersion associatedVersion;
 }

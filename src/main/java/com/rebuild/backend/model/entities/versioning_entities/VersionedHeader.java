@@ -1,23 +1,23 @@
-package com.rebuild.backend.model.entities.resume_entities;
+package com.rebuild.backend.model.entities.versioning_entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
+@Table(name = "versioned_headers")
 @Entity
-@Table(name = "headers")
 @Getter
 @Setter
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Header {
+public class VersionedHeader {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -52,18 +52,7 @@ public class Header {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
-    @JoinColumn(name = "resume_id", referencedColumnName = "id",
-    foreignKey = @ForeignKey(name = "head_fk_resume_id"))
-    private Resume resume;
-
-
-    @Override
-    public String toString() {
-        return "HEADER:\n" +
-                "\tPhone Number: " + number.fullNumber() + "\n" +
-                "\tName: " + firstName + " " + lastName + "\n" +
-                "\tEmail: " + email + "\n\n\n";
-    }
-
-
+    @JoinColumn(name = "version_id", referencedColumnName = "id", nullable = false,
+            foreignKey = @ForeignKey(name = "head_fk_version_id"))
+    private ResumeVersion associatedVersion;
 }
