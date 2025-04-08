@@ -11,9 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface ResumeVersionRepository extends JpaRepository<ResumeVersion, UUID> {
-    @Override
-    @NonNull
-    @EntityGraph(attributePaths = {"versionedHeader", "versionedEducation", "versionedExperiences",
-    "versionedSections"})
-    Optional<ResumeVersion> findById(@NonNull UUID uuid);
+
+    Optional<ResumeVersion> findOldestVersionByResumeId(UUID resumeId);
+
 }

@@ -57,10 +57,10 @@ public class VersioningController {
         return null;
     }
 
-    @DeleteMapping("/delete_version/{version_id}")
+    @DeleteMapping("/delete_version/{resume_id}/{version_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteVersion(@PathVariable UUID version_id){
-        resumeService.deleteVersion(version_id);
+    public void deleteVersion(@PathVariable UUID resume_id, @PathVariable UUID version_id){
+        resumeService.deleteVersion(resume_id, version_id);
     }
 
 }

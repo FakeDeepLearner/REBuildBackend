@@ -438,7 +438,15 @@ public class ResumeService {
     public ResumeVersion snapshotCurrentData(UUID resume_id, VersionInclusionForm inclusionForm){
         Resume copiedResume = findById(resume_id);
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
-        copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
+        int currentVersionCount = copiedResume.getVersionCount();
+        if(currentVersionCount < Resume.MAX_VERSION_COUNT){
+            copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
+        }
+        else{
+            ResumeVersion oldestRepository = versionRepository.findOldestVersionByResumeId(resume_id).orElse(null);
+            assert oldestRepository != null;
+            versionRepository.delete(oldestRepository);
+        }
         return versionRepository.save(newVersion);
     }
 
@@ -578,7 +586,10 @@ public class ResumeService {
 
 
     @Transactional
-    public void deleteVersion(UUID version_id){
+    public void deleteVersion(UUID resume_id, UUID version_id){
+        Resume deletingResume = findById(resume_id);
+        deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
+        resumeRepository.save(deletingResume);
         versionRepository.deleteById(version_id);
     }
 

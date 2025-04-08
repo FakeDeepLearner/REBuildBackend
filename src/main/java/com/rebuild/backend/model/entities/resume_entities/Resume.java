@@ -35,6 +35,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 public class Resume {
+
+    public static final int MAX_VERSION_COUNT = 10;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(
