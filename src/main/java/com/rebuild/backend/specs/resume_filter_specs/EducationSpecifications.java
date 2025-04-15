@@ -2,39 +2,39 @@ package com.rebuild.backend.specs.resume_filter_specs;
 
 import com.rebuild.backend.model.entities.resume_entities.Education;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Path;
-import org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor;
+import com.rebuild.backend.specs.ReusableJoinSpecification;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
+
+import java.util.List;
 
 public class EducationSpecifications {
 
-    public Specification<Resume> schoolNameStartsWith(String schoolName,
-                                                      Join<Resume, Education> preComputedJoin) {
+    public static Specification<Resume> schoolNameContains(String schoolName) {
 
-        return (root, query, criteriaBuilder) ->
-        {
-            Path<String> dbName = preComputedJoin.get("schoolName");
-            return criteriaBuilder.like(dbName, schoolName + "%");
-
+        return new ReusableJoinSpecification<Resume>() {
+            @Override
+            public Predicate toPredicate(Root<Resume> root,
+                                         CriteriaQuery<?> query,
+                                         CriteriaBuilder criteriaBuilder) {
+                Join<Resume, Education> join = joinSingular(root, "education");
+                Path<String> dbName = join.get("schoolName");
+                return criteriaBuilder.like(dbName, "%" + schoolName + "%");
+            }
         };
 
     }
 
-    public Specification<Resume> courseWorkContains(String input,
-                                                    Join<Resume, Education> preComputedJoin) {
-        return (root, query, criteriaBuilder) ->
-        {
-            Path<String> courseWorkJoin = preComputedJoin.join("relevantCoursework");
-            return criteriaBuilder.like(courseWorkJoin, input + "%");
+    public static Specification<Resume> courseWorkContains(String input) {
+        return new ReusableJoinSpecification<Resume>() {
+            @Override
+            public Predicate toPredicate(Root<Resume> root,
+                                         CriteriaQuery<?> query,
+                                         CriteriaBuilder criteriaBuilder) {
+                Join<Resume, Education> educationJoin = joinSingular(root, "education");
+                Path<List<String>> courseWorkPath = educationJoin.get("courseWork");
+                return criteriaBuilder.isMember(input, courseWorkPath);
+            }
         };
-    }
-
-    public Specification<Resume> startMonthAfterByValue(String input,
-                                                Join<Resume, Education> preComputedJoin, int cutoff) {
-        return (root, query, criteriaBuilder) ->
-                null;
     }
 }
