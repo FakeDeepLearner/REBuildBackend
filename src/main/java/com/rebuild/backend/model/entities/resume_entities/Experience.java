@@ -7,6 +7,7 @@ import com.rebuild.backend.utils.serializers.YearMonthSerializer;
 import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor;
 
 import java.time.YearMonth;
 import java.util.List;

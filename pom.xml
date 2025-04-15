@@ -184,8 +184,6 @@
 			<artifactId>hibernate-processor</artifactId>
 			<version>7.0.0.Beta4</version>
 		</dependency>
-
-
 	</dependencies>
 
 	<build>
