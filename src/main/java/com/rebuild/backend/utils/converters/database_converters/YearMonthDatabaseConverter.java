@@ -65,11 +65,11 @@ public class YearMonthDatabaseConverter implements AttributeConverter<YearMonth,
         return determineMonthString(month) + " " + year;
     }
 
+
     @Override
     public YearMonth convertToEntityAttribute(String s) {
-        String monthString = s.split(" ")[0];
-        int year = Integer.parseInt(s.split(" ")[1]);
-        int month = determineStringMonth(monthString);
+        int month = Integer.parseInt(s.split("-")[0]);
+        int year = Integer.parseInt(s.split("-")[1]);
         return YearMonth.of(year, month);
     }
 }

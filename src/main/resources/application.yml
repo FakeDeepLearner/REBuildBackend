@@ -34,6 +34,7 @@ spring:
     database: postgresql
     open-in-view: off
 
+
   security:
     user:
       name: "eren"

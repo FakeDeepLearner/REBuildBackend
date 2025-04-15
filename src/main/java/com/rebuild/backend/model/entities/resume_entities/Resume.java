@@ -106,7 +106,8 @@ public class Resume {
         List<ResumeSection> originalSections = originalResume.getSections();
         this.name = newName;
         this.user = originalResume.getUser();
-        // We are creating new objects here, because we do not want them to be a reference to the original ones.
+        // We are creating new objects here,
+        // because we do not want them to be a reference to the original ones.
         this.education = new Education(originalEducation.getSchoolName(),
                 originalEducation.getRelevantCoursework(),
                 originalEducation.getLocation(),

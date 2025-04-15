@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Header {
+public class Header implements ResumeProperty{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -179,6 +179,11 @@
 			<artifactId>spring-rabbit-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-processor</artifactId>
+			<version>7.0.0.Beta4</version>
+		</dependency>
 	</dependencies>
 
 	<build>

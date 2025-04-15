@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "educations")
-public class Education {
+public class Education implements ResumeProperty{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JsonIgnore
@@ -32,7 +32,7 @@ public class Education {
     private String schoolName;
 
     @NonNull
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
     private List<String> relevantCoursework;
 
