@@ -548,6 +548,8 @@ public class ResumeService {
                                                     rawEntry.getTitle(),
                                                     rawEntry.getToolsUsed(),
                                                     rawEntry.getLocation(),
+                                                    rawEntry.getStartDate(),
+                                                    rawEntry.getEndDate(),
                                                     rawEntry.getBullets()
                                             );
                                             newEntry.setAssociatedSection(newSection);
@@ -558,6 +560,7 @@ public class ResumeService {
                         return newSection;
                     }
             ).toList();
+            resume.setSections(newSections);
         }
     }
 
