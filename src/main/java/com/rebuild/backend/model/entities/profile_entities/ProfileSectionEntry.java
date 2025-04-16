@@ -1,9 +1,11 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +36,16 @@ public class ProfileSectionEntry {
     @Column(nullable = false, name = "location")
     @NonNull
     private String location;
+
+    @Column(name = "start_date")
+    @NonNull
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth startDate;
+
+    @Column(name = "start_date")
+    @NonNull
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth endDate;
 
     @ElementCollection
     @CollectionTable(name = "resume_section_bullets",

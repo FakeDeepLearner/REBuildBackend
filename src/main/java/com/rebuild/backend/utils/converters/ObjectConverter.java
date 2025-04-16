@@ -51,6 +51,7 @@ public class ObjectConverter {
     private ResumeSectionEntry convertToResumeSectionEntry(ProfileSectionEntry profileSectionEntry){
         return new ResumeSectionEntry(profileSectionEntry.getTitle(),
                 profileSectionEntry.getToolsUsed(), profileSectionEntry.getLocation(),
+                profileSectionEntry.getStartDate(), profileSectionEntry.getEndDate(),
                 profileSectionEntry.getBullets());
     }
 
@@ -79,7 +80,9 @@ public class ObjectConverter {
         return convertToOutputList(entryForms, section, (rawForm, root) -> {
             ProfileSectionEntry newEntry =
                     new ProfileSectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                            rawForm.location(), rawForm.bullets());
+                            rawForm.location(), YearMonthStringOperations.getYearMonth(rawForm.startTime()),
+                            YearMonthStringOperations.getYearMonth(rawForm.endTime()),
+                            rawForm.bullets());
             newEntry.setAssociatedSection(section);
             return newEntry;
         });
@@ -103,7 +106,10 @@ public class ObjectConverter {
         return convertToOutputList(entryForms, section, (rawForm , root) -> {
             ResumeSectionEntry newEntry =
                     new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                            rawForm.location(), rawForm.bullets());
+                            rawForm.location(),
+                            YearMonthStringOperations.getYearMonth(rawForm.startTime()),
+                            YearMonthStringOperations.getYearMonth(rawForm.endTime()),
+                            rawForm.bullets());
             newEntry.setAssociatedSection(section);
             return newEntry;
         });
@@ -190,7 +196,10 @@ public class ObjectConverter {
                 rawEntry -> {
                     VersionedSectionEntry newEntry =  new VersionedSectionEntry(
                             rawEntry.getTitle(), rawEntry.getToolsUsed(),
-                            rawEntry.getLocation(), rawEntry.getBullets()
+                            rawEntry.getLocation(),
+                            rawEntry.getStartDate(),
+                            rawEntry.getEndDate(),
+                            rawEntry.getBullets()
                     );
                     newEntry.setAssociatedSection(section);
                     return newEntry;
