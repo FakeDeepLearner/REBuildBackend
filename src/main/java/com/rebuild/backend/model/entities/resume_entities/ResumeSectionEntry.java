@@ -1,9 +1,12 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
+import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +35,16 @@ public class ResumeSectionEntry {
 
     @Column(nullable = false, name = "location")
     private String location;
+
+    @Column(name = "start_date")
+    @NonNull
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth startDate;
+
+    @Column(name = "start_date")
+    @NonNull
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth endDate;
 
     @NonNull
     @ElementCollection
