@@ -34,10 +34,6 @@ public class ResumeSection implements ResumeProperty{
     @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,
-            mappedBy = "associatedSection")
-    private List<ResumeSectionEntry> entries;
-
     @ManyToOne(fetch = FetchType.LAZY, cascade = {
             CascadeType.PERSIST,
             CascadeType.MERGE
