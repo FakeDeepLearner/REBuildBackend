@@ -26,7 +26,6 @@ public class ProfileEducation {
     private UUID id;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String schoolName;
 
     @NonNull

@@ -11,6 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 @Component
@@ -18,9 +19,13 @@ public class EncryptUtil {
 
     private final DBEncryptData dbEncryptData;
 
+    private final SecretKey secretKey;
+
     @Autowired
-    public EncryptUtil(DBEncryptData dbEncryptData) {
+    public EncryptUtil(DBEncryptData dbEncryptData)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.dbEncryptData = dbEncryptData;
+        this.secretKey = getSecretKey();
     }
 
     private SecretKey getSecretKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -34,13 +39,15 @@ public class EncryptUtil {
 
     public String encrypt(String plainText) throws Exception {
         Cipher cipher = Cipher.getInstance(dbEncryptData.algorithm());
-        cipher.init(Cipher.ENCRYPT_MODE, getSecretKey());
-        return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes()));
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        return Arrays.toString(cipher.doFinal(plainText.getBytes()));
+        // return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes()));
     }
 
     public String decrypt(String cipherText) throws Exception {
         Cipher cipher = Cipher.getInstance(dbEncryptData.algorithm());
-        cipher.init(Cipher.DECRYPT_MODE, getSecretKey());
-        return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        return Arrays.toString(cipher.doFinal(cipherText.getBytes()));
+        // return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
     }
 }

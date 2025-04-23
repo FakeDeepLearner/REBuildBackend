@@ -14,6 +14,8 @@ public class PhoneAndStringDatabaseConverter implements AttributeConverter<Phone
 
     private final EncryptUtil encryptUtil;
 
+
+
     @Autowired
     public PhoneAndStringDatabaseConverter(EncryptUtil encryptUtil) {
         this.encryptUtil = encryptUtil;

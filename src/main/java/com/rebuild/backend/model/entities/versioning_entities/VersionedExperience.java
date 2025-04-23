@@ -33,7 +33,6 @@ public class VersionedExperience {
 
     @Column(name = "company_name", nullable = false)
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String companyName;
 
     @ElementCollection

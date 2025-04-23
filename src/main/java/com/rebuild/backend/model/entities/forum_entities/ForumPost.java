@@ -36,11 +36,9 @@ public class ForumPost {
     private UUID id;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String content;
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})

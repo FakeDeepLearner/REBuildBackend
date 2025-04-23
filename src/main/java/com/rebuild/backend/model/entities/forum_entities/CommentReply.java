@@ -28,7 +28,6 @@ public class CommentReply {
     private UUID id;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String content;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
