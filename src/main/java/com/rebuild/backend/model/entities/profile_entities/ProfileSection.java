@@ -28,7 +28,6 @@ public class ProfileSection {
     private UUID id;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "associatedSection"

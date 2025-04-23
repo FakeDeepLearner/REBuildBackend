@@ -6,12 +6,17 @@ import jakarta.persistence.Converter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 
 @Component
 @Converter
 public class DatabaseEncryptor implements AttributeConverter<String, String> {
 
     private final EncryptUtil encryptUtil;
+
 
     @Autowired
     public DatabaseEncryptor(EncryptUtil encryptUtil) {

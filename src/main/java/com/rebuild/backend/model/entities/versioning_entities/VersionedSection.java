@@ -25,7 +25,6 @@ public class VersionedSection {
     private UUID id;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,

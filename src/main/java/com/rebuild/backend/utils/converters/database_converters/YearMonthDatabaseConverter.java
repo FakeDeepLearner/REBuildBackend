@@ -14,13 +14,6 @@ import java.time.YearMonth;
 @Converter
 public class YearMonthDatabaseConverter implements AttributeConverter<YearMonth, String> {
 
-    private final EncryptUtil encryptUtil;
-
-    @Autowired
-    public YearMonthDatabaseConverter(EncryptUtil encryptUtil) {
-        this.encryptUtil = encryptUtil;
-    }
-
     private String determineMonthString(int monthValue){
         return switch (monthValue) {
             case 1 -> "January";

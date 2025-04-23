@@ -31,7 +31,6 @@ public class ResumeSection implements ResumeProperty{
     private List<ResumeSectionEntry> entries;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {
