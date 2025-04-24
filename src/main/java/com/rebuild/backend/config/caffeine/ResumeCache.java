@@ -25,9 +25,9 @@ public class ResumeCache {
     LoadingCache<UUID, Resume> resumeLoadingCache(){
 
         return Caffeine.newBuilder().
-                expireAfterAccess(2, TimeUnit.MINUTES).
-                expireAfterWrite(10, TimeUnit.MINUTES).
-                maximumSize(1000).
+                expireAfterAccess(1, TimeUnit.MINUTES).
+                expireAfterWrite(15, TimeUnit.SECONDS).
+                maximumSize(100).
                 build(resumeService::findById);
     }
 

@@ -6,7 +6,6 @@ import org.springframework.cache.support.SimpleValueWrapper;
 
 import java.util.concurrent.Callable;
 
-
 public class CaffeineCacheAbstraction<K, V> implements Cache {
 
     private final String name;
@@ -62,7 +61,7 @@ public class CaffeineCacheAbstraction<K, V> implements Cache {
     }
 
     @Override
-    public void evict(Object key) {
+    public void evict(@NonNull Object key) {
         caffeineCache.invalidate((K) key);
     }
 

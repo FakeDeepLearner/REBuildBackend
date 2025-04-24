@@ -2,6 +2,7 @@ package com.rebuild.backend.config.caffeine;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import org.apache.tomcat.jni.Library;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -28,7 +29,8 @@ public class CaffeineCacheManagerConfig{
     @Bean
     public CacheManager caffeineCacheManager() {
         SimpleCacheManager manager = new SimpleCacheManager();
-        Cache resumeCacheWrapper = new CaffeineCacheAbstraction<UUID, Resume>("resume_cache", resumeLoadingCache);
+        Cache resumeCacheWrapper = new CaffeineCacheAbstraction<>
+                ("resume_cache", resumeLoadingCache);
         manager.setCaches(Collections.singletonList(resumeCacheWrapper));
 
         return manager;

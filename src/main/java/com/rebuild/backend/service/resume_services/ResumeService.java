@@ -9,6 +9,7 @@ import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
+import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
@@ -38,15 +39,18 @@ public class ResumeService {
 
     private final UndoAdder undoAdder;
 
+    private final ResumeGetUtility getUtility;
+
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          ResumeVersionRepository versionRepository,
                          ObjectConverter objectConverter,
-                         UndoAdder undoAdder) {
+                         UndoAdder undoAdder, ResumeGetUtility getUtility) {
         this.resumeRepository = resumeRepository;
         this.versionRepository = versionRepository;
         this.objectConverter = objectConverter;
         this.undoAdder = undoAdder;
+        this.getUtility = getUtility;
     }
 
     @Transactional
@@ -92,9 +96,8 @@ public class ResumeService {
         return resumeRepository.countByIdAndUserId(resumeID, userID) > 0;
     }
 
-    //TODO: Throw a proper exception here and handle it properly
     public Resume findById(UUID id){
-        return resumeRepository.findById(id).orElseThrow(RuntimeException::new);
+        return getUtility.getResume(id);
     }
 
     @Transactional
