@@ -16,20 +16,21 @@ public class PasswordMessageResolver implements MessageResolver {
 
     @Autowired
     public PasswordMessageResolver(PasswordProperties properties) {
-        errorMessages.put("TOO_SHORT", String.format("The password must be at least %d characters long",
+        errorMessages.put("TOO_SHORT",
+                String.format("The password must be at least %d characters long",
                 properties.minSize()));
-        errorMessages.put("TOO_LONG", String.format("The password must be at most %d characters long",
-                properties.maxSize()));
-        errorMessages.put("INSUFFICIENT_UPPERCASE", String.format("The password must contain at least %d uppercase letters",
+        errorMessages.put("INSUFFICIENT_UPPERCASE",
+                String.format("The password must contain at least %d uppercase letters",
                 properties.minUppercase()));
-        errorMessages.put("INSUFFICIENT_LOWERCASE", String.format("The password must contain at least %d lowercase letters",
+        errorMessages.put("INSUFFICIENT_LOWERCASE",
+                String.format("The password must contain at least %d lowercase letters",
                 properties.minLowercase()));
-        errorMessages.put("INSUFFICIENT_DIGIT", String.format("The password must contain at least %d digits",
+        errorMessages.put("INSUFFICIENT_DIGIT",
+                String.format("The password must contain at least %d digits",
                 properties.minDigit()));
-        errorMessages.put("INSUFFICIENT_SPECIAL", String.format("The password must contain at least %d special characters",
+        errorMessages.put("INSUFFICIENT_SPECIAL",
+                String.format("The password must contain at least %d special characters",
                 properties.minSpecialCharacter()));
-        errorMessages.put("PASSWORD_NUMBER_ERROR", "The password can't contain more " +
-                "than %d numbers in a row".formatted(properties.consecutiveNumbersLimit()));
         if(properties.canContainSpaces()){
             errorMessages.put("PROHIBITED_WHITESPACE", "The password may not contain spaces");
         }

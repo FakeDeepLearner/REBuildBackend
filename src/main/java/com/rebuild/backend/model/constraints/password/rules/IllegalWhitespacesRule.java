@@ -1,8 +1,9 @@
-package com.rebuild.backend.model.constraints.rules.app_rules;
+package com.rebuild.backend.model.constraints.password.rules;
 
 import org.passay.*;
 
 public class IllegalWhitespacesRule implements Rule {
+
     @Override
     public RuleResult validate(PasswordData passwordData) {
         String password = passwordData.getPassword();

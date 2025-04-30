@@ -9,7 +9,6 @@ import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.service.token_services.JWTTokenService;
 import com.rebuild.backend.service.user_services.UserService;
-import com.rebuild.backend.utils.password_utils.RandomPasswordGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -35,19 +34,16 @@ public class AuthenticationController {
 
     private final UserService userService;
 
-    private final RandomPasswordGenerator passwordGenerator;
-
     private final AppUrlBase urlBase;
 
     @Autowired
     public AuthenticationController(JWTTokenService tokenService,
                                     AuthenticationManager authManager,
                                     UserService userService,
-                                    RandomPasswordGenerator passwordGenerator, AppUrlBase urlBase) {
+                                    AppUrlBase urlBase) {
         this.tokenService = tokenService;
         this.authManager = authManager;
         this.userService = userService;
-        this.passwordGenerator = passwordGenerator;
         this.urlBase = urlBase;
     }
 
@@ -109,14 +105,6 @@ public class AuthenticationController {
         response.setStatus(HttpStatus.SEE_OTHER.value());
         response.addHeader("Location", originalUrl);
         response.addHeader("Authorization", "Bearer " + newAccessToken);
-    }
-
-
-    @GetMapping("/api/random_password")
-    @ResponseStatus(HttpStatus.OK)
-    public String generateRandomPassword(){
-        //The generator already has all the data it needs
-        return passwordGenerator.generateRandom();
     }
 
 }
