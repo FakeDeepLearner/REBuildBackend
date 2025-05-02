@@ -40,7 +40,7 @@ public class PostController {
         if (!resumeService.resumeBelongsToUser(resume_id, creatingUser.getId())) {
             throw new ResumeForbiddenException("That resume does not belong to you");
         }
-        return forumPostAndCommentService.createNewPost(postForm.title(), postForm.content(),
+        return forumPostAndCommentService.createNewPost(postForm,
                 resume_id, creatingUser);
     }
 

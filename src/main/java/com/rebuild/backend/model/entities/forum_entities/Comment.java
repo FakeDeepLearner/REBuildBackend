@@ -58,4 +58,7 @@ public class Comment {
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
     private String content;
+
+    @NonNull
+    private String authorUsername;
 }

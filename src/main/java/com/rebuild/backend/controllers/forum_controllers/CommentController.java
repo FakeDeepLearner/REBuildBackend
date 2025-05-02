@@ -4,13 +4,12 @@ import com.rebuild.backend.exceptions.forum_exceptions.CommentForbiddenException
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.forms.forum_forms.CreateReplyForm;
+import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,16 +28,18 @@ public class CommentController {
 
     @PostMapping("/create/{post_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Comment createTopLevelComment(@PathVariable UUID post_id, @RequestBody String commentBody,
+    public Comment createTopLevelComment(@PathVariable UUID post_id, @RequestBody @Valid CommentForm commentForm,
                                          @AuthenticationPrincipal User creatingUser){
-        return forumPostAndCommentService.makeTopLevelComment(commentBody, post_id, creatingUser);
+        return forumPostAndCommentService.makeTopLevelComment(commentForm, post_id, creatingUser);
     }
 
-    @PostMapping("/reply/{top_level_comment_id}")
+    @PostMapping("/reply/{top_level_comment_id}/{parent_reply_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentReply createReply(@PathVariable UUID top_level_comment_id, @RequestBody @Valid CreateReplyForm replyBody,
+    public CommentReply createReply(@PathVariable UUID top_level_comment_id,
+                                    @PathVariable(required = false) UUID parent_reply_id,
+                                    @RequestBody @Valid CommentForm commentForm,
                                     @AuthenticationPrincipal User creatingUser){
-        return forumPostAndCommentService.createReplyTo(top_level_comment_id, creatingUser, replyBody);
+        return forumPostAndCommentService.createReplyTo(top_level_comment_id, parent_reply_id, creatingUser, commentForm);
     }
 
     @GetMapping("/{top_level_comment_id}/replies")
