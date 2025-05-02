@@ -41,6 +41,9 @@ public class ForumPost {
     @NonNull
     private String content;
 
+    @NonNull
+    private String authorUsername;
+
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private Resume resume;
 

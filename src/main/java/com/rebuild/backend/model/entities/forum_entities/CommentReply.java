@@ -30,6 +30,9 @@ public class CommentReply {
     @NonNull
     private String content;
 
+    @NonNull
+    private String authorUsername;
+
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id", nullable = false)
     private Comment topLevelComment;

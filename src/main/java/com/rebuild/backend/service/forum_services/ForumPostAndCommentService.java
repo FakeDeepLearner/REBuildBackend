@@ -7,7 +7,8 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
-import com.rebuild.backend.model.forms.forum_forms.CreateReplyForm;
+import com.rebuild.backend.model.forms.forum_forms.CommentForm;
+import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentReplyRepository;
 import com.rebuild.backend.repository.CommentRepository;
@@ -31,6 +32,7 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class ForumPostAndCommentService {
+    private final static String ANONYMOUS_USER = "Anonymous";
 
     private final ResumeService resumeService;
 
@@ -56,10 +58,11 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public ForumPost createNewPost(String title, String content,
+    public ForumPost createNewPost(NewPostForm postForm,
                                    UUID resumeID,
                                    User creatingUser){
-        ForumPost newPost = new ForumPost(title, content);
+        String displayedUsername = determineDisplayedUsername(creatingUser, postForm.remainAnonymous());
+        ForumPost newPost = new ForumPost(postForm.title(), postForm.content(), displayedUsername);
         Resume associatedResume = resumeService.findById(resumeID);
         newPost.setResume(associatedResume);
         newPost.setCreatingUser(creatingUser);
@@ -78,10 +81,11 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public Comment makeTopLevelComment(String content, UUID post_id, User creatingUser){
+    public Comment makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
+        String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
         ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
         post.setCommentCount(post.getCommentCount() + 1);
-        Comment newComment = new Comment(content);
+        Comment newComment = new Comment(commentForm.content(), displayedUsername);
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
         creatingUser.getMadeComments().add(newComment);
@@ -91,12 +95,17 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public CommentReply createReplyTo(UUID top_level_comment_id, User creatingUser,
-                                      CreateReplyForm replyForm){
+    public CommentReply createReplyTo(UUID top_level_comment_id, UUID parent_reply_id, User creatingUser,
+                                      CommentForm commentForm){
+        String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
         Comment topLevelComment = commentRepository.findById(top_level_comment_id).
                 orElseThrow(RuntimeException::new);
-        CommentReply parentReply = commentReplyRepository.
-                findByParentReplyId(replyForm.parent_reply_id()).orElse(null);
+        CommentReply parentReply = null;
+
+        if(parent_reply_id != null){
+            parentReply = commentReplyRepository.
+                    findByParentReplyId(parent_reply_id).orElse(null);
+        }
 
         //If we have a parent comment reply, we increase its number of children
         if(parentReply != null){
@@ -107,7 +116,7 @@ public class ForumPostAndCommentService {
         else{
             topLevelComment.setRepliesCount(topLevelComment.getRepliesCount() + 1);
         }
-        CommentReply newReply = new CommentReply(replyForm.content());
+        CommentReply newReply = new CommentReply(commentForm.content(), displayedUsername);
         newReply.setAuthor(creatingUser);
         creatingUser.getMadeReplies().add(newReply);
         newReply.setParentReply(parentReply);
@@ -115,6 +124,9 @@ public class ForumPostAndCommentService {
         return commentReplyRepository.save(newReply);
     }
 
+    private String determineDisplayedUsername(User creatingUser, boolean anonymity){
+        return anonymity ? ANONYMOUS_USER : creatingUser.getForumUsername();
+    }
 
     public boolean postBelongsToUser(UUID postID, UUID userID){
         return postRepository.countByIdAndUserId(postID, userID) > 0;
