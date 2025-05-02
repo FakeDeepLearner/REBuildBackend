@@ -59,4 +59,6 @@ public class UserProfile {
         this.experienceList = experiences;
         this.sections = sections;
     }
+
+
 }

@@ -17,6 +17,9 @@ public record SignupForm(
                          @NotBlank(message = "Password is required")
                          String password,
 
+                         @NotBlank(message = "Forum Username is required")
+                         String forumUsername,
+
                          PhoneNumber phoneNumber,
                          boolean remember) {
 }
