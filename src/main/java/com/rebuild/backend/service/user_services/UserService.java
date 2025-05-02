@@ -128,7 +128,8 @@ public class UserService{
     @Transactional
     public OptionalValueAndErrorResult<User> createNewUser(SignupForm signupForm){
         String encodedPassword = encoder.encode(signupForm.password());
-        User newUser = new User(encodedPassword, signupForm.email(), signupForm.phoneNumber());
+        User newUser = new User(encodedPassword, signupForm.email(),
+                signupForm.phoneNumber(), signupForm.forumUsername());
         try {
             User savedUser = save(newUser);
             return  OptionalValueAndErrorResult.of(savedUser, CREATED);
@@ -143,8 +144,13 @@ public class UserService{
 
                     }
                     case "uk_phone_number" -> {
-                        return OptionalValueAndErrorResult.of("This phone is already associated with another account", CONFLICT);
+                        return OptionalValueAndErrorResult.of("This phone is already associated with another account",
+                                CONFLICT);
 
+                    }
+                    case "uk_forum_username" -> {
+                        return OptionalValueAndErrorResult.of("This forum username is already associated with another account",
+                                CONFLICT);
                     }
 
                     //This should never happen
@@ -221,13 +227,6 @@ public class UserService{
             //Unknown error, signal 500
             return OptionalValueAndErrorResult.of(modifyingUser, INTERNAL_SERVER_ERROR);
         }
-    }
-
-    @Transactional
-    public User modifyForumPassword(User modifyingUser, String newRawPassword){
-        String encodedPassword = encoder.encode(newRawPassword);
-        modifyingUser.setPassword(encodedPassword);
-        return save(modifyingUser);
     }
 
     public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){

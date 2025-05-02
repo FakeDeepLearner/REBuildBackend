@@ -29,7 +29,7 @@ import java.util.UUID;
         @UniqueConstraint(name = "uk_email", columnNames = {"email"}),
         //Even if we set up a unique constraint on phone numbers, postgresql allows for multiple null values
         @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"}),
-        @UniqueConstraint(name = "uk_forum_username", columnNames = {"forumUsername"})
+        @UniqueConstraint(name = "uk_forum_username", columnNames = {"forum_username"})
 }, indexes = {@Index(columnList = "lastLoginTime")})
 @RequiredArgsConstructor
 @Data
@@ -90,11 +90,8 @@ public class User implements UserDetails {
     private RememberMeToken associatedRememberMeToken = null;
 
     @Convert(converter = DatabaseEncryptor.class)
-    private String forumUsername = null;
-
-    //Just like the regular password, it will also be hashed and then stored.
-    @JsonIgnore
-    private String forumPassword = null;
+    @Column(name = "forum_username", nullable = false)
+    private String forumUsername;
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
@@ -138,10 +135,14 @@ public class User implements UserDetails {
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime lastLoginTime = LocalDateTime.now();
 
-    public User(@NonNull String encodedPassword, @NonNull String email, PhoneNumber phoneNumber) {
+    public User(@NonNull String encodedPassword,
+                @NonNull String email,
+                PhoneNumber phoneNumber,
+                String forumUsername) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.forumUsername = forumUsername;
     }
 
     @Override
