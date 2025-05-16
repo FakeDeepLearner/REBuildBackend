@@ -1,53 +1,29 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
-import com.rebuild.backend.utils.serializers.YearMonthSerializer;
-import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
+
+import com.rebuild.backend.model.entities.superclasses.SuperclassEducation;
+
+
 import jakarta.persistence.*;
 import lombok.*;
 
 
 import java.time.YearMonth;
 import java.util.List;
-import java.util.UUID;
+
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 @Entity
 @Table(name = "profile_educations")
-public class ProfileEducation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @JsonIgnore
-    private UUID id;
+public class ProfileEducation extends SuperclassEducation {
 
-    @NonNull
-    private String schoolName;
-
-    @NonNull
-    @ElementCollection
-    @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
-    private List<String> relevantCoursework;
-
-    @Column(name = "location", nullable = false)
-    @NonNull
-    private String location;
-
-    @Column(name = "start_date", nullable = false)
-    @NonNull
-    @JsonSerialize(using = YearMonthSerializer.class)
-    @Convert(converter = YearMonthDatabaseConverter.class)
-    private YearMonth startDate;
-
-    @Column(name = "end_date", nullable = false)
-    @NonNull
-    @JsonSerialize(using = YearMonthSerializer.class)
-    @Convert(converter = YearMonthDatabaseConverter.class)
-    private YearMonth endDate;
+    public ProfileEducation(String schoolName, List<String> relevantCoursework,
+                     String location, YearMonth startDate, YearMonth endDate) {
+        super(schoolName, relevantCoursework, location, startDate, endDate);
+    }
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id",

@@ -2,13 +2,13 @@ package com.rebuild.backend.model.entities.versioning_entities;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
+import com.rebuild.backend.model.entities.superclasses.SuperclassSectionEntry;
+
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
 import java.util.List;
-import java.util.UUID;
 
 @Table(name = "versioned_section_entries")
 @Entity
@@ -17,43 +17,12 @@ import java.util.UUID;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
-public class VersionedSectionEntry {
+public class VersionedSectionEntry extends SuperclassSectionEntry {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @JsonIgnore
-    private UUID id;
-
-    @Column(nullable = false, name = "title")
-    @NonNull
-    private String title;
-
-    @NonNull
-    @ElementCollection
-    @CollectionTable(name = "versioned_section_tools",
-            joinColumns = @JoinColumn(name = "versioned_section_entry_id"))
-    private List<String> toolsUsed;
-
-    @Column(nullable = false, name = "location")
-    @NonNull
-    private String location;
-
-    @Column(name = "start_date")
-    @NonNull
-    @Convert(converter = YearMonthDatabaseConverter.class)
-    private YearMonth startDate;
-
-    @Column(name = "start_date")
-    @NonNull
-    @Convert(converter = YearMonthDatabaseConverter.class)
-    private YearMonth endDate;
-
-    @NonNull
-    @ElementCollection
-    @CollectionTable(name = "versioned_section_bullets",
-            joinColumns = @JoinColumn(name = "versioned_section_entry_id"))
-    private List<String> bullets;
+    public VersionedSectionEntry(String title, List<String> toolsUsed, String location,
+                              YearMonth startDate, YearMonth endDate, List<String> bullets) {
+        super(title, toolsUsed, location, startDate, endDate, bullets);
+    }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "associated_section_id", nullable = false, referencedColumnName = "id")

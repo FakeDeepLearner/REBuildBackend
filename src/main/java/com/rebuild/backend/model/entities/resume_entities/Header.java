@@ -1,52 +1,25 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
-import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
+
+import com.rebuild.backend.model.entities.superclasses.SuperclassHeader;
+
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "headers")
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
-public class Header {
+public class Header extends SuperclassHeader{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "countryCode", column = @Column(name = "phone_country_code")),
-            @AttributeOverride(name = "areaCode", column = @Column(name = "phone_area_code")),
-            @AttributeOverride(name = "restOfNumber", column = @Column(name = "phone_remainder")),
-    })
-    @NonNull
-    @Convert(converter = PhoneAndStringDatabaseConverter.class)
-    private PhoneNumber number;
-
-    @Column(name = "first_name", nullable = false)
-    @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false)
-    @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
-    private String lastName;
-
-    @Column(name = "email", nullable = false)
-    @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
-    private String email;
+    public Header(PhoneNumber number, String firstName, String lastName, String email){
+        super(number, firstName, lastName, email);
+    }
 
     @OneToOne(cascade = {
             CascadeType.PERSIST,
