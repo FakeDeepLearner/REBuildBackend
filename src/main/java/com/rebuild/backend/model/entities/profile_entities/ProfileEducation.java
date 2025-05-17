@@ -13,6 +13,7 @@ import java.time.YearMonth;
 import java.util.List;
 
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

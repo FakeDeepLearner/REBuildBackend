@@ -11,6 +11,7 @@ import java.util.UUID;
 @MappedSuperclass
 @Data
 @RequiredArgsConstructor
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class SuperclassHeader{

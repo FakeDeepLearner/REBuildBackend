@@ -13,7 +13,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -32,8 +32,6 @@ public class Education extends SuperclassEducation {
     @JoinColumn(name = "resume_id", referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "ed_fk_resume_id"))
     private Resume resume;
-
-
 
     public String toString() {
         return "EDUCATION:\n" +

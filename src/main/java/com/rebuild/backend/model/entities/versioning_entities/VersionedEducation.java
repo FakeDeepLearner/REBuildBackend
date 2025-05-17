@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class VersionedEducation extends SuperclassEducation {

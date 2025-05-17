@@ -9,6 +9,7 @@ import lombok.*;
 import java.time.YearMonth;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "profile_experiences", uniqueConstraints = {
         @UniqueConstraint(name = "uk_profile_experiences", columnNames = {
