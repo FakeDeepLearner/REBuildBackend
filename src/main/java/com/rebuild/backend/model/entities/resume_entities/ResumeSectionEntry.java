@@ -16,6 +16,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class ResumeSectionEntry extends SuperclassSectionEntry {
 
     public ResumeSectionEntry(String title, List<String> toolsUsed, String location,

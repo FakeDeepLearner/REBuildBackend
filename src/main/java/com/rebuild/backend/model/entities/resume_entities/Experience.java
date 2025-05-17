@@ -14,7 +14,7 @@ import java.util.List;
                 columnNames = {"company_name", "resume_id"})})
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class Experience extends SuperclassExperience{

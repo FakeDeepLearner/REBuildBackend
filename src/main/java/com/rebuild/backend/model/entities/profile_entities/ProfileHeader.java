@@ -10,6 +10,7 @@ import lombok.*;
 
 
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "profile_headers")
 @Data

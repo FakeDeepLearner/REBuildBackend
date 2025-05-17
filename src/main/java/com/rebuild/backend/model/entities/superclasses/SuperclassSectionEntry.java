@@ -12,6 +12,7 @@ import java.util.UUID;
 @MappedSuperclass
 @Data
 @RequiredArgsConstructor
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 public class SuperclassSectionEntry {

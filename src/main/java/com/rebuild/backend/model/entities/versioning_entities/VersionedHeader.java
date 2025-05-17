@@ -13,7 +13,7 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class VersionedHeader extends SuperclassHeader {
