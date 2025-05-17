@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "educations")
-public class Education extends SuperclassEducation {
+public class Education extends SuperclassEducation implements ResumeProperty{
 
     public Education(String schoolName, List<String> relevantCoursework,
                      String location, YearMonth startDate, YearMonth endDate) {

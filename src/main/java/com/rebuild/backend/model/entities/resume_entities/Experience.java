@@ -17,7 +17,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Experience extends SuperclassExperience{
+public class Experience extends SuperclassExperience implements ResumeProperty{
 
     public Experience(String companyName, List<String> technologyList, String location,
                       YearMonth startDate, YearMonth endDate, List<String> bullets) {

@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ResumeSectionEntry extends SuperclassSectionEntry {
+public class ResumeSectionEntry extends SuperclassSectionEntry implements ResumeProperty {
 
     public ResumeSectionEntry(String title, List<String> toolsUsed, String location,
                               YearMonth startDate, YearMonth endDate, List<String> bullets) {

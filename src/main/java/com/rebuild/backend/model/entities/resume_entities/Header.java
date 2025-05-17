@@ -15,7 +15,7 @@ import lombok.*;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public class Header extends SuperclassHeader{
+public class Header extends SuperclassHeader implements ResumeProperty{
 
     public Header(PhoneNumber number, String firstName, String lastName, String email){
         super(number, firstName, lastName, email);

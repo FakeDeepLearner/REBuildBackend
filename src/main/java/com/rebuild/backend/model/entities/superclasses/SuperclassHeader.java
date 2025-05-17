@@ -14,7 +14,7 @@ import java.util.UUID;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class SuperclassHeader{
+public abstract class SuperclassHeader {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     protected UUID id;
