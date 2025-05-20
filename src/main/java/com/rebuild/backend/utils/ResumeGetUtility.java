@@ -5,6 +5,8 @@ import com.rebuild.backend.repository.ResumeRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.cache.RedisCache;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -15,14 +17,11 @@ public class ResumeGetUtility {
 
     private final ResumeRepository resumeRepository;
 
-    private final CacheManager cacheManager;
-
     private final Cache resumeCache;
 
     public ResumeGetUtility(ResumeRepository resumeRepository,
-                            @Qualifier("caffeineCacheManager") CacheManager cacheManager) {
+                            @Qualifier("resumeCacheManager") RedisCacheManager cacheManager) {
         this.resumeRepository = resumeRepository;
-        this.cacheManager = cacheManager;
         this.resumeCache = cacheManager.getCache("resume_cache");
     }
 
