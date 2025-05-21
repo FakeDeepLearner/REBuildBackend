@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.service.resume_services.ResumeVersioningService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,18 +18,18 @@ import java.util.UUID;
 @RequestMapping("/api/versions")
 public class VersioningController {
 
-    private final ResumeService resumeService;
+    private final ResumeVersioningService versioningService;
 
     @Autowired
-    public VersioningController(ResumeService resumeService) {
-        this.resumeService = resumeService;
+    public VersioningController(ResumeVersioningService versioningService) {
+        this.versioningService = versioningService;
     }
 
     @PostMapping("/create_version/{resume_id}")
     @ResponseStatus(HttpStatus.CREATED)
     public ResumeVersion snapshotVersion(@PathVariable UUID resume_id,
                                          @RequestBody VersionInclusionForm inclusionForm){
-        return resumeService.snapshotCurrentData(resume_id, inclusionForm);
+        return versioningService.snapshotCurrentData(resume_id, inclusionForm);
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")
@@ -36,7 +37,7 @@ public class VersioningController {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ResponseEntity<?> switchToVersion(@PathVariable UUID resume_id, @PathVariable UUID version_id){
         OptionalValueAndErrorResult<Resume> switchingResult =
-                resumeService.switchToAnotherVersion(resume_id, version_id);
+                versioningService.switchToAnotherVersion(resume_id, version_id);
 
         switch(switchingResult.returnedStatus()){
             case OK -> {
@@ -60,7 +61,7 @@ public class VersioningController {
     @DeleteMapping("/delete_version/{resume_id}/{version_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteVersion(@PathVariable UUID resume_id, @PathVariable UUID version_id){
-        resumeService.deleteVersion(resume_id, version_id);
+        versioningService.deleteVersion(resume_id, version_id);
     }
 
 }
