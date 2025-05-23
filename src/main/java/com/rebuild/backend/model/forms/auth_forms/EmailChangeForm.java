@@ -10,5 +10,6 @@ public record EmailChangeForm(@NotBlank(message = "The email may not be blank")
                               String newEmail,
                               @NotBlank(message = "The email confirmation not be blank")
                               @Email(message = "Must be an email address")
-                              String newEmailConfirmation) {
+                              String newEmailConfirmation,
+                              String enteredOTP) {
 }

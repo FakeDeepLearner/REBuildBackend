@@ -16,7 +16,6 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 public class ProfileHeader extends SuperclassHeader {
 
     public ProfileHeader(PhoneNumber number, String firstName, String lastName, String email){

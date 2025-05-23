@@ -188,14 +188,8 @@ public class UserService{
         List<User> inactiveUsers = repository.findByLastLoginTimeBefore(cutoff);
         inactiveUsers.forEach((user) -> {
             user.setAccountNonExpired(false);
-            repository.save(user);
+            save(user);
         });
-    }
-
-    @Transactional
-    public void reactivateUserCredentials(User user){
-        user.setAccountNonExpired(true);
-        save(user);
     }
 
     //The following method will run every day at midnight (local (EST) time)

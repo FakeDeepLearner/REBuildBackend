@@ -186,4 +186,8 @@ public class User implements UserDetails {
         return authority.equals(Authority.USER_FREE) && numberOfResumes == FREE_MAX_RESUME_LIMIT;
     }
 
+    public String stringifiedNumber(){
+        return this.phoneNumber.toString();
+    }
+
 }

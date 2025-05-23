@@ -12,7 +12,7 @@ import lombok.*;
 @Table(name = "headers")
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class Header extends SuperclassHeader implements ResumeProperty{

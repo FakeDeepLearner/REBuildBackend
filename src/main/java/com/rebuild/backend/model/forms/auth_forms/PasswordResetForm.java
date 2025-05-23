@@ -7,5 +7,6 @@ import com.rebuild.backend.model.constraints.password.constraints_and_validators
 public record PasswordResetForm(
                                 @PasswordStrengthConstraint
                                 String newPassword,
-                                String confirmNewPassword) {
+                                String confirmNewPassword,
+                                String enteredOTP) {
 }
