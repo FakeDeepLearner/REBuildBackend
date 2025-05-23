@@ -4,7 +4,6 @@ import com.rebuild.backend.model.entities.superclasses.SuperclassExperience;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.YearMonth;
 import java.util.List;
 

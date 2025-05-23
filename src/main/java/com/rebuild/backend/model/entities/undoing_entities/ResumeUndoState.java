@@ -16,7 +16,6 @@ public non-sealed class ResumeUndoState extends UndoState<Resume>{
         currentState.setHeader(originalState.getHeader());
         currentState.setExperiences(originalState.getExperiences());
         currentState.setSections(originalState.getSections());
-        currentState.setSavedVersions(originalState.getSavedVersions());
         currentState.setName(originalState.getName());
         return currentState;
     }

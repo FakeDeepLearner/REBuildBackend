@@ -48,7 +48,8 @@ public class SMSReactivationController {
 
     @PostMapping("/api/verify_otp/reactivate/phone_number")
     @ResponseStatus(HttpStatus.FOUND)
-    public void verifyOtp(@RequestBody OTPVerificationPhoneNumberDTO phoneNumberDTO, HttpServletResponse response)
+    public void verifyOtp(@RequestBody OTPVerificationPhoneNumberDTO phoneNumberDTO,
+                          HttpServletResponse response)
             throws IOException {
         otpService.validateOtpFor(phoneNumberDTO.phoneNumber(), phoneNumberDTO.enteredOtp(),
                 OTPGenerationPurpose.REACTIVATE_CREDENTIALS);

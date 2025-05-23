@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.token_services;
 
 import com.rebuild.backend.config.properties.MailAppCredentials;
+import com.rebuild.backend.config.properties.TwilioCredentials;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.otp_exceptions.InvalidOtpException;
 import com.rebuild.backend.exceptions.otp_exceptions.OTPAlreadyGeneratedException;
@@ -8,6 +9,8 @@ import com.rebuild.backend.exceptions.otp_exceptions.OTPExpiredException;
 import com.rebuild.backend.model.entities.enums.OTPGenerationPurpose;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.user_services.UserService;
+import com.twilio.rest.verify.v2.service.Verification;
+import com.twilio.rest.verify.v2.service.VerificationCheck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
@@ -32,17 +35,20 @@ public class OTPService {
 
     private final Random random = new Random();
 
+    private final TwilioCredentials twilioCredentials;
+
     @Autowired
     public OTPService(@Qualifier("otpCacheManager")
                           RedisCacheManager otpCacheManager,
                       @Qualifier("connectionsCacheManager") RedisCacheManager blockedCacheManager,
                       JavaMailSender mailSender, MailAppCredentials credentials,
-                      UserService userService) {
+                      UserService userService, TwilioCredentials twilioCredentials) {
         this.otpCacheManager = otpCacheManager;
         this.blockedCacheManager = blockedCacheManager;
         this.mailSender = mailSender;
         this.credentials = credentials;
         this.userService = userService;
+        this.twilioCredentials = twilioCredentials;
     }
 
 
@@ -70,6 +76,17 @@ public class OTPService {
 
             throw new OTPAlreadyGeneratedException("A one time passcode has already been sent to your email");
         }
+    }
+
+    public void generateSMSOTP(String phoneNumber){
+
+        Verification newVerification = Verification.creator(twilioCredentials.verifyServiceSid(),
+                phoneNumber, "sms").create();
+    }
+
+    public VerificationCheck validateEnteredOTP(String phoneNumber, String enteredOTP){
+        return VerificationCheck.creator(twilioCredentials.verifyServiceSid()).
+                setTo(phoneNumber).setCode(enteredOTP).create();
     }
 
     public int generateOtpFor(String phoneNumber){
