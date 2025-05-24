@@ -2,7 +2,6 @@ package com.rebuild.backend.model.entities.profile_entities;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.superclasses.SuperclassHeader;
 
 import jakarta.persistence.*;
@@ -19,7 +18,7 @@ import lombok.*;
 @RequiredArgsConstructor
 public class ProfileHeader extends SuperclassHeader {
 
-    public ProfileHeader(PhoneNumber number, String firstName, String lastName, String email){
+    public ProfileHeader(String number, String firstName, String lastName, String email){
         super(number, firstName, lastName, email);
     }
 

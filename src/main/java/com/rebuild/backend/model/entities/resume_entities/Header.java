@@ -17,7 +17,7 @@ import lombok.*;
 @NoArgsConstructor
 public class Header extends SuperclassHeader{
 
-    public Header(PhoneNumber number, String firstName, String lastName, String email){
+    public Header(String number, String firstName, String lastName, String email){
         super(number, firstName, lastName, email);
     }
 
@@ -33,7 +33,7 @@ public class Header extends SuperclassHeader{
     @Override
     public String toString() {
         return "HEADER:\n" +
-                "\tPhone Number: " + number.fullNumber() + "\n" +
+                "\tPhone Number: " + number + "\n" +
                 "\tName: " + firstName + " " + lastName + "\n" +
                 "\tEmail: " + email + "\n\n\n";
     }

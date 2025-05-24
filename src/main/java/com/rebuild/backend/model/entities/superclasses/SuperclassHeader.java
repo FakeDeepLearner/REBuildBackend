@@ -1,7 +1,5 @@
 package com.rebuild.backend.model.entities.superclasses;
 
-import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
-import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,15 +17,10 @@ public abstract class SuperclassHeader{
     @GeneratedValue(strategy = GenerationType.UUID)
     protected UUID id;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "countryCode", column = @Column(name = "phone_country_code")),
-            @AttributeOverride(name = "areaCode", column = @Column(name = "phone_area_code")),
-            @AttributeOverride(name = "restOfNumber", column = @Column(name = "phone_remainder")),
-    })
     @NonNull
-    @Convert(converter = PhoneAndStringDatabaseConverter.class)
-    protected PhoneNumber number;
+    @Column(nullable = false, name = "phone_number")
+    @Convert(converter = DatabaseEncryptor.class)
+    protected String number;
 
     @Column(name = "first_name", nullable = false)
     @NonNull

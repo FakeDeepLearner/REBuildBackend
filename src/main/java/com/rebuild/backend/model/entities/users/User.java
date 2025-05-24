@@ -6,17 +6,14 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
-import com.rebuild.backend.utils.converters.database_converters.PhoneAndStringDatabaseConverter;
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -65,8 +62,7 @@ public class User implements UserDetails {
     private String email;
 
     @Column(name = "phone_number")
-    @Convert(converter = PhoneAndStringDatabaseConverter.class)
-    private PhoneNumber phoneNumber;
+    private String phoneNumber;
 
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
@@ -137,7 +133,7 @@ public class User implements UserDetails {
 
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
-                PhoneNumber phoneNumber,
+                String phoneNumber,
                 String forumUsername) {
         this.password = encodedPassword;
         this.email = email;
