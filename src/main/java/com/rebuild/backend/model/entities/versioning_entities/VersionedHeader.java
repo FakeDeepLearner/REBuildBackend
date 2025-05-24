@@ -1,7 +1,5 @@
 package com.rebuild.backend.model.entities.versioning_entities;
 
-import com.rebuild.backend.model.entities.resume_entities.PhoneNumber;
-
 import com.rebuild.backend.model.entities.superclasses.SuperclassHeader;
 
 import jakarta.persistence.*;
@@ -18,7 +16,7 @@ import lombok.*;
 @NoArgsConstructor
 public class VersionedHeader extends SuperclassHeader {
 
-    public VersionedHeader(PhoneNumber number, String firstName, String lastName, String email){
+    public VersionedHeader(String number, String firstName, String lastName, String email){
         super(number, firstName, lastName, email);
     }
 
