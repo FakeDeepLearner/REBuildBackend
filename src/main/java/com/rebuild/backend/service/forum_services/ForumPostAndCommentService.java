@@ -6,7 +6,9 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
@@ -28,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -207,6 +210,24 @@ public class ForumPostAndCommentService {
         Page<ForumPost> resultingPage = postRepository.findAll(derivedSpecification, pageableResult);
         return new ForumPostPageResponse(resultingPage.getContent(), resultingPage.getNumber(),
                 resultingPage.getTotalElements(), resultingPage.getTotalPages(), pageSize);
+    }
+
+
+    public PostDisplayDTO loadPost(UUID postID){
+        ForumPost forumPost = postRepository.findById(postID).orElseThrow(RuntimeException::new);
+
+        List<CommentDisplayDTO> displayedComments = forumPost.getComments().
+                stream().map(this::getCommentInfo).toList();
+
+        return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(), forumPost.getAuthorUsername(),
+                displayedComments);
+
+    }
+
+
+    private CommentDisplayDTO getCommentInfo(Comment comment){
+        return new CommentDisplayDTO(comment.getId(), comment.getContent(),
+                comment.getAuthorUsername(), comment.getRepliesCount());
     }
 
 

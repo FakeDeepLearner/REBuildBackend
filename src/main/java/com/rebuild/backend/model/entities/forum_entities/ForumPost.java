@@ -48,16 +48,20 @@ public class ForumPost {
     private Resume resume;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JsonIgnore
     private User creatingUser;
 
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
+    @JsonIgnore
     private LocalDateTime creationDate = LocalDateTime.now();
 
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
+    @JsonIgnore
     private LocalDateTime lastModificationDate = LocalDateTime.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},
-            mappedBy = "associatedPost")
+            mappedBy = "associatedPost", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
 
     private int commentCount = 0;

@@ -3,6 +3,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 import com.rebuild.backend.exceptions.conflict_exceptions.InvalidForumCredentialsException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.user_services.UserService;
@@ -16,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/forum")
@@ -43,6 +45,12 @@ public class ForumHomePageController {
                                           @RequestBody ForumSpecsDTO forumSpecsDTO) {
 
         return postAndCommentService.getPageResponses(pageNumber, pageSize, forumSpecsDTO);
+    }
+
+    @GetMapping("/get_posts/{post_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public PostDisplayDTO loadPost(@PathVariable UUID post_id) {
+        return postAndCommentService.loadPost(post_id);
     }
 
     @PostMapping("/change_username")
