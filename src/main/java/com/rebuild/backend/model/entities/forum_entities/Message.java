@@ -1,10 +1,12 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.UUID;
 
 @Entity
@@ -26,6 +28,11 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "recipient_id")
     private User recipient;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "associated_chat_id")
+    @JsonIgnore
+    private Chat associatedChat;
 
     @NonNull
     @Column(name = "content", nullable = false)

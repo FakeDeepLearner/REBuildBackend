@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
+import com.rebuild.backend.model.entities.forum_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -11,6 +12,7 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -103,6 +105,10 @@ public class User implements UserDetails {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
     mappedBy = "author", fetch = FetchType.LAZY)
     private List<CommentReply> madeReplies;
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Chat> chats = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;
