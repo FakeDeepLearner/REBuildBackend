@@ -6,6 +6,8 @@ import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.service.user_services.UserService;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -36,6 +38,10 @@ public class AuthenticationController {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         form.email(), form.password()));
+
+        Bucket userBucket = userService.returnUserBucket(form.email());
+
+        ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
         return null;
     }
 

@@ -11,6 +11,10 @@ import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.UserRepository;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -50,16 +55,21 @@ public class UserService{
 
     private final ResumeRepository resumeRepository;
 
+    private final ProxyManager<String> proxyManager;
+    private final BucketConfiguration bucketConfiguration;
+
 
     @Autowired
     public UserService(UserRepository repository,
                        @Qualifier("peppered") PasswordEncoder encoder,
                        SessionRegistry sessionRegistry,
-                       ResumeRepository resumeRepository){
+                       ResumeRepository resumeRepository, ProxyManager<String> proxyManager, BucketConfiguration bucketConfiguration){
         this.repository = repository;
         this.encoder = encoder;
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
+        this.proxyManager = proxyManager;
+        this.bucketConfiguration = bucketConfiguration;
     }
 
     public void invalidateAllSessions(String username){
@@ -229,6 +239,12 @@ public class UserService{
         Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
         return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
                 resultingPage.getTotalPages(), pageSize, user.getProfile());
+    }
+
+    public Bucket returnUserBucket(String loginEmail){
+        //The lambda is to get around the fact that building
+        // with supplying a bucket configuration directly is deprecated, thank god for lambdas
+        return proxyManager.builder().build(loginEmail, () -> bucketConfiguration);
     }
 
 }
