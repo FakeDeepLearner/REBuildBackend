@@ -42,7 +42,28 @@ public class AuthenticationController {
         Bucket userBucket = userService.returnUserBucket(form.email());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
-        return null;
+
+        if (probe.isConsumed()){
+            return ResponseEntity.ok("Login successful");
+        }
+        else{
+            long remainingTokens = probe.getRemainingTokens();
+            double resetNanos = probe.getNanosToWaitForReset();
+
+            int resetSeconds =  (int) Math.ceil(resetNanos / 1_000_000_000);
+
+            int minutesRemaining = Math.floorDiv(resetSeconds, 60);
+            int secondsRemaining = resetSeconds - minutesRemaining * 60;
+
+            if (remainingTokens == 0){
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many login attempts, " +
+                        "please retry in " + minutesRemaining + " minutes and " + secondsRemaining + " seconds");
+            }
+            else{
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Wrong credentials, " +
+                        remainingTokens + " attempts left");
+            }
+        }
     }
 
     @PostMapping("/signup")

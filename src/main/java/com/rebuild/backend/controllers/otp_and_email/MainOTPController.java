@@ -7,6 +7,8 @@ import com.rebuild.backend.service.token_services.OTPService;
 import com.rebuild.backend.service.user_services.UserService;
 import com.twilio.rest.verify.v2.service.VerificationCheck;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,12 +37,40 @@ public class MainOTPController {
     }
 
     @PostMapping("/verify/new_email}")
-    public void validateOTPForNewEmail(@RequestBody EmailChangeForm emailChangeForm,
-                                       @AuthenticationPrincipal User changingUser){
+    public ResponseEntity<?> validateOTPForNewEmail(@RequestBody EmailChangeForm emailChangeForm,
+                                                 @AuthenticationPrincipal User changingUser){
         VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.stringifiedNumber(),
                 emailChangeForm.enteredOTP());
 
-        userService.changeEmail(changingUser.getId(), emailChangeForm.newEmail());
+        String status = verificationCheck.getStatus();
+
+        switch (status){
+            case "approved" -> {
+                userService.changeEmail(changingUser.getId(), emailChangeForm.newEmail());
+                return ResponseEntity.ok().build();
+            }
+
+            case "failed" -> {
+                return ResponseEntity.badRequest().build();
+            }
+
+            case "expired" -> {
+
+                return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
+                        "we have sent you a new one.");
+            }
+
+            case "max_attempts_reached" -> {
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                        body("You have reached the maximum number of attempts.");
+            }
+
+        }
+
+
+        //Should never get here
+        return ResponseEntity.internalServerError().build();
     }
 
     @PostMapping("/verify/new_password}")
