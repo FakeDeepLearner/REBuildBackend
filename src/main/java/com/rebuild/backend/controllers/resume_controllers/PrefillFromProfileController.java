@@ -13,8 +13,10 @@ import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,9 +40,11 @@ public class PrefillFromProfileController {
         this.undoAdder = undoAdder;
     }
 
-    @GetMapping("/header/{resume_id}")
+    @GetMapping("/header/{resume_id}/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public Resume prefillHeader(@PathVariable UUID resume_id){
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    public Resume prefillHeader(@PathVariable UUID resume_id, @PathVariable int index,
+                                @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findById(resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
@@ -55,9 +59,11 @@ public class PrefillFromProfileController {
         return resumeService.setHeader(associatedResume, transformedHeader);
     }
 
-    @GetMapping("/education/{resume_id}")
+    @GetMapping("/education/{resume_id}/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public Resume prefillEducation(@PathVariable UUID resume_id){
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    public Resume prefillEducation(@PathVariable UUID resume_id, @PathVariable int index,
+                                   @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findById(resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
@@ -72,9 +78,11 @@ public class PrefillFromProfileController {
         return resumeService.setEducation(associatedResume, transformedEducation);
     }
 
-    @GetMapping("/experiences/{resume_id}")
+    @GetMapping("/experiences/{resume_id}/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> prefillExperience(@PathVariable UUID resume_id){
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    public ResponseEntity<?> prefillExperience(@PathVariable UUID resume_id, @PathVariable int index,
+                                               @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findById(resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
@@ -112,9 +120,11 @@ public class PrefillFromProfileController {
 
     }
 
-    @GetMapping("/sections/{resume_id}")
+    @GetMapping("/sections/{resume_id}/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> prefillSections(@PathVariable UUID resume_id){
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    public ResponseEntity<?> prefillSections(@PathVariable UUID resume_id, @PathVariable int index,
+                                             @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findById(resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){

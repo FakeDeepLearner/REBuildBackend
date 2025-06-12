@@ -1,15 +1,17 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,9 +25,12 @@ public class ResumeUtilController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/api/resume/change_name/{res_id}")
+    @PutMapping("/api/resume/change_name/{res_id}/{index}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> changeResumeName(@PathVariable UUID res_id, @RequestBody String newName) {
+    public ResponseEntity<?> changeResumeName(@PathVariable UUID res_id, @RequestBody String newName,
+                                              @PathVariable int index,
+                                              @AuthenticationPrincipal User user) {
 
         OptionalValueAndErrorResult<Resume> changingResult =
                 resumeService.changeName(res_id, newName);
