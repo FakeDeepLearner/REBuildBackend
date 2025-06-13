@@ -34,7 +34,7 @@ public class ResumeGetUtility {
     public Resume findByUserResumeIndex(User searchingUser, int index){
         List<Resume> userResumes = searchingUser.getResumes();
 
-        return userResumes.get(index);
+        return userResumes.get(index - 1);
     }
 
 
