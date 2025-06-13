@@ -101,6 +101,10 @@ public class ResumeService {
         return getUtility.findById(id);
     }
 
+    public Resume findByUserIndex(User user, int index){
+        return getUtility.findByUserResumeIndex(user, index);
+    }
+
     @Transactional
     public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
                                            ExperienceForm experienceForm){

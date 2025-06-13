@@ -45,7 +45,7 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     public Resume prefillHeader(@PathVariable UUID resume_id, @PathVariable int index,
                                 @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findById(resume_id);
+        Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
@@ -64,7 +64,7 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     public Resume prefillEducation(@PathVariable UUID resume_id, @PathVariable int index,
                                    @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findById(resume_id);
+        Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
@@ -83,7 +83,7 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     public ResponseEntity<?> prefillExperience(@PathVariable UUID resume_id, @PathVariable int index,
                                                @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findById(resume_id);
+        Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
@@ -125,7 +125,7 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     public ResponseEntity<?> prefillSections(@PathVariable UUID resume_id, @PathVariable int index,
                                              @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findById(resume_id);
+        Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");

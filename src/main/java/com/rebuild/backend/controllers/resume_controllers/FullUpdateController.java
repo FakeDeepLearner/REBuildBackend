@@ -39,7 +39,8 @@ public class FullUpdateController {
     public ResponseEntity<?> updateFullResume(@Valid @RequestBody FullResumeForm fullResumeForm,
                                            @PathVariable UUID res_id, @PathVariable int index,
                                               @AuthenticationPrincipal User user) {
-        Resume associatedResume = resumeService.findById(res_id);
+
+        Resume associatedResume = resumeService.findByUserIndex(user, index);
 
         undoAdder.addUndoResumeState(res_id, associatedResume);
         OptionalValueAndErrorResult<Resume> fullUpdateResult =
