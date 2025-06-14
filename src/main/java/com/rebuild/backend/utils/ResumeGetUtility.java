@@ -25,11 +25,6 @@ public class ResumeGetUtility {
         this.resumeCache = cacheManager.getCache("resume_cache");
     }
 
-    @Cacheable(value = "resume_cache", key = "#resumeId")
-    public Resume findById(UUID resumeId){
-        return resumeRepository.findById(resumeId).orElse(null);
-    }
-
     @Cacheable(value = "resume_cache", key = "#searchingUser.id.toString()" + "-" + "#index")
     public Resume findByUserResumeIndex(User searchingUser, int index){
         List<Resume> userResumes = searchingUser.getResumes();

@@ -62,11 +62,11 @@ public class ForumPostAndCommentService {
 
     @Transactional
     public ForumPost createNewPost(NewPostForm postForm,
-                                   UUID resumeID,
+                                   int resumeIndex,
                                    User creatingUser){
         String displayedUsername = determineDisplayedUsername(creatingUser, postForm.remainAnonymous());
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content(), displayedUsername);
-        Resume associatedResume = resumeService.findById(resumeID);
+        Resume associatedResume = resumeService.findByUserIndex(creatingUser, resumeIndex);
         newPost.setResume(associatedResume);
         newPost.setCreatingUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);

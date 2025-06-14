@@ -32,16 +32,12 @@ public class PostController {
         this.forumPostAndCommentService = forumPostAndCommentService;
     }
 
-    @PostMapping("/create/{resume_id}")
-    public ForumPost createNewPost(@PathVariable UUID resume_id,
+    @PostMapping("/create/{index}")
+    public ForumPost createNewPost(@PathVariable int index,
                                    @Valid @RequestBody NewPostForm postForm,
                                    @AuthenticationPrincipal User creatingUser) {
-        //This can't happen normally, the main purpose of this is to protect against malicious attacks.
-        if (!resumeService.resumeBelongsToUser(resume_id, creatingUser.getId())) {
-            throw new ResumeForbiddenException("That resume does not belong to you");
-        }
         return forumPostAndCommentService.createNewPost(postForm,
-                resume_id, creatingUser);
+                index, creatingUser);
     }
 
     @DeleteMapping("/delete/{post_id}")

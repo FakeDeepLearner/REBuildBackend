@@ -96,10 +96,6 @@ public class ResumeService {
     public boolean resumeBelongsToUser(UUID resumeID, UUID userID){
         return resumeRepository.countByIdAndUserId(resumeID, userID) > 0;
     }
-    
-    public Resume findById(UUID id){
-        return getUtility.findById(id);
-    }
 
     public Resume findByUserIndex(User user, int index){
         return getUtility.findByUserResumeIndex(user, index);

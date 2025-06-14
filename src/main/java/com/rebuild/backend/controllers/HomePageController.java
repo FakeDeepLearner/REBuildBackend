@@ -30,10 +30,11 @@ public class HomePageController {
         this.resumeService = resumeService;
     }
 
-    @GetMapping("/home/user/{resume_id}")
+    @GetMapping("/home/resume/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public Resume getResume(@PathVariable UUID resume_id){
-        return resumeService.findById(resume_id);
+    public Resume getResume(@AuthenticationPrincipal User user,
+                            @PathVariable int index){
+        return resumeService.findByUserIndex(user, index);
     }
 
     @GetMapping("/home")

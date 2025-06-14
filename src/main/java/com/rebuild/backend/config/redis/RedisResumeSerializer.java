@@ -30,12 +30,10 @@ public class RedisResumeSerializer implements RedisSerializer<Resume> {
 
         //The try-with-resources statement automatically closes the streams when it is done.
         try(ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteStream);
-            OutputStream objectOutputStream = new ObjectOutputStream(gzipOutputStream)) {
-                mapper.writeValue(objectOutputStream, value);
+            GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteStream)) {
+                mapper.writeValue(gzipOutputStream, value);
 
                 //We flush here in order to ensure that the data will be in the stream when we need it.
-                objectOutputStream.flush();
                 gzipOutputStream.flush();
 
                 return byteStream.toByteArray();
@@ -50,9 +48,8 @@ public class RedisResumeSerializer implements RedisSerializer<Resume> {
         }
 
         try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-        GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
-        InputStream objectInputStream = new ObjectInputStream(gzipInputStream)) {
-            return mapper.readValue(objectInputStream, Resume.class);
+        GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);) {
+            return mapper.readValue(gzipInputStream, Resume.class);
 
         }
 
