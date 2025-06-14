@@ -32,24 +32,22 @@ public class ResumePutController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/header/{res_id}/{index}")
+    @PutMapping("/header/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume modifyHeader(@PathVariable UUID res_id,
-                               @Valid @RequestBody HeaderForm headerForm, @PathVariable int index,
+    public Resume modifyHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable int index,
                                @AuthenticationPrincipal User user){
-        return resumeService.changeHeaderInfo(res_id, headerForm);
+        return resumeService.changeHeaderInfo(user, index, headerForm);
     }
 
-    @PutMapping("/experience/{res_id}/{exp_id}/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    @PutMapping("/experience/{resume_index}/{experience_index}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#resume_index")
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public ResponseEntity<?> modifyExperience(@PathVariable UUID res_id, @PathVariable UUID exp_id,
-                                                   @Valid @RequestBody ExperienceForm experienceForm,
-                                              @PathVariable int index,
+    public ResponseEntity<?> modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
+                                              @PathVariable int resume_index, @PathVariable int experience_index,
                                               @AuthenticationPrincipal User user){
 
         OptionalValueAndErrorResult<Resume> updateResult =
-                resumeService.changeExperienceInfo(res_id, exp_id, experienceForm);
+                resumeService.changeExperienceInfo(user, resume_index, experience_index, experienceForm);
         switch (updateResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(updateResult.optionalResult().get());
@@ -74,11 +72,11 @@ public class ResumePutController {
         return null;
     }
 
-    @PutMapping("/education/{res_id}/{index}")
+    @PutMapping("/education/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume modifyEducation(@PathVariable UUID res_id, @Valid @RequestBody EducationForm educationForm,
+    public Resume modifyEducation(@Valid @RequestBody EducationForm educationForm,
                                   @PathVariable int index,
                                   @AuthenticationPrincipal User user){
-        return resumeService.changeEducationInfo(res_id, educationForm);
+        return resumeService.changeEducationInfo(user, index, educationForm);
     }
 }

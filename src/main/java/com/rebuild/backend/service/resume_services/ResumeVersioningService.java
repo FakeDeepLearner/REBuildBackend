@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
 import com.rebuild.backend.repository.ResumeRepository;
@@ -8,6 +9,7 @@ import com.rebuild.backend.repository.ResumeVersionRepository;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.converters.ObjectConverter;
+import jakarta.persistence.EntityManager;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -30,42 +32,45 @@ public class ResumeVersioningService {
 
     private final ResumeVersionRepository versionRepository;
 
+    private final EntityManager entityManager;
+
     public ResumeVersioningService(ResumeRepository resumeRepository, ResumeGetUtility getUtility,
                                    ObjectConverter objectConverter,
-                                   ResumeVersionRepository versionRepository) {
+                                   ResumeVersionRepository versionRepository, EntityManager entityManager) {
         this.resumeRepository = resumeRepository;
         this.getUtility = getUtility;
         this.objectConverter = objectConverter;
         this.versionRepository = versionRepository;
+        this.entityManager = entityManager;
+    }
+
+    private List<ResumeVersion> findVersionsByIdAndLimit(UUID resumeId, int limit){
+        return entityManager.createNamedQuery("ResumeVersion.findAllByResumeIdWithLimit", ResumeVersion.class).
+                setParameter("resumeId", resumeId).setMaxResults(limit).getResultList();
     }
 
 
     @Transactional
-    public ResumeVersion snapshotCurrentData(UUID resume_id, VersionInclusionForm inclusionForm){
-        Resume copiedResume = getUtility.findById(resume_id);
+    public ResumeVersion snapshotCurrentData(User user, int index, VersionInclusionForm inclusionForm){
+        Resume copiedResume = getUtility.findByUserResumeIndex(user, index);
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         int currentVersionCount = copiedResume.getVersionCount();
         if(currentVersionCount < Resume.MAX_VERSION_COUNT){
             copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
         }
-        else{
-            ResumeVersion oldestRepository = versionRepository.findOldestVersionByResumeId(resume_id).
-                    orElse(null);
-            assert oldestRepository != null;
-            versionRepository.delete(oldestRepository);
-        }
         return versionRepository.save(newVersion);
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> switchToAnotherVersion(UUID resume_id, UUID version_id){
-        Resume switchingResume = getUtility.findById(resume_id);
+    public OptionalValueAndErrorResult<Resume> switchToAnotherVersion(User user,
+                                                                      int resume_index, int version_index){
+        Resume switchingResume = getUtility.findByUserResumeIndex(user, resume_index);
         Header oldHeader = switchingResume.getHeader();
         Education oldEducation = switchingResume.getEducation();
         List<Experience> oldExperiences = switchingResume.getExperiences();
         List<ResumeSection> oldSections = switchingResume.getSections();
 
-        ResumeVersion versionToSwitch = versionRepository.findById(version_id).orElse(null);
+        ResumeVersion versionToSwitch = findVersionsByIdAndLimit(switchingResume.getId(), version_index).getLast();
         assert versionToSwitch != null;
         try {
             handleVersionSwitch(switchingResume, versionToSwitch);
@@ -196,10 +201,11 @@ public class ResumeVersioningService {
 
 
     @Transactional
-    public void deleteVersion(UUID resume_id, UUID version_id){
-        Resume deletingResume = getUtility.findById(resume_id);
+    public void deleteVersion(User user, int resumeIndex, int versionIndex){
+        Resume deletingResume = getUtility.findByUserResumeIndex(user, resumeIndex);
         deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
+        ResumeVersion versionToDelete = findVersionsByIdAndLimit(deletingResume.getId(), versionIndex).getLast();
+        versionRepository.delete(versionToDelete);
         resumeRepository.save(deletingResume);
-        versionRepository.deleteById(version_id);
     }
 }

@@ -55,10 +55,10 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume changeHeaderInfo(UUID resID,
+    public Resume changeHeaderInfo(User changingUser, int resumeIndex,
                                    HeaderForm headerForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         Header header = resume.getHeader();
         header.setEmail(headerForm.email());
         header.setNumber(headerForm.number());
@@ -106,41 +106,30 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> changeExperienceInfo(UUID resID, UUID expID,
+    public OptionalValueAndErrorResult<Resume> changeExperienceInfo(
+            User changingUser, int resumeIndex, int experienceIndex,
                                            ExperienceForm experienceForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         //These variables are guaranteed to be properly initialized after the try block executes
-        Experience removedExperience = null;
+        Experience changingExperience = resume.getExperiences().get(experienceIndex);
         int removedIndex = 0;
         try {
             YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
             YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
-            Experience newExperience = new Experience(experienceForm.companyName(), experienceForm.technologies(),
-                    experienceForm.location(), start, end, experienceForm.bullets());
-            List<Experience> experiences = resume.getExperiences();
-            int indexCounter = 0;
-            for(Experience experience : experiences){
-                if(experience.getId().equals(expID)){
-                    removedExperience = experiences.remove(indexCounter);
-                    removedIndex = indexCounter;
-                    experiences.add(indexCounter, newExperience);
-                    break;
-                }
-                else{
-                    indexCounter += 1;
-                }
-            }
-            if(removedExperience == null){
-                return OptionalValueAndErrorResult.of(resume, "Experience not found", NOT_FOUND);
-            }
+            changingExperience.setLocation(experienceForm.location());
+            changingExperience.setEndDate(end);
+            changingExperience.setStartDate(start);
+            changingExperience.setBullets(experienceForm.bullets());
+            changingExperience.setTechnologyList(experienceForm.technologies());
+            changingExperience.setCompanyName(experienceForm.companyName());
             Resume savedResume = resumeRepository.save(resume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
-            resume.addExperience(removedIndex, removedExperience);
-            undoAdder.removeUndoState(resID);
+            resume.addExperience(removedIndex, changingExperience);
+            // undoAdder.removeUndoState(resID);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 return OptionalValueAndErrorResult.of(resume,
@@ -152,9 +141,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume changeEducationInfo(UUID resID, EducationForm educationForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+    public Resume changeEducationInfo(User changingUser, int resumeIndex, EducationForm educationForm){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         Education education = resume.getEducation();
         education.setRelevantCoursework(educationForm.relevantCoursework());
         education.setSchoolName(educationForm.schoolName());
@@ -165,9 +154,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public Header createNewHeader(UUID resID, HeaderForm headerForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+    public Header createNewHeader(User changingUser, int resumeIndex, HeaderForm headerForm){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
@@ -178,10 +167,10 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> createNewExperience(UUID resID,
+    public OptionalValueAndErrorResult<Resume> createNewExperience(User changingUser, int resumeIndex,
                                                                    ExperienceForm experienceForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         Experience newExperience = new Experience(experienceForm.companyName(),
@@ -197,7 +186,7 @@ public class ResumeService {
             Throwable cause = e.getCause();
             //Remove the element that was added last (the one added in the try block above)
             resume.getExperiences().removeLast();
-            undoAdder.removeUndoState(resID);
+            // undoAdder.removeUndoState(resID);
             //No loose ends
             newExperience.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
@@ -210,9 +199,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume createNewEducation(UUID resID, EducationForm educationForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+    public Resume createNewEducation(User changingUser, int resumeIndex, EducationForm educationForm){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
@@ -224,10 +213,10 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> createNewSection(UUID resID,
+    public OptionalValueAndErrorResult<Resume> createNewSection(User user, int resumeIndex,
                                                                 SectionForm sectionForm){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+        Resume resume = getUtility.findByUserResumeIndex(user, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         ResumeSection newSection = new ResumeSection(sectionForm.title());
 
         List<ResumeSectionEntry> transformedEntries = objectConverter.
@@ -240,7 +229,7 @@ public class ResumeService {
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch (DataIntegrityViolationException e){
-            undoAdder.removeUndoState(resID);
+            // undoAdder.removeUndoState(resID);
             Throwable cause = e.getCause();
             resume.getSections().removeLast();
             newSection.setResume(null);
@@ -260,33 +249,33 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume deleteEducation(UUID resID){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+    public Resume deleteEducation(User changingUser, int resumeIndex){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         resume.setEducation(null);
         return resumeRepository.save(resume);
     }
 
     @Transactional
-    public Resume deleteExperience(UUID resID, UUID expID){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
-        resume.getExperiences().removeIf(experience -> experience.getId().equals(expID));
+    public Resume deleteExperience(User changingUser, int resumeIndex, int experienceIndex){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
+        resume.getExperiences().remove(experienceIndex);
         return resumeRepository.save(resume);
     }
 
     @Transactional
-    public Resume deleteSection(UUID resID, UUID sectionID){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
-        resume.getSections().removeIf(section -> section.getId().equals(sectionID));
+    public Resume deleteSection(User user, int resumeIndex, int sectionIndex){
+        Resume resume = getUtility.findByUserResumeIndex(user, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
+        resume.getSections().remove(sectionIndex);
         return resumeRepository.save(resume);
     }
 
     @Transactional
-    public Resume deleteHeader(UUID resID){
-        Resume resume = getUtility.findById(resID);
-        undoAdder.addUndoResumeState(resID, resume);
+    public Resume deleteHeader(User changingUser, int resumeIndex){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        // undoAdder.addUndoResumeState(resID, resume);
         resume.setHeader(null);
         return resumeRepository.save(resume);
     }
@@ -398,8 +387,8 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> changeName(UUID resID, String newName){
-        Resume changingResume = getUtility.findById(resID);
+    public OptionalValueAndErrorResult<Resume> changeName(User changingUser, int resumeIndex, String newName){
+        Resume changingResume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
         String oldName = changingResume.getName();
         try{
             changingResume.setName(newName);
@@ -419,8 +408,8 @@ public class ResumeService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> copyResume(UUID resID, String newName){
-        Resume copiedResume = getUtility.findById(resID);
+    public OptionalValueAndErrorResult<Resume> copyResume(User user, int index, String newName){
+        Resume copiedResume = getUtility.findByUserResumeIndex(user, index);
         if(newName.equals(copiedResume.getName())){
             return OptionalValueAndErrorResult.
                     of("The new resume must have a different name than the original one", CONFLICT);

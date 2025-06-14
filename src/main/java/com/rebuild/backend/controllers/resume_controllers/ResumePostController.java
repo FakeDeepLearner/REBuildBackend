@@ -34,24 +34,22 @@ public class ResumePostController {
         this.resumeService = resumeService;
     }
 
-    @PostMapping("/header/{res_id}/{index}")
+    @PostMapping("/header/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Header createNewHeader(@PathVariable UUID res_id,
-                                  @Valid @RequestBody HeaderForm headerForm, @PathVariable int index,
+    public Header createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable int index,
                                   @AuthenticationPrincipal User user){
-        return resumeService.createNewHeader(res_id, headerForm);
+        return resumeService.createNewHeader(user, index, headerForm);
     }
 
-    @PostMapping("/experience/{res_id}/{index}")
+    @PostMapping("/experience/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<?> createNewExperience(@PathVariable UUID res_id,
-                                                 @Valid @RequestBody ExperienceForm experienceForm,
+    public ResponseEntity<?> createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                  @PathVariable int index,
                                                  @AuthenticationPrincipal User user){
 
 
         OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewExperience(res_id, experienceForm);
+                resumeService.createNewExperience(user, index, experienceForm);
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());
@@ -71,12 +69,11 @@ public class ResumePostController {
         return null;
     }
 
-    @PostMapping("/education/{res_id}/{index}")
+    @PostMapping("/education/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume createNewEducation(@PathVariable UUID res_id,
-                                     @Valid @RequestBody EducationForm educationForm,
+    public Resume createNewEducation(@Valid @RequestBody EducationForm educationForm,
                                      @PathVariable int index,
                                      @AuthenticationPrincipal User user ){
-        return resumeService.createNewEducation(res_id, educationForm);
+        return resumeService.createNewEducation(user, index, educationForm);
     }
 }

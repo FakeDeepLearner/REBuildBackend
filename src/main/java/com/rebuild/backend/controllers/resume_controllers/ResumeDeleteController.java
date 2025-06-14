@@ -23,25 +23,23 @@ public class ResumeDeleteController {
         this.resumeService = resumeService;
     }
 
-    @DeleteMapping("/header/{id}/{index}")
+    @DeleteMapping("/header/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume deleteHeader(@PathVariable UUID id, @PathVariable int index,
+    public Resume deleteHeader(@PathVariable int index,
                                @AuthenticationPrincipal User user) {
-        return resumeService.deleteHeader(id);
+        return resumeService.deleteHeader(user, index);
     }
 
-    @DeleteMapping("/experience/{resID}/{expID}/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume deleteExperience(@PathVariable UUID resID, @PathVariable UUID expID,
-                                   @PathVariable int index,
+    @DeleteMapping("/experience/{resume_index}/{experience_index}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#resume_index")
+    public Resume deleteExperience(@PathVariable int resume_index, @PathVariable int experience_index,
                                    @AuthenticationPrincipal User user) {
-        return resumeService.deleteExperience(resID, expID);
+        return resumeService.deleteExperience(user, resume_index, experience_index);
     }
 
-    @DeleteMapping("/education/{id}/{index}")
+    @DeleteMapping("/education{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume deleteEducation(@PathVariable UUID id,
-                                  @PathVariable int index, @AuthenticationPrincipal User user) {
-        return resumeService.deleteEducation(id);
+    public Resume deleteEducation(@PathVariable int index, @AuthenticationPrincipal User user) {
+        return resumeService.deleteEducation(user, index);
     }
 }

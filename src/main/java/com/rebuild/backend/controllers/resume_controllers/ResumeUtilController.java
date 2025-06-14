@@ -25,15 +25,15 @@ public class ResumeUtilController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/api/resume/change_name/{res_id}/{index}")
+    @PutMapping("/api/resume/change_name{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> changeResumeName(@PathVariable UUID res_id, @RequestBody String newName,
+    public ResponseEntity<?> changeResumeName(@RequestBody String newName,
                                               @PathVariable int index,
                                               @AuthenticationPrincipal User user) {
 
         OptionalValueAndErrorResult<Resume> changingResult =
-                resumeService.changeName(res_id, newName);
+                resumeService.changeName(user, index, newName);
 
         switch(changingResult.returnedStatus()){
             case OK -> {
@@ -54,11 +54,12 @@ public class ResumeUtilController {
         return null;
     }
 
-    @PostMapping("/api/resume/copy/{res_id}")
+    @PostMapping("/api/resume/copy/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> copyResume(@PathVariable UUID res_id, @RequestBody String newName) {
+    public ResponseEntity<?> copyResume(@RequestBody String newName,
+                                        @AuthenticationPrincipal User user, @PathVariable int index) {
         OptionalValueAndErrorResult<Resume> changingResult =
-                resumeService.copyResume(res_id, newName);
+                resumeService.copyResume(user, index, newName);
 
         switch(changingResult.returnedStatus()){
             case OK -> {
@@ -79,13 +80,14 @@ public class ResumeUtilController {
         return null;
     }
 
-    @GetMapping("/api/download/{res_id}")
+    @GetMapping("/api/download/{index}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> downloadResumeAsText(@PathVariable UUID res_id,
+    public ResponseEntity<String> downloadResumeAsText(@AuthenticationPrincipal User user,
+                                                       @PathVariable int index,
                                                        @RequestBody boolean includeMetadata) {
         String resumeMetadata = "";
 
-        Resume downloadingResume = resumeService.findById(res_id);
+        Resume downloadingResume = resumeService.findByUserIndex(user, index);
         if (includeMetadata) {
             resumeMetadata = "METADATA: \n" + "\tTime Created: " + downloadingResume.getCreationTime()
                     + "\n\tLast Modified Time: " + downloadingResume.getLastModifiedTime()

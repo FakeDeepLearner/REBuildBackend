@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
@@ -10,6 +11,7 @@ import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -25,19 +27,20 @@ public class VersioningController {
         this.versioningService = versioningService;
     }
 
-    @PostMapping("/create_version/{resume_id}")
+    @PostMapping("/create_version/{index}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResumeVersion snapshotVersion(@PathVariable UUID resume_id,
+    public ResumeVersion snapshotVersion(@AuthenticationPrincipal User user, @PathVariable int index,
                                          @RequestBody VersionInclusionForm inclusionForm){
-        return versioningService.snapshotCurrentData(resume_id, inclusionForm);
+        return versioningService.snapshotCurrentData(user, index, inclusionForm);
     }
 
-    @GetMapping("/switch_version/{resume_id}/{version_id}")
+    @GetMapping("/switch_version/{resume_index}/{version_index}")
     @ResponseStatus(HttpStatus.OK)
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public ResponseEntity<?> switchToVersion(@PathVariable UUID resume_id, @PathVariable UUID version_id){
+    public ResponseEntity<?> switchToVersion(@AuthenticationPrincipal User user,
+                                             @PathVariable int resume_index, @PathVariable int version_index){
         OptionalValueAndErrorResult<Resume> switchingResult =
-                versioningService.switchToAnotherVersion(resume_id, version_id);
+                versioningService.switchToAnotherVersion(user, resume_index, version_index);
 
         switch(switchingResult.returnedStatus()){
             case OK -> {
@@ -58,10 +61,11 @@ public class VersioningController {
         return null;
     }
 
-    @DeleteMapping("/delete_version/{resume_id}/{version_id}")
+    @DeleteMapping("/delete_version/{resume_index}/{version_index}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteVersion(@PathVariable UUID resume_id, @PathVariable UUID version_id){
-        versioningService.deleteVersion(resume_id, version_id);
+    public void deleteVersion(@AuthenticationPrincipal User user,
+                              @PathVariable int resume_index, @PathVariable int version_index){
+        versioningService.deleteVersion(user, resume_index, version_index);
     }
 
 }

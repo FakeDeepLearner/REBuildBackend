@@ -30,13 +30,13 @@ public class SectionController {
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/add_new/{res_id}/{index}")
+    @PostMapping("/add_new/{index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<?> addNewSection(@PathVariable UUID res_id, @Valid @RequestBody SectionForm form,
+    public ResponseEntity<?> addNewSection(@Valid @RequestBody SectionForm form,
                                            @PathVariable int index,
                                            @AuthenticationPrincipal User user){
         OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewSection(res_id, form);
+                resumeService.createNewSection(user, index, form);
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());
@@ -57,11 +57,10 @@ public class SectionController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @DeleteMapping("/delete/{res_id}/{section_id}/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume deleteSection(@PathVariable UUID res_id, @PathVariable UUID section_id,
-                                @PathVariable int index,
+    @DeleteMapping("/delete/{resume_index}/{section_index}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#resume_index")
+    public Resume deleteSection(@PathVariable int resume_index, @PathVariable int section_index,
                                 @AuthenticationPrincipal User user){
-        return resumeService.deleteSection(res_id, section_id);
+        return resumeService.deleteSection(user, resume_index, section_index);
     }
 }

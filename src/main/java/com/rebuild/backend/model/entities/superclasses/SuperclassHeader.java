@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.superclasses;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public abstract class SuperclassHeader {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
     protected UUID id;
 
     @NonNull
