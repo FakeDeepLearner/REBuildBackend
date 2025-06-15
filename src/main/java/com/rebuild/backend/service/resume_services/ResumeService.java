@@ -3,20 +3,17 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.ResumeRepository;
 
 import com.rebuild.backend.repository.ResumeVersionRepository;
 import com.rebuild.backend.utils.ResumeGetUtility;
-import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,19 +35,16 @@ public class ResumeService {
 
     private final ObjectConverter objectConverter;
 
-    private final UndoAdder undoAdder;
-
     private final ResumeGetUtility getUtility;
 
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          ResumeVersionRepository versionRepository,
                          ObjectConverter objectConverter,
-                         UndoAdder undoAdder, ResumeGetUtility getUtility) {
+                         ResumeGetUtility getUtility) {
         this.resumeRepository = resumeRepository;
         this.versionRepository = versionRepository;
         this.objectConverter = objectConverter;
-        this.undoAdder = undoAdder;
         this.getUtility = getUtility;
     }
 

@@ -76,6 +76,7 @@ public class User implements UserDetails {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
+    @OrderColumn(name = "insertion_order")
     private List<Resume> resumes = new ArrayList<>();
 
     @OneToOne(orphanRemoval = true, mappedBy = "user",

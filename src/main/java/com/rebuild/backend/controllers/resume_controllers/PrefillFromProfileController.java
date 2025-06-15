@@ -8,9 +8,7 @@ import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
 import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.service.undo_services.UndoService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
-import com.rebuild.backend.utils.UndoAdder;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,7 +18,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/profile/prefill")
@@ -30,20 +27,17 @@ public class PrefillFromProfileController {
 
     private final ResumeService resumeService;
 
-    private final UndoAdder undoAdder;
-
     @Autowired
     public PrefillFromProfileController(ObjectConverter objectConverter,
-                                        ResumeService resumeService, UndoAdder undoAdder) {
+                                        ResumeService resumeService) {
         this.objectConverter = objectConverter;
         this.resumeService = resumeService;
-        this.undoAdder = undoAdder;
     }
 
-    @GetMapping("/header/{resume_id}/{index}")
+    @GetMapping("/header/{index}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume prefillHeader(@PathVariable UUID resume_id, @PathVariable int index,
+    public Resume prefillHeader(@PathVariable int index,
                                 @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
@@ -53,16 +47,15 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getHeader() == null){
             throw new NoAttributeInProfileException("Your profile does not have a header set");
         }
-        undoAdder.addUndoResumeState(resume_id, associatedResume);
         ProfileHeader originalHeader = resumeUser.getProfile().getHeader();
         Header transformedHeader = objectConverter.convertToHeader(originalHeader);
         return resumeService.setHeader(associatedResume, transformedHeader);
     }
 
-    @GetMapping("/education/{resume_id}/{index}")
+    @GetMapping("/education/{index}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume prefillEducation(@PathVariable UUID resume_id, @PathVariable int index,
+    public Resume prefillEducation(@PathVariable int index,
                                    @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
@@ -72,16 +65,15 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getEducation() == null){
             throw new NoAttributeInProfileException("Your profile does not have an education set");
         }
-        undoAdder.addUndoResumeState(resume_id, associatedResume);
         ProfileEducation originalEducation = resumeUser.getProfile().getEducation();
         Education transformedEducation = objectConverter.convertToEducation(originalEducation);
         return resumeService.setEducation(associatedResume, transformedEducation);
     }
 
-    @GetMapping("/experiences/{resume_id}/{index}")
+    @GetMapping("/experiences/{index}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<?> prefillExperience(@PathVariable UUID resume_id, @PathVariable int index,
+    public ResponseEntity<?> prefillExperience(@PathVariable int index,
                                                @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
@@ -91,7 +83,6 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getExperienceList() == null){
             throw new NoAttributeInProfileException("Your profile does not have experiences set");
         }
-        undoAdder.addUndoResumeState(resume_id, associatedResume);
         List<Experience> convertedExperiences = resumeUser.getProfile().getExperienceList().
                 stream().map(objectConverter::convertToExperience).
                 toList();
@@ -103,14 +94,12 @@ public class PrefillFromProfileController {
                 return ResponseEntity.ok(prefillResult.optionalResult().get());
             }
             case CONFLICT -> {
-                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
                         (prefillResult.optionalResult().get(),
                                 prefillResult.optionalError().get()));
             }
 
             case INTERNAL_SERVER_ERROR -> {
-                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
                         prefillResult.optionalResult().get(),
                         prefillResult.optionalError().get()));
@@ -120,10 +109,10 @@ public class PrefillFromProfileController {
 
     }
 
-    @GetMapping("/sections/{resume_id}/{index}")
+    @GetMapping("/sections/{index}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<?> prefillSections(@PathVariable UUID resume_id, @PathVariable int index,
+    public ResponseEntity<?> prefillSections(@PathVariable int index,
                                              @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
@@ -134,7 +123,6 @@ public class PrefillFromProfileController {
             throw new NoAttributeInProfileException("Your profile does not have sections set");
         }
 
-        undoAdder.addUndoResumeState(resume_id, associatedResume);
         List<ResumeSection> convertedSections = resumeUser.getProfile().getSections().
                 stream().map(objectConverter::convertToSection).
                 toList();
@@ -146,7 +134,6 @@ public class PrefillFromProfileController {
                 return ResponseEntity.ok(prefillResult.optionalResult().get());
             }
             case CONFLICT -> {
-                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
                         (prefillResult.optionalResult().get(),
                                 prefillResult.optionalError().get()));
@@ -154,7 +141,6 @@ public class PrefillFromProfileController {
             }
 
             case INTERNAL_SERVER_ERROR -> {
-                undoAdder.removeUndoState(resume_id);
                 return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
                         prefillResult.optionalResult().get(),
                         prefillResult.optionalError().get()));
