@@ -52,7 +52,8 @@ public class PostLikeBatchStepsConfig {
 
     @Bean
     public Job postLikeJob(JobRepository jobRepository, @Qualifier("postLikeStep") Step postLikeStep) {
-        return new JobBuilder("postLikeJob", jobRepository).start(postLikeStep).build();
+        return new JobBuilder("postLikeJob", jobRepository).start(postLikeStep).
+                build();
     }
 
 }

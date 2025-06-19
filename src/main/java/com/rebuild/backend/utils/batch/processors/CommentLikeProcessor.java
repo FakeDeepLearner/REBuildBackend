@@ -26,9 +26,7 @@ public class CommentLikeProcessor implements ItemProcessor<CommentLikeRequest, C
 
     @Override
     public CommentLike process(@NonNull CommentLikeRequest item){
-        User likingUser = userService.findByEmailNoOptional(item.likingUserEmail());
-        Comment likedComment = commentRepository.findById(item.likedCommentId()).orElse(null);
-        assert likedComment != null;
-        return new CommentLike(likedComment, likingUser);
+
+        return new CommentLike(item.likedCommentId(), item.likingUserEmail());
     }
 }
