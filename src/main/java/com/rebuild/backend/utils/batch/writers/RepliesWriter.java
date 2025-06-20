@@ -7,21 +7,18 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class PostLikesWriter implements ItemWriter<Like> {
+public class RepliesWriter implements ItemWriter<Like> {
 
     private final LikeRepository likeRepository;
 
     @Autowired
-    public PostLikesWriter(LikeRepository likeRepository) {
+    public RepliesWriter(LikeRepository likeRepository) {
         this.likeRepository = likeRepository;
     }
 
-
     @Override
-    @Transactional
     public void write(@NonNull Chunk<? extends Like> chunk) {
         likeRepository.saveAll(chunk);
     }

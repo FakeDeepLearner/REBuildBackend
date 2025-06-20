@@ -1,32 +1,20 @@
 package com.rebuild.backend.utils.batch.processors;
 
-import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.CommentLike;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.enums.LikeType;
+import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
-import com.rebuild.backend.repository.CommentRepository;
-import com.rebuild.backend.service.user_services.UserService;
 import lombok.NonNull;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
-public class CommentLikeProcessor implements ItemProcessor<CommentLikeRequest, CommentLike> {
-
-    private final UserService userService;
-
-    private final CommentRepository commentRepository;
-
-    @Autowired
-    public CommentLikeProcessor(UserService userService, CommentRepository commentRepository) {
-        this.userService = userService;
-        this.commentRepository = commentRepository;
-    }
+public class CommentLikeProcessor implements ItemProcessor<CommentLikeRequest, Like> {
 
     @Override
-    public CommentLike process(@NonNull CommentLikeRequest item){
+    public Like process(@NonNull CommentLikeRequest item){
 
-        return new CommentLike(item.likedCommentId(), item.likingUserEmail());
+        return new Like(item.likingUserUsername(), item.likedCommentId(), LikeType.COMMENT, LocalDateTime.now());
     }
 }

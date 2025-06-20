@@ -1,14 +1,15 @@
 package com.rebuild.backend.config.rabbitmq;
 
+import com.google.common.base.Throwables;
 import com.rebuild.backend.config.properties.BatchChunkSize;
-import com.rebuild.backend.model.entities.forum_entities.PostLike;
+import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.utils.batch.processors.PostLikeProcessor;
 import com.rebuild.backend.utils.batch.readers.RestartablePostLikeReader;
 import com.rebuild.backend.utils.batch.writers.PostLikesWriter;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -43,11 +44,14 @@ public class PostLikeBatchStepsConfig {
     @Bean
     public Step postLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("postLikeStep", jobRepository).
-                <PostLikeRequest, PostLike>chunk(chunkSize.size(), transactionManager).
+                <PostLikeRequest, Like>chunk(chunkSize.size(), transactionManager).
                 reader(postLikeReader).
                 processor(postLikeProcessor).
                 writer(postLikesWriter).
-                build();
+                faultTolerant().skipPolicy((Throwable t, long skipCount) -> {
+                    Throwable rootCause = Throwables.getRootCause(t);
+                    return rootCause instanceof ConstraintViolationException;
+                }).build();
     }
 
     @Bean

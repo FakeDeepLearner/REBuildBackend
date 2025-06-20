@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentReplyLikeRequest;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.service.util_services.RabbitProducingService;
 import org.springframework.amqp.AmqpException;
@@ -37,6 +38,17 @@ public class ForumLikesController {
     public ResponseEntity<String> likePost(@RequestBody PostLikeRequest likeRequest){
         try{
             producingService.sendPostLike(likeRequest);
+            return ResponseEntity.ok("Comment liked");
+        }
+        catch (AmqpException amqpException){
+            return ResponseEntity.internalServerError().body(amqpException.getMessage());
+        }
+    }
+
+    @PostMapping("/reply")
+    public ResponseEntity<String> likeReply(@RequestBody CommentReplyLikeRequest likeRequest){
+        try{
+            producingService.sendReplyLike(likeRequest);
             return ResponseEntity.ok("Comment liked");
         }
         catch (AmqpException amqpException){

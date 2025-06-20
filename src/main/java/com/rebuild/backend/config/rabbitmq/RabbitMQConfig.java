@@ -14,9 +14,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    private final static String COMMENT_QUEUE_NAME = "likesQueue";
+    private final static String COMMENT_QUEUE_NAME = "commentsQueue";
 
     private final static String POSTS_QUEUE_NAME = "postsQueue";
+
+    private final static String REPLIES_QUEUE_NAME = "repliesQueue";
 
     private final static String EXCHANGE_NAME = "likesExchange";
 
@@ -24,9 +26,15 @@ public class RabbitMQConfig {
 
     private final static String POST_ROUTING_KEY = "postLikesRoutingKey";
 
+    private final static String REPLY_ROUTING_KEY = "replyLikesRoutingKey";
+
     @Bean
     public ConnectionFactory cachingFactory(){
         return new CachingConnectionFactory("localhost");
+    }
+
+    public Queue replyLikesQueue(){
+        return new Queue(REPLIES_QUEUE_NAME, true);
     }
 
     @Bean
@@ -52,6 +60,10 @@ public class RabbitMQConfig {
     @Bean
     public Binding postLikesBinding() {
         return BindingBuilder.bind(postLikesQueue()).to(likesExchange()).with(POST_ROUTING_KEY);
+    }
+
+    public Binding replyLikesBinding(){
+        return BindingBuilder.bind(replyLikesQueue()).to(likesExchange()).with(REPLY_ROUTING_KEY);
     }
 
     @Bean
