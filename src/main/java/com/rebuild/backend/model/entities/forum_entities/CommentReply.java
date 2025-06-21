@@ -41,6 +41,7 @@ public class CommentReply {
             mappedBy = "parentReply")
     private List<CommentReply> childReplies = new ArrayList<>();
 
+    @Column(name = "child_replies_count", nullable = false)
     private int childRepliesCount = 0;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -51,6 +52,9 @@ public class CommentReply {
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "author_id", referencedColumnName = "id")
     private User author;
+
+    @Column(name = "likes_count", nullable = false)
+    private int likeCount = 0;
 
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime creationDate = LocalDateTime.now();

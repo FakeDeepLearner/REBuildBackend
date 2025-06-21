@@ -64,6 +64,10 @@ public class ForumPost {
     @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
 
+    @Column(name = "likes_count", nullable = false)
+    private int likeCount = 0;
+
+    @Column(name = "comments_count", nullable = false)
     private int commentCount = 0;
 
 }

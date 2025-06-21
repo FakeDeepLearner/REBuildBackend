@@ -17,12 +17,22 @@ import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.specs.ForumPostSpecifications;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,23 +51,23 @@ public class ForumPostAndCommentService {
 
     private final CommentRepository commentRepository;
 
-    private final CommentReplyRepository replyRepository;
-
     private final ForumPostRepository postRepository;
 
-    private final AppUrlBase base;
     private final CommentReplyRepository commentReplyRepository;
+
+    private final JobLauncher jobLauncher;
+
 
     @Autowired
     public ForumPostAndCommentService(ResumeService resumeService,
-                                      CommentRepository commentRepository, CommentReplyRepository replyRepository,
-                                      ForumPostRepository postRepository, AppUrlBase base, CommentReplyRepository commentReplyRepository) {
+                                      CommentRepository commentRepository, ForumPostRepository postRepository,
+                                      CommentReplyRepository commentReplyRepository,
+                                      @Qualifier("jobLauncher") JobLauncher jobLauncher) {
         this.resumeService = resumeService;
         this.commentRepository = commentRepository;
-        this.replyRepository = replyRepository;
         this.postRepository = postRepository;
-        this.base = base;
         this.commentReplyRepository = commentReplyRepository;
+        this.jobLauncher = jobLauncher;
     }
 
     @Transactional
@@ -231,5 +241,22 @@ public class ForumPostAndCommentService {
     }
 
 
+    //Every 10 minutes
+    @Scheduled(fixedRate = 10 * 60 * 1000)
+    public void runLikesUpdatingJob(@Qualifier(value = "updateLikesJob") Job updateLikesJob)
+            throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException,
+            JobParametersInvalidException, JobRestartException {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime lastProcessedCutoff = now.minusMinutes(10L);
+
+        JobParameters parameters = new JobParametersBuilder()
+                .addString("lastProcessed", lastProcessedCutoff.toString())
+                .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
+
+        jobLauncher.run(updateLikesJob, parameters);
+    }
 
 }

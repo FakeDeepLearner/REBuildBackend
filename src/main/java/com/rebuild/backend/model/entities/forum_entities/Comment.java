@@ -63,6 +63,9 @@ public class Comment {
     @Convert(converter = DatabaseEncryptor.class)
     private String content;
 
+    @Column(name = "likes_count", nullable = false)
+    private int likeCount = 0;
+
     @NonNull
     private String authorUsername;
 }
