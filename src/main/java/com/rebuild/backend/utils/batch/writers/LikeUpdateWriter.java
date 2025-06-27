@@ -65,6 +65,8 @@ public class LikeUpdateWriter implements ItemWriter<LikesUpdateDTO> {
             }
         }
 
+        // Doing the transactions this way is a lot more efficient. We only have 1 connection to the database
+        // instead of potentially hundreds.
         commentRepository.saveAll(updatedComments);
         postRepository.saveAll(updatedPosts);
         commentReplyRepository.saveAll(updatedCommentReplies);

@@ -43,7 +43,7 @@ public class ReplyLikeBatchStepsConfig {
 
 
     @Bean
-    public Step commentLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step commentReplyLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("replyLikeStep", jobRepository).
                 <CommentReplyLikeRequest, Like>chunk(chunkSize.size(), transactionManager).
                 reader(restartableReplyLikeReader).
@@ -56,7 +56,7 @@ public class ReplyLikeBatchStepsConfig {
     }
 
     @Bean
-    public Job commentLikeJob(JobRepository jobRepository, @Qualifier("commentLikeStep") Step postLikeStep) {
-        return new JobBuilder("commentLikeJob", jobRepository).start(postLikeStep).build();
+    public Job commentRepliesLikeJob(JobRepository jobRepository, @Qualifier("commentReplyLikeStep") Step postLikeStep) {
+        return new JobBuilder("commentRepliesLikeJob", jobRepository).start(postLikeStep).build();
     }
 }

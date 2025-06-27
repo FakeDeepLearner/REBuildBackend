@@ -65,6 +65,7 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(postLikesQueue()).to(likesExchange()).with(POST_ROUTING_KEY);
     }
 
+    @Bean
     public Binding replyLikesBinding(){
         return BindingBuilder.bind(replyLikesQueue()).to(likesExchange()).with(REPLY_ROUTING_KEY);
     }

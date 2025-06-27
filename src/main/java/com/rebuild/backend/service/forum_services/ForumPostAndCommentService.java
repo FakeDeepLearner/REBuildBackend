@@ -241,8 +241,8 @@ public class ForumPostAndCommentService {
     }
 
 
-    //Every 10 minutes
-    @Scheduled(fixedRate = 10 * 60 * 1000)
+    //Every 5 minutes
+    @Scheduled(fixedRate = 5 * 60 * 1000)
     public void runLikesUpdatingJob(@Qualifier(value = "updateLikesJob") Job updateLikesJob)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
@@ -257,6 +257,22 @@ public class ForumPostAndCommentService {
                 .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
 
         jobLauncher.run(updateLikesJob, parameters);
+    }
+
+    //Every 2 minutes
+    @Scheduled(fixedRate = 2 * 60 * 1000)
+    public void runLikesProcessingJobs(@Qualifier(value = "commentLikeJob") Job commentLikeJob,
+                                       @Qualifier(value = "postLikeJob") Job postLikeJob,
+                                       @Qualifier(value = "commentRepliesLikeJob") Job commentRepliesLikeJob)
+            throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException,
+            JobParametersInvalidException, JobRestartException {
+        JobParameters parameters = new JobParametersBuilder().
+                addLong("timestamp", System.currentTimeMillis()).toJobParameters();
+
+        jobLauncher.run(commentLikeJob, parameters);
+        jobLauncher.run(postLikeJob, parameters);
+        jobLauncher.run(commentRepliesLikeJob, parameters);
     }
 
 }

@@ -12,6 +12,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,14 +24,6 @@ import java.time.LocalDateTime;
 
 @Configuration
 public class ProcessLikesBatchStepsConfig {
-
-    private final LikeUpdateWriter likeUpdateWriter;
-
-    @Autowired
-    public ProcessLikesBatchStepsConfig(LikeUpdateWriter likeUpdateWriter) {
-        this.likeUpdateWriter = likeUpdateWriter;
-    }
-
 
     @Bean
     @StepScope
@@ -44,16 +37,17 @@ public class ProcessLikesBatchStepsConfig {
 
     @Bean
     public Step likesUpdatingStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                                  @Qualifier(value = "likesReader") ItemReader<LikesUpdateDTO> likesReader) {
+                                  @Qualifier(value = "likesReader") ItemReader<LikesUpdateDTO> likesReader,
+                                  @Qualifier(value = "likeUpdateWriter") ItemWriter<LikesUpdateDTO> likesWriter) throws Exception {
         return new StepBuilder("updateLikesStep", jobRepository).
                 <LikesUpdateDTO, LikesUpdateDTO>chunk(50, transactionManager).
-                reader(likesReader).writer(likeUpdateWriter).build();
+                reader(likesReader).writer(likesWriter).build();
 
      }
 
     @Bean
     public Job updateLikesJob(JobRepository jobRepository, @Qualifier("likesUpdatingStep") Step likesStep) {
-        return new JobBuilder("likesUpdatingJob", jobRepository).start(likesStep).
+        return new JobBuilder("updateLikesJob", jobRepository).start(likesStep).
                 build();
     }
 
