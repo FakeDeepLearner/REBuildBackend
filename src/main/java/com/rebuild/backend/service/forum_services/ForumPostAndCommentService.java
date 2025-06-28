@@ -248,15 +248,26 @@ public class ForumPostAndCommentService {
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException {
 
-        LocalDateTime now = LocalDateTime.now();
-
-        LocalDateTime lastProcessedCutoff = now.minusMinutes(10L);
+        // We don't use a variable to subtract minutes from, because we want to be very
+        // sensitive in keeping accurate time. 
+        LocalDateTime lastProcessedCutoff = LocalDateTime.now().minusMinutes(10L);
 
         JobParameters parameters = new JobParametersBuilder()
                 .addString("lastProcessed", lastProcessedCutoff.toString())
                 .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
 
         jobLauncher.run(updateLikesJob, parameters);
+    }
+
+    /*
+    * We use this method to create parameters for each job
+    * separately, because we can't use the same timestamp value for the 3 different jobs we want to run.
+    * */
+    private JobParameters createParameters(Job runningJob)
+    {
+        return new JobParametersBuilder().
+                addLong("timestamp", System.currentTimeMillis()).
+                addString("name", runningJob.getName()).toJobParameters();
     }
 
     //Every 2 minutes
@@ -267,12 +278,10 @@ public class ForumPostAndCommentService {
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException {
-        JobParameters parameters = new JobParametersBuilder().
-                addLong("timestamp", System.currentTimeMillis()).toJobParameters();
 
-        jobLauncher.run(commentLikeJob, parameters);
-        jobLauncher.run(postLikeJob, parameters);
-        jobLauncher.run(commentRepliesLikeJob, parameters);
+        jobLauncher.run(commentLikeJob, createParameters(commentLikeJob));
+        jobLauncher.run(postLikeJob, createParameters(postLikeJob));
+        jobLauncher.run(commentRepliesLikeJob, createParameters(commentRepliesLikeJob));
     }
 
 }
