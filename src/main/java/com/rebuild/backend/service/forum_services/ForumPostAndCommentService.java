@@ -17,6 +17,7 @@ import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.specs.ForumPostSpecifications;
+import com.rebuild.backend.specs.SpecificationBuilder;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -36,9 +37,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -149,69 +152,32 @@ public class ForumPostAndCommentService {
         return commentRepository.countByIdAndUserId(commentID, userID) > 0;
     }
 
-    private Specification<ForumPost> deriveSpecification(String username,
-                                                         LocalDateTime latest, LocalDateTime earliest,
-                                                         String titleHas, String bodyHas,
-                                                         String titleStarts,
-                                                         String bodyStarts,
-                                                         String bodyEnds,
-                                                         String titleEnds,
-                                                         Integer bodyMinSize,
-                                                         Integer bodyMaxSize){
-        List<Specification<ForumPost>> basicSpecs = new ArrayList<>();
+    private Specification<ForumPost> deriveSpecification(ForumSpecsDTO specsDTO){
 
-        if(username != null){
-            basicSpecs.add(ForumPostSpecifications.isPostedBy(username));
-        }
-        if(latest != null){
-            basicSpecs.add(ForumPostSpecifications.isPostedBefore(latest));
-        }
-        if(earliest != null){
-            basicSpecs.add(ForumPostSpecifications.isPostedAfter(earliest));
-        }
-        if(titleHas != null){
-            basicSpecs.add(ForumPostSpecifications.titleContains(titleHas));
-        }
-        if(bodyHas != null){
-            basicSpecs.add(ForumPostSpecifications.bodyContains(bodyHas));
-        }
+        List<SpecificationBuilder> specificationBuilders = List.of(
+            input -> input.postedUsername() != null ? ForumPostSpecifications.isPostedBy(input.postedUsername()) : null,
+                input -> input.postAfterCutoff() != null ? ForumPostSpecifications.isPostedBefore(input.postAfterCutoff()) : null,
+                input -> input.postBeforeCutoff() != null ? ForumPostSpecifications.isPostedAfter(input.postBeforeCutoff()) : null,
+                input -> input.titleContains() != null ? ForumPostSpecifications.titleContains(input.titleContains()) : null,
+                input -> input.bodyContains() != null ? ForumPostSpecifications.bodyContains(input.bodyContains()) : null,
+                input -> input.titleStartsWith() != null ? ForumPostSpecifications.titleStartsWith(input.titleStartsWith()) : null,
+                input -> input.titleEndsWith() != null ? ForumPostSpecifications.titleEndsWith(input.titleEndsWith()) : null,
+                input -> input.bodyStartsWith() != null ? ForumPostSpecifications.bodyStartsWith(input.bodyStartsWith()) : null,
+                input -> input.bodyEndsWith() != null ? ForumPostSpecifications.bodyEndsWith(input.bodyEndsWith()) : null,
+                input -> input.bodyMinSize() != null ? ForumPostSpecifications.bodyMinSize(input.bodyMinSize()) : null,
+                input -> input.bodyMaxSize() != null ? ForumPostSpecifications.bodyMaxSize(input.bodyMaxSize()) : null
+        );
 
-        if(titleStarts != null){
-            basicSpecs.add(ForumPostSpecifications.titleStartsWith(titleStarts));
-        }
-
-        if(bodyStarts != null){
-            basicSpecs.add(ForumPostSpecifications.bodyStartsWith(bodyStarts));
-        }
-
-        if(bodyEnds != null){
-            basicSpecs.add(ForumPostSpecifications.bodyEndsWith(bodyEnds));
-        }
-
-        if(titleEnds != null){
-            basicSpecs.add(ForumPostSpecifications.titleEndsWith(titleEnds));
-        }
-
-        if(bodyMinSize != null){
-            basicSpecs.add(ForumPostSpecifications.bodyMinSize(bodyMinSize));
-        }
-
-        if(bodyMaxSize != null){
-            basicSpecs.add(ForumPostSpecifications.bodyMaxSize(bodyMaxSize));
-        }
-
-        return Specification.allOf(basicSpecs);
+        return Specification.allOf(
+                specificationBuilders.stream()
+                        .map(builder -> builder.buildSpecification(specsDTO))
+                        .filter(Objects::nonNull).toList());
 
     }
 
     public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize,
                                                   ForumSpecsDTO forumSpecsDTO){
-        Specification<ForumPost> derivedSpecification = deriveSpecification(
-                forumSpecsDTO.postedUsername(), forumSpecsDTO.postAfterCutoff(), forumSpecsDTO.postBeforeCutoff(),
-                forumSpecsDTO.titleContains(), forumSpecsDTO.bodyContains(),
-                forumSpecsDTO.titleStartsWith(), forumSpecsDTO.bodyStartsWith(),
-                forumSpecsDTO.titleEndsWith(), forumSpecsDTO.bodyEndsWith(),
-                forumSpecsDTO.bodyMinSize(), forumSpecsDTO.bodyMaxSize());
+        Specification<ForumPost> derivedSpecification = deriveSpecification(forumSpecsDTO);
         //Sort by descending order of creation dates, so the newest posts show up first
         Pageable pageableResult = PageRequest.of(currentPageNumber, pageSize,
                 Sort.by("creationDate").descending().
@@ -241,8 +207,8 @@ public class ForumPostAndCommentService {
     }
 
 
-    //Every 5 minutes
-    @Scheduled(fixedRate = 5 * 60 * 1000)
+    //Every minute
+    @Scheduled(fixedRate = 60 * 1000)
     public void runLikesUpdatingJob(@Qualifier(value = "updateLikesJob") Job updateLikesJob)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
@@ -270,8 +236,8 @@ public class ForumPostAndCommentService {
                 addString("name", runningJob.getName()).toJobParameters();
     }
 
-    //Every 2 minutes
-    @Scheduled(fixedRate = 2 * 60 * 1000)
+    //Every 15 seconds
+    @Scheduled(fixedRate = 15 * 1000)
     public void runLikesProcessingJobs(@Qualifier(value = "commentLikeJob") Job commentLikeJob,
                                        @Qualifier(value = "postLikeJob") Job postLikeJob,
                                        @Qualifier(value = "commentRepliesLikeJob") Job commentRepliesLikeJob)

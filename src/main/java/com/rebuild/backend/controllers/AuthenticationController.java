@@ -73,7 +73,8 @@ public class AuthenticationController {
                 userService.createNewUser(signupForm);
         if(creationResult.optionalResult().isEmpty()){
             if(creationResult.optionalError().isEmpty()){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error has occurred");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                        body("An unexpected error has occurred");
             }
             throw new AccountCreationException(creationResult.optionalError().get());
         }

@@ -15,6 +15,6 @@ public record ForumSpecsDTO(String postedUsername,
                             String bodyStartsWith,
                             String titleEndsWith,
                             String bodyEndsWith,
-                            int bodyMinSize,
-                            int bodyMaxSize) {
+                            Integer bodyMinSize,
+                            Integer bodyMaxSize) {
 }
