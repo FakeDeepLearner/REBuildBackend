@@ -6,6 +6,7 @@ import com.rebuild.backend.specs.ReusableJoinSpecification;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class EducationSpecifications {
@@ -17,7 +18,7 @@ public class EducationSpecifications {
             public Predicate toPredicate(Root<Resume> root,
                                          CriteriaQuery<?> query,
                                          CriteriaBuilder criteriaBuilder) {
-                Join<Resume, Education> join = joinSingular(root, "education");
+                Join<Resume, Education> join = joinSingular(root, "education", new HashMap<>());
                 Path<String> dbName = join.get("schoolName");
                 return criteriaBuilder.like(dbName, "%" + schoolName + "%");
             }
@@ -31,7 +32,7 @@ public class EducationSpecifications {
             public Predicate toPredicate(Root<Resume> root,
                                          CriteriaQuery<?> query,
                                          CriteriaBuilder criteriaBuilder) {
-                Join<Resume, Education> educationJoin = joinSingular(root, "education");
+                Join<Resume, Education> educationJoin = joinSingular(root, "education", new HashMap<>());
                 Path<List<String>> courseWorkPath = educationJoin.get("courseWork");
                 return criteriaBuilder.isMember(input, courseWorkPath);
             }
