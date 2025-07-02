@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.forum_entities;
+package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.UUID;
 
 @Entity

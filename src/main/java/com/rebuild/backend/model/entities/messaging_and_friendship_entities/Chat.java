@@ -1,14 +1,11 @@
-package com.rebuild.backend.model.entities.forum_entities;
+package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 @Table(name = "chats")
@@ -34,4 +31,6 @@ public class Chat {
     //TODO: There might be a better data structure (NavigableSet) instead of just a plain list for this.
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat")
     private List<Message> messages = Collections.synchronizedList(new ArrayList<>());
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

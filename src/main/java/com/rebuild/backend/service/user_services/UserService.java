@@ -3,11 +3,13 @@ package com.rebuild.backend.service.user_services;
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
 import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.repository.FriendRelationshipRepository;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.UserRepository;
@@ -50,16 +52,19 @@ public class UserService{
 
     private final ResumeRepository resumeRepository;
 
+    private final FriendRelationshipRepository friendRelationshipRepository;
+
 
     @Autowired
     public UserService(UserRepository repository,
                        @Qualifier("peppered") PasswordEncoder encoder,
                        SessionRegistry sessionRegistry,
-                       ResumeRepository resumeRepository){
+                       ResumeRepository resumeRepository, FriendRelationshipRepository friendRelationshipRepository){
         this.repository = repository;
         this.encoder = encoder;
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
+        this.friendRelationshipRepository = friendRelationshipRepository;
     }
 
     public void invalidateAllSessions(String username){
@@ -229,6 +234,15 @@ public class UserService{
         Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
         return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
                 resultingPage.getTotalPages(), pageSize, user.getProfile());
+    }
+
+
+    //Friendship is symmetric, so it doesn't matter for this method who the users are
+    public void addFriend(User sender, User recipient)
+    {
+        FriendRelationship friendRelationship = new FriendRelationship(sender, recipient);
+
+        friendRelationshipRepository.save(friendRelationship);
     }
 
 }

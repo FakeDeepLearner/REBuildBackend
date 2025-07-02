@@ -2,7 +2,7 @@ package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.enums.Authority;
-import com.rebuild.backend.model.entities.forum_entities.Chat;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -12,7 +12,6 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,6 +64,13 @@ public class User implements UserDetails {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
+    cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
+    })
+    @JsonIgnore
+    private Inbox inbox;
 
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
