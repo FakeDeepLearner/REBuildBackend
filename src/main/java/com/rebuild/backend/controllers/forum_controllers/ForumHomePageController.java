@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -34,7 +35,7 @@ public class ForumHomePageController {
         this.userService = userService;
     }
 
-    @GetMapping("/get_posts")
+    @GetMapping(value = "/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page")
                                           int pageNumber,
@@ -42,7 +43,7 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size")
                                           int pageSize,
 
-                                          @RequestBody ForumSpecsDTO forumSpecsDTO) {
+                                          @ModelAttribute ForumSpecsDTO forumSpecsDTO, BindingResult result) {
 
         return postAndCommentService.getPageResponses(pageNumber, pageSize, forumSpecsDTO);
     }

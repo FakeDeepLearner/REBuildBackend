@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.time.LocalDateTime;
@@ -84,7 +85,8 @@ public class ResumeUtilController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> downloadResumeAsText(@AuthenticationPrincipal User user,
                                                        @PathVariable int index,
-                                                       @RequestBody boolean includeMetadata) {
+                                                       @ModelAttribute boolean includeMetadata,
+                                                       BindingResult result) {
         String resumeMetadata = "";
 
         Resume downloadingResume = resumeService.findByUserIndex(user, index);
