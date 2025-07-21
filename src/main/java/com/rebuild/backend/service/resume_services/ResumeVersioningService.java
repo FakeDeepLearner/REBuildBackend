@@ -75,10 +75,11 @@ public class ResumeVersioningService {
         try {
             handleVersionSwitch(switchingResume, versionToSwitch);
             Resume savedResume = resumeRepository.save(switchingResume);
+            versionRepository.save(versionToSwitch);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
         catch(DataIntegrityViolationException e) {
-            // If we see an error, restore the old versions in memory. The databse will take care of
+            // If we see an error, restore the old versions in memory. The database will take care of
             // rolling back the transaction
             Throwable cause = e.getCause();
             switchingResume.setExperiences(oldExperiences);
@@ -105,38 +106,23 @@ public class ResumeVersioningService {
 
     private void handleVersionSwitch(Resume resume, ResumeVersion versionToSwitch){
         if(versionToSwitch.getVersionedName() != null){
+            String tempName =  resume.getName();
             resume.setName(versionToSwitch.getVersionedName());
+            versionToSwitch.setVersionedName(tempName);
         }
 
         if(versionToSwitch.getVersionedHeader() != null){
-            VersionedHeader versionedHeader = versionToSwitch.getVersionedHeader();
-            Header newHeader = new Header(versionedHeader.getNumber(),
-                    versionedHeader.getFirstName(), versionedHeader.getLastName(), versionedHeader.getEmail());
-            newHeader.setResume(resume);
+            Header newHeader = getHeader(resume, versionToSwitch);
             resume.setHeader(newHeader);
         }
 
         if(versionToSwitch.getVersionedEducation() != null){
-            VersionedEducation versionedEducation = versionToSwitch.getVersionedEducation();
-            Education newEducation = new Education(versionedEducation.getSchoolName(), versionedEducation.getRelevantCoursework(),
-                    versionedEducation.getLocation(), versionedEducation.getStartDate(), versionedEducation.getEndDate());
-            newEducation.setResume(resume);
+            Education newEducation = getEducation(resume, versionToSwitch);
             resume.setEducation(newEducation);
         }
 
         if(versionToSwitch.getVersionedExperiences() != null){
-            List<VersionedExperience> versionedExperiences = versionToSwitch.getVersionedExperiences();
-            List<Experience> newExperiences = versionedExperiences.stream().map(
-                    versionedExperience -> {
-                        Experience newExperience = new Experience(versionedExperience.getCompanyName(),
-                                versionedExperience.getTechnologyList(), versionedExperience.getLocation(),
-                                versionedExperience.getStartDate(), versionedExperience.getEndDate(),
-                                versionedExperience.getBullets());
-                        newExperience.setResume(resume);
-                        return newExperience;
-                    }
-
-            ).toList();
+            List<Experience> newExperiences = getExperiences(resume, versionToSwitch);
             resume.setExperiences(newExperiences);
         }
 
@@ -174,6 +160,64 @@ public class ResumeVersioningService {
             ).toList();
             resume.setSections(newSections);
         }
+    }
+
+    private static List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch){
+        List<Experience> oldExperiences = resume.getExperiences();
+        List<VersionedExperience> newVersionedExperiences = oldExperiences.stream().map(
+                rawExperience -> {
+                    VersionedExperience newVersionedExperience = new VersionedExperience(
+                            rawExperience.getCompanyName(),
+                            rawExperience.getTechnologyList(),
+                            rawExperience.getLocation(), rawExperience.getStartDate(), rawExperience.getEndDate(),
+                            rawExperience.getBullets()
+                    );
+                    newVersionedExperience.setAssociatedVersion(versionToSwitch);
+                    return  newVersionedExperience;
+                }
+        ).toList();
+        List<VersionedExperience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+        List<Experience> newExperiences = versionedExperiences.stream().map(
+                versionedExperience -> {
+                    Experience newExperience = new Experience(versionedExperience.getCompanyName(),
+                            versionedExperience.getTechnologyList(), versionedExperience.getLocation(),
+                            versionedExperience.getStartDate(), versionedExperience.getEndDate(),
+                            versionedExperience.getBullets());
+                    newExperience.setResume(resume);
+                    return newExperience;
+                }
+
+        ).toList();
+        versionToSwitch.setVersionedExperiences(newVersionedExperiences);
+        return newExperiences;
+    }
+
+    private static Education getEducation(Resume resume, ResumeVersion versionToSwitch) {
+        Education oldEducation = resume.getEducation();
+        VersionedEducation newVersionedEducation = new VersionedEducation(oldEducation.getSchoolName(),
+                oldEducation.getRelevantCoursework(), oldEducation.getLocation(),
+                oldEducation.getStartDate(), oldEducation.getEndDate());
+        VersionedEducation versionedEducation = versionToSwitch.getVersionedEducation();
+        Education newEducation = new Education(versionedEducation.getSchoolName(), versionedEducation.getRelevantCoursework(),
+                versionedEducation.getLocation(), versionedEducation.getStartDate(), versionedEducation.getEndDate());
+        newEducation.setResume(resume);
+        versionToSwitch.setVersionedEducation(newVersionedEducation);
+        versionedEducation.setAssociatedVersion(versionToSwitch);
+        return newEducation;
+    }
+
+    private static Header getHeader(Resume resume, ResumeVersion versionToSwitch) {
+        Header oldHeader = resume.getHeader();
+        VersionedHeader newVersionedHeader = new VersionedHeader(oldHeader.getNumber(),
+                oldHeader.getFirstName(), oldHeader.getLastName(), oldHeader.getEmail());
+        VersionedHeader versionedHeader = versionToSwitch.getVersionedHeader();
+        Header newHeader = new Header(versionedHeader.getNumber(),
+                versionedHeader.getFirstName(), versionedHeader.getLastName(),
+                versionedHeader.getEmail());
+        newHeader.setResume(resume);
+        versionToSwitch.setVersionedHeader(newVersionedHeader);
+        versionedHeader.setAssociatedVersion(versionToSwitch);
+        return newHeader;
     }
 
     private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){
