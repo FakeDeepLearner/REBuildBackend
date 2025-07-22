@@ -127,7 +127,7 @@ public class ResumeVersioningService {
         }
 
         if(versionToSwitch.getVersionedSections() != null){
-            List<VersionedSection> versionedSections = versionToSwitch.getVersionedSections();
+            List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
 
             /*
              * Iterate over the versioned sections,
@@ -150,7 +150,6 @@ public class ResumeVersioningService {
                                                     rawEntry.getEndDate(),
                                                     rawEntry.getBullets()
                                             );
-                                            newEntry.setAssociatedSection(newSection);
                                             return newEntry;
                                         }
                                 ).toList();
@@ -163,74 +162,43 @@ public class ResumeVersioningService {
     }
 
     private static List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch){
-        List<Experience> oldExperiences = resume.getExperiences();
-        List<VersionedExperience> newVersionedExperiences = oldExperiences.stream().map(
-                rawExperience -> {
-                    VersionedExperience newVersionedExperience = new VersionedExperience(
-                            rawExperience.getCompanyName(),
-                            rawExperience.getTechnologyList(),
-                            rawExperience.getLocation(), rawExperience.getStartDate(), rawExperience.getEndDate(),
-                            rawExperience.getBullets()
-                    );
-                    newVersionedExperience.setAssociatedVersion(versionToSwitch);
-                    return  newVersionedExperience;
-                }
-        ).toList();
-        List<VersionedExperience> versionedExperiences = versionToSwitch.getVersionedExperiences();
-        List<Experience> newExperiences = versionedExperiences.stream().map(
-                versionedExperience -> {
-                    Experience newExperience = new Experience(versionedExperience.getCompanyName(),
-                            versionedExperience.getTechnologyList(), versionedExperience.getLocation(),
-                            versionedExperience.getStartDate(), versionedExperience.getEndDate(),
-                            versionedExperience.getBullets());
-                    newExperience.setResume(resume);
-                    return newExperience;
-                }
+        List<Experience> oldResumeExperiences = resume.getExperiences();
 
-        ).toList();
-        versionToSwitch.setVersionedExperiences(newVersionedExperiences);
-        return newExperiences;
+        List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+        versionToSwitch.setVersionedExperiences(oldResumeExperiences);
+        return versionedExperiences;
     }
 
     private static Education getEducation(Resume resume, ResumeVersion versionToSwitch) {
-        Education oldEducation = resume.getEducation();
-        VersionedEducation newVersionedEducation = new VersionedEducation(oldEducation.getSchoolName(),
-                oldEducation.getRelevantCoursework(), oldEducation.getLocation(),
-                oldEducation.getStartDate(), oldEducation.getEndDate());
-        VersionedEducation versionedEducation = versionToSwitch.getVersionedEducation();
-        Education newEducation = new Education(versionedEducation.getSchoolName(), versionedEducation.getRelevantCoursework(),
-                versionedEducation.getLocation(), versionedEducation.getStartDate(), versionedEducation.getEndDate());
-        newEducation.setResume(resume);
-        versionToSwitch.setVersionedEducation(newVersionedEducation);
-        versionedEducation.setAssociatedVersion(versionToSwitch);
-        return newEducation;
+        Education oldResumeEducation = resume.getEducation();
+
+        Education versionedEducation = versionToSwitch.getVersionedEducation();
+
+        versionToSwitch.setVersionedEducation(oldResumeEducation);
+        return versionedEducation;
     }
 
     private static Header getHeader(Resume resume, ResumeVersion versionToSwitch) {
-        Header oldHeader = resume.getHeader();
-        VersionedHeader newVersionedHeader = new VersionedHeader(oldHeader.getNumber(),
-                oldHeader.getFirstName(), oldHeader.getLastName(), oldHeader.getEmail());
-        VersionedHeader versionedHeader = versionToSwitch.getVersionedHeader();
-        Header newHeader = new Header(versionedHeader.getNumber(),
-                versionedHeader.getFirstName(), versionedHeader.getLastName(),
-                versionedHeader.getEmail());
-        newHeader.setResume(resume);
-        versionToSwitch.setVersionedHeader(newVersionedHeader);
-        versionedHeader.setAssociatedVersion(versionToSwitch);
-        return newHeader;
+        Header oldResumeHeader = resume.getHeader();
+
+        Header versionedHeader = versionToSwitch.getVersionedHeader();
+
+        versionToSwitch.setVersionedHeader(oldResumeHeader);
+
+        return versionedHeader;
     }
 
     private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){
         ResumeVersion newVersion = new ResumeVersion();
-        VersionedHeader newHeader = objectConverter.createVersionedHeader(resume.getHeader(),
+        Header newHeader = objectConverter.createVersionedHeader(resume.getHeader(),
                 inclusionForm.includeHeader(), newVersion);
-        VersionedEducation newEducation = objectConverter.createVersionedEducation(
+        Education newEducation = objectConverter.createVersionedEducation(
                 resume.getEducation(), inclusionForm.includeEducation(), newVersion
         );
-        List<VersionedExperience> experiences = objectConverter.createVersionedExperiences(
+        List<Experience> experiences = objectConverter.createVersionedExperiences(
                 resume.getExperiences(), inclusionForm.includeExperience(), newVersion
         );
-        List<VersionedSection> sections = objectConverter.createVersionedSections(
+        List<ResumeSection> sections = objectConverter.createVersionedSections(
                 resume.getSections(), inclusionForm.includeSections(), newVersion
         );
         String versionedName = inclusionForm.includeName() ? resume.getName() : null;

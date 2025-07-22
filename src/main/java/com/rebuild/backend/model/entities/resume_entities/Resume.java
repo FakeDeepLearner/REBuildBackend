@@ -47,21 +47,25 @@ public class Resume implements Serializable {
     @Convert(converter = DatabaseEncryptor.class)
     private String name;
 
-    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "header_id", referencedColumnName = "id")
     private Header header;
 
-    @OneToOne(mappedBy = "resume", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "education_id", referencedColumnName = "id")
     private Education education;
 
-    @OneToMany(mappedBy = "resume", fetch = FetchType.LAZY, cascade = {
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true)
     @OrderColumn(name = "insertion_position")
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<Experience> experiences;
 
-    @OneToMany(mappedBy = "resume", fetch = FetchType.LAZY,
+    @OneToMany(fetch = FetchType.LAZY,
             cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "insertion_position")
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<ResumeSection> sections;
 
     @ManyToOne(cascade = {

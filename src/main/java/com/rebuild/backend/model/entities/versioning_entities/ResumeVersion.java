@@ -31,20 +31,23 @@ public class ResumeVersion {
     private UUID id;
 
     @Column(name = "versioned_name", nullable = false)
-
     private String versionedName;
 
-    @OneToOne(mappedBy = "associatedVersion", cascade = CascadeType.ALL)
-    private VersionedHeader versionedHeader;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "header_id", referencedColumnName = "id")
+    private Header versionedHeader;
 
-    @OneToOne(mappedBy = "associatedVersion", cascade = CascadeType.ALL)
-    private VersionedEducation versionedEducation;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "education_id", referencedColumnName = "id")
+    private Education versionedEducation;
 
-    @OneToMany(mappedBy = "associatedVersion", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<VersionedExperience> versionedExperiences;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    private List<Experience> versionedExperiences;
 
-    @OneToMany(mappedBy = "associatedVersion", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<VersionedSection> versionedSections;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    private List<ResumeSection> versionedSections;
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate

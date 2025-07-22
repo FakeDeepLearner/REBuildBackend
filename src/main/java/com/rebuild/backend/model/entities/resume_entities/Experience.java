@@ -15,7 +15,6 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-@NoArgsConstructor
 public class Experience extends SuperclassExperience implements ResumeProperty{
 
     public Experience(String companyName, List<String> technologyList, String location,
@@ -23,13 +22,6 @@ public class Experience extends SuperclassExperience implements ResumeProperty{
         super(companyName, technologyList, location, startDate, endDate, bullets);
     }
 
-    @ManyToOne(fetch =  FetchType.LAZY, cascade = {
-            CascadeType.PERSIST,
-            CascadeType.MERGE
-    })
-    @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
-        foreignKey = @ForeignKey(name = "exp_fk_resume_id"))
-    private Resume resume;
 
     public String toString() {
         return "\tEXPERIENCE:\n" +

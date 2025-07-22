@@ -26,21 +26,12 @@ public class ResumeSection implements ResumeProperty{
     @JsonIgnore
     private UUID id;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,
-    mappedBy = "associatedSection")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<ResumeSectionEntry> entries;
 
     @NonNull
     private String title;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {
-            CascadeType.PERSIST,
-            CascadeType.MERGE
-    })
-    @JoinColumn(name = "resume_id", nullable = false, referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "section_fk_resume_id"))
-    @JsonIgnore
-    private Resume resume;
 
 
     public String toString() {

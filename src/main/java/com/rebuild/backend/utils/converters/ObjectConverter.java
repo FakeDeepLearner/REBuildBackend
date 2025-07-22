@@ -20,26 +20,26 @@ import java.util.stream.Collectors;
 @Component
 public class ObjectConverter {
 
-    public Experience convertToExperience(ProfileExperience profileExperience){
+    public Experience convertToExperience(Experience profileExperience){
         return new Experience(profileExperience.getCompanyName(), profileExperience.getTechnologyList(),
                 profileExperience.getLocation(),
                 profileExperience.getStartDate(), profileExperience.getEndDate(), profileExperience.getBullets());
     }
 
-    public Header convertToHeader(ProfileHeader profileHeader){
+    public Header convertToHeader(Header profileHeader){
         return new Header(profileHeader.getNumber(), profileHeader.getFirstName(), profileHeader.getLastName(),
                 profileHeader.getEmail());
     }
 
 
-    public Education convertToEducation(ProfileEducation profileEducation){
+    public Education convertToEducation(Education profileEducation){
         return new Education(profileEducation.getSchoolName(), profileEducation.getRelevantCoursework(),
                 profileEducation.getLocation(),
                 profileEducation.getStartDate(), profileEducation.getEndDate());
     }
 
-    public ResumeSection convertToSection(ProfileSection profileSection){
-        List<ProfileSectionEntry> entries = profileSection.getEntries();
+    public ResumeSection convertToSection(ResumeSection profileSection){
+        List<ResumeSectionEntry> entries = profileSection.getEntries();
 
         ResumeSection newSection = new ResumeSection(profileSection.getTitle());
         List<ResumeSectionEntry> convertedEntries = entries.stream()
@@ -48,7 +48,7 @@ public class ObjectConverter {
         return newSection;
     }
 
-    private ResumeSectionEntry convertToResumeSectionEntry(ProfileSectionEntry profileSectionEntry){
+    private ResumeSectionEntry convertToResumeSectionEntry(ResumeSectionEntry profileSectionEntry){
         return new ResumeSectionEntry(profileSectionEntry.getTitle(),
                 profileSectionEntry.getToolsUsed(), profileSectionEntry.getLocation(),
                 profileSectionEntry.getStartDate(), profileSectionEntry.getEndDate(),
@@ -63,28 +63,25 @@ public class ObjectConverter {
         return inputList.stream().map(input -> converter.apply(input, root)).collect(Collectors.toList());
     }
 
-    public List<ProfileSection> extractProfileSections(List<ProfileSectionForm> profileSectionForms){
+    public List<ResumeSection> extractProfileSections(List<ProfileSectionForm> profileSectionForms){
 
         return convertToOutputList(profileSectionForms, rawForm -> {
-            ProfileSection newSection = new ProfileSection(rawForm.title());
-            List<ProfileSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms(),
+            ResumeSection newSection = new ResumeSection(rawForm.title());
+            List<ResumeSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms(),
                     newSection);
             newSection.setEntries(sectionEntries);
             return newSection;
         });
     }
 
-    private List<ProfileSectionEntry> extractProfileSectionEntries(List<ProfileSectionEntryForm>
-                                                                   entryForms, ProfileSection section){
+    private List<ResumeSectionEntry> extractProfileSectionEntries(List<ProfileSectionEntryForm>
+                                                                   entryForms, ResumeSection section){
 
         return convertToOutputList(entryForms, section, (rawForm, root) -> {
-            ProfileSectionEntry newEntry =
-                    new ProfileSectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                            rawForm.location(), YearMonthStringOperations.getYearMonth(rawForm.startTime()),
-                            YearMonthStringOperations.getYearMonth(rawForm.endTime()),
-                            rawForm.bullets());
-            newEntry.setAssociatedSection(section);
-            return newEntry;
+            return new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
+                    rawForm.location(), YearMonthStringOperations.getYearMonth(rawForm.startTime()),
+                    YearMonthStringOperations.getYearMonth(rawForm.endTime()),
+                    rawForm.bullets());
         });
     }
 
@@ -95,7 +92,6 @@ public class ObjectConverter {
             List<ResumeSectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms(),
                     newSection);
             newSection.setEntries(sectionEntries);
-            newSection.setResume(associatedResume);
             return newSection;
         });
     }
@@ -110,64 +106,52 @@ public class ObjectConverter {
                             YearMonthStringOperations.getYearMonth(rawForm.startTime()),
                             YearMonthStringOperations.getYearMonth(rawForm.endTime()),
                             rawForm.bullets());
-            newEntry.setAssociatedSection(section);
             return newEntry;
         });
 
     }
 
-    public List<ProfileExperience> extractProfileExperiences(List<ProfileExperienceForm> profileExperienceForms,
+    public List<Experience> extractProfileExperiences(List<ProfileExperienceForm> profileExperienceForms,
                                                              UserProfile profile){
-        return convertToOutputList(profileExperienceForms, rawForm -> {
-            ProfileExperience newExperience = new ProfileExperience(rawForm.companyName(),
-                    rawForm.technologies(), rawForm.location(),
-                    YearMonthStringOperations.getYearMonth(rawForm.startDate()),
-                    YearMonthStringOperations.getYearMonth(rawForm.endDate()),
-                    rawForm.bullets());
-            newExperience.setProfile(profile);
-            return newExperience;
-        });
+        return convertToOutputList(profileExperienceForms, rawForm ->
+                new Experience(rawForm.companyName(),
+                rawForm.technologies(), rawForm.location(),
+                YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                rawForm.bullets()));
 
     }
 
     public List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
-        return convertToOutputList(experienceForms, rawForm -> {
-            Experience newExperience  = new Experience(rawForm.companyName(),
-                    rawForm.technologies(), rawForm.location(),
-                    YearMonthStringOperations.getYearMonth(rawForm.startDate()),
-                    YearMonthStringOperations.getYearMonth(rawForm.endDate()),
-                    rawForm.bullets());
-            newExperience.setResume(associatedResume);
-            return newExperience;
-        });
+        return convertToOutputList(experienceForms, rawForm -> new Experience(rawForm.companyName(),
+                rawForm.technologies(), rawForm.location(),
+                YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                rawForm.bullets()));
     }
 
-    public VersionedHeader createVersionedHeader(Header originalHeader, boolean shouldBeNull,
+    public Header createVersionedHeader(Header originalHeader, boolean shouldBeNull,
                                                  ResumeVersion resumeVersion){
         if(shouldBeNull){
             return null;
         }
 
-        VersionedHeader newHeader = new VersionedHeader(originalHeader.getNumber(), originalHeader.getFirstName(),
+        return new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
                 originalHeader.getLastName(), originalHeader.getEmail());
-        newHeader.setAssociatedVersion(resumeVersion);
-        return newHeader;
     }
 
 
-    public VersionedEducation createVersionedEducation(Education originalEducation, boolean shouldBeNull,
+    public Education createVersionedEducation(Education originalEducation, boolean shouldBeNull,
                                                        ResumeVersion resumeVersion){
         if(shouldBeNull){
             return null;
         }
 
-        VersionedEducation newEducation = new VersionedEducation(originalEducation.getSchoolName(), originalEducation.getRelevantCoursework(),
+        return new Education(originalEducation.getSchoolName(), originalEducation.getRelevantCoursework(),
                 originalEducation.getLocation(), originalEducation.getStartDate(), originalEducation.getEndDate());
-        newEducation.setAssociatedVersion(resumeVersion);
-        return newEducation;
     }
 
-    public List<VersionedExperience> createVersionedExperiences(List<Experience> originalExperiences,
+    public List<Experience> createVersionedExperiences(List<Experience> originalExperiences,
                                                                 boolean shouldBeNull,
                                                                 ResumeVersion resumeVersion){
         if(shouldBeNull){
@@ -175,39 +159,31 @@ public class ObjectConverter {
         }
 
         return originalExperiences.stream().map(
-                rawExperience -> {
-                    VersionedExperience newExperience = new VersionedExperience(
-                            rawExperience.getCompanyName(),
-                            rawExperience.getTechnologyList(),
-                            rawExperience.getLocation(),
-                            rawExperience.getStartDate(),
-                            rawExperience.getEndDate(),
-                            rawExperience.getBullets()
-                    );
-                    newExperience.setAssociatedVersion(resumeVersion);
-                    return newExperience;
-                }
+                rawExperience -> new Experience(
+                        rawExperience.getCompanyName(),
+                        rawExperience.getTechnologyList(),
+                        rawExperience.getLocation(),
+                        rawExperience.getStartDate(),
+                        rawExperience.getEndDate(),
+                        rawExperience.getBullets()
+                )
         ).toList();
     }
 
-    private List<VersionedSectionEntry> createVersionedEntries(List<ResumeSectionEntry> rawEntries,
-                                                               VersionedSection section){
+    private List<ResumeSectionEntry> createVersionedEntries(List<ResumeSectionEntry> rawEntries,
+                                                               ResumeSection section){
         return rawEntries.stream().map(
-                rawEntry -> {
-                    VersionedSectionEntry newEntry =  new VersionedSectionEntry(
-                            rawEntry.getTitle(), rawEntry.getToolsUsed(),
-                            rawEntry.getLocation(),
-                            rawEntry.getStartDate(),
-                            rawEntry.getEndDate(),
-                            rawEntry.getBullets()
-                    );
-                    newEntry.setAssociatedSection(section);
-                    return newEntry;
-                }
+                rawEntry -> new ResumeSectionEntry(
+                        rawEntry.getTitle(), rawEntry.getToolsUsed(),
+                        rawEntry.getLocation(),
+                        rawEntry.getStartDate(),
+                        rawEntry.getEndDate(),
+                        rawEntry.getBullets()
+                )
         ).toList();
     }
 
-    public List<VersionedSection> createVersionedSections(List<ResumeSection> originalSections,
+    public List<ResumeSection> createVersionedSections(List<ResumeSection> originalSections,
                                                           boolean shouldBeNull,
                                                           ResumeVersion resumeVersion){
         if(shouldBeNull){
@@ -216,11 +192,10 @@ public class ObjectConverter {
 
         return originalSections.stream().map(
                 rawSection -> {
-                    VersionedSection newSection = new VersionedSection(
+                    ResumeSection newSection = new ResumeSection(
                             rawSection.getTitle()
                     );
                     newSection.setEntries(createVersionedEntries(rawSection.getEntries(), newSection));
-                    newSection.setAssociatedVersion(resumeVersion);
                     return newSection;
                 }
         ).toList();

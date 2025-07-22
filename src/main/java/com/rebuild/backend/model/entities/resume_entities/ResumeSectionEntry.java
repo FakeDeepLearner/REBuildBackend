@@ -15,7 +15,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ResumeSectionEntry extends SuperclassSectionEntry implements ResumeProperty {
 
@@ -23,11 +22,6 @@ public class ResumeSectionEntry extends SuperclassSectionEntry implements Resume
                               YearMonth startDate, YearMonth endDate, List<String> bullets) {
         super(title, toolsUsed, location, startDate, endDate, bullets);
     }
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "associated_section_id", nullable = false, referencedColumnName = "id")
-    @JsonIgnore
-    private ResumeSection associatedSection;
 
     @Override
     public String toString() {

@@ -4,8 +4,6 @@ import com.rebuild.backend.exceptions.profile_exceptions.NoAttributeInProfileExc
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.entities.profile_entities.ProfileEducation;
-import com.rebuild.backend.model.entities.profile_entities.ProfileHeader;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
@@ -47,7 +45,7 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getHeader() == null){
             throw new NoAttributeInProfileException("Your profile does not have a header set");
         }
-        ProfileHeader originalHeader = resumeUser.getProfile().getHeader();
+        Header originalHeader = resumeUser.getProfile().getHeader();
         Header transformedHeader = objectConverter.convertToHeader(originalHeader);
         return resumeService.setHeader(associatedResume, transformedHeader);
     }
@@ -65,7 +63,7 @@ public class PrefillFromProfileController {
         if(resumeUser.getProfile().getEducation() == null){
             throw new NoAttributeInProfileException("Your profile does not have an education set");
         }
-        ProfileEducation originalEducation = resumeUser.getProfile().getEducation();
+        Education originalEducation = resumeUser.getProfile().getEducation();
         Education transformedEducation = objectConverter.convertToEducation(originalEducation);
         return resumeService.setEducation(associatedResume, transformedEducation);
     }

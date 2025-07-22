@@ -1,7 +1,12 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.resume_entities.Education;
+import com.rebuild.backend.model.entities.resume_entities.Experience;
+import com.rebuild.backend.model.entities.resume_entities.Header;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSection;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,17 +31,21 @@ public class UserProfile {
 
     @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = {
             ALL
-    }, mappedBy = "profile")
-    private ProfileHeader header;
+    })
+    @JoinColumn(name = "header_id", referencedColumnName = "id")
+    private Header header;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
-    private ProfileEducation education;
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name = "education_id", referencedColumnName = "id")
+    private Education education;
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
-    private List<ProfileExperience> experienceList;
+    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    private List<Experience> experienceList;
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL, mappedBy = "profile")
-    private List<ProfileSection> sections;
+    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    private List<ResumeSection> sections;
 
     @Column(name = "page_size")
     private int forumPageSize = 20;
@@ -50,10 +59,10 @@ public class UserProfile {
     @JsonIgnore
     private User user;
 
-    public UserProfile(ProfileHeader profileHeader,
-                       ProfileEducation newEducation,
-                       List<ProfileExperience> experiences,
-                       List<ProfileSection> sections) {
+    public UserProfile(Header profileHeader,
+                       Education newEducation,
+                       List<Experience> experiences,
+                       List<ResumeSection> sections) {
         this.header = profileHeader;
         this.education = newEducation;
         this.experienceList = experiences;

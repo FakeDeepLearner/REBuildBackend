@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.profile_entities.*;
+import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -75,19 +77,19 @@ public class ProfileService {
     private UserProfile getUserProfile(FullProfileForm profileForm) {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
-        ProfileHeader profileHeader = new ProfileHeader(profileForm.headerForm().number(),
+        Header profileHeader = new Header(profileForm.headerForm().number(),
                 profileForm.headerForm().firstName(),
                 profileForm.headerForm().lastName(),
                 profileForm.headerForm().email());
-        ProfileEducation newEducation = new ProfileEducation(profileForm.educationForm().schoolName(),
+        Education newEducation = new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
-        List<ProfileSection> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
+        List<ResumeSection> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
 
         UserProfile newProfile =  new UserProfile(profileHeader, newEducation,
                 new ArrayList<>(),
                 sections);
-        List<ProfileExperience> experiences = objectConverter.
+        List<Experience> experiences = objectConverter.
                 extractProfileExperiences(profileForm.experienceForms(), newProfile);
         newProfile.setExperienceList(experiences);
         return newProfile;
@@ -102,40 +104,42 @@ public class ProfileService {
     @Transactional
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
-        ProfileHeader newHeader = new ProfileHeader(headerForm.number(), headerForm.firstName(),
-                headerForm.lastName(),headerForm.email());
-        userProfile.setHeader(newHeader);
-        newHeader.setProfile(userProfile);
+        Header oldHeader = userProfile.getHeader();
+
+        oldHeader.setFirstName(headerForm.firstName());
+        oldHeader.setLastName(headerForm.lastName());
+        oldHeader.setEmail(headerForm.email());
+        oldHeader.setNumber(headerForm.number());
         return profileRepository.save(userProfile);
     }
 
     @Transactional
     public UserProfile updateProfileEducation(UserProfile userProfile,
                                               ProfileEducationForm educationForm) {
+        Education oldEducation = userProfile.getEducation();
+
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
-        ProfileEducation newEducation = new ProfileEducation(educationForm.schoolName(),
-                educationForm.relevantCoursework(), educationForm.location(), startDate, endDate);
-        userProfile.setEducation(newEducation);
-        newEducation.setProfile(userProfile);
+        oldEducation.setSchoolName(educationForm.schoolName());
+        oldEducation.setRelevantCoursework(educationForm.relevantCoursework());
+        oldEducation.setLocation(educationForm.location());
+        oldEducation.setStartDate(startDate);
+        oldEducation.setEndDate(endDate);
         return profileRepository.save(userProfile);
     }
 
     @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateProfileExperiences(UserProfile profile,
                                                 List<ProfileExperienceForm> newExperiences){
-        List<ProfileExperience> oldExperiences = profile.getExperienceList();
+        List<Experience> oldExperiences = profile.getExperienceList();
 
-        List<ProfileExperience> transformedExperiences = newExperiences.stream().
+        List<Experience> transformedExperiences = newExperiences.stream().
                 map((rawExperienceData) -> {
                     YearMonth startDate = YearMonthStringOperations.getYearMonth(rawExperienceData.startDate());
                     YearMonth endDate = YearMonthStringOperations.getYearMonth(rawExperienceData.endDate());
-                    ProfileExperience newExperience =
-                            new ProfileExperience(rawExperienceData.companyName(), rawExperienceData.technologies(),
-                            rawExperienceData.location(),
-                            startDate, endDate, rawExperienceData.bullets());
-                    newExperience.setProfile(profile);
-                    return newExperience;
+                    return new Experience(rawExperienceData.companyName(), rawExperienceData.technologies(),
+                    rawExperienceData.location(),
+                    startDate, endDate, rawExperienceData.bullets());
                 }).toList();
         try {
             profile.setExperienceList(transformedExperiences);
@@ -157,8 +161,8 @@ public class ProfileService {
     @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateProfileSections(UserProfile profile,
                                              List<ProfileSectionForm> sectionForms){
-        List<ProfileSection> oldSections = profile.getSections();
-        List<ProfileSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
+        List<ResumeSection> oldSections = profile.getSections();
+        List<ResumeSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
         try {
             profile.setSections(transformedSections);
             UserProfile savedProfile = profileRepository.save(profile);
@@ -190,7 +194,6 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteProfileEducation(UserProfile profile){
-        profile.getEducation().setProfile(null);
         profile.setEducation(null);
         return profileRepository.save(profile);
     }
@@ -203,7 +206,6 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteProfileHeader(UserProfile profile){
-        profile.getHeader().setProfile(null);
         profile.setHeader(null);
         return profileRepository.save(profile);
     }
@@ -229,19 +231,19 @@ public class ProfileService {
     @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateEntireProfile(UserProfile updatingProfile,
                                                                         FullProfileForm profileForm){
-        List<ProfileExperience> oldExperiences = updatingProfile.getExperienceList();
-        List<ProfileSection> oldSections = updatingProfile.getSections();
-        ProfileHeader oldHeader = updatingProfile.getHeader();
-        ProfileEducation oldEducation = updatingProfile.getEducation();
+        List<Experience> oldExperiences = updatingProfile.getExperienceList();
+        List<ResumeSection> oldSections = updatingProfile.getSections();
+        Header oldHeader = updatingProfile.getHeader();
+        Education oldEducation = updatingProfile.getEducation();
         YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
         try {
             updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
                     updatingProfile));
-            updatingProfile.setHeader(new ProfileHeader(profileForm.headerForm().number(),
+            updatingProfile.setHeader(new Header(profileForm.headerForm().number(),
                     profileForm.headerForm().firstName(),
                     profileForm.headerForm().lastName(), profileForm.headerForm().email()));
-            updatingProfile.setEducation(new ProfileEducation(profileForm.educationForm().schoolName(),
+            updatingProfile.setEducation(new Education(profileForm.educationForm().schoolName(),
                     profileForm.educationForm().relevantCoursework(),
                     profileForm.educationForm().location(), startDate, endDate));
             updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sectionForms()));

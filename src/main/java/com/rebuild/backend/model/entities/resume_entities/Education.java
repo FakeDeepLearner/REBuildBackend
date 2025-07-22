@@ -14,8 +14,6 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Table(name = "educations")
 public class Education extends SuperclassEducation implements ResumeProperty{
@@ -25,13 +23,10 @@ public class Education extends SuperclassEducation implements ResumeProperty{
         super(schoolName, relevantCoursework, location, startDate, endDate);
     }
 
-    @OneToOne(cascade = {
-            CascadeType.PERSIST,
-            CascadeType.MERGE
-    })
-    @JoinColumn(name = "resume_id", referencedColumnName = "id",
-    foreignKey = @ForeignKey(name = "ed_fk_resume_id"))
-    private Resume resume;
+    public Education() {
+
+    }
+
 
     public String toString() {
         return "EDUCATION:\n" +

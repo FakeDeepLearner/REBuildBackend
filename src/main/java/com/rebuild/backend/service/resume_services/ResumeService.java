@@ -150,7 +150,6 @@ public class ResumeService {
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
-        newHeader.setResume(resume);
         resumeRepository.save(resume);
         return newHeader;
 
@@ -168,7 +167,6 @@ public class ResumeService {
                 start, end, experienceForm.bullets());
         try {
             resume.addExperience(newExperience);
-            newExperience.setResume(resume);
             Resume savedResume = resumeRepository.save(resume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
@@ -178,7 +176,6 @@ public class ResumeService {
             resume.getExperiences().removeLast();
             // undoAdder.removeUndoState(resID);
             //No loose ends
-            newExperience.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
                 return OptionalValueAndErrorResult.of(resume,
@@ -198,7 +195,6 @@ public class ResumeService {
                 educationForm.location(),
                 startDate, endDate);
         resume.setEducation(education);
-        education.setResume(resume);
         return resumeRepository.save(resume);
     }
 
@@ -214,7 +210,6 @@ public class ResumeService {
         newSection.setEntries(transformedEntries);
         try {
             resume.addSection(newSection);
-            newSection.setResume(resume);
             Resume savedResume = resumeRepository.save(resume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
@@ -222,7 +217,6 @@ public class ResumeService {
             // undoAdder.removeUndoState(resID);
             Throwable cause = e.getCause();
             resume.getSections().removeLast();
-            newSection.setResume(null);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_section")){
                 return OptionalValueAndErrorResult.of(resume,
@@ -337,7 +331,6 @@ public class ResumeService {
             Header newHeader = new Header(resumeForm.headerForm().number(),
                     resumeForm.headerForm().firstName(),
                     resumeForm.headerForm().lastName(), resumeForm.headerForm().email());
-            newHeader.setResume(resume);
             resume.setHeader(newHeader);
 
             Education newEducation = new Education(resumeForm.educationForm().schoolName(),
@@ -345,7 +338,6 @@ public class ResumeService {
                     resumeForm.educationForm().location(),
                     YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
                     YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
-            newEducation.setResume(resume);
             resume.setEducation(newEducation);
             resume.setExperiences(objectConverter.extractExperiences(resumeForm.experiences(), resume));
             resume.setSections(objectConverter.extractResumeSections(resumeForm.sections(), resume));
