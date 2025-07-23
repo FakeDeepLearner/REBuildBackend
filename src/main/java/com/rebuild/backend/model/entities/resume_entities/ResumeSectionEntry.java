@@ -1,27 +1,57 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.superclasses.SuperclassSectionEntry;
 
+import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.UUID;
 
 
 @Entity
 @Table(name = "resume_section_entries")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class ResumeSectionEntry extends SuperclassSectionEntry implements ResumeProperty {
+@RequiredArgsConstructor
+@AllArgsConstructor
+public class ResumeSectionEntry implements ResumeProperty {
 
-    public ResumeSectionEntry(String title, List<String> toolsUsed, String location,
-                              YearMonth startDate, YearMonth endDate, List<String> bullets) {
-        super(title, toolsUsed, location, startDate, endDate, bullets);
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @JsonIgnore
+    private UUID id;
+
+    @Column(nullable = false, name = "title")
+    @NonNull
+    private String title;
+
+    @ElementCollection
+    @CollectionTable(name = "section_tools", joinColumns = @JoinColumn(name = "section_tool_id"))
+    @NonNull
+    private List<String> toolsUsed;
+
+    @Column(nullable = false, name = "location")
+    @NonNull
+    private String location;
+
+    @Column(name = "start_date")
+    @NonNull
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth startDate;
+
+    @Column(name = "start_date")
+    @NonNull
+    @Convert(converter = YearMonthDatabaseConverter.class)
+    private YearMonth endDate;
+
+    @ElementCollection
+    @CollectionTable(name = "section_bullets",
+            joinColumns = @JoinColumn(name = "section_bullet_id"))
+    @NonNull
+    private List<String> bullets;
 
     @Override
     public String toString() {
