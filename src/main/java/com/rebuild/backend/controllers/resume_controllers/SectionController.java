@@ -34,9 +34,10 @@ public class SectionController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     public ResponseEntity<?> addNewSection(@Valid @RequestBody SectionForm form,
                                            @PathVariable int index,
-                                           @AuthenticationPrincipal User user){
+                                           @AuthenticationPrincipal User user,
+                                           @RequestParam(required = false) Integer sectionsIndex){
         OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewSection(user, index, form);
+                resumeService.createNewSection(user, index, form, sectionsIndex);
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());

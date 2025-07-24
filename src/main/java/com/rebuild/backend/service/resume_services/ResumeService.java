@@ -103,7 +103,6 @@ public class ResumeService {
         // undoAdder.addUndoResumeState(resID, resume);
         //These variables are guaranteed to be properly initialized after the try block executes
         Experience changingExperience = resume.getExperiences().get(experienceIndex);
-        int removedIndex = 0;
         try {
             YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
             YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
@@ -118,7 +117,6 @@ public class ResumeService {
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
-            resume.addExperience(removedIndex, changingExperience);
             // undoAdder.removeUndoState(resID);
             if (cause instanceof ConstraintViolationException violationException
                     && Objects.equals(violationException.getConstraintName(), "uk_resume_company")){
@@ -157,7 +155,8 @@ public class ResumeService {
 
     @Transactional
     public OptionalValueAndErrorResult<Resume> createNewExperience(User changingUser, int resumeIndex,
-                                                                   ExperienceForm experienceForm){
+                                                                   ExperienceForm experienceForm,
+                                                                   Integer experiencesIndex){
         Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
         // undoAdder.addUndoResumeState(resID, resume);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
@@ -166,7 +165,12 @@ public class ResumeService {
                 experienceForm.technologies(), experienceForm.location(),
                 start, end, experienceForm.bullets());
         try {
-            resume.addExperience(newExperience);
+            if (experiencesIndex == null) {
+                resume.addExperience(newExperience);
+            }
+            else {
+                resume.addExperience(experiencesIndex, newExperience);
+            }
             Resume savedResume = resumeRepository.save(resume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }
@@ -200,7 +204,7 @@ public class ResumeService {
 
     @Transactional
     public OptionalValueAndErrorResult<Resume> createNewSection(User user, int resumeIndex,
-                                                                SectionForm sectionForm){
+                                                                SectionForm sectionForm, Integer sectionsIndex){
         Resume resume = getUtility.findByUserResumeIndex(user, resumeIndex);
         // undoAdder.addUndoResumeState(resID, resume);
         ResumeSection newSection = new ResumeSection(sectionForm.title());
@@ -209,7 +213,12 @@ public class ResumeService {
                 extractResumeSectionEntries(sectionForm.entryForms(), newSection);
         newSection.setEntries(transformedEntries);
         try {
-            resume.addSection(newSection);
+            if (sectionsIndex == null){
+                resume.addSection(newSection);
+            }
+            else {
+                resume.addSection(sectionsIndex, newSection);
+            }
             Resume savedResume = resumeRepository.save(resume);
             return OptionalValueAndErrorResult.of(savedResume, OK);
         }

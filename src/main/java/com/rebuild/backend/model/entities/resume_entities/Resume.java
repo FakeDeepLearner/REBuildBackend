@@ -148,11 +148,15 @@ public class Resume implements Serializable {
     public void addSection(ResumeSection section){
         if (sections == null){
             sections = new ArrayList<>();
-            sections.add(section);
         }
-        else{
-            sections.add(section);
+        sections.add(section);
+    }
+
+    public void addSection(int index, ResumeSection section){
+        if (sections == null){
+            sections = new ArrayList<>();
         }
+        sections.add(index, section);
     }
 
     @Override

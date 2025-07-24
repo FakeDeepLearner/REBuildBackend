@@ -45,11 +45,12 @@ public class ResumePostController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
     public ResponseEntity<?> createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                  @PathVariable int index,
-                                                 @AuthenticationPrincipal User user){
+                                                 @AuthenticationPrincipal User user,
+                                                 @RequestParam(required = false) Integer experiencesIndex){
 
 
         OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewExperience(user, index, experienceForm);
+                resumeService.createNewExperience(user, index, experienceForm, experiencesIndex);
         switch(createResult.returnedStatus()){
             case OK -> {
                 return ResponseEntity.ok(createResult.optionalResult().get());
