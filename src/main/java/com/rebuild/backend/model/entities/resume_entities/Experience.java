@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "experiences",
-        uniqueConstraints = {@UniqueConstraint(name = "uk_resume_company",
-                columnNames = {"company_name", "resume_id"})})
+@Table(name = "experiences")
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor

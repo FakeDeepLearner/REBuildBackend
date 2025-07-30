@@ -11,9 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Table(name = "resume_sections", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_resume_section", columnNames = {"resume_id", "title"})
-})
+@Table(name = "resume_sections")
 @EqualsAndHashCode
 @NoArgsConstructor
 @RequiredArgsConstructor
