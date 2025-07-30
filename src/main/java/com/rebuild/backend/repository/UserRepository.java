@@ -34,6 +34,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByLastLoginTimeBefore(LocalDateTime limit);
 
 
+    Optional<User> findByForumUsername(String forumUsername);
+
+
 
 
 
