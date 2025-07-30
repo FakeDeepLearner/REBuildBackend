@@ -5,14 +5,12 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Frie
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.repository.FriendRelationshipRepository;
 import com.rebuild.backend.repository.FriendRequestRepository;
+import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,13 +19,15 @@ import java.util.List;
 @RequestMapping("/api/inbox")
 public class InboxController {
 
+    private final FriendAndMessageService friendAndMessageService;
     private final UserService userService;
 
     private final FriendRequestRepository friendRequestRepository;
 
     @Autowired
-    public InboxController(UserService userService,
-                          FriendRequestRepository friendRequestRepository) {
+    public InboxController(FriendAndMessageService friendAndMessageService, UserService userService,
+                           FriendRequestRepository friendRequestRepository) {
+        this.friendAndMessageService = friendAndMessageService;
         this.userService = userService;
         this.friendRequestRepository = friendRequestRepository;
     }
@@ -43,13 +43,21 @@ public class InboxController {
         requestToAccept.setStatus(RequestStatus.ACCEPTED);
         requestToAccept.setStatusUpdateDate(LocalDateTime.now());
         friendRequestRepository.save(requestToAccept);
-        userService.addFriend(requestToAccept.getSender(), requestToAccept.getRecipient());
+        friendAndMessageService.addFriend(requestToAccept.getSender(), requestToAccept.getRecipient());
 
 
         //We remove this friend request from the recipient's inbox. It is accepted, there is no point of
         //it staying there anymore.
         userRequests.remove(request_index);
         userService.save(acceptingUser);
+
+    }
+
+    @PostMapping("/send_request")
+    public void sendFriendshipRequest(@RequestBody String recipientUsername,
+                                      @AuthenticationPrincipal User sendingUser)
+    {
+
 
     }
 }
