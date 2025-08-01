@@ -41,11 +41,9 @@ public class ObjectConverter {
     public ResumeSection convertToSection(ResumeSection profileSection){
         List<ResumeSectionEntry> entries = profileSection.getEntries();
 
-        ResumeSection newSection = new ResumeSection(profileSection.getTitle());
         List<ResumeSectionEntry> convertedEntries = entries.stream()
                 .map(this::convertToResumeSectionEntry).toList();
-        newSection.setEntries(convertedEntries);
-        return newSection;
+        return new ResumeSection(convertedEntries, profileSection.getTitle());
     }
 
     private ResumeSectionEntry convertToResumeSectionEntry(ResumeSectionEntry profileSectionEntry){
@@ -66,18 +64,15 @@ public class ObjectConverter {
     public List<ResumeSection> extractProfileSections(List<ProfileSectionForm> profileSectionForms){
 
         return convertToOutputList(profileSectionForms, rawForm -> {
-            ResumeSection newSection = new ResumeSection(rawForm.title());
-            List<ResumeSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms(),
-                    newSection);
-            newSection.setEntries(sectionEntries);
-            return newSection;
+            List<ResumeSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms());
+            return new ResumeSection(sectionEntries, rawForm.title());
         });
     }
 
     private List<ResumeSectionEntry> extractProfileSectionEntries(List<ProfileSectionEntryForm>
-                                                                   entryForms, ResumeSection section){
+                                                                   entryForms){
 
-        return convertToOutputList(entryForms, section, (rawForm, root) -> {
+        return convertToOutputList(entryForms, (rawForm) -> {
             return new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
                     rawForm.location(), YearMonthStringOperations.getYearMonth(rawForm.startTime()),
                     YearMonthStringOperations.getYearMonth(rawForm.endTime()),
@@ -88,18 +83,15 @@ public class ObjectConverter {
     public List<ResumeSection> extractResumeSections(List<SectionForm> sectionForms, Resume associatedResume){
 
         return convertToOutputList(sectionForms, rawForm -> {
-            ResumeSection newSection = new ResumeSection(rawForm.title());
-            List<ResumeSectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms(),
-                    newSection);
-            newSection.setEntries(sectionEntries);
-            return newSection;
+            List<ResumeSectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms());
+            return new ResumeSection(sectionEntries, rawForm.title());
         });
     }
 
     public List<ResumeSectionEntry> extractResumeSectionEntries(List<ResumeSectionEntryForm>
-                                                                 entryForms, ResumeSection section){
+                                                                 entryForms){
 
-        return convertToOutputList(entryForms, section, (rawForm , root) -> {
+        return convertToOutputList(entryForms, (rawForm ) -> {
             ResumeSectionEntry newEntry =
                     new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
                             rawForm.location(),
@@ -170,8 +162,7 @@ public class ObjectConverter {
         ).toList();
     }
 
-    private List<ResumeSectionEntry> createVersionedEntries(List<ResumeSectionEntry> rawEntries,
-                                                               ResumeSection section){
+    private List<ResumeSectionEntry> createVersionedEntries(List<ResumeSectionEntry> rawEntries){
         return rawEntries.stream().map(
                 rawEntry -> new ResumeSectionEntry(
                         rawEntry.getTitle(), rawEntry.getToolsUsed(),
@@ -192,11 +183,7 @@ public class ObjectConverter {
 
         return originalSections.stream().map(
                 rawSection -> {
-                    ResumeSection newSection = new ResumeSection(
-                            rawSection.getTitle()
-                    );
-                    newSection.setEntries(createVersionedEntries(rawSection.getEntries(), newSection));
-                    return newSection;
+                    return new ResumeSection(createVersionedEntries(rawSection.getEntries()), rawSection.getTitle());
                 }
         ).toList();
     }

@@ -9,7 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
@@ -25,10 +25,10 @@ public class CustomMatchersConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain filterChainLoginSignup(HttpSecurity security) throws Exception {
-        RequestMatcher loginFail = new AntPathRequestMatcher(urlBase.baseUrl() +
-                "/login?error=true", HttpMethod.GET.toString());
-        RequestMatcher logoutSuccess = new AntPathRequestMatcher(urlBase.baseUrl() +
-                "/login?logout=true", HttpMethod.GET.toString());
+        RequestMatcher loginFail = PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, urlBase.baseUrl() +
+                        "/login?error=true");
+        RequestMatcher logoutSuccess = PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET,
+                urlBase.baseUrl() + "/login?logout=true");
         security.authorizeHttpRequests(config ->
                 config.requestMatchers(loginFail, logoutSuccess).permitAll());
 

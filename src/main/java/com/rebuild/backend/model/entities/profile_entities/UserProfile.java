@@ -1,10 +1,7 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.resume_entities.Education;
-import com.rebuild.backend.model.entities.resume_entities.Experience;
-import com.rebuild.backend.model.entities.resume_entities.Header;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSection;
+import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import jakarta.persistence.*;
@@ -12,6 +9,7 @@ import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static jakarta.persistence.CascadeType.*;
 
@@ -39,11 +37,11 @@ public class UserProfile {
     @JoinColumn(name = "education_id", referencedColumnName = "id")
     private Education education;
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<Experience> experienceList;
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<ResumeSection> sections;
 
@@ -67,6 +65,39 @@ public class UserProfile {
         this.education = newEducation;
         this.experienceList = experiences;
         this.sections = sections;
+    }
+
+
+    public static UserProfile deepCopy(UserProfile originalProfile){
+        Header oldHeader = originalProfile.getHeader();
+        Header newHeader = new Header(oldHeader.getNumber(), oldHeader.getFirstName(), oldHeader.getLastName(),
+                oldHeader.getEmail());
+
+        Education oldEducation = originalProfile.getEducation();
+
+        Education newEducation = new Education(oldEducation.getSchoolName(),
+                oldEducation.getRelevantCoursework(), oldEducation.getLocation(), oldEducation.getStartDate(),
+                oldEducation.getEndDate());
+
+        List<Experience> newExperiences = originalProfile.getExperienceList().stream().map(
+                oldExperience -> new Experience(oldExperience.getCompanyName(),
+                        oldExperience.getTechnologyList(), oldExperience.getLocation(), oldExperience.getStartDate(),
+                        oldExperience.getEndDate(), oldExperience.getBullets())
+        ).toList();
+
+        List<ResumeSection> newSections = originalProfile.getSections().stream().map(
+                oldSection -> {
+                    List<ResumeSectionEntry> newEntries = oldSection.getEntries().stream().map(
+                            oldEntry -> new ResumeSectionEntry(oldEntry.getTitle(),
+                                    oldEntry.getToolsUsed(), oldEntry.getLocation(), oldEntry.getStartDate(),
+                                    oldEntry.getEndDate(), oldEntry.getBullets())
+                    ).toList();
+
+                    return new ResumeSection(newEntries, oldSection.getTitle());
+                }
+        ).toList();
+
+        return new UserProfile(newHeader, newEducation, newExperiences, newSections);
     }
 
 

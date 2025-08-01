@@ -11,9 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Table(name = "resume_sections", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_resume_section", columnNames = {"resume_id", "title"})
-})
+@Table(name = "resume_sections")
 @EqualsAndHashCode
 @NoArgsConstructor
 @RequiredArgsConstructor
@@ -28,6 +26,7 @@ public class ResumeSection implements ResumeProperty{
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    @NonNull
     private List<ResumeSectionEntry> entries;
 
     @NonNull
