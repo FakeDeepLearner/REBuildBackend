@@ -184,7 +184,7 @@ public class User implements UserDetails {
     }
 
     public String stringifiedNumber(){
-        return this.phoneNumber.toString();
+        return this.phoneNumber;
     }
 
 }

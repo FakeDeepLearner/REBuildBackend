@@ -138,7 +138,6 @@ public class ResumeVersioningService {
              */
             List<ResumeSection> newSections = versionedSections.stream().map(
                     versionedSection -> {
-                        ResumeSection newSection = new ResumeSection(versionedSection.getTitle());
                         List<ResumeSectionEntry> transformedEntries = versionedSection.getEntries().
                                 stream().map(
                                         rawEntry -> {
@@ -153,8 +152,7 @@ public class ResumeVersioningService {
                                             return newEntry;
                                         }
                                 ).toList();
-                        newSection.setEntries(transformedEntries);
-                        return newSection;
+                        return new ResumeSection(transformedEntries, versionedSection.getTitle());
                     }
             ).toList();
             resume.setSections(newSections);

@@ -26,6 +26,7 @@ public class ResumeSection implements ResumeProperty{
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    @NonNull
     private List<ResumeSectionEntry> entries;
 
     @NonNull

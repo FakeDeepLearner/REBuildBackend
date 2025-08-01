@@ -18,8 +18,7 @@ public class AuthenticationManagerConfig {
                                              @Qualifier("password_service")
                                              UserDetailsPasswordService passwordService,
                                              @Qualifier("peppered") PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(detailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(detailsService);
         provider.setPasswordEncoder(passwordEncoder);
         provider.setUserDetailsPasswordService(passwordService);
         return new ProviderManager(provider);

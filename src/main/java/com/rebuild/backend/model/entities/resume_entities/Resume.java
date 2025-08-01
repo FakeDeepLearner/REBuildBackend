@@ -123,11 +123,8 @@ public class Resume implements Serializable {
                         experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
         this.sections = originalSections.stream().map(
-                section -> {
-                    ResumeSection newSection = new ResumeSection(section.getTitle());
-                    newSection.setEntries(section.getEntries());
-                    return newSection;
-                }).toList();
+                section -> new ResumeSection(section.getEntries(),
+                        section.getTitle())).toList();
         //Necessary in order for cascading to work properly
         this.getUser().getResumes().add(this);
         this.creationTime = LocalDateTime.now();
@@ -168,5 +165,12 @@ public class Resume implements Serializable {
         sb.append("\nSECTIONS:\n");
         sections.forEach(section -> sb.append(section.toString()));
         return sb.toString();
+    }
+
+    public static Resume deepCopy(Resume originalResume){
+
+        String copiedName = originalResume.getName();
+
+        return new Resume(originalResume, copiedName);
     }
 }

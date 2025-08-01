@@ -56,17 +56,9 @@ public class ProfileService {
             creatingUser.setProfile(null);
             newProfile.setUser(null);
             if (cause instanceof ConstraintViolationException violationException){
-                switch (violationException.getConstraintName()){
-                    case "uk_profile_sections":
-                        return OptionalValueAndErrorResult.of(newProfile,
-                                "The profile sections can't have more than 1 section with the same title", CONFLICT);
-                    case "uk_profile_experiences":
-                        return OptionalValueAndErrorResult.of(
-                                "The profile experiences can't have more than 1 experience with the same company", CONFLICT);
-                    case null:
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
+                if (violationException.getConstraintName() == null) {
+                } else {
+                    throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
                 }
             }
         }
@@ -131,7 +123,7 @@ public class ProfileService {
     @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateProfileExperiences(UserProfile profile,
                                                 List<ProfileExperienceForm> newExperiences){
-        List<Experience> oldExperiences = profile.getExperienceList();
+        UserProfile copiedProfile = UserProfile.deepCopy(profile);
 
         List<Experience> transformedExperiences = newExperiences.stream().
                 map((rawExperienceData) -> {
@@ -146,39 +138,29 @@ public class ProfileService {
             UserProfile savedProfile = profileRepository.save(profile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            profile.setExperienceList(oldExperiences);
-            if (cause instanceof ConstraintViolationException violationException &&
-                    Objects.equals(violationException.getConstraintName(), "uk_profile_experiences")){
-                return OptionalValueAndErrorResult.of(profile,
-                        "The new experiences can't have more than 1 experience with the same company", CONFLICT);
-            }
+        catch (RuntimeException e){
+            return OptionalValueAndErrorResult.of(copiedProfile,
+                    "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
         }
-        return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
+
     }
 
     @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateProfileSections(UserProfile profile,
                                              List<ProfileSectionForm> sectionForms){
-        List<ResumeSection> oldSections = profile.getSections();
+        UserProfile copiedProfile = UserProfile.deepCopy(profile);
+
         List<ResumeSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
         try {
             profile.setSections(transformedSections);
             UserProfile savedProfile = profileRepository.save(profile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            profile.setSections(oldSections);
-            if (cause instanceof ConstraintViolationException violationException &&
-                    Objects.equals(violationException.getConstraintName(), "uk_profile_sections")){
-                return OptionalValueAndErrorResult.of(profile,
-                        "The new profile sections can't have more than 1 section with the same title", CONFLICT);
-            }
+        catch (RuntimeException e){
+            return OptionalValueAndErrorResult.of(copiedProfile, "An unexpected error has occurred",
+                    INTERNAL_SERVER_ERROR);
         }
-        return OptionalValueAndErrorResult.of(profile, "An unexpected error has occurred",
-                INTERNAL_SERVER_ERROR);
+
     }
 
     @Transactional
@@ -231,10 +213,7 @@ public class ProfileService {
     @Transactional
     public OptionalValueAndErrorResult<UserProfile> updateEntireProfile(UserProfile updatingProfile,
                                                                         FullProfileForm profileForm){
-        List<Experience> oldExperiences = updatingProfile.getExperienceList();
-        List<ResumeSection> oldSections = updatingProfile.getSections();
-        Header oldHeader = updatingProfile.getHeader();
-        Education oldEducation = updatingProfile.getEducation();
+        UserProfile copiedProfile = UserProfile.deepCopy(updatingProfile);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
         try {
@@ -250,30 +229,11 @@ public class ProfileService {
             UserProfile savedProfile = profileRepository.save(updatingProfile);
             return OptionalValueAndErrorResult.of(savedProfile, OK);
         }
-        catch(DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            updatingProfile.setExperienceList(oldExperiences);
-            updatingProfile.setSections(oldSections);
-            updatingProfile.setHeader(oldHeader);
-            updatingProfile.setEducation(oldEducation);
-            if (cause instanceof ConstraintViolationException violationException){
-                switch (violationException.getConstraintName()){
-                    case "uk_profile_sections":
-                        return OptionalValueAndErrorResult.of(updatingProfile,
-                                "The new profile sections can't have more than 1 section with the same title",
-                                CONFLICT);
-                    case "uk_profile_experiences":
-                        return OptionalValueAndErrorResult.of(updatingProfile,
-                                "The new profile experiences can't have more " +
-                                        "than experience with the same company", CONFLICT);
-                    case null:
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
-                }
-            }
+        catch(RuntimeException e){
+            return OptionalValueAndErrorResult.of(copiedProfile,
+                    "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
         }
-        return OptionalValueAndErrorResult.of(updatingProfile, "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
+
 
     }
 
