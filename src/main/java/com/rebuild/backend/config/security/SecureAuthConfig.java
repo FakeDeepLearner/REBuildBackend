@@ -4,7 +4,7 @@ package com.rebuild.backend.config.security;
 
 import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.utils.LogoutController;
-import org.springframework.batch.item.amqp.AmqpItemReader;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +13,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
-import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -49,9 +47,6 @@ public class SecureAuthConfig {
                         permitAll().
                         failureForwardUrl(urlBase.baseUrl() + "/login?error=true")).
                 //oauth2Login(login -> login.loginPage("/login")).
-                oauth2ResourceServer(server -> server.jwt(withDefaults())).
-                exceptionHandling(handler -> handler.accessDeniedHandler(new BearerTokenAccessDeniedHandler()).
-                        authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())).
                 logout(config -> config.
                     logoutUrl(urlBase.baseUrl() + "/logout").
                     logoutSuccessUrl(urlBase.baseUrl() + "/login?logout=true").
