@@ -119,20 +119,21 @@ public class UserService{
         }
     }
 
-
-    public void validateLoginCredentials(LoginForm form) {
+    public boolean validateLoginCredentials(LoginForm form) {
         String formField = form.email();
+        //If we can't find a user with the provided email address, we simply return false
         User foundUser = repository.findByEmail(formField).
-                orElseThrow(() -> new UserNotFoundException("A user with the specified email does not exist"));;
+                orElse(null);
 
-        String hashedPassword = encoder.encode(form.password());
-
-        if(!foundUser.getPassword().equals(hashedPassword)){
-            throw new WrongPasswordException("Wrong password");
+        if (foundUser == null) {
+            return false;
         }
 
-        foundUser.setLastLoginTime(LocalDateTime.now());
-        save(foundUser);
+        String hashedPassword = encoder.encode(form.password());
+        // If we do find a user with the provided email address, we check
+        // for the hashed password being equal to the one we have
+        // on file
+        return foundUser.getPassword().equals(hashedPassword);
 
     }
 
@@ -142,6 +143,8 @@ public class UserService{
         save(deletingUser);
     }
 
+
+
     @Transactional
     public OptionalValueAndErrorResult<User> createNewUser(SignupForm signupForm){
         String encodedPassword = encoder.encode(signupForm.password());
@@ -149,7 +152,7 @@ public class UserService{
                 signupForm.phoneNumber(), signupForm.forumUsername());
         try {
             User savedUser = save(newUser);
-            return  OptionalValueAndErrorResult.of(savedUser, CREATED);
+            return OptionalValueAndErrorResult.of(savedUser, CREATED);
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
@@ -157,11 +160,11 @@ public class UserService{
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
                     case "uk_email" -> {
-                        return  OptionalValueAndErrorResult.of("This email is taken", CONFLICT);
+                        return  OptionalValueAndErrorResult.of("This email is already associated with anohter account", CONFLICT);
 
                     }
                     case "uk_phone_number" -> {
-                        return OptionalValueAndErrorResult.of("This phone is already associated with another account",
+                        return OptionalValueAndErrorResult.of("This phone number is already associated with another account",
                                 CONFLICT);
 
                     }

@@ -87,13 +87,6 @@ public class User implements UserDetails {
     @OrderColumn(name = "insertion_order")
     private List<Resume> resumes = new ArrayList<>();
 
-    @OneToOne(orphanRemoval = true, mappedBy = "user",
-    cascade = {
-            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
-    })
-    @JsonIgnore
-    private RememberMeToken associatedRememberMeToken = null;
-
     @Convert(converter = DatabaseEncryptor.class)
     @Column(name = "forum_username", nullable = false)
     private String forumUsername;
