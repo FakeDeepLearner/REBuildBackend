@@ -8,16 +8,19 @@ import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.service.user_services.UserService;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@RequestMapping("/api")
 public class AuthenticationController {
 
     private final AuthenticationManager authManager;
@@ -33,19 +36,24 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> processLogin(@Valid @RequestBody LoginForm form){
-        userService.validateLoginCredentials(form);
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        form.email(), form.password()));
+    public ResponseEntity<String> processLogin(@Valid @RequestBody LoginForm form, HttpServletRequest request){
 
         Bucket userBucket = userService.returnUserBucket(form.email());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
 
         if (probe.isConsumed()){
+            boolean userCanLogin = userService.validateLoginCredentials(form);
+            if (!userCanLogin){
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid username or password");
+            }
+            loginHelper(form, request);
+
             return ResponseEntity.ok("Login successful");
         }
+
+        // We only hit the database if the user has enough attempts remaining to log in in the first place.
+        // If they don't, we don't waste time for a login attempt that will fail anyway
         else{
             long remainingTokens = probe.getRemainingTokens();
             double resetNanos = probe.getNanosToWaitForReset();
@@ -66,9 +74,21 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> processSignup(@Valid @RequestBody SignupForm signupForm){
 
+    private void loginHelper(LoginForm form, HttpServletRequest request){
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        form.email(), form.password())
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        request.getSession(true);
+    }
+
+
+    @PostMapping("/signup")
+    public ResponseEntity<String> processSignup(@Valid @RequestBody SignupForm signupForm, HttpServletRequest request){
+
+        //This block of code deals with creating the user in the database.
         OptionalValueAndErrorResult<User> creationResult =
                 userService.createNewUser(signupForm);
         if(creationResult.optionalResult().isEmpty()){
@@ -76,9 +96,20 @@ public class AuthenticationController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
                         body("An unexpected error has occurred");
             }
-            throw new AccountCreationException(creationResult.optionalError().get());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(creationResult.optionalError().get());
         }
-        return ResponseEntity.ok(creationResult.optionalResult().get());
+
+        // This block of code is used to automatically authenticate the user that just signed up,
+        // ensuring a seamless UX
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        signupForm.email(), signupForm.password())
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        request.getSession(true);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Account created successfully");
+
     }
 
 }

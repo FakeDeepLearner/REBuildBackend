@@ -127,3 +127,6 @@ encryption:
   algorithm: classpath:encryption/algorithm.txt
   password: classpath:encryption/password.txt
   salt: classpath:encryption/salt.txt
+
+remember-me:
+  key: classpath:encryption/remember-me-key.txt

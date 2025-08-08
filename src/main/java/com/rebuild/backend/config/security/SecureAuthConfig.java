@@ -15,9 +15,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 
-
-import static org.springframework.security.config.Customizer.*;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +36,9 @@ public class SecureAuthConfig {
 
     @Bean
     @Order(3)
-    public SecurityFilterChain filterChainAuthentication(HttpSecurity security) throws Exception {
+    public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
+                                                         RememberMeServices rememberMeServices,
+                                                         RememberMeAuthenticationFilter rememberMeAuthenticationFilter) throws Exception {
         security.
                 authorizeHttpRequests(config -> config.
                         requestMatchers(HttpMethod.GET, urlBase.baseUrl() + "/home/**").authenticated().
@@ -43,14 +46,17 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.PUT, urlBase.baseUrl() + "/home/**").authenticated().
                         requestMatchers(HttpMethod.DELETE, urlBase.baseUrl() + "/home/**").authenticated().
                         requestMatchers(HttpMethod.PATCH, urlBase.baseUrl() + "/home/**").authenticated()).
-                formLogin(login -> login.loginPage(urlBase.baseUrl() + "/login").
-                        permitAll().
-                        failureForwardUrl(urlBase.baseUrl() + "/login?error=true")).
-                //oauth2Login(login -> login.loginPage("/login")).
+                formLogin(
+                        login -> login.loginPage("/login").
+                                permitAll()).
+                oauth2Login(login -> login.loginPage("/login")).
                 logout(config -> config.
                     logoutUrl(urlBase.baseUrl() + "/logout").
                     logoutSuccessUrl(urlBase.baseUrl() + "/login?logout=true").
-                    addLogoutHandler(logoutController).deleteCookies("JSESSIONID"));
+                    addLogoutHandler(logoutController).deleteCookies("JSESSIONID").permitAll())
+                .rememberMe(rememberMe ->
+                        rememberMe.rememberMeServices(rememberMeServices))
+                .addFilterAfter(rememberMeAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return security.build();
 
 
