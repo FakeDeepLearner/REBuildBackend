@@ -45,12 +45,12 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.POST, urlBase.baseUrl() + "/home/**").authenticated().
                         requestMatchers(HttpMethod.PUT, urlBase.baseUrl() + "/home/**").authenticated().
                         requestMatchers(HttpMethod.DELETE, urlBase.baseUrl() + "/home/**").authenticated().
-                        requestMatchers(HttpMethod.PATCH, urlBase.baseUrl() + "/home/**").authenticated()).
-                formLogin(
-                        login -> login.loginPage("/login").
-                                permitAll()).
-                oauth2Login(login -> login.loginPage("/login")).
-                logout(config -> config.
+                        requestMatchers(HttpMethod.PATCH, urlBase.baseUrl() + "/home/**").authenticated())
+                .formLogin(login -> login.loginPage("/login").
+                                permitAll())
+                .oauth2Login(login -> login.loginPage("/login")
+                        .permitAll())
+                .logout(config -> config.
                     logoutUrl(urlBase.baseUrl() + "/logout").
                     logoutSuccessUrl(urlBase.baseUrl() + "/login?logout=true").
                     addLogoutHandler(logoutController).deleteCookies("JSESSIONID").permitAll())
