@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.enums.Authority;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
@@ -65,6 +64,11 @@ public class User implements UserDetails {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "type")
+    @NonNull
+    private UserType userType;
+
     @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
     cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
@@ -104,7 +108,7 @@ public class User implements UserDetails {
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
     mappedBy = "author", fetch = FetchType.LAZY)
-    private List<CommentReply> madeReplies;
+    private List<CommentReply> madeReplies = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -145,6 +149,7 @@ public class User implements UserDetails {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.forumUsername = forumUsername;
+        this.userType = UserType.DEFAULT;
     }
 
     @Override

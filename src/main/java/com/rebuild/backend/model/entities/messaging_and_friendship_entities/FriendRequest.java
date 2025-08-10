@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.enums.RequestStatus;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.Data;

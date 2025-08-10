@@ -1,6 +1,6 @@
 package com.rebuild.backend.utils.batch.processors;
 
-import com.rebuild.backend.model.entities.enums.LikeType;
+import com.rebuild.backend.model.entities.forum_entities.LikeType;
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
 import lombok.NonNull;
