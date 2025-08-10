@@ -108,7 +108,7 @@ public class User implements UserDetails {
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
     mappedBy = "author", fetch = FetchType.LAZY)
-    private List<CommentReply> madeReplies;
+    private List<CommentReply> madeReplies = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)

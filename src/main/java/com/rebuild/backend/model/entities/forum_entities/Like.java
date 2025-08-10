@@ -1,11 +1,9 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
-import com.rebuild.backend.model.entities.enums.LikeType;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
