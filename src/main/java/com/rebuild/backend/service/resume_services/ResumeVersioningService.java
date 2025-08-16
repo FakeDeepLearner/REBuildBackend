@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
+import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.repository.ResumeVersionRepository;
 import com.rebuild.backend.utils.OptionalValueAndErrorResult;
@@ -63,7 +64,8 @@ public class ResumeVersioningService {
 
     @Transactional
     public OptionalValueAndErrorResult<Resume> switchToAnotherVersion(User user,
-                                                                      int resume_index, int version_index){
+                                                                      int resume_index, int version_index,
+                                                                      VersionSwitchPreferencesForm versionSwitchPreferencesForm){
         Resume switchingResume = getUtility.findByUserResumeIndex(user, resume_index);
         Header oldHeader = switchingResume.getHeader();
         Education oldEducation = switchingResume.getEducation();
@@ -73,7 +75,7 @@ public class ResumeVersioningService {
         ResumeVersion versionToSwitch = findVersionsByIdAndLimit(switchingResume.getId(), version_index).getLast();
         assert versionToSwitch != null;
         try {
-            handleVersionSwitch(switchingResume, versionToSwitch);
+            handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
             Resume savedResume = resumeRepository.save(switchingResume);
             versionRepository.save(versionToSwitch);
             return OptionalValueAndErrorResult.of(savedResume, OK);
@@ -104,57 +106,31 @@ public class ResumeVersioningService {
         return OptionalValueAndErrorResult.of(switchingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
     }
 
-    private void handleVersionSwitch(Resume resume, ResumeVersion versionToSwitch){
+    private void handleVersionSwitch(Resume resume, ResumeVersion versionToSwitch,
+                                     VersionSwitchPreferencesForm preferencesForm){
         if(versionToSwitch.getVersionedName() != null){
             String tempName =  resume.getName();
             resume.setName(versionToSwitch.getVersionedName());
             versionToSwitch.setVersionedName(tempName);
         }
 
-        if(versionToSwitch.getVersionedHeader() != null){
+        if(versionToSwitch.getVersionedHeader() != null && preferencesForm.includeHeader()){
             Header newHeader = getHeader(resume, versionToSwitch);
             resume.setHeader(newHeader);
         }
 
-        if(versionToSwitch.getVersionedEducation() != null){
+        if(versionToSwitch.getVersionedEducation() != null && preferencesForm.includeEducation()){
             Education newEducation = getEducation(resume, versionToSwitch);
             resume.setEducation(newEducation);
         }
 
-        if(versionToSwitch.getVersionedExperiences() != null){
+        if(versionToSwitch.getVersionedExperiences() != null && preferencesForm.includeExperiences()){
             List<Experience> newExperiences = getExperiences(resume, versionToSwitch);
             resume.setExperiences(newExperiences);
         }
 
-        if(versionToSwitch.getVersionedSections() != null){
-            List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
-
-            /*
-             * Iterate over the versioned sections,
-             * and transform them into regular sections by iterating over each of their versioned entries
-             * and transforming them into regular entries. Then, associate each entry with a section,
-             * and then finally associate those entries collectively to the newly created normal section.
-             * (Double lambdas are fun, yay)
-             */
-            List<ResumeSection> newSections = versionedSections.stream().map(
-                    versionedSection -> {
-                        List<ResumeSectionEntry> transformedEntries = versionedSection.getEntries().
-                                stream().map(
-                                        rawEntry -> {
-                                            ResumeSectionEntry newEntry = new ResumeSectionEntry(
-                                                    rawEntry.getTitle(),
-                                                    rawEntry.getToolsUsed(),
-                                                    rawEntry.getLocation(),
-                                                    rawEntry.getStartDate(),
-                                                    rawEntry.getEndDate(),
-                                                    rawEntry.getBullets()
-                                            );
-                                            return newEntry;
-                                        }
-                                ).toList();
-                        return new ResumeSection(transformedEntries, versionedSection.getTitle());
-                    }
-            ).toList();
+        if(versionToSwitch.getVersionedSections() != null && preferencesForm.includeSections()){
+            List<ResumeSection> newSections = getSections(resume, versionToSwitch);
             resume.setSections(newSections);
         }
     }
@@ -184,6 +160,15 @@ public class ResumeVersioningService {
         versionToSwitch.setVersionedHeader(oldResumeHeader);
 
         return versionedHeader;
+    }
+
+
+    private static List<ResumeSection> getSections(Resume resume, ResumeVersion versionToSwitch) {
+        List<ResumeSection> oldResumeSections = resume.getSections();
+
+        List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
+        versionToSwitch.setVersionedSections(oldResumeSections);
+        return versionedSections;
     }
 
     private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){

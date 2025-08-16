@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
+import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.resume_services.ResumeVersioningService;
@@ -38,9 +39,10 @@ public class VersioningController {
     @ResponseStatus(HttpStatus.OK)
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ResponseEntity<?> switchToVersion(@AuthenticationPrincipal User user,
-                                             @PathVariable int resume_index, @PathVariable int version_index){
+                                             @PathVariable int resume_index, @PathVariable int version_index,
+                                             @RequestBody VersionSwitchPreferencesForm preferencesForm){
         OptionalValueAndErrorResult<Resume> switchingResult =
-                versioningService.switchToAnotherVersion(user, resume_index, version_index);
+                versioningService.switchToAnotherVersion(user, resume_index, version_index, preferencesForm);
 
         switch(switchingResult.returnedStatus()){
             case OK -> {
