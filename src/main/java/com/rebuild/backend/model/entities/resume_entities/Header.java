@@ -51,5 +51,10 @@ public class Header implements ResumeProperty {
                 "\tEmail: " + email + "\n\n\n";
     }
 
+    public static Header copy(Header other)
+    {
+        return new Header(other.getNumber(), other.getFirstName(), other.getLastName(), other.getEmail());
+    }
+
 
 }

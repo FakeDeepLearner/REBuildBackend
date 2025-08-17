@@ -115,60 +115,97 @@ public class ResumeVersioningService {
         }
 
         if(versionToSwitch.getVersionedHeader() != null && preferencesForm.includeHeader()){
-            Header newHeader = getHeader(resume, versionToSwitch);
+            Header newHeader = getHeader(resume, versionToSwitch, preferencesForm.makeHeaderCopy());
             resume.setHeader(newHeader);
         }
 
         if(versionToSwitch.getVersionedEducation() != null && preferencesForm.includeEducation()){
-            Education newEducation = getEducation(resume, versionToSwitch);
+            Education newEducation = getEducation(resume, versionToSwitch, preferencesForm.makeEducationCopy());
             resume.setEducation(newEducation);
         }
 
-        if(versionToSwitch.getVersionedExperiences() != null && preferencesForm.includeExperiences()){
-            List<Experience> newExperiences = getExperiences(resume, versionToSwitch);
+        if(versionToSwitch.getVersionedExperiences() != null && !preferencesForm.experienceIndices().isEmpty()){
+            List<Experience> newExperiences = getExperiences(resume, versionToSwitch,
+                    preferencesForm.makeExperienceCopies(), preferencesForm.experienceIndices());
             resume.setExperiences(newExperiences);
         }
 
-        if(versionToSwitch.getVersionedSections() != null && preferencesForm.includeSections()){
-            List<ResumeSection> newSections = getSections(resume, versionToSwitch);
+        if(versionToSwitch.getVersionedSections() != null && !preferencesForm.sectionIndices().isEmpty()){
+            List<ResumeSection> newSections = getSections(resume, versionToSwitch,
+                    preferencesForm.makeSectionCopies(), preferencesForm.sectionIndices());
             resume.setSections(newSections);
         }
     }
 
-    private static List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch){
-        List<Experience> oldResumeExperiences = resume.getExperiences();
+    private static List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch,
+                                                   boolean makeCopies, List<Integer> indicesToSelect){
+        if (!makeCopies) {
+            List<Experience> oldResumeExperiences = resume.getExperiences();
 
-        List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
-        versionToSwitch.setVersionedExperiences(oldResumeExperiences);
-        return versionedExperiences;
+            List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+            versionToSwitch.setVersionedExperiences(oldResumeExperiences);
+            return versionedExperiences;
+        }
+        else
+        {
+            List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+
+            return indicesToSelect.stream()
+                    .map(versionedExperiences::get)
+                    .map(Experience::copy).toList();
+        }
     }
 
-    private static Education getEducation(Resume resume, ResumeVersion versionToSwitch) {
-        Education oldResumeEducation = resume.getEducation();
+    private static Education getEducation(Resume resume, ResumeVersion versionToSwitch, boolean makeCopy) {
+        if (!makeCopy) {
 
-        Education versionedEducation = versionToSwitch.getVersionedEducation();
+            Education oldResumeEducation = resume.getEducation();
 
-        versionToSwitch.setVersionedEducation(oldResumeEducation);
-        return versionedEducation;
+            Education versionedEducation = versionToSwitch.getVersionedEducation();
+
+            versionToSwitch.setVersionedEducation(oldResumeEducation);
+            return versionedEducation;
+        }
+        else
+        {
+            return Education.copy(versionToSwitch.getVersionedEducation());
+        }
     }
 
-    private static Header getHeader(Resume resume, ResumeVersion versionToSwitch) {
-        Header oldResumeHeader = resume.getHeader();
+    private static Header getHeader(Resume resume, ResumeVersion versionToSwitch, boolean makeCopy) {
+        if (!makeCopy) {
+            Header oldResumeHeader = resume.getHeader();
 
-        Header versionedHeader = versionToSwitch.getVersionedHeader();
+            Header versionedHeader = versionToSwitch.getVersionedHeader();
 
-        versionToSwitch.setVersionedHeader(oldResumeHeader);
+            versionToSwitch.setVersionedHeader(oldResumeHeader);
 
-        return versionedHeader;
+            return versionedHeader;
+        }
+        else
+        {
+            return Header.copy(versionToSwitch.getVersionedHeader());
+
+        }
     }
 
 
-    private static List<ResumeSection> getSections(Resume resume, ResumeVersion versionToSwitch) {
-        List<ResumeSection> oldResumeSections = resume.getSections();
+    private static List<ResumeSection> getSections(Resume resume, ResumeVersion versionToSwitch,
+                                                   boolean makeCopies, List<Integer> indicesToSelect) {
+        if (!makeCopies) {
+            List<ResumeSection> oldResumeSections = resume.getSections();
 
-        List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
-        versionToSwitch.setVersionedSections(oldResumeSections);
-        return versionedSections;
+            List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
+            versionToSwitch.setVersionedSections(oldResumeSections);
+            return versionedSections;
+        }
+
+        else {
+            List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
+            return indicesToSelect.stream().
+                    map(versionedSections::get).
+                    map(ResumeSection::copy).toList();
+        }
     }
 
     private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){

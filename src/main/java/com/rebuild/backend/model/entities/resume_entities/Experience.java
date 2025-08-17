@@ -72,4 +72,11 @@ public class Experience implements ResumeProperty {
                 "\t\tEnd Date: " + endDate + "\n";
     }
 
+    public static Experience copy(Experience other)
+    {
+        return new Experience(other.companyName, other.technologyList, other.location,
+                other.startDate, other.endDate, other.bullets);
+
+    }
+
 }

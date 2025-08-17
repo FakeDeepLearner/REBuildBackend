@@ -63,4 +63,10 @@ public class Education implements ResumeProperty {
                 "\tLocation: " + location +
                 "\n\n\n";
     }
+
+    public static Education copy(Education other)
+    {
+        return new Education(other.schoolName,
+                other.relevantCoursework, other.location, other.startDate, other.endDate);
+    }
 }

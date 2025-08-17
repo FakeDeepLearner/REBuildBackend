@@ -61,4 +61,9 @@ public class ResumeSectionEntry implements ResumeProperty {
                 "\t\tLocation: " + location + "\n" +
                 "\t\tBullets: " + bullets + "\n";
     }
+
+    public static ResumeSectionEntry copy(ResumeSectionEntry other){
+        return new ResumeSectionEntry(other.title, other.toolsUsed, other.location,
+                other.startDate, other.endDate, other.bullets);
+    }
 }

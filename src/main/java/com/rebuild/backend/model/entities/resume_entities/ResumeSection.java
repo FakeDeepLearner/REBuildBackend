@@ -37,4 +37,9 @@ public class ResumeSection implements ResumeProperty{
         return "\tSECTION:\n" +
                 entries;
     }
+
+    public static ResumeSection copy(ResumeSection other) {
+        return new ResumeSection(other.entries.stream().
+                map(ResumeSectionEntry::copy).toList(), other.title);
+    }
 }
