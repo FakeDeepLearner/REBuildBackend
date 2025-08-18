@@ -25,7 +25,7 @@ public class TwilioInitialization {
 
     @Bean
     public SendGrid sendGrid(){
-        return new SendGrid(System.getenv("SENDGRID_API_KEY"));
+        return new SendGrid(System.getenv("TWILIO_SENDGRID_KEY"));
     }
 
 }
