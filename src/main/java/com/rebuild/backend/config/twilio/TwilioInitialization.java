@@ -1,6 +1,7 @@
 package com.rebuild.backend.config.twilio;
 
 import com.rebuild.backend.config.properties.TwilioCredentials;
+import com.sendgrid.SendGrid;
 import com.twilio.Twilio;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,4 +22,10 @@ public class TwilioInitialization {
     public void twilioInit(){
         Twilio.init(twilioCredentials.accountSid(), twilioCredentials.authToken());
     }
+
+    @Bean
+    public SendGrid sendGrid(){
+        return new SendGrid(System.getenv("SENDGRID_API_KEY"));
+    }
+
 }
