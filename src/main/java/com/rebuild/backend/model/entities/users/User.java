@@ -65,6 +65,10 @@ public class User implements UserDetails {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @NonNull
+    @Column(name = "salt_value", nullable = false)
+    private String saltValue;
+
     @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
     cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
@@ -140,11 +144,13 @@ public class User implements UserDetails {
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
                 String phoneNumber,
-                String forumUsername) {
+                String forumUsername,
+                String saltValue) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.forumUsername = forumUsername;
+        this.saltValue = saltValue;
     }
 
     @Override

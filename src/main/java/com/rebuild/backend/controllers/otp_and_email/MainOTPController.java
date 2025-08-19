@@ -36,8 +36,8 @@ public class MainOTPController {
         sendOneTimePasscode(relevantUser.stringifiedNumber());
     }
 
-    @PostMapping("/verify/new_email}")
-    public ResponseEntity<?> validateOTPForNewEmail(@RequestBody EmailChangeForm emailChangeForm,
+    @PostMapping("/verify/new_email")
+    public ResponseEntity<String> validateOTPForNewEmail(@RequestBody EmailChangeForm emailChangeForm,
                                                  @AuthenticationPrincipal User changingUser){
         VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.stringifiedNumber(),
                 emailChangeForm.enteredOTP());
@@ -46,16 +46,17 @@ public class MainOTPController {
 
         switch (status){
             case "approved" -> {
-                userService.changeEmail(changingUser.getId(), emailChangeForm.newEmail());
+                userService.changeEmail(changingUser, emailChangeForm.newEmail());
                 return ResponseEntity.ok().build();
             }
 
             case "failed" -> {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body("You have entered the wrong code");
             }
 
             case "expired" -> {
 
+                sendOneTimePasscode(changingUser.stringifiedNumber());
                 return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }
@@ -73,13 +74,42 @@ public class MainOTPController {
         return ResponseEntity.internalServerError().build();
     }
 
-    @PostMapping("/verify/new_password}")
-    public void validateOTPForNewPassword(@RequestBody PasswordResetForm passwordResetForm,
+    @PostMapping("/verify/new_password")
+    public ResponseEntity<String> validateOTPForNewPassword(@RequestBody PasswordResetForm passwordResetForm,
                                        @AuthenticationPrincipal User changingUser){
         VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.stringifiedNumber(),
                 passwordResetForm.enteredOTP());
 
-        userService.changePassword(changingUser.getId(), passwordResetForm.newPassword());
+        String status = verificationCheck.getStatus();
+
+        switch (status){
+            case "approved" -> {
+                userService.changePassword(changingUser, passwordResetForm.newPassword());
+                return ResponseEntity.ok().build();
+            }
+
+            case "failed" -> {
+                return ResponseEntity.badRequest().body("You have entered the wrong code");
+            }
+
+            case "expired" -> {
+
+                sendOneTimePasscode(changingUser.stringifiedNumber());
+                return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
+                        "we have sent you a new one.");
+            }
+
+            case "max_attempts_reached" -> {
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                        body("You have reached the maximum number of attempts.");
+            }
+
+        }
+
+
+        //Should never get here
+        return ResponseEntity.internalServerError().build();
     }
 
     

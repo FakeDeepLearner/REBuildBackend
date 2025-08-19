@@ -28,16 +28,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -65,14 +64,13 @@ public class UserService{
 
     @Autowired
     public UserService(UserRepository repository,
-                       @Qualifier("peppered") PasswordEncoder encoder,
                        SessionRegistry sessionRegistry,
                        ResumeRepository resumeRepository,
                        ProxyManager<String> proxyManager,
                        BucketConfiguration bucketConfiguration,
                       FriendRelationshipRepository friendRelationshipRepository) {
         this.repository = repository;
-        this.encoder = encoder;
+        this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
         this.proxyManager = proxyManager;
@@ -99,15 +97,19 @@ public class UserService{
 
 
     @Transactional
-    public void changePassword(UUID userID, String newRawPassword){
-        String newHashedPassword = encoder.encode(newRawPassword);
-        repository.changePassword(userID, newHashedPassword);
+    public void changePassword(User changingUser, String newRawPassword){
+        String userSalt = changingUser.getSaltValue();
+        String pepper = System.getenv("PEPPER_VALUE");
+        String newHashedPassword = encoder.encode(newRawPassword + userSalt + pepper);
+
+        changingUser.setPassword(newHashedPassword);
+        repository.save(changingUser);
     }
 
     @Transactional
-    public void changeEmail(UUID userID, String newEmail){
+    public void changeEmail(User changingUser, String newEmail){
         try {
-            repository.changeEmail(userID, newEmail);
+            changingUser.setEmail(newEmail);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
@@ -129,11 +131,10 @@ public class UserService{
             return false;
         }
 
-        String hashedPassword = encoder.encode(form.password());
-        // If we do find a user with the provided email address, we check
-        // for the hashed password being equal to the one we have
-        // on file
-        return foundUser.getPassword().equals(hashedPassword);
+        String userSalt = foundUser.getSaltValue();
+        String pepper = System.getenv("PEPPER_VALUE");
+
+        return encoder.matches(form.password() + userSalt + pepper, foundUser.getPassword());
 
     }
 
@@ -143,13 +144,20 @@ public class UserService{
         save(deletingUser);
     }
 
-
+    private String generateSaltValue(int length){
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[length];
+        random.nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt);
+    }
 
     @Transactional
     public OptionalValueAndErrorResult<User> createNewUser(SignupForm signupForm){
-        String encodedPassword = encoder.encode(signupForm.password());
+        String generatedSalt = generateSaltValue(16);
+        String pepper = System.getenv("PEPPER_VALUE");
+        String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         User newUser = new User(encodedPassword, signupForm.email(),
-                signupForm.phoneNumber(), signupForm.forumUsername());
+                signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt);
         try {
             User savedUser = save(newUser);
             return OptionalValueAndErrorResult.of(savedUser, CREATED);
