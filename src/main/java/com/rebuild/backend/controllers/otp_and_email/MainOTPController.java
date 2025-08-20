@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/otp")
-//TODO: Handle Verification of the VerificationCheck returned by twilio.
 public class MainOTPController {
 
     private final UserService userService;
@@ -27,13 +26,18 @@ public class MainOTPController {
         this.otpService = otpService;
     }
 
-    private void sendOneTimePasscode(String phoneNumber){
-        otpService.generateSMSOTP(phoneNumber);
+    private void sendOneTimePasscode(String phoneNumber, String channel){
+        otpService.generateSMSOTP(phoneNumber, channel);
     }
 
-    @PostMapping("/send")
-    public void sendOTPCode(@AuthenticationPrincipal User relevantUser){
-        sendOneTimePasscode(relevantUser.stringifiedNumber());
+    @PostMapping("/send_code/sms")
+    public void sendOTPCodeToPhone(@AuthenticationPrincipal User relevantUser){
+        sendOneTimePasscode(relevantUser.stringifiedNumber(), "sms");
+    }
+
+    @PostMapping("/send_code/email")
+    public void sendOTPCodeToEmail(@AuthenticationPrincipal User relevantUser){
+        sendOneTimePasscode(relevantUser.stringifiedNumber(), "email");
     }
 
     @PostMapping("/verify/new_email")
@@ -55,8 +59,9 @@ public class MainOTPController {
             }
 
             case "expired" -> {
-
-                sendOneTimePasscode(changingUser.stringifiedNumber());
+                //We send the notification again via the same channel that the user used to originally obtain it.
+                String oldChannel = verificationCheck.getChannel().toString();
+                sendOneTimePasscode(changingUser.stringifiedNumber(), oldChannel);
                 return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }
@@ -93,8 +98,9 @@ public class MainOTPController {
             }
 
             case "expired" -> {
-
-                sendOneTimePasscode(changingUser.stringifiedNumber());
+                //We send the notification again via the same channel that the user used to originally obtain it.
+                String oldChannel = verificationCheck.getChannel().toString();
+                sendOneTimePasscode(changingUser.stringifiedNumber(), oldChannel);
                 return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }

@@ -33,10 +33,10 @@ public class OTPService {
         recordRepository.save(newVerificationRecord);
     }
 
-    public void generateSMSOTP(String phoneNumber){
+    public void generateSMSOTP(String phoneOrEmail, String channel){
 
         Verification newVerification = Verification.creator(System.getenv("TWILIO_VERIFY_SERVICE_SID"),
-                phoneNumber, "sms").create();
+                phoneOrEmail, channel).create();
 
         recordSentVerification(newVerification);
     }
