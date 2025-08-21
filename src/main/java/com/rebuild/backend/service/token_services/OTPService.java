@@ -33,7 +33,7 @@ public class OTPService {
         recordRepository.save(newVerificationRecord);
     }
 
-    public void generateSMSOTP(String phoneOrEmail, String channel){
+    public void generateOTPCode(String phoneOrEmail, String channel){
 
         Verification newVerification = Verification.creator(System.getenv("TWILIO_VERIFY_SERVICE_SID"),
                 phoneOrEmail, channel).create();
@@ -41,9 +41,9 @@ public class OTPService {
         recordSentVerification(newVerification);
     }
 
-    public VerificationCheck validateEnteredOTP(String phoneNumber, String enteredOTP){
+    public VerificationCheck validateEnteredOTP(String phoneOrEmail, String enteredOTP){
         return VerificationCheck.creator(System.getenv("TWILIO_VERIFY_SERVICE_SID")).
-                setTo(phoneNumber).setCode(enteredOTP).create();
+                setTo(phoneOrEmail).setCode(enteredOTP).create();
     }
 
 }

@@ -15,9 +15,15 @@ public record SignupForm(
                          @NotBlank(message = "Password is required")
                          String password,
 
+                         @PasswordStrengthConstraint
+                         @NotBlank(message = "Repeated password is required")
+                         String repeatedPassword,
+
                          @NotBlank(message = "Forum Username is required")
                          String forumUsername,
 
                          String phoneNumber,
+
+                         String otpChannel,
                          boolean remember) {
 }

@@ -26,8 +26,8 @@ public class MainOTPController {
         this.otpService = otpService;
     }
 
-    private void sendOneTimePasscode(String phoneNumber, String channel){
-        otpService.generateSMSOTP(phoneNumber, channel);
+    private void sendOneTimePasscode(String emailOrPhone, String channel){
+        otpService.generateOTPCode(emailOrPhone, channel);
     }
 
     @PostMapping("/send_code/sms")
@@ -62,7 +62,7 @@ public class MainOTPController {
                 //We send the notification again via the same channel that the user used to originally obtain it.
                 String oldChannel = verificationCheck.getChannel().toString();
                 sendOneTimePasscode(changingUser.stringifiedNumber(), oldChannel);
-                return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
+                return ResponseEntity.status(HttpStatus.GONE).body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }
 
@@ -101,7 +101,7 @@ public class MainOTPController {
                 //We send the notification again via the same channel that the user used to originally obtain it.
                 String oldChannel = verificationCheck.getChannel().toString();
                 sendOneTimePasscode(changingUser.stringifiedNumber(), oldChannel);
-                return ResponseEntity.badRequest().body("The passcode that you requested has expired, " +
+                return ResponseEntity.status(HttpStatus.GONE).body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }
 
