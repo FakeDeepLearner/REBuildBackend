@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.enums.Authority;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
