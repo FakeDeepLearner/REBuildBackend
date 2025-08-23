@@ -1,6 +1,6 @@
 package com.rebuild.backend.utils.password_utils;
 
-import com.rebuild.backend.config.properties.PasswordProperties;
+import com.rebuild.backend.config.other.PasswordProperties;
 import org.passay.MessageResolver;
 import org.passay.RuleResultDetail;
 import org.springframework.beans.factory.annotation.Autowired;

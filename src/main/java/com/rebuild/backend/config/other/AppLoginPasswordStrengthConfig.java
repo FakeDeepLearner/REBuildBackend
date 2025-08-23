@@ -1,6 +1,5 @@
 package com.rebuild.backend.config.other;
 
-import com.rebuild.backend.config.properties.PasswordProperties;
 import com.rebuild.backend.model.constraints.password.rules.IllegalWhitespacesRule;
 import com.rebuild.backend.model.constraints.password.rules.UnlimitedLengthCustomRule;
 import com.rebuild.backend.utils.password_utils.PasswordMessageResolver;
