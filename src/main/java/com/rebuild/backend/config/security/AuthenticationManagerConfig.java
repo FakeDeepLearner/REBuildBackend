@@ -9,6 +9,7 @@ import org.springframework.security.authentication.RememberMeAuthenticationProvi
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -18,10 +19,9 @@ public class AuthenticationManagerConfig {
     public AuthenticationManager authManager(@Qualifier("details") UserDetailsService detailsService,
                                              @Qualifier("password_service")
                                              UserDetailsPasswordService passwordService,
-                                             @Qualifier("peppered") PasswordEncoder passwordEncoder,
                                              RememberMeAuthenticationProvider rememberMeAuthenticationProvider) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(detailsService);
-        provider.setPasswordEncoder(passwordEncoder);
+        provider.setPasswordEncoder(new BCryptPasswordEncoder());
         provider.setUserDetailsPasswordService(passwordService);
         return new ProviderManager(provider, rememberMeAuthenticationProvider);
     }

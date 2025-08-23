@@ -1,6 +1,5 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
@@ -37,13 +36,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)

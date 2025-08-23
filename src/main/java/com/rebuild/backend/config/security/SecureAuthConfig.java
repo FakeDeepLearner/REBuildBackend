@@ -2,7 +2,6 @@ package com.rebuild.backend.config.security;
 
 
 
-import com.rebuild.backend.config.properties.AppUrlBase;
 import com.rebuild.backend.utils.LogoutController;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +23,10 @@ import org.springframework.security.web.authentication.rememberme.RememberMeAuth
 @EnableWebSecurity
 public class SecureAuthConfig {
 
-    private final AppUrlBase urlBase;
-
     private final LogoutController logoutController;
 
     @Autowired
-    public SecureAuthConfig(AppUrlBase urlBase, LogoutController logoutController) {
-        this.urlBase = urlBase;
+    public SecureAuthConfig(LogoutController logoutController) {
         this.logoutController = logoutController;
     }
 
@@ -41,18 +37,18 @@ public class SecureAuthConfig {
                                                          RememberMeAuthenticationFilter rememberMeAuthenticationFilter) throws Exception {
         security.
                 authorizeHttpRequests(config -> config.
-                        requestMatchers(HttpMethod.GET, urlBase.baseUrl() + "/home/**").authenticated().
-                        requestMatchers(HttpMethod.POST, urlBase.baseUrl() + "/home/**").authenticated().
-                        requestMatchers(HttpMethod.PUT, urlBase.baseUrl() + "/home/**").authenticated().
-                        requestMatchers(HttpMethod.DELETE, urlBase.baseUrl() + "/home/**").authenticated().
-                        requestMatchers(HttpMethod.PATCH, urlBase.baseUrl() + "/home/**").authenticated())
+                        requestMatchers(HttpMethod.GET, "/home/**").authenticated().
+                        requestMatchers(HttpMethod.POST, "/home/**").authenticated().
+                        requestMatchers(HttpMethod.PUT,  "/home/**").authenticated().
+                        requestMatchers(HttpMethod.DELETE,  "/home/**").authenticated().
+                        requestMatchers(HttpMethod.PATCH,  "/home/**").authenticated())
                 .formLogin(login -> login.loginPage("/login").
                                 permitAll())
                 .oauth2Login(login -> login.loginPage("/login")
                         .permitAll())
                 .logout(config -> config.
-                    logoutUrl(urlBase.baseUrl() + "/logout").
-                    logoutSuccessUrl(urlBase.baseUrl() + "/login?logout=true").
+                    logoutUrl("/logout").
+                    logoutSuccessUrl("/login?logout=true").
                     addLogoutHandler(logoutController).deleteCookies("JSESSIONID").permitAll())
                 .rememberMe(rememberMe ->
                         rememberMe.rememberMeServices(rememberMeServices))

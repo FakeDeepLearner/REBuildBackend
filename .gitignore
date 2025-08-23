@@ -4,14 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 /src/main/resources/certs/
-/src/main/resources/pepper.txt
-/src/main/resources/outlook_app_password.txt
-/src/main/resources/email.txt
-/src/main/resources/reply_to.txt
-/src/main/resources/twilio/
-src/main/resources/sslkey.jks
-/src/main/resources/google/
-/src/main/resources/encryption/
+/src/main/resources/sslkey.jks
 ### STS ###
 .apt_generated
 .classpath

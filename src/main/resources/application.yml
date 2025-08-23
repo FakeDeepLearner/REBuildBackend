@@ -13,8 +13,6 @@ spring:
     redis:
       host: localhost
       port: 6379
-    rest:
-      content-type: "application/json"
   cache:
     type: redis
   thymeleaf:
@@ -22,6 +20,8 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
+  config:
+    import: optional:file:.env[.properties]
 
 
   jpa:
@@ -39,17 +39,6 @@ spring:
     user:
       name: "eren"
       password: "12Eren89"
-    pepper-value: classpath:/pepper.txt
-    mail-credentials:
-      app-password: classpath:/outlook_app_password.txt
-      address: classpath:/email.txt
-      reply-to: classpath:/reply_to.txt
-    rate-limiting:
-      ip-block-hours: 12
-      user-block-hours: 24
-      # The limits are within one second
-      ip-request-limit: 5
-      user-request-limit: 10
   servlet:
     multipart:
       enabled: true
@@ -107,20 +96,3 @@ password-rules:
   min-special-character: 1
   min-uppercase: 1
   can-contain-spaces: false
-
-app:
-  base-url: https://localhost:8443
-
-google:
-  client-id: classpath:google/client_id.txt
-  client-secret: classpath:google/client_secret.txt
-
-batch:
-  size: 20
-encryption:
-  algorithm: classpath:encryption/algorithm.txt
-  password: classpath:encryption/password.txt
-  salt: classpath:encryption/salt.txt
-
-remember-me:
-  key: classpath:encryption/remember-me-key.txt

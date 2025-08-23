@@ -1,9 +1,7 @@
 package com.rebuild.backend.config.rabbitmq;
 
 import com.google.common.base.Throwables;
-import com.rebuild.backend.config.properties.BatchChunkSize;
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentReplyLikeRequest;
 import com.rebuild.backend.utils.batch.processors.ReplyLikeProcessor;
 import com.rebuild.backend.utils.batch.readers.RestartableReplyLikeReader;
@@ -29,23 +27,20 @@ public class ReplyLikeBatchStepsConfig {
 
     private final RepliesWriter repliesWriter;
 
-    private final BatchChunkSize chunkSize;
-
     @Autowired
     public ReplyLikeBatchStepsConfig(RestartableReplyLikeReader restartableReplyLikeReader,
                                      ReplyLikeProcessor replyLikeProcessor,
-                                     RepliesWriter repliesWriter, BatchChunkSize chunkSize) {
+                                     RepliesWriter repliesWriter) {
         this.restartableReplyLikeReader = restartableReplyLikeReader;
         this.replyLikeProcessor = replyLikeProcessor;
         this.repliesWriter = repliesWriter;
-        this.chunkSize = chunkSize;
     }
 
 
     @Bean
     public Step commentReplyLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("replyLikeStep", jobRepository).
-                <CommentReplyLikeRequest, Like>chunk(chunkSize.size(), transactionManager).
+                <CommentReplyLikeRequest, Like>chunk(20, transactionManager).
                 reader(restartableReplyLikeReader).
                 processor(replyLikeProcessor).
                 writer(repliesWriter).

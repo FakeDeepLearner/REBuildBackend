@@ -1,12 +1,10 @@
 package com.rebuild.backend.config.other;
 
-import com.rebuild.backend.config.properties.RememberMeKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.RememberMeAuthenticationProvider;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.*;
@@ -19,13 +17,6 @@ import javax.sql.DataSource;
 @Configuration
 public class RememberMeConfig {
 
-    private final RememberMeKey key;
-
-    @Autowired
-    public RememberMeConfig(RememberMeKey key) {
-        this.key = key;
-    }
-
     @Bean
     public PersistentTokenRepository persistentTokenRepository(DataSource dataSource) {
         JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
@@ -37,7 +28,8 @@ public class RememberMeConfig {
     @Bean
     public RememberMeServices rememberMeServices(UserDetailsService userDetailsService,
                                                  PersistentTokenRepository persistentTokenRepository) {
-        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(key.key(),
+        PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(
+                System.getenv("REMEMBER_ME_KEY"),
                 userDetailsService, persistentTokenRepository);
         services.setTokenValiditySeconds(86400 * 7);
 
@@ -55,7 +47,7 @@ public class RememberMeConfig {
 
     @Bean
     public RememberMeAuthenticationProvider rememberMeAuthenticationProvider(){
-        return new RememberMeAuthenticationProvider(key.key());
+        return new RememberMeAuthenticationProvider(System.getenv("REMEMBER_ME_KEY"));
 
     }
 
