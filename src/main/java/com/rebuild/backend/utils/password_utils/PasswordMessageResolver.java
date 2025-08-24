@@ -1,9 +1,7 @@
 package com.rebuild.backend.utils.password_utils;
 
-import com.rebuild.backend.config.other.PasswordProperties;
 import org.passay.MessageResolver;
 import org.passay.RuleResultDetail;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -14,24 +12,24 @@ public class PasswordMessageResolver implements MessageResolver {
 
     private final Map<String, String> errorMessages = new HashMap<>();
 
-    @Autowired
-    public PasswordMessageResolver(PasswordProperties properties) {
+    public PasswordMessageResolver() {
         errorMessages.put("TOO_SHORT",
                 String.format("The password must be at least %d characters long",
-                properties.minSize()));
+                PasswordProps.MIN_SIZE.value));
         errorMessages.put("INSUFFICIENT_UPPERCASE",
                 String.format("The password must contain at least %d uppercase letters",
-                properties.minUppercase()));
+                PasswordProps.MIN_UPPERCASE.value));
         errorMessages.put("INSUFFICIENT_LOWERCASE",
                 String.format("The password must contain at least %d lowercase letters",
-                properties.minLowercase()));
+                PasswordProps.MIN_UPPERCASE.value));
         errorMessages.put("INSUFFICIENT_DIGIT",
                 String.format("The password must contain at least %d digits",
-                properties.minDigit()));
+                PasswordProps.MIN_DIGIT.value));
         errorMessages.put("INSUFFICIENT_SPECIAL",
                 String.format("The password must contain at least %d special characters",
-                properties.minSpecialCharacter()));
-        if(properties.canContainSpaces()){
+                PasswordProps.MIN_SPECIAL_CHARACTER.value));
+        //If we can't have any spaces, we add the necessary error message.
+        if(PasswordProps.CAN_HAVE_SPACES.value == 0){
             errorMessages.put("PROHIBITED_WHITESPACE", "The password may not contain spaces");
         }
 

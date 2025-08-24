@@ -3,6 +3,7 @@ package com.rebuild.backend.config.other;
 import com.rebuild.backend.model.constraints.password.rules.IllegalWhitespacesRule;
 import com.rebuild.backend.model.constraints.password.rules.UnlimitedLengthCustomRule;
 import com.rebuild.backend.utils.password_utils.PasswordMessageResolver;
+import com.rebuild.backend.utils.password_utils.PasswordProps;
 import org.passay.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,27 +15,28 @@ import java.util.List;
 @Configuration
 public class AppLoginPasswordStrengthConfig {
 
-    private final PasswordProperties properties;
-
     private final PasswordMessageResolver resolver;
 
+
+
     @Autowired
-    public AppLoginPasswordStrengthConfig(PasswordProperties properties, PasswordMessageResolver resolver) {
-        this.properties = properties;
+    public AppLoginPasswordStrengthConfig(PasswordMessageResolver resolver) {
         this.resolver = resolver;
+
     }
 
     @Bean
     public PasswordValidator appLoginValidator(){
         List<Rule> defaultRules = Arrays.asList(
-                new CharacterRule(EnglishCharacterData.UpperCase, properties.minUppercase()),
-                new CharacterRule(EnglishCharacterData.LowerCase, properties.minLowercase()),
-                new CharacterRule(EnglishCharacterData.Special, properties.minSpecialCharacter()),
-                new CharacterRule(EnglishCharacterData.Digit, properties.minDigit()),
-                new UnlimitedLengthCustomRule(properties.minSize())
+                new CharacterRule(EnglishCharacterData.UpperCase, PasswordProps.MIN_UPPERCASE.value),
+                new CharacterRule(EnglishCharacterData.LowerCase, PasswordProps.MIN_LOWERCASE.value),
+                new CharacterRule(EnglishCharacterData.Special, PasswordProps.MIN_SPECIAL_CHARACTER.value),
+                new CharacterRule(EnglishCharacterData.Digit, PasswordProps.MIN_DIGIT.value),
+                new UnlimitedLengthCustomRule(PasswordProps.MIN_SIZE.value)
         );
 
-        if(!properties.canContainSpaces()){
+        //If we can't have any spaces in the password, we add an illegal whitespace rule.
+        if(PasswordProps.CAN_HAVE_SPACES.value == 0){
             defaultRules.add(new IllegalWhitespacesRule());
         }
 

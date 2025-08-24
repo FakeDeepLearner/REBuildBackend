@@ -85,10 +85,3 @@ server:
     key-store-password: 12Eren89
 
 
-password-rules:
-  min-digit: 1
-  min-lowercase: 1
-  min-size: 8
-  min-special-character: 1
-  min-uppercase: 1
-  can-contain-spaces: false
