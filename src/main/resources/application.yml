@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/resumes
+    url: ${TEST_DATABASE_URL}
     driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: 12Eren89
+    username: ${AURORA_TEST_USERNAME}
+    password: ${AURORA_TEST_PASSWORD}
   session:
     redis:
       flush-mode: on_save
@@ -22,8 +22,6 @@ spring:
     port: 5672
   config:
     import: optional:file:.env[.properties]
-
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -33,8 +31,6 @@ spring:
         format_sql: true
     database: postgresql
     open-in-view: off
-
-
   security:
     user:
       name: "eren"
@@ -44,18 +40,18 @@ spring:
       enabled: true
       max-file-size: 5MB
       max-request-size: 10MB
-
   main:
     banner-mode: off
     allow-bean-definition-overriding: true
-
   docker:
     compose:
       lifecycle-management: start_only
+      start:
+        command: up
   cloud:
     aws:
       s3:
-        region: us-east-2
+        region: us-east-1
   batch:
     job:
       enabled: true
