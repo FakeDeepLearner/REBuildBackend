@@ -4,14 +4,11 @@ import com.rebuild.backend.exceptions.profile_exceptions.NoAttributeInProfileExc
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/profile/prefill")
-@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class PrefillFromProfileController {
     private final ObjectConverter objectConverter;
 
@@ -71,7 +67,7 @@ public class PrefillFromProfileController {
     @GetMapping("/experiences/{index}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<?> prefillExperience(@PathVariable int index,
+    public Resume prefillExperience(@PathVariable int index,
                                                @AuthenticationPrincipal User user){
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
@@ -84,66 +80,27 @@ public class PrefillFromProfileController {
         List<Experience> convertedExperiences = resumeUser.getProfile().getExperienceList().
                 stream().map(objectConverter::convertToExperience).
                 toList();
-        OptionalValueAndErrorResult<Resume> prefillResult =
-        resumeService.setExperiences(associatedResume, convertedExperiences);
-
-        switch(prefillResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(prefillResult.optionalResult().get());
-            }
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
-                        (prefillResult.optionalResult().get(),
-                                prefillResult.optionalError().get()));
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
-                        prefillResult.optionalResult().get(),
-                        prefillResult.optionalError().get()));
-            }
-        }
-        return null;
+        return resumeService.setExperiences(associatedResume, convertedExperiences);
 
     }
 
     @GetMapping("/sections/{index}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<?> prefillSections(@PathVariable int index,
-                                             @AuthenticationPrincipal User user){
+    public Resume prefillSections(@PathVariable int index,
+                                             @AuthenticationPrincipal User user) {
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
-        if(resumeUser.getProfile() == null){
+        if (resumeUser.getProfile() == null) {
             throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
         }
-        if(resumeUser.getProfile().getSections() == null){
+        if (resumeUser.getProfile().getSections() == null) {
             throw new NoAttributeInProfileException("Your profile does not have sections set");
         }
 
         List<ResumeSection> convertedSections = resumeUser.getProfile().getSections().
                 stream().map(objectConverter::convertToSection).
                 toList();
-        OptionalValueAndErrorResult<Resume> prefillResult =
-                resumeService.setSections(associatedResume, convertedSections);
-
-        switch(prefillResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(prefillResult.optionalResult().get());
-            }
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
-                        (prefillResult.optionalResult().get(),
-                                prefillResult.optionalError().get()));
-
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
-                        prefillResult.optionalResult().get(),
-                        prefillResult.optionalError().get()));
-            }
-        }
-        return null;
+        return resumeService.setSections(associatedResume, convertedSections);
     }
 }

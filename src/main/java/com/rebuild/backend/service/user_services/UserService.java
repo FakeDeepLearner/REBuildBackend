@@ -2,7 +2,6 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
 import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
-import com.rebuild.backend.exceptions.not_found_exceptions.WrongPasswordException;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
@@ -11,15 +10,12 @@ import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.FriendRelationshipRepository;
 import com.rebuild.backend.repository.ResumeRepository;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.repository.UserRepository;
-import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,14 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
 @Transactional(readOnly = true)
@@ -152,44 +142,13 @@ public class UserService{
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<User> createNewUser(SignupForm signupForm){
+    public User createNewUser(SignupForm signupForm){
         String generatedSalt = generateSaltValue(16);
         String pepper = System.getenv("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         User newUser = new User(encodedPassword, signupForm.email(),
                 signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt);
-        try {
-            User savedUser = save(newUser);
-            return OptionalValueAndErrorResult.of(savedUser, CREATED);
-        }
-        catch (DataIntegrityViolationException integrityViolationException){
-            Throwable cause = integrityViolationException.getCause();
-            if (cause instanceof ConstraintViolationException violationException){
-                String violatedConstraint = violationException.getConstraintName();
-                switch (violatedConstraint){
-                    case "uk_email" -> {
-                        return  OptionalValueAndErrorResult.of("This email is already associated with anohter account", CONFLICT);
-
-                    }
-                    case "uk_phone_number" -> {
-                        return OptionalValueAndErrorResult.of("This phone number is already associated with another account",
-                                CONFLICT);
-
-                    }
-                    case "uk_forum_username" -> {
-                        return OptionalValueAndErrorResult.of("This forum username is already associated with another account",
-                                CONFLICT);
-                    }
-
-                    //This should never happen
-                    case null -> {}
-
-                    default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
-                }
-            }
-        }
-        //Unknown error, signal http 500
-        return OptionalValueAndErrorResult.empty();
+        return save(newUser);
     }
 
     @Transactional
@@ -231,24 +190,10 @@ public class UserService{
 
 
     @Transactional
-    public OptionalValueAndErrorResult<User> modifyForumUsername(User modifyingUser, String newUsername){
-        String oldUsername = modifyingUser.getForumUsername();
-        try {
-            modifyingUser.setForumUsername(newUsername);
-            User savedUser = save(modifyingUser);
-            return OptionalValueAndErrorResult.of(savedUser, OK);
-        }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            modifyingUser.setForumUsername(oldUsername);
-            if (cause instanceof ConstraintViolationException violationException){
-                if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")){
-                    return OptionalValueAndErrorResult.of(modifyingUser, "This username is taken", CONFLICT);
-                }
-            }
-            //Unknown error, signal 500
-            return OptionalValueAndErrorResult.of(modifyingUser, INTERNAL_SERVER_ERROR);
-        }
+    public User modifyForumUsername(User modifyingUser, String newUsername){
+        modifyingUser.setForumUsername(newUsername);
+        return save(modifyingUser);
+
     }
 
     public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){

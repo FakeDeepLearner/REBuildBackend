@@ -1,22 +1,15 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.ServerError;
-import com.rebuild.backend.exceptions.conflict_exceptions.UniqueProfileExperiencesException;
-import com.rebuild.backend.exceptions.conflict_exceptions.UniqueProfileSectionsException;
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.*;
-import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +17,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/profile/control")
-@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ProfileController {
     private final UserService userService;
 
@@ -41,28 +33,7 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserProfile createFullProfileFor(@Valid @RequestBody FullProfileForm fullProfileForm,
                                         @AuthenticationPrincipal User authenticatedUser) {
-        OptionalValueAndErrorResult<UserProfile> createResult =
-                profileService.createFullProfileFor(fullProfileForm, authenticatedUser);
-        switch (createResult.returnedStatus()){
-            case CREATED -> {
-                return createResult.optionalResult().get();
-            }
-
-            case CONFLICT -> {
-                if(createResult.optionalResult().isPresent()){
-                    throw new UniqueProfileSectionsException(createResult.optionalError().get());
-                }
-                else{
-                    throw new UniqueProfileExperiencesException(createResult.optionalError().get());
-                }
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                throw new ServerError();
-            }
-        }
-
-        return null;
+        return profileService.createFullProfileFor(fullProfileForm, authenticatedUser);
     }
 
     @PatchMapping("/patch/page_size")
@@ -99,63 +70,25 @@ public class ProfileController {
 
     @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> updateProfileExperiences(@Valid @RequestBody List<ProfileExperienceForm>
+    public UserProfile updateProfileExperiences(@Valid @RequestBody List<ProfileExperienceForm>
                                                                   experienceFormList,
                                                    @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
-        OptionalValueAndErrorResult<UserProfile> updateResult =
-                profileService.updateProfileExperiences(profile, experienceFormList);
-        switch (updateResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(updateResult.optionalResult().get());
-            }
-
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).
-                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
-                                updateResult.optionalError().get()));
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().
-                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
-                                updateResult.optionalError().get()));
-            }
-        }
-        return null;
+        return profileService.updateProfileExperiences(profile, experienceFormList);
     }
 
     @PatchMapping("/patch/sections")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> updateProfileSections(@Valid @RequestBody List<ProfileSectionForm> sectionFormList,
+    public UserProfile updateProfileSections(@Valid @RequestBody List<ProfileSectionForm> sectionFormList,
                                              @AuthenticationPrincipal User authenticatedUser){
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
-        OptionalValueAndErrorResult<UserProfile> updateResult =
-                profileService.updateProfileSections(profile, sectionFormList);
-        switch (updateResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(updateResult.optionalResult().get());
-            }
-
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).
-                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
-                                updateResult.optionalError().get()));
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().
-                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
-                                updateResult.optionalError().get()));
-            }
-        }
-        return null;
+        return profileService.updateProfileSections(profile, sectionFormList);
     }
 
     @DeleteMapping("/delete")
@@ -227,28 +160,9 @@ public class ProfileController {
 
     @PutMapping("/update_profile")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> changeEntireProfile(@AuthenticationPrincipal User updatingUser,
+    public UserProfile changeEntireProfile(@AuthenticationPrincipal User updatingUser,
                                            @Valid @RequestBody FullProfileForm profileForm){
-        OptionalValueAndErrorResult<UserProfile> updateResult =
-                profileService.updateEntireProfile(updatingUser.getProfile(), profileForm);
-        switch (updateResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(updateResult.optionalResult().get());
-            }
+        return profileService.updateEntireProfile(updatingUser.getProfile(), profileForm);
 
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).
-                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
-                                updateResult.optionalError().get()));
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().
-                        body(new ResultAndErrorResponse<>(updateResult.optionalResult().get(),
-                                updateResult.optionalError().get()));
-            }
-        }
-
-        return null;
     }
 }

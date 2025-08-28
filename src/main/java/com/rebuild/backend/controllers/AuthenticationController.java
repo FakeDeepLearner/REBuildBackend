@@ -1,9 +1,7 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.conflict_exceptions.AccountCreationException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.token_services.OTPService;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.service.user_services.UserService;
@@ -12,15 +10,15 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.NonNull;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -144,14 +142,32 @@ public class AuthenticationController {
     private ResponseEntity<String> signUpNewUser(SignupForm signupForm, HttpServletRequest request)
     {
         //This block of code deals with creating the user in the database.
-        OptionalValueAndErrorResult<User> creationResult =
-                userService.createNewUser(signupForm);
-        if(creationResult.optionalResult().isEmpty()){
-            if(creationResult.optionalError().isEmpty()){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
-                        body("An unexpected error has occurred");
+        try {
+            User createdUser = userService.createNewUser(signupForm);
+        }
+        catch (DataIntegrityViolationException integrityViolationException){
+            Throwable cause = integrityViolationException.getCause();
+            if (cause instanceof ConstraintViolationException violationException){
+                String violatedConstraint = violationException.getConstraintName();
+                switch (violatedConstraint){
+                    case "uk_email" -> {
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body("This email already exists");
+
+                    }
+                    case "uk_phone_number" -> {
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body("This phone number already exists");
+
+                    }
+                    case "uk_forum_username" -> {
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body("This forum username already exists");
+                    }
+
+                    //This should never happen
+                    case null -> {}
+
+                    default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
+                }
             }
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(creationResult.optionalError().get());
         }
 
         // This block of code is used to automatically authenticate the user that just signed up,

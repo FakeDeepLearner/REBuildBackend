@@ -3,28 +3,18 @@ package com.rebuild.backend.service.user_services;
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.forms.profile_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
 @Transactional(readOnly = true)
@@ -42,27 +32,11 @@ public class ProfileService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<UserProfile> createFullProfileFor(FullProfileForm profileForm,
-                                                                         User creatingUser) {
+    public UserProfile createFullProfileFor(FullProfileForm profileForm, User creatingUser) {
         UserProfile newProfile = getUserProfile(profileForm);
-        try {
-            newProfile.setUser(creatingUser);
-            creatingUser.setProfile(newProfile);
-            UserProfile savedProfile = profileRepository.save(newProfile);
-            return OptionalValueAndErrorResult.of(savedProfile, CREATED);
-        }
-        catch(DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            creatingUser.setProfile(null);
-            newProfile.setUser(null);
-            if (cause instanceof ConstraintViolationException violationException){
-                if (violationException.getConstraintName() == null) {
-                } else {
-                    throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
-                }
-            }
-        }
-        return OptionalValueAndErrorResult.empty();
+        newProfile.setUser(creatingUser);
+        creatingUser.setProfile(newProfile);
+        return profileRepository.save(newProfile);
     }
 
 
@@ -97,7 +71,6 @@ public class ProfileService {
     public UserProfile updateProfileHeader(UserProfile userProfile,
                                            ProfileHeaderForm headerForm) {
         Header oldHeader = userProfile.getHeader();
-
         oldHeader.setFirstName(headerForm.firstName());
         oldHeader.setLastName(headerForm.lastName());
         oldHeader.setEmail(headerForm.email());
@@ -121,9 +94,8 @@ public class ProfileService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<UserProfile> updateProfileExperiences(UserProfile profile,
+    public UserProfile updateProfileExperiences(UserProfile profile,
                                                 List<ProfileExperienceForm> newExperiences){
-        UserProfile copiedProfile = UserProfile.deepCopy(profile);
 
         List<Experience> transformedExperiences = newExperiences.stream().
                 map((rawExperienceData) -> {
@@ -133,33 +105,19 @@ public class ProfileService {
                     rawExperienceData.location(),
                     startDate, endDate, rawExperienceData.bullets());
                 }).toList();
-        try {
-            profile.setExperienceList(transformedExperiences);
-            UserProfile savedProfile = profileRepository.save(profile);
-            return OptionalValueAndErrorResult.of(savedProfile, OK);
-        }
-        catch (RuntimeException e){
-            return OptionalValueAndErrorResult.of(copiedProfile,
-                    "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
-        }
+
+        profile.setExperienceList(transformedExperiences);
+        return profileRepository.save(profile);
 
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<UserProfile> updateProfileSections(UserProfile profile,
+    public UserProfile updateProfileSections(UserProfile profile,
                                              List<ProfileSectionForm> sectionForms){
-        UserProfile copiedProfile = UserProfile.deepCopy(profile);
-
         List<ResumeSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
-        try {
-            profile.setSections(transformedSections);
-            UserProfile savedProfile = profileRepository.save(profile);
-            return OptionalValueAndErrorResult.of(savedProfile, OK);
-        }
-        catch (RuntimeException e){
-            return OptionalValueAndErrorResult.of(copiedProfile, "An unexpected error has occurred",
-                    INTERNAL_SERVER_ERROR);
-        }
+        profile.setSections(transformedSections);
+        return profileRepository.save(profile);
+
 
     }
 
@@ -211,30 +169,20 @@ public class ProfileService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<UserProfile> updateEntireProfile(UserProfile updatingProfile,
-                                                                        FullProfileForm profileForm){
-        UserProfile copiedProfile = UserProfile.deepCopy(updatingProfile);
+    public UserProfile updateEntireProfile(UserProfile updatingProfile, FullProfileForm profileForm){
         YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
-        try {
-            updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
-                    updatingProfile));
-            updatingProfile.setHeader(new Header(profileForm.headerForm().number(),
-                    profileForm.headerForm().firstName(),
-                    profileForm.headerForm().lastName(), profileForm.headerForm().email()));
-            updatingProfile.setEducation(new Education(profileForm.educationForm().schoolName(),
-                    profileForm.educationForm().relevantCoursework(),
-                    profileForm.educationForm().location(), startDate, endDate));
-            updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sectionForms()));
-            UserProfile savedProfile = profileRepository.save(updatingProfile);
-            return OptionalValueAndErrorResult.of(savedProfile, OK);
-        }
-        catch(RuntimeException e){
-            return OptionalValueAndErrorResult.of(copiedProfile,
-                    "An unexpected error has occurred", INTERNAL_SERVER_ERROR);
-        }
 
-
+        updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
+                updatingProfile));
+        updatingProfile.setHeader(new Header(profileForm.headerForm().number(),
+                profileForm.headerForm().firstName(),
+                profileForm.headerForm().lastName(), profileForm.headerForm().email()));
+        updatingProfile.setEducation(new Education(profileForm.educationForm().schoolName(),
+                profileForm.educationForm().relevantCoursework(),
+                profileForm.educationForm().location(), startDate, endDate));
+        updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sectionForms()));
+        return profileRepository.save(updatingProfile);
     }
 
 }
