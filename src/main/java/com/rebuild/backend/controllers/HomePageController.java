@@ -1,20 +1,22 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.ServerError;
-import com.rebuild.backend.exceptions.conflict_exceptions.DuplicateResumeNameException;
-import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
 import java.util.UUID;
+
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -47,27 +49,25 @@ public class HomePageController {
 
     @PostMapping("/api/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public Resume createNewResume(@RequestBody String name,
+    public ResponseEntity<?> createNewResume(@RequestBody String name,
                                           @AuthenticationPrincipal User authenticatedUser) {
-        OptionalValueAndErrorResult<Resume> createResult =
-                resumeService.createNewResumeFor(name, authenticatedUser);
-        switch (createResult.returnedStatus()){
-            case CREATED -> {
-                return createResult.optionalResult().get();
-            }
+        try{
+            Resume createdResume = resumeService.createNewResumeFor(name, authenticatedUser);
 
-            case PAYMENT_REQUIRED -> {
-                throw new MaxResumesReachedException(createResult.optionalError().get());
-            }
-
-            case CONFLICT -> {
-                throw new DuplicateResumeNameException(createResult.optionalError().get());
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                throw new ServerError();
+            return ResponseEntity.status(CREATED).body(createdResume);
+        }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException &&
+                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")) {
+                return ResponseEntity.status(CONFLICT).body("You already have a resume with this name");
             }
         }
+        catch (RuntimeException e) {
+            return ResponseEntity.status(PAYMENT_REQUIRED).body(e.getMessage());
+        }
+
+        //Should never get here.
         return null;
     }
 

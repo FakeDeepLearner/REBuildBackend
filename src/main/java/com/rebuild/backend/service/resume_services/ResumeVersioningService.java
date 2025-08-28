@@ -7,19 +7,14 @@ import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.repository.ResumeVersionRepository;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import jakarta.persistence.EntityManager;
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-
-import static org.springframework.http.HttpStatus.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -63,47 +58,18 @@ public class ResumeVersioningService {
     }
 
     @Transactional
-    public OptionalValueAndErrorResult<Resume> switchToAnotherVersion(User user,
-                                                                      int resume_index, int version_index,
-                                                                      VersionSwitchPreferencesForm versionSwitchPreferencesForm){
+    public Resume switchToAnotherVersion(User user,
+                                         int resume_index, int version_index,
+                                         VersionSwitchPreferencesForm versionSwitchPreferencesForm){
         Resume switchingResume = getUtility.findByUserResumeIndex(user, resume_index);
-        Header oldHeader = switchingResume.getHeader();
-        Education oldEducation = switchingResume.getEducation();
-        List<Experience> oldExperiences = switchingResume.getExperiences();
-        List<ResumeSection> oldSections = switchingResume.getSections();
 
         ResumeVersion versionToSwitch = findVersionsByIdAndLimit(switchingResume.getId(), version_index).getLast();
         assert versionToSwitch != null;
-        try {
-            handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
-            Resume savedResume = resumeRepository.save(switchingResume);
-            versionRepository.save(versionToSwitch);
-            return OptionalValueAndErrorResult.of(savedResume, OK);
-        }
-        catch(DataIntegrityViolationException e) {
-            // If we see an error, restore the old versions in memory. The database will take care of
-            // rolling back the transaction
-            Throwable cause = e.getCause();
-            switchingResume.setExperiences(oldExperiences);
-            switchingResume.setSections(oldSections);
-            switchingResume.setEducation(oldEducation);
-            switchingResume.setHeader(oldHeader);
-            if (cause instanceof ConstraintViolationException violationException) {
-                switch (violationException.getConstraintName()) {
-                    case "uk_resume_section":
-                        return OptionalValueAndErrorResult.of(switchingResume,
-                                "The new sections can't have more than 1 section with the same title", CONFLICT);
-                    case "uk_resume_company":
-                        return  OptionalValueAndErrorResult.of(switchingResume,
-                                "The new experiences can't have more than 1 experience with the same company", CONFLICT);
-                    case null:
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + violationException.getConstraintName());
-                }
-            }
-        }
-        return OptionalValueAndErrorResult.of(switchingResume, "An unexpected error occurred", INTERNAL_SERVER_ERROR);
+
+        handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
+        versionRepository.save(versionToSwitch);
+        return resumeRepository.save(switchingResume);
+
     }
 
     private void handleVersionSwitch(Resume resume, ResumeVersion versionToSwitch,

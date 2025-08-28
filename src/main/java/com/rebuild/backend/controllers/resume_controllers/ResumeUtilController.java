@@ -2,10 +2,10 @@ package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.responses.ResultAndErrorResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,7 +14,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Objects;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -32,26 +35,21 @@ public class ResumeUtilController {
     public ResponseEntity<?> changeResumeName(@RequestBody String newName,
                                               @PathVariable int index,
                                               @AuthenticationPrincipal User user) {
+        try {
+            Resume changedResume = resumeService.changeName(user, index, newName);
+            return ResponseEntity.ok(changedResume);
+        }
 
-        OptionalValueAndErrorResult<Resume> changingResult =
-                resumeService.changeName(user, index, newName);
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
 
-        switch(changingResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(changingResult.optionalResult().get());
-            }
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
-                        (changingResult.optionalResult().get(),
-                                changingResult.optionalError().get()));
-            }
-
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
-                        changingResult.optionalResult().get(),
-                        changingResult.optionalError().get()));
+            if(cause instanceof ConstraintViolationException violationException &&
+                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
+                return ResponseEntity.status(CONFLICT).body("You already have a resume with this name");
             }
         }
+
+
         return null;
     }
 
@@ -59,25 +57,24 @@ public class ResumeUtilController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> copyResume(@RequestBody String newName,
                                         @AuthenticationPrincipal User user, @PathVariable int index) {
-        OptionalValueAndErrorResult<Resume> changingResult =
-                resumeService.copyResume(user, index, newName);
+        try {
+            Resume copiedResume = resumeService.copyResume(user, index, newName);
+            return ResponseEntity.ok(copiedResume);
+        }
 
-        switch(changingResult.returnedStatus()){
-            case OK -> {
-                return ResponseEntity.ok(changingResult.optionalResult().get());
-            }
-            case CONFLICT -> {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultAndErrorResponse<>
-                        (changingResult.optionalResult().get(),
-                                changingResult.optionalError().get()));
-            }
+        catch (DataIntegrityViolationException e){
+            Throwable cause = e.getCause();
 
-            case INTERNAL_SERVER_ERROR -> {
-                return ResponseEntity.internalServerError().body(new ResultAndErrorResponse<>(
-                        changingResult.optionalResult().get(),
-                        changingResult.optionalError().get()));
+            if(cause instanceof ConstraintViolationException violationException &&
+                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
+                return ResponseEntity.status(CONFLICT).body("You already have a resume with this name");
             }
         }
+
+        catch (RuntimeException e){
+            return ResponseEntity.status(BAD_REQUEST).body(e.getMessage());
+        }
+
         return null;
     }
 

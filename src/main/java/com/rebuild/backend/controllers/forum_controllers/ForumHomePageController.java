@@ -1,24 +1,24 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.exceptions.conflict_exceptions.InvalidForumCredentialsException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.user_services.UserService;
-import com.rebuild.backend.utils.OptionalValueAndErrorResult;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
+
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 @RequestMapping("/api/forum")
@@ -57,18 +57,19 @@ public class ForumHomePageController {
     @PostMapping("/change_username")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeUsername(@AuthenticationPrincipal User authenticatedUser,
-                                            @RequestBody String newUsername){
-        OptionalValueAndErrorResult<User> changingResult =
-                userService.modifyForumUsername(authenticatedUser, newUsername);
-        if(changingResult.optionalResult().isPresent()) {
-            return ResponseEntity.ok(changingResult.optionalResult().get());
-        }
-        if(changingResult.optionalError().isEmpty()){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
-        }
-        else{
-            throw new InvalidForumCredentialsException(changingResult.optionalError().get());
-        }
+                                            @RequestBody String newUsername) {
+        try {
+            User changedUser = userService.modifyForumUsername(authenticatedUser, newUsername);
+            return ResponseEntity.ok(changedUser);
+        } catch (DataIntegrityViolationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException violationException) {
+                if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")) {
+                    return ResponseEntity.status(CONFLICT).body("This username is taken");
+                }
+            }
 
+        }
+        return null;
     }
 }

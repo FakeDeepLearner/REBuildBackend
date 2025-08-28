@@ -45,7 +45,7 @@ public class CacheEvictionAspect {
         if(result instanceof Resume resume) {
             evictFromCache(resume.getId());
         }
-
+        /*
         if(result instanceof OptionalValueAndErrorResult valueAndErrorResult
                 && valueAndErrorResult.returnedStatus() == HttpStatus.OK) {
             Object[] args = joinPoint.getArgs();
@@ -61,5 +61,7 @@ public class CacheEvictionAspect {
                 }
             }
         }
+        */
+
     }
 }
