@@ -47,7 +47,7 @@ public class ResumeVersion {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
-    private List<ResumeSection> versionedSections;
+    private List<Section> versionedSections;
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate

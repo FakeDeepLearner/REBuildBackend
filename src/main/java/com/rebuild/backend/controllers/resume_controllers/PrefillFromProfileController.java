@@ -98,7 +98,7 @@ public class PrefillFromProfileController {
             throw new NoAttributeInProfileException("Your profile does not have sections set");
         }
 
-        List<ResumeSection> convertedSections = resumeUser.getProfile().getSections().
+        List<Section> convertedSections = resumeUser.getProfile().getSections().
                 stream().map(objectConverter::convertToSection).
                 toList();
         return resumeService.setSections(associatedResume, convertedSections);

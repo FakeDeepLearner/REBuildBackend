@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.repository.*;
 
+import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
@@ -26,42 +27,23 @@ public class ResumeService {
 
     private final ObjectConverter objectConverter;
 
+    private final SubpartsModificationUtility modificationUtility;
+
     private final ResumeGetUtility getUtility;
-
-    private final HeaderRepository headerRepository;
-
-    private final ExperienceRepository experienceRepository;
-
-    private final SectionRepository sectionRepository;
-
-    private final EducationRepository educationRepository;
 
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
-                         ObjectConverter objectConverter,
-                         ResumeGetUtility getUtility,
-                         HeaderRepository headerRepository,
-                         ExperienceRepository experienceRepository,
-                         SectionRepository sectionRepository, EducationRepository educationRepository) {
+                         ObjectConverter objectConverter, SubpartsModificationUtility modificationUtility,
+                         ResumeGetUtility getUtility) {
         this.resumeRepository = resumeRepository;
         this.objectConverter = objectConverter;
+        this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
-        this.headerRepository = headerRepository;
-        this.experienceRepository = experienceRepository;
-        this.sectionRepository = sectionRepository;
-        this.educationRepository = educationRepository;
     }
 
     @Transactional
     public Header changeHeaderInfo(HeaderForm headerForm, UUID headerID){
-        // undoAdder.addUndoResumeState(resID, resume);
-        Header header = headerRepository.findById(headerID).orElse(null);
-        assert header != null;
-        header.setEmail(headerForm.email());
-        header.setNumber(headerForm.number());
-        header.setFirstName(headerForm.firstName());
-        header.setLastName(headerForm.lastName());
-        return headerRepository.save(header);
+        return modificationUtility.modifyHeader(headerForm, headerID);
     }
 
     @Transactional
@@ -83,18 +65,7 @@ public class ResumeService {
 
     @Transactional
     public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID){
-        Experience changingExperience = experienceRepository.findById(experienceID).orElse(null);
-        assert changingExperience != null;
-
-        YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
-        YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
-        changingExperience.setLocation(experienceForm.location());
-        changingExperience.setEndDate(end);
-        changingExperience.setStartDate(start);
-        changingExperience.setBullets(experienceForm.bullets());
-        changingExperience.setTechnologyList(experienceForm.technologies());
-        changingExperience.setCompanyName(experienceForm.companyName());
-        return experienceRepository.save(changingExperience);
+        return modificationUtility.modifyExperience(experienceForm, experienceID);
 
 
     }
@@ -102,14 +73,7 @@ public class ResumeService {
     @Transactional
     public Education changeEducationInfo(EducationForm educationForm,
                                       UUID educationID){
-        Education education = educationRepository.findById(educationID).orElse(null);
-        assert education != null;
-        education.setRelevantCoursework(educationForm.relevantCoursework());
-        education.setSchoolName(educationForm.schoolName());
-        education.setLocation(educationForm.location());
-        education.setStartDate(YearMonthStringOperations.getYearMonth(educationForm.startDate()));
-        education.setEndDate(YearMonthStringOperations.getYearMonth(educationForm.endDate()));
-        return educationRepository.save(education);
+       return modificationUtility.modifyEducation(educationForm, educationID);
     }
 
     @Transactional
@@ -162,9 +126,9 @@ public class ResumeService {
     public Resume createNewSection(User user, int resumeIndex,
                                    SectionForm sectionForm, Integer sectionsIndex){
         Resume resume = getUtility.findByUserResumeIndex(user, resumeIndex);
-        List<ResumeSectionEntry> transformedEntries = objectConverter.
+        List<SectionEntry> transformedEntries = objectConverter.
                 extractResumeSectionEntries(sectionForm.entryForms());
-        ResumeSection newSection = new ResumeSection(transformedEntries, sectionForm.title());
+        Section newSection = new Section(transformedEntries, sectionForm.title());
 
         if (sectionsIndex == null){
             resume.addSection(newSection);
@@ -227,7 +191,7 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume setSections(Resume resume, List<ResumeSection> newSections){
+    public Resume setSections(Resume resume, List<Section> newSections){
         resume.setSections(newSections);
         return resumeRepository.save(resume);
     }

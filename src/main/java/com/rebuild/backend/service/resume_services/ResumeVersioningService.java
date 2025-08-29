@@ -97,7 +97,7 @@ public class ResumeVersioningService {
         }
 
         if(versionToSwitch.getVersionedSections() != null && !preferencesForm.sectionIndices().isEmpty()){
-            List<ResumeSection> newSections = getSections(resume, versionToSwitch,
+            List<Section> newSections = getSections(resume, versionToSwitch,
                     preferencesForm.makeSectionCopies(), preferencesForm.sectionIndices());
             resume.setSections(newSections);
         }
@@ -156,21 +156,21 @@ public class ResumeVersioningService {
     }
 
 
-    private static List<ResumeSection> getSections(Resume resume, ResumeVersion versionToSwitch,
-                                                   boolean makeCopies, List<Integer> indicesToSelect) {
+    private static List<Section> getSections(Resume resume, ResumeVersion versionToSwitch,
+                                             boolean makeCopies, List<Integer> indicesToSelect) {
         if (!makeCopies) {
-            List<ResumeSection> oldResumeSections = resume.getSections();
+            List<Section> oldSections = resume.getSections();
 
-            List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
-            versionToSwitch.setVersionedSections(oldResumeSections);
+            List<Section> versionedSections = versionToSwitch.getVersionedSections();
+            versionToSwitch.setVersionedSections(oldSections);
             return versionedSections;
         }
 
         else {
-            List<ResumeSection> versionedSections = versionToSwitch.getVersionedSections();
+            List<Section> versionedSections = versionToSwitch.getVersionedSections();
             return indicesToSelect.stream().
                     map(versionedSections::get).
-                    map(ResumeSection::copy).toList();
+                    map(Section::copy).toList();
         }
     }
 
@@ -184,7 +184,7 @@ public class ResumeVersioningService {
         List<Experience> experiences = objectConverter.createVersionedExperiences(
                 resume.getExperiences(), inclusionForm.includeExperience(), newVersion
         );
-        List<ResumeSection> sections = objectConverter.createVersionedSections(
+        List<Section> sections = objectConverter.createVersionedSections(
                 resume.getSections(), inclusionForm.includeSections(), newVersion
         );
         String versionedName = inclusionForm.includeName() ? resume.getName() : null;

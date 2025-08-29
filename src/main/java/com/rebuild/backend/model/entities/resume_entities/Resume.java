@@ -66,7 +66,7 @@ public class Resume implements Serializable {
             cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "insertion_position")
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
-    private List<ResumeSection> sections;
+    private List<Section> sections;
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -105,7 +105,7 @@ public class Resume implements Serializable {
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
-        List<ResumeSection> originalSections = originalResume.getSections();
+        List<Section> originalSections = originalResume.getSections();
         this.name = newName;
         this.user = originalResume.getUser();
         // We are creating new objects here,
@@ -123,7 +123,7 @@ public class Resume implements Serializable {
                         experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
         this.sections = originalSections.stream().map(
-                section -> new ResumeSection(section.getEntries(),
+                section -> new Section(section.getEntries(),
                         section.getTitle())).toList();
         //Necessary in order for cascading to work properly
         this.getUser().getResumes().add(this);
@@ -142,14 +142,14 @@ public class Resume implements Serializable {
         experiences.add(index, experience);
     }
 
-    public void addSection(ResumeSection section){
+    public void addSection(Section section){
         if (sections == null){
             sections = new ArrayList<>();
         }
         sections.add(section);
     }
 
-    public void addSection(int index, ResumeSection section){
+    public void addSection(int index, Section section){
         if (sections == null){
             sections = new ArrayList<>();
         }

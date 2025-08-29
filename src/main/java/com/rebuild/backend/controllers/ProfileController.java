@@ -1,9 +1,15 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
+import com.rebuild.backend.model.entities.resume_entities.Education;
+import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.*;
+import com.rebuild.backend.model.forms.resume_forms.EducationForm;
+import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
+import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
+import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
 import jakarta.validation.Valid;
@@ -46,31 +52,30 @@ public class ProfileController {
         return profileService.changePageSize(authenticatedUser.getProfile(), newPageSize);
     }
 
-    @PatchMapping("/patch/header")
+    @PatchMapping("/patch/header/{header_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileHeader(@Valid @RequestBody ProfileHeaderForm headerForm,
-                                           @AuthenticationPrincipal User authenticatedUser) {
+    public Header updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
+                                      @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID header_id) {
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
-        UserProfile profile = authenticatedUser.getProfile();
-        return profileService.updateProfileHeader(profile, headerForm);
+        return profileService.updateProfileHeader(headerForm, header_id);
     }
 
-    @PatchMapping("/patch/education")
+    @PatchMapping("/patch/education/{education_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileEducation(@Valid @RequestBody ProfileEducationForm educationForm,
-                                           @AuthenticationPrincipal User authenticatedUser) {
+    public Education updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
+                                            @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID education_id) {
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
-        return profileService.updateProfileEducation(profile, educationForm);
+        return profileService.updateProfileEducation(educationForm, education_id);
     }
 
     @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileExperiences(@Valid @RequestBody List<ProfileExperienceForm>
+    public UserProfile updateProfileExperiences(@Valid @RequestBody List<ExperienceForm>
                                                                   experienceFormList,
                                                    @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
@@ -82,7 +87,7 @@ public class ProfileController {
 
     @PatchMapping("/patch/sections")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileSections(@Valid @RequestBody List<ProfileSectionForm> sectionFormList,
+    public UserProfile updateProfileSections(@Valid @RequestBody List<SectionForm> sectionFormList,
                                              @AuthenticationPrincipal User authenticatedUser){
         if(authenticatedUser.getProfile() == null){
             throw new NoProfileException("No profile found for your account");

@@ -3,13 +3,11 @@ package com.rebuild.backend.model.entities.profile_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static jakarta.persistence.CascadeType.*;
 
@@ -43,7 +41,7 @@ public class UserProfile {
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
-    private List<ResumeSection> sections;
+    private List<Section> sections;
 
     @Column(name = "page_size")
     private int forumPageSize = 20;
@@ -60,7 +58,7 @@ public class UserProfile {
     public UserProfile(Header profileHeader,
                        Education newEducation,
                        List<Experience> experiences,
-                       List<ResumeSection> sections) {
+                       List<Section> sections) {
         this.header = profileHeader;
         this.education = newEducation;
         this.experienceList = experiences;
@@ -85,15 +83,15 @@ public class UserProfile {
                         oldExperience.getEndDate(), oldExperience.getBullets())
         ).toList();
 
-        List<ResumeSection> newSections = originalProfile.getSections().stream().map(
+        List<Section> newSections = originalProfile.getSections().stream().map(
                 oldSection -> {
-                    List<ResumeSectionEntry> newEntries = oldSection.getEntries().stream().map(
-                            oldEntry -> new ResumeSectionEntry(oldEntry.getTitle(),
+                    List<SectionEntry> newEntries = oldSection.getEntries().stream().map(
+                            oldEntry -> new SectionEntry(oldEntry.getTitle(),
                                     oldEntry.getToolsUsed(), oldEntry.getLocation(), oldEntry.getStartDate(),
                                     oldEntry.getEndDate(), oldEntry.getBullets())
                     ).toList();
 
-                    return new ResumeSection(newEntries, oldSection.getTitle());
+                    return new Section(newEntries, oldSection.getTitle());
                 }
         ).toList();
 
