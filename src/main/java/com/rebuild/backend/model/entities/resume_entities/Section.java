@@ -1,11 +1,9 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-public class ResumeSection implements ResumeProperty{
+public class Section implements ResumeProperty{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -27,7 +25,7 @@ public class ResumeSection implements ResumeProperty{
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     @NonNull
-    private List<ResumeSectionEntry> entries;
+    private List<SectionEntry> entries;
 
     @NonNull
     private String title;
@@ -38,8 +36,8 @@ public class ResumeSection implements ResumeProperty{
                 entries;
     }
 
-    public static ResumeSection copy(ResumeSection other) {
-        return new ResumeSection(other.entries.stream().
-                map(ResumeSectionEntry::copy).toList(), other.title);
+    public static Section copy(Section other) {
+        return new Section(other.entries.stream().
+                map(SectionEntry::copy).toList(), other.title);
     }
 }

@@ -4,7 +4,12 @@ import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.profile_forms.*;
+import com.rebuild.backend.model.forms.resume_forms.EducationForm;
+import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
+import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
+import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import com.rebuild.backend.repository.ProfileRepository;
+import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +27,15 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
+    private final SubpartsModificationUtility modificationUtility;
+
     private final ObjectConverter objectConverter;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository,
+    public ProfileService(ProfileRepository profileRepository, SubpartsModificationUtility modificationUtility,
                           ObjectConverter objectConverter) {
         this.profileRepository = profileRepository;
+        this.modificationUtility = modificationUtility;
         this.objectConverter = objectConverter;
     }
 
@@ -50,7 +58,7 @@ public class ProfileService {
         Education newEducation = new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
-        List<ResumeSection> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
+        List<Section> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
 
         UserProfile newProfile =  new UserProfile(profileHeader, newEducation,
                 new ArrayList<>(),
@@ -68,34 +76,18 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile updateProfileHeader(UserProfile userProfile,
-                                           ProfileHeaderForm headerForm) {
-        Header oldHeader = userProfile.getHeader();
-        oldHeader.setFirstName(headerForm.firstName());
-        oldHeader.setLastName(headerForm.lastName());
-        oldHeader.setEmail(headerForm.email());
-        oldHeader.setNumber(headerForm.number());
-        return profileRepository.save(userProfile);
+    public Header updateProfileHeader(HeaderForm headerForm, UUID header_id) {
+        return modificationUtility.modifyHeader(headerForm, header_id);
     }
 
     @Transactional
-    public UserProfile updateProfileEducation(UserProfile userProfile,
-                                              ProfileEducationForm educationForm) {
-        Education oldEducation = userProfile.getEducation();
-
-        YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
-        YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
-        oldEducation.setSchoolName(educationForm.schoolName());
-        oldEducation.setRelevantCoursework(educationForm.relevantCoursework());
-        oldEducation.setLocation(educationForm.location());
-        oldEducation.setStartDate(startDate);
-        oldEducation.setEndDate(endDate);
-        return profileRepository.save(userProfile);
+    public Education updateProfileEducation(EducationForm educationForm, UUID education_id) {
+        return modificationUtility.modifyEducation(educationForm, education_id);
     }
 
     @Transactional
     public UserProfile updateProfileExperiences(UserProfile profile,
-                                                List<ProfileExperienceForm> newExperiences){
+                                                List<ExperienceForm> newExperiences){
 
         List<Experience> transformedExperiences = newExperiences.stream().
                 map((rawExperienceData) -> {
@@ -113,8 +105,8 @@ public class ProfileService {
 
     @Transactional
     public UserProfile updateProfileSections(UserProfile profile,
-                                             List<ProfileSectionForm> sectionForms){
-        List<ResumeSection> transformedSections = objectConverter.extractProfileSections(sectionForms);
+                                             List<SectionForm> sectionForms){
+        List<Section> transformedSections = objectConverter.extractProfileSections(sectionForms);
         profile.setSections(transformedSections);
         return profileRepository.save(profile);
 

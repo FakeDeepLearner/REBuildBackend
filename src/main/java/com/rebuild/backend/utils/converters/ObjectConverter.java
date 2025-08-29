@@ -3,11 +3,8 @@ package com.rebuild.backend.utils.converters;
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.versioning_entities.*;
-import com.rebuild.backend.model.forms.profile_forms.ProfileExperienceForm;
-import com.rebuild.backend.model.forms.profile_forms.ProfileSectionEntryForm;
-import com.rebuild.backend.model.forms.profile_forms.ProfileSectionForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
-import com.rebuild.backend.model.forms.resume_forms.ResumeSectionEntryForm;
+import com.rebuild.backend.model.forms.resume_forms.SectionEntryForm;
 import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.springframework.stereotype.Component;
@@ -38,16 +35,16 @@ public class ObjectConverter {
                 profileEducation.getStartDate(), profileEducation.getEndDate());
     }
 
-    public ResumeSection convertToSection(ResumeSection profileSection){
-        List<ResumeSectionEntry> entries = profileSection.getEntries();
+    public Section convertToSection(Section profileSection){
+        List<SectionEntry> entries = profileSection.getEntries();
 
-        List<ResumeSectionEntry> convertedEntries = entries.stream()
+        List<SectionEntry> convertedEntries = entries.stream()
                 .map(this::convertToResumeSectionEntry).toList();
-        return new ResumeSection(convertedEntries, profileSection.getTitle());
+        return new Section(convertedEntries, profileSection.getTitle());
     }
 
-    private ResumeSectionEntry convertToResumeSectionEntry(ResumeSectionEntry profileSectionEntry){
-        return new ResumeSectionEntry(profileSectionEntry.getTitle(),
+    private SectionEntry convertToResumeSectionEntry(SectionEntry profileSectionEntry){
+        return new SectionEntry(profileSectionEntry.getTitle(),
                 profileSectionEntry.getToolsUsed(), profileSectionEntry.getLocation(),
                 profileSectionEntry.getStartDate(), profileSectionEntry.getEndDate(),
                 profileSectionEntry.getBullets());
@@ -61,39 +58,39 @@ public class ObjectConverter {
         return inputList.stream().map(input -> converter.apply(input, root)).collect(Collectors.toList());
     }
 
-    public List<ResumeSection> extractProfileSections(List<ProfileSectionForm> profileSectionForms){
+    public List<Section> extractProfileSections(List<SectionForm> profileSectionForms){
 
         return convertToOutputList(profileSectionForms, rawForm -> {
-            List<ResumeSectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms());
-            return new ResumeSection(sectionEntries, rawForm.title());
+            List<SectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms());
+            return new Section(sectionEntries, rawForm.title());
         });
     }
 
-    private List<ResumeSectionEntry> extractProfileSectionEntries(List<ProfileSectionEntryForm>
+    private List<SectionEntry> extractProfileSectionEntries(List<SectionEntryForm>
                                                                    entryForms){
 
         return convertToOutputList(entryForms, (rawForm) -> {
-            return new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
+            return new SectionEntry(rawForm.title(), rawForm.toolsUsed(),
                     rawForm.location(), YearMonthStringOperations.getYearMonth(rawForm.startTime()),
                     YearMonthStringOperations.getYearMonth(rawForm.endTime()),
                     rawForm.bullets());
         });
     }
 
-    public List<ResumeSection> extractResumeSections(List<SectionForm> sectionForms, Resume associatedResume){
+    public List<Section> extractResumeSections(List<SectionForm> sectionForms, Resume associatedResume){
 
         return convertToOutputList(sectionForms, rawForm -> {
-            List<ResumeSectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms());
-            return new ResumeSection(sectionEntries, rawForm.title());
+            List<SectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms());
+            return new Section(sectionEntries, rawForm.title());
         });
     }
 
-    public List<ResumeSectionEntry> extractResumeSectionEntries(List<ResumeSectionEntryForm>
+    public List<SectionEntry> extractResumeSectionEntries(List<SectionEntryForm>
                                                                  entryForms){
 
         return convertToOutputList(entryForms, (rawForm ) -> {
-            ResumeSectionEntry newEntry =
-                    new ResumeSectionEntry(rawForm.title(), rawForm.toolsUsed(),
+            SectionEntry newEntry =
+                    new SectionEntry(rawForm.title(), rawForm.toolsUsed(),
                             rawForm.location(),
                             YearMonthStringOperations.getYearMonth(rawForm.startTime()),
                             YearMonthStringOperations.getYearMonth(rawForm.endTime()),
@@ -103,7 +100,7 @@ public class ObjectConverter {
 
     }
 
-    public List<Experience> extractProfileExperiences(List<ProfileExperienceForm> profileExperienceForms,
+    public List<Experience> extractProfileExperiences(List<ExperienceForm> profileExperienceForms,
                                                              UserProfile profile){
         return convertToOutputList(profileExperienceForms, rawForm ->
                 new Experience(rawForm.companyName(),
@@ -162,9 +159,9 @@ public class ObjectConverter {
         ).toList();
     }
 
-    private List<ResumeSectionEntry> createVersionedEntries(List<ResumeSectionEntry> rawEntries){
+    private List<SectionEntry> createVersionedEntries(List<SectionEntry> rawEntries){
         return rawEntries.stream().map(
-                rawEntry -> new ResumeSectionEntry(
+                rawEntry -> new SectionEntry(
                         rawEntry.getTitle(), rawEntry.getToolsUsed(),
                         rawEntry.getLocation(),
                         rawEntry.getStartDate(),
@@ -174,16 +171,16 @@ public class ObjectConverter {
         ).toList();
     }
 
-    public List<ResumeSection> createVersionedSections(List<ResumeSection> originalSections,
-                                                          boolean shouldBeNull,
-                                                          ResumeVersion resumeVersion){
+    public List<Section> createVersionedSections(List<Section> originalSections,
+                                                 boolean shouldBeNull,
+                                                 ResumeVersion resumeVersion){
         if(shouldBeNull){
             return null;
         }
 
         return originalSections.stream().map(
                 rawSection -> {
-                    return new ResumeSection(createVersionedEntries(rawSection.getEntries()), rawSection.getTitle());
+                    return new Section(createVersionedEntries(rawSection.getEntries()), rawSection.getTitle());
                 }
         ).toList();
     }

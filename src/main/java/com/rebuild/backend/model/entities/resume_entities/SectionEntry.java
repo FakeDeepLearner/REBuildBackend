@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class ResumeSectionEntry implements ResumeProperty {
+public class SectionEntry implements ResumeProperty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -62,8 +62,8 @@ public class ResumeSectionEntry implements ResumeProperty {
                 "\t\tBullets: " + bullets + "\n";
     }
 
-    public static ResumeSectionEntry copy(ResumeSectionEntry other){
-        return new ResumeSectionEntry(other.title, other.toolsUsed, other.location,
+    public static SectionEntry copy(SectionEntry other){
+        return new SectionEntry(other.title, other.toolsUsed, other.location,
                 other.startDate, other.endDate, other.bullets);
     }
 }
