@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.exceptions.forum_exceptions.CommentForbiddenException;
 import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
@@ -59,7 +58,7 @@ public class CommentController {
     public void deleteComment(@PathVariable UUID comment_id,
                               @AuthenticationPrincipal User deletingUser){
         if(!forumPostAndCommentService.commentBelongsToUser(comment_id, deletingUser.getId())){
-            throw new CommentForbiddenException("That comment doesn't belong to you, you can't delete it");
+            throw new RuntimeException("That comment doesn't belong to you, you can't delete it");
         }
         forumPostAndCommentService.deleteComment(comment_id);
     }

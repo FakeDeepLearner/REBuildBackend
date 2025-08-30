@@ -1,15 +1,10 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.resume_entities.Education;
 import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.forms.profile_forms.*;
-import com.rebuild.backend.model.forms.resume_forms.EducationForm;
-import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
-import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
-import com.rebuild.backend.model.forms.resume_forms.SectionForm;
+import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
 import jakarta.validation.Valid;
@@ -37,7 +32,7 @@ public class ProfileController {
 
     @PostMapping("/create_profile")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserProfile createFullProfileFor(@Valid @RequestBody FullProfileForm fullProfileForm,
+    public UserProfile createFullProfileFor(@Valid @RequestBody FullInformationForm fullProfileForm,
                                         @AuthenticationPrincipal User authenticatedUser) {
         return profileService.createFullProfileFor(fullProfileForm, authenticatedUser);
     }
@@ -47,7 +42,7 @@ public class ProfileController {
     public UserProfile updatePageSize(@RequestBody int newPageSize,
                                       @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.changePageSize(authenticatedUser.getProfile(), newPageSize);
     }
@@ -57,7 +52,7 @@ public class ProfileController {
     public Header updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
                                       @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID header_id) {
         if(authenticatedUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.updateProfileHeader(headerForm, header_id);
     }
@@ -67,7 +62,7 @@ public class ProfileController {
     public Education updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
                                             @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID education_id) {
         if(authenticatedUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
         return profileService.updateProfileEducation(educationForm, education_id);
@@ -79,7 +74,7 @@ public class ProfileController {
                                                                   experienceFormList,
                                                    @AuthenticationPrincipal User authenticatedUser) {
         if(authenticatedUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
         return profileService.updateProfileExperiences(profile, experienceFormList);
@@ -90,7 +85,7 @@ public class ProfileController {
     public UserProfile updateProfileSections(@Valid @RequestBody List<SectionForm> sectionFormList,
                                              @AuthenticationPrincipal User authenticatedUser){
         if(authenticatedUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
         return profileService.updateProfileSections(profile, sectionFormList);
@@ -100,7 +95,7 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProfile(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         profileService.deleteProfile(deletingUser.getProfile().getId());
     }
@@ -109,7 +104,7 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteProfileHeader(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.deleteProfileHeader(deletingUser.getProfile());
     }
@@ -118,7 +113,7 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteProfileEducation(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.deleteProfileEducation(deletingUser.getProfile());
     }
@@ -127,7 +122,7 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteProfileExperiences(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.deleteProfileExperiences(deletingUser.getProfile());
     }
@@ -137,7 +132,7 @@ public class ProfileController {
     public UserProfile deleteSpecificExperience(@AuthenticationPrincipal User deletingUser,
                                                 @PathVariable UUID experience_id){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.deleteSpecificProfileExperience(deletingUser.getProfile(),
                 experience_id);
@@ -147,7 +142,7 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public UserProfile deleteProfileSections(@AuthenticationPrincipal User deletingUser){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.deleteProfileSections(deletingUser.getProfile());
     }
@@ -157,7 +152,7 @@ public class ProfileController {
     public UserProfile deleteSpecificSection(@AuthenticationPrincipal User deletingUser,
                                                 @PathVariable UUID section_id){
         if(deletingUser.getProfile() == null){
-            throw new NoProfileException("No profile found for your account");
+            throw new RuntimeException("No profile found for your account");
         }
         return profileService.deleteSpecificSection(deletingUser.getProfile(),
                 section_id);
@@ -166,7 +161,7 @@ public class ProfileController {
     @PutMapping("/update_profile")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile changeEntireProfile(@AuthenticationPrincipal User updatingUser,
-                                           @Valid @RequestBody FullProfileForm profileForm){
+                                           @Valid @RequestBody FullInformationForm profileForm){
         return profileService.updateEntireProfile(updatingUser.getProfile(), profileForm);
 
     }

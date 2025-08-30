@@ -3,11 +3,7 @@ package com.rebuild.backend.service.user_services;
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.profile_forms.*;
-import com.rebuild.backend.model.forms.resume_forms.EducationForm;
-import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
-import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
-import com.rebuild.backend.model.forms.resume_forms.SectionForm;
+import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.repository.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
@@ -40,7 +36,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile createFullProfileFor(FullProfileForm profileForm, User creatingUser) {
+    public UserProfile createFullProfileFor(FullInformationForm profileForm, User creatingUser) {
         UserProfile newProfile = getUserProfile(profileForm);
         newProfile.setUser(creatingUser);
         creatingUser.setProfile(newProfile);
@@ -48,7 +44,7 @@ public class ProfileService {
     }
 
 
-    private UserProfile getUserProfile(FullProfileForm profileForm) {
+    private UserProfile getUserProfile(FullInformationForm profileForm) {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
         Header profileHeader = new Header(profileForm.headerForm().number(),
@@ -58,13 +54,13 @@ public class ProfileService {
         Education newEducation = new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
-        List<Section> sections = objectConverter.extractProfileSections(profileForm.sectionForms());
+        List<Section> sections = objectConverter.extractProfileSections(profileForm.sections());
 
         UserProfile newProfile =  new UserProfile(profileHeader, newEducation,
                 new ArrayList<>(),
                 sections);
         List<Experience> experiences = objectConverter.
-                extractProfileExperiences(profileForm.experienceForms(), newProfile);
+                extractProfileExperiences(profileForm.experiences(), newProfile);
         newProfile.setExperienceList(experiences);
         return newProfile;
     }
@@ -161,11 +157,11 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile updateEntireProfile(UserProfile updatingProfile, FullProfileForm profileForm){
+    public UserProfile updateEntireProfile(UserProfile updatingProfile, FullInformationForm profileForm){
         YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
 
-        updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experienceForms(),
+        updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experiences(),
                 updatingProfile));
         updatingProfile.setHeader(new Header(profileForm.headerForm().number(),
                 profileForm.headerForm().firstName(),
@@ -173,7 +169,7 @@ public class ProfileService {
         updatingProfile.setEducation(new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate));
-        updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sectionForms()));
+        updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sections()));
         return profileRepository.save(updatingProfile);
     }
 

@@ -67,7 +67,6 @@ public class ResumeService {
     public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID){
         return modificationUtility.modifyExperience(experienceForm, experienceID);
 
-
     }
 
     @Transactional
@@ -197,7 +196,7 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume fullUpdate(Resume resume, FullResumeForm resumeForm) {
+    public Resume fullUpdate(Resume resume, FullInformationForm resumeForm) {
 
 
         //We can't modify the resume's fields directly here, as that would also modify the variables that

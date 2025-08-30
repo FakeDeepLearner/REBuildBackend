@@ -1,10 +1,7 @@
 package com.rebuild.backend.utils.converters.database_converters;
 
-import com.rebuild.backend.exceptions.ServerError;
-import com.rebuild.backend.utils.converters.encrypt.EncryptUtil;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

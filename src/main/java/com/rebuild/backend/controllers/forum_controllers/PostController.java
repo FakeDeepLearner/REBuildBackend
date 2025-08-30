@@ -1,7 +1,5 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.exceptions.forum_exceptions.PostForbiddenException;
-import com.rebuild.backend.exceptions.forum_exceptions.ResumeForbiddenException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
@@ -45,7 +43,7 @@ public class PostController {
     public void deletePost(@PathVariable UUID post_id,
                            @AuthenticationPrincipal User creatingUser) {
         if(!forumPostAndCommentService.postBelongsToUser(post_id, creatingUser.getId())) {
-            throw new PostForbiddenException("That post does not belong to you");
+            throw new RuntimeException("That post does not belong to you");
         }
         forumPostAndCommentService.deletePost(post_id);
     }

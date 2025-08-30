@@ -1,7 +1,5 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-import com.rebuild.backend.exceptions.profile_exceptions.NoAttributeInProfileException;
-import com.rebuild.backend.exceptions.profile_exceptions.NoProfileException;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -36,10 +34,10 @@ public class PrefillFromProfileController {
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
-            throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
+            throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
         }
         if(resumeUser.getProfile().getHeader() == null){
-            throw new NoAttributeInProfileException("Your profile does not have a header set");
+            throw new RuntimeException("Your profile does not have a header set");
         }
         Header originalHeader = resumeUser.getProfile().getHeader();
         Header transformedHeader = objectConverter.convertToHeader(originalHeader);
@@ -54,10 +52,10 @@ public class PrefillFromProfileController {
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
-            throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
+            throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
         }
         if(resumeUser.getProfile().getEducation() == null){
-            throw new NoAttributeInProfileException("Your profile does not have an education set");
+            throw new RuntimeException("Your profile does not have an education set");
         }
         Education originalEducation = resumeUser.getProfile().getEducation();
         Education transformedEducation = objectConverter.convertToEducation(originalEducation);
@@ -72,10 +70,10 @@ public class PrefillFromProfileController {
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
-            throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
+            throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
         }
         if(resumeUser.getProfile().getExperienceList() == null){
-            throw new NoAttributeInProfileException("Your profile does not have experiences set");
+            throw new RuntimeException("Your profile does not have experiences set");
         }
         List<Experience> convertedExperiences = resumeUser.getProfile().getExperienceList().
                 stream().map(objectConverter::convertToExperience).
@@ -92,10 +90,10 @@ public class PrefillFromProfileController {
         Resume associatedResume = resumeService.findByUserIndex(user, index);
         User resumeUser = associatedResume.getUser();
         if (resumeUser.getProfile() == null) {
-            throw new NoProfileException("You haven't set your profile yet, this operation can't be completed");
+            throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
         }
         if (resumeUser.getProfile().getSections() == null) {
-            throw new NoAttributeInProfileException("Your profile does not have sections set");
+            throw new RuntimeException("Your profile does not have sections set");
         }
 
         List<Section> convertedSections = resumeUser.getProfile().getSections().
