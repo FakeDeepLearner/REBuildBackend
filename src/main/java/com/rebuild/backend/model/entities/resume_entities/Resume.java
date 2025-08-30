@@ -1,10 +1,9 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.exceptions.resume_exceptions.MaxResumesReachedException;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
-import com.rebuild.backend.utils.converters.encrypt.DatabaseEncryptor;
+import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -100,7 +99,7 @@ public class Resume implements Serializable {
 
     public Resume(@NonNull Resume originalResume, @NonNull String newName){
         if(originalResume.getUser().maxResumeLimitReached()){
-            throw new MaxResumesReachedException("You have reached the maximum number of resumes you can create");
+            throw new RuntimeException("You have reached the maximum number of resumes you can create");
         }
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();

@@ -1,7 +1,6 @@
 package com.rebuild.backend.service.user_services;
 
-import com.rebuild.backend.exceptions.conflict_exceptions.EmailAlreadyExistsException;
-import com.rebuild.backend.exceptions.not_found_exceptions.UserNotFoundException;
+
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
@@ -105,7 +104,7 @@ public class UserService{
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException){
                 if (Objects.equals(violationException.getConstraintName(), "uk_email")){
-                    throw new EmailAlreadyExistsException("This email address already exists");
+                    throw new RuntimeException("This email address already exists");
                 }
             }
         }
@@ -156,19 +155,6 @@ public class UserService{
         return repository.save(user);
     }
 
-    @Transactional
-    public void lockUserAccount(String email){
-        User user = repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(""));
-        user.setAccountNonLocked(false);
-        save(user);
-    }
-
-    @Transactional
-    public void unlockUserAccount(String email){
-        User user = repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(""));
-        user.setAccountNonLocked(true);
-        save(user);
-    }
 
     @Transactional
     protected void blockInactiveUsers(LocalDateTime cutoff){

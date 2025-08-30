@@ -1,4 +1,4 @@
-package com.rebuild.backend.exception_handlers.validation;
+package com.rebuild.backend.exception_handlers;
 
 import com.rebuild.backend.model.responses.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;

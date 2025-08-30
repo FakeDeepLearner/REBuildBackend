@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record FullResumeForm(HeaderForm headerForm,
+public record FullInformationForm(HeaderForm headerForm,
 
                              EducationForm educationForm,
 

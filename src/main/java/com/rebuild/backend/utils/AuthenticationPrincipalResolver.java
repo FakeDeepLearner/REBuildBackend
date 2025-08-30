@@ -1,6 +1,5 @@
 package com.rebuild.backend.utils;
 
-import com.rebuild.backend.exceptions.unauthorized_exceptions.NotAuthenticatedException;
 import com.rebuild.backend.model.entities.users.User;
 import lombok.NonNull;
 import org.springframework.core.MethodParameter;
@@ -34,7 +33,7 @@ public class AuthenticationPrincipalResolver implements HandlerMethodArgumentRes
                                        WebDataBinderFactory binderFactory)  {
         Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if(currentAuthentication == null || currentAuthentication.getPrincipal() == null) {
-            throw new NotAuthenticatedException("You are not authenticated!");
+            throw new RuntimeException("You are not authenticated!");
         }
 
         return (User) currentAuthentication.getPrincipal();
