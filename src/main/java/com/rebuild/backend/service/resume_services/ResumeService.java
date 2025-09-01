@@ -93,8 +93,9 @@ public class ResumeService {
         Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
+        List<ExperienceType> types = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
         Experience newExperience = new Experience(experienceForm.companyName(),
-                experienceForm.technologies(), experienceForm.location(),
+                experienceForm.technologies(), experienceForm.location(), types,
                 start, end, experienceForm.bullets());
 
         if (experiencesIndex == null) {
@@ -122,23 +123,6 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume createNewSection(User user, int resumeIndex,
-                                   SectionForm sectionForm, Integer sectionsIndex){
-        Resume resume = getUtility.findByUserResumeIndex(user, resumeIndex);
-        List<SectionEntry> transformedEntries = objectConverter.
-                extractResumeSectionEntries(sectionForm.entryForms());
-        Section newSection = new Section(transformedEntries, sectionForm.title());
-
-        if (sectionsIndex == null){
-            resume.addSection(newSection);
-        }
-        else {
-            resume.addSection(sectionsIndex, newSection);
-        }
-        return resumeRepository.save(resume);
-    }
-
-    @Transactional
     public void deleteById(UUID id){
         resumeRepository.deleteById(id);
     }
@@ -157,12 +141,6 @@ public class ResumeService {
         return resumeRepository.save(resume);
     }
 
-    @Transactional
-    public Resume deleteSection(User user, int resumeIndex, int sectionIndex){
-        Resume resume = getUtility.findByUserResumeIndex(user, resumeIndex);
-        resume.getSections().remove(sectionIndex);
-        return resumeRepository.save(resume);
-    }
 
     @Transactional
     public Resume deleteHeader(User changingUser, int resumeIndex){
@@ -190,12 +168,6 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume setSections(Resume resume, List<Section> newSections){
-        resume.setSections(newSections);
-        return resumeRepository.save(resume);
-    }
-
-    @Transactional
     public Resume fullUpdate(Resume resume, FullInformationForm resumeForm) {
 
 
@@ -213,7 +185,6 @@ public class ResumeService {
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
         resume.setEducation(newEducation);
         resume.setExperiences(objectConverter.extractExperiences(resumeForm.experiences(), resume));
-        resume.setSections(objectConverter.extractResumeSections(resumeForm.sections(), resume));
         return resumeRepository.save(resume);
 
     }

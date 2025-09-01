@@ -2,6 +2,7 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.resume_entities.Education;
 import com.rebuild.backend.model.entities.resume_entities.Experience;
+import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
@@ -9,14 +10,15 @@ import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.repository.EducationRepository;
 import com.rebuild.backend.repository.ExperienceRepository;
 import com.rebuild.backend.repository.HeaderRepository;
-import com.rebuild.backend.repository.SectionRepository;
 import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -29,14 +31,17 @@ public class SubpartsModificationUtility {
 
     private final ExperienceRepository experienceRepository;
 
-    private final SectionRepository sectionRepository;
+    private final ObjectConverter objectConverter;
 
     @Autowired
-    public SubpartsModificationUtility(HeaderRepository headerRepository, EducationRepository educationRepository, ExperienceRepository experienceRepository, SectionRepository sectionRepository) {
+    public SubpartsModificationUtility(HeaderRepository headerRepository,
+                                       EducationRepository educationRepository,
+                                       ExperienceRepository experienceRepository,
+                                       ObjectConverter objectConverter) {
         this.headerRepository = headerRepository;
         this.educationRepository = educationRepository;
         this.experienceRepository = experienceRepository;
-        this.sectionRepository = sectionRepository;
+        this.objectConverter = objectConverter;
     }
 
 
@@ -47,12 +52,14 @@ public class SubpartsModificationUtility {
 
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
+        List<ExperienceType> experienceTypes = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
         changingExperience.setLocation(experienceForm.location());
         changingExperience.setEndDate(end);
         changingExperience.setStartDate(start);
         changingExperience.setBullets(experienceForm.bullets());
         changingExperience.setTechnologyList(experienceForm.technologies());
         changingExperience.setCompanyName(experienceForm.companyName());
+        changingExperience.setExperienceTypes(experienceTypes);
         return experienceRepository.save(changingExperience);
 
     }

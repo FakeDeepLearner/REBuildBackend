@@ -15,7 +15,6 @@ public class Resume_ {
     public static volatile SingularAttribute<Resume, Header> header;
     public static volatile SingularAttribute<Resume, Education> education;
     public static volatile ListAttribute<Resume, Experience> experiences;
-    public static volatile ListAttribute<Resume, Section> sections;
     public static volatile SingularAttribute<Resume, LocalDateTime> creationTime;
     public static volatile SingularAttribute<Resume, LocalDateTime> lastModifiedTime;
 

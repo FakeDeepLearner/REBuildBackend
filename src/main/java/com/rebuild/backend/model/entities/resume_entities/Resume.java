@@ -61,12 +61,6 @@ public class Resume implements Serializable {
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<Experience> experiences;
 
-    @OneToMany(fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderColumn(name = "insertion_position")
-    @JoinColumn(name = "parent_id", referencedColumnName = "id")
-    private List<Section> sections;
-
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
             CascadeType.PERSIST,
@@ -93,7 +87,6 @@ public class Resume implements Serializable {
         this.experiences = new ArrayList<>();
         this.education = new Education();
         this.header = new Header();
-        this.sections = null;
         this.name = resume_name;
     }
 
@@ -104,7 +97,6 @@ public class Resume implements Serializable {
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
-        List<Section> originalSections = originalResume.getSections();
         this.name = newName;
         this.user = originalResume.getUser();
         // We are creating new objects here,
@@ -118,12 +110,9 @@ public class Resume implements Serializable {
                 originalHeader.getEmail());
         this.experiences = originalExperiences.stream().map(
                 experience -> new Experience(experience.getCompanyName(), experience.getTechnologyList(),
-                        experience.getLocation(),
+                        experience.getLocation(), experience.getExperienceTypes(),
                         experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
-        this.sections = originalSections.stream().map(
-                section -> new Section(section.getEntries(),
-                        section.getTitle())).toList();
         //Necessary in order for cascading to work properly
         this.getUser().getResumes().add(this);
         this.creationTime = LocalDateTime.now();
@@ -141,19 +130,6 @@ public class Resume implements Serializable {
         experiences.add(index, experience);
     }
 
-    public void addSection(Section section){
-        if (sections == null){
-            sections = new ArrayList<>();
-        }
-        sections.add(section);
-    }
-
-    public void addSection(int index, Section section){
-        if (sections == null){
-            sections = new ArrayList<>();
-        }
-        sections.add(index, section);
-    }
 
     @Override
     public String toString() {
@@ -162,7 +138,6 @@ public class Resume implements Serializable {
         experiences.forEach(experience -> sb.append(experience.toString())
         );
         sb.append("\nSECTIONS:\n");
-        sections.forEach(section -> sb.append(section.toString()));
         return sb.toString();
     }
 

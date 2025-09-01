@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
+import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -14,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -97,5 +100,13 @@ public class ResumeUtilController {
         headers.setContentType(MediaType.TEXT_PLAIN);
         return ResponseEntity.status(200).headers(headers).body(resumeMetadata + downloadingResume);
 
+    }
+
+    @GetMapping("/api/view_experience_values")
+    public Collection<String> getPossibleExperienceValues()
+    {
+        return Arrays.stream(ExperienceType.values()).
+                map(ExperienceType::getStoredValue).
+                toList();
     }
 }

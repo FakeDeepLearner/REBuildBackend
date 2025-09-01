@@ -81,24 +81,4 @@ public class PrefillFromProfileController {
         return resumeService.setExperiences(associatedResume, convertedExperiences);
 
     }
-
-    @GetMapping("/sections/{index}")
-    @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume prefillSections(@PathVariable int index,
-                                             @AuthenticationPrincipal User user) {
-        Resume associatedResume = resumeService.findByUserIndex(user, index);
-        User resumeUser = associatedResume.getUser();
-        if (resumeUser.getProfile() == null) {
-            throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
-        }
-        if (resumeUser.getProfile().getSections() == null) {
-            throw new RuntimeException("Your profile does not have sections set");
-        }
-
-        List<Section> convertedSections = resumeUser.getProfile().getSections().
-                stream().map(objectConverter::convertToSection).
-                toList();
-        return resumeService.setSections(associatedResume, convertedSections);
-    }
 }

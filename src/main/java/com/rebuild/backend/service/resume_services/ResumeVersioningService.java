@@ -96,11 +96,6 @@ public class ResumeVersioningService {
             resume.setExperiences(newExperiences);
         }
 
-        if(versionToSwitch.getVersionedSections() != null && !preferencesForm.sectionIndices().isEmpty()){
-            List<Section> newSections = getSections(resume, versionToSwitch,
-                    preferencesForm.makeSectionCopies(), preferencesForm.sectionIndices());
-            resume.setSections(newSections);
-        }
     }
 
     private static List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch,
@@ -156,24 +151,6 @@ public class ResumeVersioningService {
     }
 
 
-    private static List<Section> getSections(Resume resume, ResumeVersion versionToSwitch,
-                                             boolean makeCopies, List<Integer> indicesToSelect) {
-        if (!makeCopies) {
-            List<Section> oldSections = resume.getSections();
-
-            List<Section> versionedSections = versionToSwitch.getVersionedSections();
-            versionToSwitch.setVersionedSections(oldSections);
-            return versionedSections;
-        }
-
-        else {
-            List<Section> versionedSections = versionToSwitch.getVersionedSections();
-            return indicesToSelect.stream().
-                    map(versionedSections::get).
-                    map(Section::copy).toList();
-        }
-    }
-
     private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){
         ResumeVersion newVersion = new ResumeVersion();
         Header newHeader = objectConverter.createVersionedHeader(resume.getHeader(),
@@ -184,15 +161,11 @@ public class ResumeVersioningService {
         List<Experience> experiences = objectConverter.createVersionedExperiences(
                 resume.getExperiences(), inclusionForm.includeExperience(), newVersion
         );
-        List<Section> sections = objectConverter.createVersionedSections(
-                resume.getSections(), inclusionForm.includeSections(), newVersion
-        );
         String versionedName = inclusionForm.includeName() ? resume.getName() : null;
         newVersion.setVersionedName(versionedName);
         newVersion.setVersionedHeader(newHeader);
         newVersion.setVersionedEducation(newEducation);
         newVersion.setVersionedExperiences(experiences);
-        newVersion.setVersionedSections(sections);
         newVersion.setAssociatedResume(resume);
         return newVersion;
     }

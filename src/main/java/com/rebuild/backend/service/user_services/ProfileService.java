@@ -47,6 +47,15 @@ public class ProfileService {
     private UserProfile getUserProfile(FullInformationForm profileForm) {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
+
+        UserProfile newProfile =  getUserProfile(profileForm, startDate, endDate);
+        List<Experience> experiences = objectConverter.
+                extractProfileExperiences(profileForm.experiences(), newProfile);
+        newProfile.setExperienceList(experiences);
+        return newProfile;
+    }
+
+    private UserProfile getUserProfile(FullInformationForm profileForm, YearMonth startDate, YearMonth endDate) {
         Header profileHeader = new Header(profileForm.headerForm().number(),
                 profileForm.headerForm().firstName(),
                 profileForm.headerForm().lastName(),
@@ -54,15 +63,9 @@ public class ProfileService {
         Education newEducation = new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
-        List<Section> sections = objectConverter.extractProfileSections(profileForm.sections());
 
-        UserProfile newProfile =  new UserProfile(profileHeader, newEducation,
-                new ArrayList<>(),
-                sections);
-        List<Experience> experiences = objectConverter.
-                extractProfileExperiences(profileForm.experiences(), newProfile);
-        newProfile.setExperienceList(experiences);
-        return newProfile;
+        return new UserProfile(profileHeader, newEducation,
+                new ArrayList<>());
     }
 
     @Transactional
@@ -89,23 +92,14 @@ public class ProfileService {
                 map((rawExperienceData) -> {
                     YearMonth startDate = YearMonthStringOperations.getYearMonth(rawExperienceData.startDate());
                     YearMonth endDate = YearMonthStringOperations.getYearMonth(rawExperienceData.endDate());
+                    List<ExperienceType> experienceTypes = objectConverter.convertToExperienceTypes(rawExperienceData.experienceTypeValues());
                     return new Experience(rawExperienceData.companyName(), rawExperienceData.technologies(),
-                    rawExperienceData.location(),
+                    rawExperienceData.location(), experienceTypes,
                     startDate, endDate, rawExperienceData.bullets());
                 }).toList();
 
         profile.setExperienceList(transformedExperiences);
         return profileRepository.save(profile);
-
-    }
-
-    @Transactional
-    public UserProfile updateProfileSections(UserProfile profile,
-                                             List<SectionForm> sectionForms){
-        List<Section> transformedSections = objectConverter.extractProfileSections(sectionForms);
-        profile.setSections(transformedSections);
-        return profileRepository.save(profile);
-
 
     }
 
@@ -127,12 +121,6 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile deleteProfileSections(UserProfile profile){
-        profile.setSections(null);
-        return profileRepository.save(profile);
-    }
-
-    @Transactional
     public UserProfile deleteProfileHeader(UserProfile profile){
         profile.setHeader(null);
         return profileRepository.save(profile);
@@ -144,15 +132,6 @@ public class ProfileService {
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)
         );
-        return profileRepository.save(profile);
-    }
-
-    @Transactional
-    public UserProfile deleteSpecificSection(UserProfile profile, UUID experience_id){
-        profile.getSections().
-                removeIf(section ->
-                        section.getId().equals(experience_id)
-                );
         return profileRepository.save(profile);
     }
 
@@ -169,7 +148,6 @@ public class ProfileService {
         updatingProfile.setEducation(new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate));
-        updatingProfile.setSections(objectConverter.extractProfileSections(profileForm.sections()));
         return profileRepository.save(updatingProfile);
     }
 

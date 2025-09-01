@@ -80,17 +80,6 @@ public class ProfileController {
         return profileService.updateProfileExperiences(profile, experienceFormList);
     }
 
-    @PatchMapping("/patch/sections")
-    @ResponseStatus(HttpStatus.OK)
-    public UserProfile updateProfileSections(@Valid @RequestBody List<SectionForm> sectionFormList,
-                                             @AuthenticationPrincipal User authenticatedUser){
-        if(authenticatedUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        UserProfile profile = authenticatedUser.getProfile();
-        return profileService.updateProfileSections(profile, sectionFormList);
-    }
-
     @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProfile(@AuthenticationPrincipal User deletingUser){
@@ -136,26 +125,6 @@ public class ProfileController {
         }
         return profileService.deleteSpecificProfileExperience(deletingUser.getProfile(),
                 experience_id);
-    }
-
-    @DeleteMapping("/delete/sections")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public UserProfile deleteProfileSections(@AuthenticationPrincipal User deletingUser){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.deleteProfileSections(deletingUser.getProfile());
-    }
-
-    @DeleteMapping("/delete/sections/{section_id}")
-    @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteSpecificSection(@AuthenticationPrincipal User deletingUser,
-                                                @PathVariable UUID section_id){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.deleteSpecificSection(deletingUser.getProfile(),
-                section_id);
     }
 
     @PutMapping("/update_profile")

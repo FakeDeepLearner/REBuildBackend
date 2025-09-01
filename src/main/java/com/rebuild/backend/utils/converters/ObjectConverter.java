@@ -4,13 +4,10 @@ import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
-import com.rebuild.backend.model.forms.resume_forms.SectionEntryForm;
-import com.rebuild.backend.model.forms.resume_forms.SectionForm;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -19,7 +16,7 @@ public class ObjectConverter {
 
     public Experience convertToExperience(Experience profileExperience){
         return new Experience(profileExperience.getCompanyName(), profileExperience.getTechnologyList(),
-                profileExperience.getLocation(),
+                profileExperience.getLocation(), profileExperience.getExperienceTypes(),
                 profileExperience.getStartDate(), profileExperience.getEndDate(), profileExperience.getBullets());
     }
 
@@ -35,88 +32,34 @@ public class ObjectConverter {
                 profileEducation.getStartDate(), profileEducation.getEndDate());
     }
 
-    public Section convertToSection(Section profileSection){
-        List<SectionEntry> entries = profileSection.getEntries();
-
-        List<SectionEntry> convertedEntries = entries.stream()
-                .map(this::convertToResumeSectionEntry).toList();
-        return new Section(convertedEntries, profileSection.getTitle());
-    }
-
-    private SectionEntry convertToResumeSectionEntry(SectionEntry profileSectionEntry){
-        return new SectionEntry(profileSectionEntry.getTitle(),
-                profileSectionEntry.getToolsUsed(), profileSectionEntry.getLocation(),
-                profileSectionEntry.getStartDate(), profileSectionEntry.getEndDate(),
-                profileSectionEntry.getBullets());
-    }
-
     private <I, O> List<O> convertToOutputList(List<I> inputList, Function<I, O> converter){
         return inputList.stream().map(converter).collect(Collectors.toList());
-    }
-
-    private <I, O, R> List<O> convertToOutputList(List<I> inputList, R root, BiFunction<I, R, O> converter){
-        return inputList.stream().map(input -> converter.apply(input, root)).collect(Collectors.toList());
-    }
-
-    public List<Section> extractProfileSections(List<SectionForm> profileSectionForms){
-
-        return convertToOutputList(profileSectionForms, rawForm -> {
-            List<SectionEntry> sectionEntries = extractProfileSectionEntries(rawForm.entryForms());
-            return new Section(sectionEntries, rawForm.title());
-        });
-    }
-
-    private List<SectionEntry> extractProfileSectionEntries(List<SectionEntryForm>
-                                                                   entryForms){
-
-        return convertToOutputList(entryForms, (rawForm) -> {
-            return new SectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                    rawForm.location(), YearMonthStringOperations.getYearMonth(rawForm.startTime()),
-                    YearMonthStringOperations.getYearMonth(rawForm.endTime()),
-                    rawForm.bullets());
-        });
-    }
-
-    public List<Section> extractResumeSections(List<SectionForm> sectionForms, Resume associatedResume){
-
-        return convertToOutputList(sectionForms, rawForm -> {
-            List<SectionEntry> sectionEntries = extractResumeSectionEntries(rawForm.entryForms());
-            return new Section(sectionEntries, rawForm.title());
-        });
-    }
-
-    public List<SectionEntry> extractResumeSectionEntries(List<SectionEntryForm>
-                                                                 entryForms){
-
-        return convertToOutputList(entryForms, (rawForm ) -> {
-            SectionEntry newEntry =
-                    new SectionEntry(rawForm.title(), rawForm.toolsUsed(),
-                            rawForm.location(),
-                            YearMonthStringOperations.getYearMonth(rawForm.startTime()),
-                            YearMonthStringOperations.getYearMonth(rawForm.endTime()),
-                            rawForm.bullets());
-            return newEntry;
-        });
-
     }
 
     public List<Experience> extractProfileExperiences(List<ExperienceForm> profileExperienceForms,
                                                              UserProfile profile){
         return convertToOutputList(profileExperienceForms, rawForm ->
-                new Experience(rawForm.companyName(),
-                rawForm.technologies(), rawForm.location(),
+        {
+                List<ExperienceType> experienceTypes = convertToExperienceTypes(rawForm.experienceTypeValues());
+                return new Experience(rawForm.companyName(),
+                rawForm.technologies(), rawForm.location(), experienceTypes,
                 YearMonthStringOperations.getYearMonth(rawForm.startDate()),
                 YearMonthStringOperations.getYearMonth(rawForm.endDate()),
-                rawForm.bullets()));
+                rawForm.bullets());
+        });
 
     }
 
     public List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
-        return convertToOutputList(experienceForms, rawForm -> new Experience(rawForm.companyName(),
-                rawForm.technologies(), rawForm.location(),
-                YearMonthStringOperations.getYearMonth(rawForm.startDate()),
-                YearMonthStringOperations.getYearMonth(rawForm.endDate()),
-                rawForm.bullets()));
+        return convertToOutputList(experienceForms, rawForm ->
+        {
+            List<ExperienceType> experienceTypes = convertToExperienceTypes(rawForm.experienceTypeValues());
+            return new Experience(rawForm.companyName(),
+                    rawForm.technologies(), rawForm.location(), experienceTypes,
+                    YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                    YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                    rawForm.bullets());
+        });
     }
 
     public Header createVersionedHeader(Header originalHeader, boolean shouldBeNull,
@@ -152,6 +95,7 @@ public class ObjectConverter {
                         rawExperience.getCompanyName(),
                         rawExperience.getTechnologyList(),
                         rawExperience.getLocation(),
+                        rawExperience.getExperienceTypes(),
                         rawExperience.getStartDate(),
                         rawExperience.getEndDate(),
                         rawExperience.getBullets()
@@ -159,29 +103,10 @@ public class ObjectConverter {
         ).toList();
     }
 
-    private List<SectionEntry> createVersionedEntries(List<SectionEntry> rawEntries){
-        return rawEntries.stream().map(
-                rawEntry -> new SectionEntry(
-                        rawEntry.getTitle(), rawEntry.getToolsUsed(),
-                        rawEntry.getLocation(),
-                        rawEntry.getStartDate(),
-                        rawEntry.getEndDate(),
-                        rawEntry.getBullets()
-                )
-        ).toList();
-    }
-
-    public List<Section> createVersionedSections(List<Section> originalSections,
-                                                 boolean shouldBeNull,
-                                                 ResumeVersion resumeVersion){
-        if(shouldBeNull){
-            return null;
-        }
-
-        return originalSections.stream().map(
-                rawSection -> {
-                    return new Section(createVersionedEntries(rawSection.getEntries()), rawSection.getTitle());
-                }
-        ).toList();
+    public List<ExperienceType> convertToExperienceTypes(List<String> typesList)
+    {
+        return typesList.stream().
+                map(ExperienceType::fromValue).
+                toList();
     }
 }

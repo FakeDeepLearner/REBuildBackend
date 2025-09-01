@@ -39,10 +39,6 @@ public class UserProfile {
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<Experience> experienceList;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "parent_id", referencedColumnName = "id")
-    private List<Section> sections;
-
     @Column(name = "page_size")
     private int forumPageSize = 20;
 
@@ -57,12 +53,10 @@ public class UserProfile {
 
     public UserProfile(Header profileHeader,
                        Education newEducation,
-                       List<Experience> experiences,
-                       List<Section> sections) {
+                       List<Experience> experiences) {
         this.header = profileHeader;
         this.education = newEducation;
         this.experienceList = experiences;
-        this.sections = sections;
     }
 
 
@@ -79,23 +73,12 @@ public class UserProfile {
 
         List<Experience> newExperiences = originalProfile.getExperienceList().stream().map(
                 oldExperience -> new Experience(oldExperience.getCompanyName(),
-                        oldExperience.getTechnologyList(), oldExperience.getLocation(), oldExperience.getStartDate(),
+                        oldExperience.getTechnologyList(), oldExperience.getLocation(),
+                        oldExperience.getExperienceTypes(), oldExperience.getStartDate(),
                         oldExperience.getEndDate(), oldExperience.getBullets())
         ).toList();
 
-        List<Section> newSections = originalProfile.getSections().stream().map(
-                oldSection -> {
-                    List<SectionEntry> newEntries = oldSection.getEntries().stream().map(
-                            oldEntry -> new SectionEntry(oldEntry.getTitle(),
-                                    oldEntry.getToolsUsed(), oldEntry.getLocation(), oldEntry.getStartDate(),
-                                    oldEntry.getEndDate(), oldEntry.getBullets())
-                    ).toList();
-
-                    return new Section(newEntries, oldSection.getTitle());
-                }
-        ).toList();
-
-        return new UserProfile(newHeader, newEducation, newExperiences, newSections);
+        return new UserProfile(newHeader, newEducation, newExperiences);
     }
 
 
