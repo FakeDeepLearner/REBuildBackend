@@ -38,7 +38,6 @@ public class Resume implements Serializable {
     @Column(
             name = "id"
     )
-    @JsonIgnore
     private UUID id;
 
     @Column(name = "name", nullable = false)

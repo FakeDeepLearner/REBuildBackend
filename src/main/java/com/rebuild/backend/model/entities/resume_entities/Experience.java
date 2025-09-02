@@ -29,7 +29,6 @@ public class Experience implements ResumeProperty {
     @Column(
             name = "id"
     )
-    @JsonIgnore
     private UUID id;
 
     @Column(name = "company_name", nullable = false)

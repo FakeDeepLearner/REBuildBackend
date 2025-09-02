@@ -20,7 +20,6 @@ public class Header implements ResumeProperty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @JsonIgnore
     private UUID id;
 
     @NonNull
