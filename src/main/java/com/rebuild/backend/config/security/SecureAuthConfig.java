@@ -12,8 +12,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
@@ -42,17 +45,19 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.PUT,  "/home/**").authenticated().
                         requestMatchers(HttpMethod.DELETE,  "/home/**").authenticated().
                         requestMatchers(HttpMethod.PATCH,  "/home/**").authenticated())
-                .formLogin(login -> login.loginPage("/login/finalize").
-                                permitAll())
-                .oauth2Login(login -> login.loginPage("/login/finalize")
-                        .permitAll())
+                // We have to disable these, because we have a 2-step (2-endpoint) login process, and
+                // they expect to have everything neatly done in 1 endpoint. I will probably have to resort to implementing
+                // OAuth2 manually as well (AUGHHHHHH)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .oauth2Login(OAuth2LoginConfigurer::disable)
                 .logout(config -> config.
                     logoutUrl("/logout").
                     logoutSuccessUrl("/login?logout=true").
                     addLogoutHandler(logoutController).deleteCookies("JSESSIONID").permitAll())
                 .rememberMe(rememberMe ->
-                        rememberMe.rememberMeServices(rememberMeServices).useSecureCookie(true))
-                .addFilterAfter(rememberMeAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        rememberMe.rememberMeServices(rememberMeServices).useSecureCookie(true).
+                                rememberMeCookieName("REMEMBERED_USER_COOKIE"))
+                .addFilterAfter(rememberMeAuthenticationFilter, AnonymousAuthenticationFilter.class);
         return security.build();
 
 
