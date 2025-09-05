@@ -11,4 +11,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Constraint(validatedBy = PasswordStrengthValidator.class)
 public @interface PasswordStrengthConstraint {
+
 }

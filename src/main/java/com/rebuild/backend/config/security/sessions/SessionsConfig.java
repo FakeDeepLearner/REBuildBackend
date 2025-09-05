@@ -31,6 +31,7 @@ public class SessionsConfig {
     public SecurityFilterChain sessionsFilterChain(HttpSecurity security) throws Exception {
         return security.sessionManagement(management ->
                 management.
+                        sessionFixation().migrateSession().
                         invalidSessionStrategy(new SessionInvalidationCustomStrategy()).
                         sessionConcurrency(concurrency -> concurrency.maximumSessions(-1)).
                         sessionAuthenticationStrategy(new RegisterSessionAuthenticationStrategy(sessionRegistry())).
@@ -38,7 +39,8 @@ public class SessionsConfig {
                         sessionRegistry(sessionRegistry()).
                         expiredUrl("/expired").
                         maxSessionsPreventsLogin(true)).
-                exceptionHandling(handling -> handling.authenticationEntryPoint(new InvalidSessionAuthenticationEntry())).
+                exceptionHandling(handling ->
+                        handling.authenticationEntryPoint(new InvalidSessionAuthenticationEntry())).
                 build();
     }
 }

@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.service.token_services.OTPService;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
@@ -42,26 +43,29 @@ public class AuthenticationController {
         this.otpService = otpService;
     }
 
-    @PostMapping("/login")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> processLogin(@Valid @RequestBody LoginForm form, HttpServletRequest request){
-
-        Bucket userBucket = userService.returnUserBucket(form.email());
+    @PostMapping("/login/initialize")
+    public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm) {
+        CredentialValidationDTO credentialValidationDTO = userService.validateLoginCredentials(loginForm);
+        Bucket userBucket = userService.returnUserBucket(credentialValidationDTO.userEmail());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
 
         if (probe.isConsumed()){
-            boolean userCanLogin = userService.validateLoginCredentials(form);
+            boolean userCanLogin = credentialValidationDTO.canLogin();
             if (!userCanLogin){
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid username or password");
             }
-            loginHelper(form, request);
 
-            return ResponseEntity.ok("Login successful");
+            //If we have consumed the probe, we send a code to the user's preferred channel
+            otpService.generateOTPCode(loginForm.emailOrPhone(), credentialValidationDTO.userChannel());
+
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("A code has been sent to the email or " +
+                    "phone number that you entered. Please enter that code to finalize your login");
         }
 
-        // We only hit the database if the user has enough attempts remaining to log in in the first place.
-        // If they don't, we don't waste time for a login attempt that will fail anyway
+
+        // If the user has hit the rate limit, then we don't bother with
+        // sending and verifying that code.
         else{
             long remainingTokens = probe.getRemainingTokens();
             double resetNanos = probe.getNanosToWaitForReset();
@@ -80,13 +84,62 @@ public class AuthenticationController {
                         remainingTokens + " attempts left");
             }
         }
+
+
+    }
+
+    @PostMapping("/login/finalize")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<String> finalizeLogin(@Valid @RequestBody LoginForm form,
+                                               @RequestParam(name = "remember-me") boolean remember,
+    @RequestParam(name = "code") String enteredOtpCode,
+    HttpServletRequest request){
+        VerificationCheck verificationCheck = verifyEnteredCode(form, enteredOtpCode);
+
+        String status = verificationCheck.getStatus();
+
+        switch (status){
+            case "approved" -> {
+                loginHelper(form, request);
+                return ResponseEntity.ok().body("Login successful, redirecting you to your home page");
+            }
+
+            case "failed" -> {
+                return ResponseEntity.badRequest().body("You have entered the wrong code");
+            }
+
+            case "expired" -> {
+                //We send the notification again via the same channel that the user used to originally obtain it.
+                String oldChannel = verificationCheck.getChannel().toString();
+                if (oldChannel.equals("sms"))
+                {
+                    otpService.generateOTPCode(form.emailOrPhone(), "sms");
+                }
+                else if(oldChannel.equals("email"))
+                {
+                    otpService.generateOTPCode(form.emailOrPhone(), "email");
+                }
+                return ResponseEntity.status(HttpStatus.GONE).
+                        body("The passcode that you requested has expired, " +
+                                "we have sent you a new one, please enter it");
+            }
+
+            case "max_attempts_reached" -> {
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                        body("You have reached the maximum number of attempts.");
+            }
+
+        }
+        return ResponseEntity.internalServerError().body("An unexpected error has occurred");
+
     }
 
 
     private void loginHelper(LoginForm form, HttpServletRequest request){
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        form.email(), form.password())
+                        form.emailOrPhone(), form.password())
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
         request.getSession(true);
@@ -100,6 +153,10 @@ public class AuthenticationController {
         else {
             return otpService.validateEnteredOTP(signupForm.email(), enteredOTP);
         }
+    }
+
+    private VerificationCheck verifyEnteredCode(LoginForm signupForm, String enteredOTP){
+        return otpService.validateEnteredOTP(signupForm.emailOrPhone(), enteredOTP);
     }
 
     @PostMapping("/signup/initialize")
@@ -139,11 +196,20 @@ public class AuthenticationController {
     }
 
 
-    private ResponseEntity<String> signUpNewUser(SignupForm signupForm, HttpServletRequest request)
+    private ResponseEntity<?> signUpNewUser(SignupForm signupForm, HttpServletRequest request)
     {
         //This block of code deals with creating the user in the database.
         try {
             User createdUser = userService.createNewUser(signupForm);
+            // This block of code is used to automatically authenticate the user that just signed up,
+            // ensuring a seamless UX
+            Authentication auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            signupForm.email(), signupForm.password())
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            request.getSession(true);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
@@ -169,20 +235,11 @@ public class AuthenticationController {
                 }
             }
         }
-
-        // This block of code is used to automatically authenticate the user that just signed up,
-        // ensuring a seamless UX
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        signupForm.email(), signupForm.password())
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        request.getSession(true);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Account created successfully");
+        return ResponseEntity.status(500).body("An unexpected error has occurred, please try again later");
     }
 
     @PostMapping("/signup/finalize")
-    public ResponseEntity<String> finalizeSignup(@Valid @RequestBody SignupForm signupForm, HttpServletRequest request,
+    public ResponseEntity<?> finalizeSignup(@Valid @RequestBody SignupForm signupForm, HttpServletRequest request,
                                                  @RequestParam String enteredOtpCode){
 
 

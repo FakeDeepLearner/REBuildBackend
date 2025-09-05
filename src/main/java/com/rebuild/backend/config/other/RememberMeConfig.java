@@ -32,6 +32,7 @@ public class RememberMeConfig {
                 System.getenv("REMEMBER_ME_KEY"),
                 userDetailsService, persistentTokenRepository);
         services.setTokenValiditySeconds(86400 * 7);
+        services.setParameter("remember-me");
 
         return services;
     }

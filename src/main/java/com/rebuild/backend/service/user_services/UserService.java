@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
+import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.FriendRelationshipRepository;
 import com.rebuild.backend.repository.ResumeRepository;
@@ -110,20 +111,35 @@ public class UserService{
         }
     }
 
-    public boolean validateLoginCredentials(LoginForm form) {
-        String formField = form.email();
-        //If we can't find a user with the provided email address, we simply return false
-        User foundUser = repository.findByEmail(formField).
-                orElse(null);
+    public CredentialValidationDTO validateLoginCredentials(LoginForm form) {
+        String formField = form.emailOrPhone();
+
+        User foundUser;
+        String userChannel;
+        if(formField.contains("@"))
+        {
+            //If we can't find a user with the provided email address, we simply return false
+            foundUser = repository.findByEmail(formField).
+                    orElse(null);
+            userChannel = "email";
+        }
+
+        else
+        {
+            //Same logic as above
+            foundUser = repository.findByPhoneNumber(formField).orElse(null);
+            userChannel = "sms";
+        }
 
         if (foundUser == null) {
-            return false;
+            return new CredentialValidationDTO(false, "whatever", "whatever");
         }
 
         String userSalt = foundUser.getSaltValue();
         String pepper = System.getenv("PEPPER_VALUE");
 
-        return encoder.matches(form.password() + userSalt + pepper, foundUser.getPassword());
+        return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
+                foundUser.getPassword()), foundUser.getEmail(), userChannel);
 
     }
 

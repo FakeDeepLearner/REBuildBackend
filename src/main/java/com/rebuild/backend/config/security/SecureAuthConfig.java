@@ -42,16 +42,16 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.PUT,  "/home/**").authenticated().
                         requestMatchers(HttpMethod.DELETE,  "/home/**").authenticated().
                         requestMatchers(HttpMethod.PATCH,  "/home/**").authenticated())
-                .formLogin(login -> login.loginPage("/login").
+                .formLogin(login -> login.loginPage("/login/finalize").
                                 permitAll())
-                .oauth2Login(login -> login.loginPage("/login")
+                .oauth2Login(login -> login.loginPage("/login/finalize")
                         .permitAll())
                 .logout(config -> config.
                     logoutUrl("/logout").
                     logoutSuccessUrl("/login?logout=true").
                     addLogoutHandler(logoutController).deleteCookies("JSESSIONID").permitAll())
                 .rememberMe(rememberMe ->
-                        rememberMe.rememberMeServices(rememberMeServices))
+                        rememberMe.rememberMeServices(rememberMeServices).useSecureCookie(true))
                 .addFilterAfter(rememberMeAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return security.build();
 
