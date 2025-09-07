@@ -16,6 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -67,6 +68,9 @@ public class User implements UserDetails {
     @NonNull
     @Column(name = "salt_value", nullable = false)
     private String saltValue;
+
+    @Column(name = "time_zone", nullable = false)
+    private ZoneId timeZone = ZoneId.of("UTC");
 
     @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
     cascade = {

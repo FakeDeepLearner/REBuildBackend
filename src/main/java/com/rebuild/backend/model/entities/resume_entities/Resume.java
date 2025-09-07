@@ -56,7 +56,7 @@ public class Resume implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true)
-    @OrderColumn(name = "insertion_position")
+    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private List<Experience> experiences;
 

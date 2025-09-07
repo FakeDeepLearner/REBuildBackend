@@ -13,18 +13,18 @@ public class YearMonthSerializer extends JsonSerializer<YearMonth> {
 
     private String determineMonthString(int monthValue){
         return switch (monthValue) {
-            case 1 -> "January";
-            case 2 -> "February";
-            case 3 -> "March";
-            case 4 -> "April";
+            case 1 -> "Jan";
+            case 2 -> "Feb";
+            case 3 -> "Mar";
+            case 4 -> "Apr";
             case 5 -> "May";
-            case 6 -> "June";
-            case 7 -> "July";
-            case 8 -> "August";
-            case 9 -> "September";
-            case 10 -> "October";
-            case 11 -> "November";
-            case 12 -> "December";
+            case 6 -> "Jun";
+            case 7 -> "Jul";
+            case 8 -> "Aug";
+            case 9 -> "Sep";
+            case 10 -> "Oct";
+            case 11 -> "Nov";
+            case 12 -> "Dec";
             default -> throw new IllegalStateException("Unexpected value: " + monthValue);
         };
     }
@@ -34,6 +34,11 @@ public class YearMonthSerializer extends JsonSerializer<YearMonth> {
                           JsonGenerator jsonGenerator,
                           SerializerProvider serializerProvider) throws IOException {
 
+        // "null" represents the "Present" string
+        if (yearMonth == null) {
+            jsonGenerator.writeString("Present");
+            return;
+        }
 
         int year = yearMonth.getYear();
         int month = yearMonth.getMonthValue();

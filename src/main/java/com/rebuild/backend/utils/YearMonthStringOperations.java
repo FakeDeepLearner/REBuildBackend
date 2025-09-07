@@ -6,14 +6,20 @@ import com.rebuild.backend.model.entities.enums.ComparisonMethod;
 import org.springframework.stereotype.Component;
 
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Component
 public class YearMonthStringOperations {
 
-    private static final DateTimeFormatter yearMonthFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
+    private static final DateTimeFormatter yearMonthFormatter = DateTimeFormatter.ofPattern("uuuu-MM");
 
-    public static YearMonth getYearMonth(String yearMonth) {
+    public static YearMonth getYearMonth(String yearMonth)
+    {
+        if (yearMonth.equals("Present"))
+        {
+            return null;
+        }
         return YearMonth.parse(yearMonth, yearMonthFormatter);
     }
 

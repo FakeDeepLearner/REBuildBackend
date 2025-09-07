@@ -58,7 +58,7 @@ public class Experience implements ResumeProperty {
     @Convert(converter = YearMonthDatabaseConverter.class)
     private YearMonth startDate;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
