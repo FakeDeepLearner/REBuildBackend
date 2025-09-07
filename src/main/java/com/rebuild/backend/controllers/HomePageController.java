@@ -19,7 +19,6 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class HomePageController {
 
     private final UserService userService;
@@ -72,17 +71,24 @@ public class HomePageController {
     }
 
     @DeleteMapping("/api/delete/{res_id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(NO_CONTENT)
     public void deleteResume(@PathVariable UUID res_id){
         resumeService.deleteById(res_id);
     }
 
 
     @DeleteMapping("/api/delete_phone")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(NO_CONTENT)
     public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {
 
         userService.removePhoneOf(authenticatedUser);
+    }
+
+    @PostMapping("/api/update_time_zone")
+    @ResponseStatus(OK)
+    public User updateTimeZone(@AuthenticationPrincipal User updatingUser,
+                               @RequestBody String timeZone){
+        return userService.modifyTimeZone(updatingUser, timeZone);
     }
 
 }

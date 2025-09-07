@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -161,9 +162,18 @@ public class UserService{
         String generatedSalt = generateSaltValue(16);
         String pepper = System.getenv("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
+        ZoneId userTimeZone = ZoneId.of(signupForm.timezoneAsString());
         User newUser = new User(encodedPassword, signupForm.email(),
-                signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt);
+                signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt, userTimeZone);
         return save(newUser);
+    }
+
+    @Transactional
+    public User modifyTimeZone(User modifyingUser, String newTimeZone)
+    {
+        ZoneId newUserZone = ZoneId.of(newTimeZone);
+        modifyingUser.setTimeZone(newUserZone);
+        return save(modifyingUser);
     }
 
     @Transactional

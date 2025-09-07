@@ -70,6 +70,7 @@ public class User implements UserDetails {
     private String saltValue;
 
     @Column(name = "time_zone", nullable = false)
+    @NonNull
     private ZoneId timeZone = ZoneId.of("UTC");
 
     @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
@@ -148,12 +149,14 @@ public class User implements UserDetails {
                 @NonNull String email,
                 String phoneNumber,
                 String forumUsername,
-                String saltValue) {
+                @NonNull String saltValue,
+                @NonNull ZoneId timeZone) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.forumUsername = forumUsername;
         this.saltValue = saltValue;
+        this.timeZone = timeZone;
     }
 
     @Override

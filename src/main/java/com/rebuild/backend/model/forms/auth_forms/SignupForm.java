@@ -19,6 +19,9 @@ public record SignupForm(
                          @NotBlank(message = "Repeated password is required")
                          String repeatedPassword,
 
+                         @NotBlank(message = "Timezone is required")
+                         String timezoneAsString,
+
                          @NotBlank(message = "Forum Username is required")
                          String forumUsername,
 
