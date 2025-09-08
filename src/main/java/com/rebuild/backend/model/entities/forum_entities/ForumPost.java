@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
@@ -37,7 +38,7 @@ public class ForumPost {
     @NonNull
     private String content;
 
-    @NonNull
+    @Column(name = "author_name")
     private String authorUsername;
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
@@ -65,5 +66,12 @@ public class ForumPost {
 
     @Column(name = "comments_count", nullable = false)
     private int commentCount = 0;
+
+
+    @JsonGetter(value = "authorUsername")
+    private String determineAuthorName()
+    {
+        return authorUsername != null ? authorUsername : "Anonymous";
+    }
 
 }

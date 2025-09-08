@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
@@ -60,6 +61,13 @@ public class Comment {
     @Column(name = "likes_count", nullable = false)
     private int likeCount = 0;
 
-    @NonNull
+    @Column(name = "author_name")
     private String authorUsername;
+
+
+    @JsonGetter(value = "authorUsername")
+    private String determineAuthorName()
+    {
+        return authorUsername != null ? authorUsername : "Anonymous";
+    }
 }

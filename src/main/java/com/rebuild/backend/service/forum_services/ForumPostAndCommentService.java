@@ -44,7 +44,6 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class ForumPostAndCommentService {
-    private final static String ANONYMOUS_USER = "Anonymous";
 
     private final ResumeService resumeService;
 
@@ -74,7 +73,8 @@ public class ForumPostAndCommentService {
                                    int resumeIndex,
                                    User creatingUser){
         String displayedUsername = determineDisplayedUsername(creatingUser, postForm.remainAnonymous());
-        ForumPost newPost = new ForumPost(postForm.title(), postForm.content(), displayedUsername);
+        ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
+        newPost.setAuthorUsername(displayedUsername);
         Resume associatedResume = resumeService.findByUserIndex(creatingUser, resumeIndex);
         newPost.setResume(associatedResume);
         newPost.setCreatingUser(creatingUser);
@@ -97,7 +97,8 @@ public class ForumPostAndCommentService {
         String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
         ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
         post.setCommentCount(post.getCommentCount() + 1);
-        Comment newComment = new Comment(commentForm.content(), displayedUsername);
+        Comment newComment = new Comment(commentForm.content());
+        newComment.setAuthorUsername(displayedUsername);
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
         creatingUser.getMadeComments().add(newComment);
@@ -128,7 +129,8 @@ public class ForumPostAndCommentService {
         else{
             topLevelComment.setRepliesCount(topLevelComment.getRepliesCount() + 1);
         }
-        CommentReply newReply = new CommentReply(commentForm.content(), displayedUsername);
+        CommentReply newReply = new CommentReply(commentForm.content());
+        newReply.setAuthorUsername(displayedUsername);
         newReply.setAuthor(creatingUser);
         creatingUser.getMadeReplies().add(newReply);
         newReply.setParentReply(parentReply);
@@ -137,7 +139,7 @@ public class ForumPostAndCommentService {
     }
 
     private String determineDisplayedUsername(User creatingUser, boolean anonymity){
-        return anonymity ? ANONYMOUS_USER : creatingUser.getForumUsername();
+        return anonymity ? null : creatingUser.getForumUsername();
     }
 
     public boolean postBelongsToUser(UUID postID, UUID userID){
