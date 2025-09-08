@@ -42,8 +42,13 @@ public class OAuthClientsConfig {
                 clientId(googleClientId).
                 clientSecret(googleClientSecret).
                 clientName("Google").
+                scope("openid", "profile", "email").
+                authorizationUri("https://accounts.google.com/o/oauth2/auth").
+                tokenUri("https://oauth2.googleapis.com/token").
+                userInfoUri("https://openidconnect.googleapis.com/v1/userinfo").
+                redirectUri("http://localhost:8080/login/oauth2/code/google").
+                authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE).
                 build();
-
 
 
         return new InMemoryClientRegistrationRepository(githubClient, googleClient);
