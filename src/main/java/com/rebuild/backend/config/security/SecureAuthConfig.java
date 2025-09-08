@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
@@ -37,7 +38,8 @@ public class SecureAuthConfig {
     @Order(3)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
                                                          RememberMeServices rememberMeServices,
-                                                         RememberMeAuthenticationFilter rememberMeAuthenticationFilter) throws Exception {
+                                                         RememberMeAuthenticationFilter rememberMeAuthenticationFilter,
+                                                         ClientRegistrationRepository registrationRepository) throws Exception {
         security.
                 authorizeHttpRequests(config -> config.
                         requestMatchers(HttpMethod.GET, "/home/**").authenticated().
@@ -45,11 +47,12 @@ public class SecureAuthConfig {
                         requestMatchers(HttpMethod.PUT,  "/home/**").authenticated().
                         requestMatchers(HttpMethod.DELETE,  "/home/**").authenticated().
                         requestMatchers(HttpMethod.PATCH,  "/home/**").authenticated())
-                // We have to disable these, because we have a 2-step (2-endpoint) login process, and
-                // they expect to have everything neatly done in 1 endpoint. I will probably have to resort to implementing
-                // OAuth2 manually as well (AUGHHHHHH)
+                //Form login is disabled, because it expects everything to be done in one endpoint.
+                //However, our standard (non-OAuth) login flow has 2 separate endpoints that need to be called.
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2Login(OAuth2LoginConfigurer::disable)
+                .oauth2Login(config ->
+                        config.clientRegistrationRepository(registrationRepository).
+                                loginPage("/login"))
                 .logout(config -> config.
                     logoutUrl("/logout").
                     logoutSuccessUrl("/login?logout=true").

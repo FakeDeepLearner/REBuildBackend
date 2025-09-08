@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 /src/main/resources/sslkey.jks
+/src/main/resources/origin.p7b
+/src/main/resources/private_key.p7b
 ### STS ###
 .apt_generated
 .classpath
