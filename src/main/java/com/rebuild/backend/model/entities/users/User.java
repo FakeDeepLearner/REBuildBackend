@@ -11,6 +11,7 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,6 +36,8 @@ import java.util.UUID;
 public class User implements UserDetails {
 
     private static final int FREE_MAX_RESUME_LIMIT = 25;
+
+    private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -121,9 +124,6 @@ public class User implements UserDetails {
     private Authority authority = Authority.USER_FREE;
 
     @JsonIgnore
-    private boolean accountNonExpired = false;
-
-    @JsonIgnore
     private boolean accountNonLocked = false;
 
     @JsonIgnore
@@ -144,7 +144,7 @@ public class User implements UserDetails {
                 @NonNull String email,
                 String phoneNumber,
                 String forumUsername,
-                String saltValue) {
+                @NonNull String saltValue) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
@@ -171,7 +171,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return accountNonExpired;
+        return lastLoginTime.isAfter(LocalDateTime.now().minusMonths(MONTHS_ALLOWED_BEFORE_EXPIRY));
     }
 
     @Override

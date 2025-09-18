@@ -46,6 +46,13 @@ public class AuthenticationController {
     @PostMapping("/login/initialize")
     public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm) {
         CredentialValidationDTO credentialValidationDTO = userService.validateLoginCredentials(loginForm);
+
+        if (credentialValidationDTO.resentOtp())
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Your account has been " +
+                    "locked due to prolonged inactivity. A code has been sent to your email or your phone number. " +
+                    "Please enter it to unlock your account");
+        }
         Bucket userBucket = userService.returnUserBucket(credentialValidationDTO.userEmail());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
@@ -85,8 +92,8 @@ public class AuthenticationController {
             }
         }
 
-
     }
+
 
     @PostMapping("/login/finalize")
     @ResponseStatus(HttpStatus.OK)
@@ -111,14 +118,7 @@ public class AuthenticationController {
             case "expired" -> {
                 //We send the notification again via the same channel that the user used to originally obtain it.
                 String oldChannel = verificationCheck.getChannel().toString();
-                if (oldChannel.equals("sms"))
-                {
-                    otpService.generateOTPCode(form.emailOrPhone(), "sms");
-                }
-                else if(oldChannel.equals("email"))
-                {
-                    otpService.generateOTPCode(form.emailOrPhone(), "email");
-                }
+                otpService.generateOTPCode(form.emailOrPhone(), oldChannel);
                 return ResponseEntity.status(HttpStatus.GONE).
                         body("The passcode that you requested has expired, " +
                                 "we have sent you a new one, please enter it");
@@ -133,6 +133,43 @@ public class AuthenticationController {
         }
         return ResponseEntity.internalServerError().body("An unexpected error has occurred");
 
+    }
+
+    @PostMapping("/unlock_account")
+    public ResponseEntity<?> unlockAccount(@Valid @RequestBody LoginForm form,
+                                           @RequestParam String enteredOTPCode, HttpServletRequest request)
+    {
+        VerificationCheck verificationCheck = verifyEnteredCode(form, enteredOTPCode);
+        String status = verificationCheck.getStatus();
+
+        switch (status){
+            case "approved" -> {
+                userService.unlockUser(form.emailOrPhone());
+                loginHelper(form, request);
+                return ResponseEntity.ok().body("Account unlocked successfully, logging you in");
+            }
+
+            case "failed" -> {
+                return ResponseEntity.badRequest().body("You have entered the wrong code");
+            }
+
+            case "expired" -> {
+                //We send the notification again via the same channel that the user used to originally obtain it.
+                String oldChannel = verificationCheck.getChannel().toString();
+                otpService.generateOTPCode(form.emailOrPhone(), oldChannel);
+                return ResponseEntity.status(HttpStatus.GONE).
+                        body("The passcode that you requested has expired, " +
+                                "we have sent you a new one, please enter it");
+            }
+
+            case "max_attempts_reached" -> {
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                        body("You have reached the maximum number of attempts.");
+            }
+
+        }
+        return ResponseEntity.internalServerError().body("An unexpected error has occurred");
     }
 
 
