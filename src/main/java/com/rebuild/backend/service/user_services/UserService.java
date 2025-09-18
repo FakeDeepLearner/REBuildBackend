@@ -11,6 +11,8 @@ import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.FriendRelationshipRepository;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.repository.UserRepository;
+import com.rebuild.backend.service.token_services.OTPService;
+import com.sendgrid.SendGrid;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
@@ -22,6 +24,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.AccountExpiredException;
+import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -52,6 +56,8 @@ public class UserService{
 
     private final FriendRelationshipRepository friendRelationshipRepository;
 
+    private final OTPService otpService;
+
 
     @Autowired
     public UserService(UserRepository repository,
@@ -59,8 +65,9 @@ public class UserService{
                        ResumeRepository resumeRepository,
                        ProxyManager<String> proxyManager,
                        BucketConfiguration bucketConfiguration,
-                      FriendRelationshipRepository friendRelationshipRepository) {
+                       FriendRelationshipRepository friendRelationshipRepository, SendGrid sendGrid, OTPService otpService) {
         this.repository = repository;
+        this.otpService = otpService;
         this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
@@ -76,6 +83,16 @@ public class UserService{
         }
     }
 
+    public Optional<User> findByEmailOrPhone(String emailOrPhone)
+    {
+        if(emailOrPhone.contains("@"))
+        {
+            return findByEmail(emailOrPhone);
+        }
+        else {
+            return repository.findByPhoneNumber(emailOrPhone);
+        }
+    }
 
     public Optional<User> findByEmail(String email){
         return repository.findByEmail(email);
@@ -115,32 +132,40 @@ public class UserService{
     public CredentialValidationDTO validateLoginCredentials(LoginForm form) {
         String formField = form.emailOrPhone();
 
-        User foundUser;
+        User foundUser = findByEmailOrPhone(formField).orElse(null);
+
+        if (foundUser == null) {
+            return new CredentialValidationDTO(false, "whatever", "whatever", false);
+        }
+
+
         String userChannel;
         if(formField.contains("@"))
         {
-            //If we can't find a user with the provided email address, we simply return false
-            foundUser = repository.findByEmail(formField).
-                    orElse(null);
             userChannel = "email";
         }
 
         else
         {
-            //Same logic as above
-            foundUser = repository.findByPhoneNumber(formField).orElse(null);
             userChannel = "sms";
         }
 
-        if (foundUser == null) {
-            return new CredentialValidationDTO(false, "whatever", "whatever");
+        try {
+            new AccountStatusUserDetailsChecker().check(foundUser);
         }
+        catch (AccountExpiredException expiredException)
+        {
+            otpService.generateOTPCode(formField, userChannel);
+            return new CredentialValidationDTO(false,
+                    "whatever", "whatever", true);
+        }
+
 
         String userSalt = foundUser.getSaltValue();
         String pepper = System.getenv("PEPPER_VALUE");
 
         return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
-                foundUser.getPassword()), foundUser.getEmail(), userChannel);
+                foundUser.getPassword()), foundUser.getEmail(), userChannel, false);
 
     }
 
@@ -181,25 +206,15 @@ public class UserService{
         return repository.save(user);
     }
 
-
     @Transactional
-    protected void blockInactiveUsers(LocalDateTime cutoff){
-        List<User> inactiveUsers = repository.findByLastLoginTimeBefore(cutoff);
-        inactiveUsers.forEach((user) -> {
-            user.setAccountNonExpired(false);
-            save(user);
-        });
-    }
+    public void unlockUser(String emailOrPhone)
+    {
+        User userToUnlock = findByEmailOrPhone(emailOrPhone).orElse(null);
+        assert userToUnlock != null;
 
-    //The following method will run every day at midnight (local (EST) time)
-    @Scheduled(cron = "@midnight")
-    @Transactional
-    public void blockingScheduledTask(){
-        //Block all users that haven't logged in for (at least) 6 months
-        LocalDateTime cutoff = LocalDateTime.now().minusMonths(6);
-        blockInactiveUsers(cutoff);
+        userToUnlock.setLastLoginTime(LocalDateTime.now());
+        save(userToUnlock);
     }
-
 
     @Transactional
     public User modifyForumUsername(User modifyingUser, String newUsername){

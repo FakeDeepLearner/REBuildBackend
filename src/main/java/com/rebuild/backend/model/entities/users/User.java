@@ -37,6 +37,8 @@ public class User implements UserDetails {
 
     private static final int FREE_MAX_RESUME_LIMIT = 25;
 
+    private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(
@@ -126,9 +128,6 @@ public class User implements UserDetails {
     private Authority authority = Authority.USER_FREE;
 
     @JsonIgnore
-    private boolean accountNonExpired = false;
-
-    @JsonIgnore
     private boolean accountNonLocked = false;
 
     @JsonIgnore
@@ -178,7 +177,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return accountNonExpired;
+        return lastLoginTime.isAfter(LocalDateTime.now().minusMonths(MONTHS_ALLOWED_BEFORE_EXPIRY));
     }
 
     @Override
