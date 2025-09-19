@@ -9,7 +9,11 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", indexes = {
+        @Index(columnList = "sender_id"),
+        @Index(columnList = "recipient_id"),
+        @Index(columnList = "associated_chat_id")
+})
 @NoArgsConstructor
 @RequiredArgsConstructor
 @AllArgsConstructor

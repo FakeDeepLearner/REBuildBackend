@@ -18,7 +18,10 @@ import java.util.UUID;
 )
 @Entity
 @Table(name = "versions", indexes = {
-        @Index(columnList = "id, created_date")
+        @Index(columnList = "id, created_date"),
+        @Index(columnList = "header_id"),
+        @Index(columnList = "education_id"),
+        @Index(columnList = "experience_id")
 })
 @Data
 @NoArgsConstructor
@@ -42,7 +45,7 @@ public class ResumeVersion {
     private Education versionedEducation;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> versionedExperiences;
 
     @Column(name = "created_date", nullable = false, updatable = false)

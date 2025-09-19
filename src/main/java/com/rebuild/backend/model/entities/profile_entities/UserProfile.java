@@ -17,7 +17,12 @@ import static jakarta.persistence.CascadeType.*;
 //@NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "profiles")
+@Table(name = "profiles", indexes = {
+        @Index(columnList = "header_id"),
+        @Index(columnList = "education_id"),
+        @Index(columnList = "experience_id"),
+        @Index(columnList = "user_id")
+})
 public class UserProfile {
 
     @Id
@@ -36,7 +41,7 @@ public class UserProfile {
     private Education education;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> experienceList;
 
     @Column(name = "page_size")

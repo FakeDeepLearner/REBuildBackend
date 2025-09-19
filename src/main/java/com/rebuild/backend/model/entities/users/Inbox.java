@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inboxes")
+@Table(name = "inboxes", indexes = {
+        @Index(columnList = "user_id"),
+        @Index(columnList = "request_id"),
+        @Index(columnList = "message_id")
+})
 @Data
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -37,14 +41,14 @@ public class Inbox {
     @OneToMany(fetch = FetchType.LAZY, cascade = {
      CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH
     })
-    @JoinColumn(name = "inbox_id")
+    @JoinColumn(name = "request_id")
     @OrderColumn(name = "insert_position")
     private List<FriendRequest> pendingRequests = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH
     })
-    @JoinColumn(name = "inbox_id")
+    @JoinColumn(name = "message_id")
     @OrderColumn(name = "insert_position")
     private List<Message> incomingMessages = new ArrayList<>();
 

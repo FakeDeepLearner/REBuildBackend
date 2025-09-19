@@ -12,7 +12,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 
-@Table(name = "comment_replies")
+@Table(name = "comment_replies", indexes = {
+        @Index(columnList = "parent_comment_id"),
+        @Index(columnList = "parent_reply_id"),
+        @Index(columnList = "author_id")
+})
 @Entity
 @Data
 @NoArgsConstructor

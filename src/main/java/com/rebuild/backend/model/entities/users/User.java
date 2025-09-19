@@ -28,7 +28,9 @@ import java.util.UUID;
         //Even if we set up a unique constraint on phone numbers, postgresql allows for multiple null values
         @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"}),
         @UniqueConstraint(name = "uk_forum_username", columnNames = {"forum_username"})
-}, indexes = {@Index(columnList = "lastLoginTime")})
+}, indexes = {
+        @Index(columnList = "lastLoginTime")
+})
 @RequiredArgsConstructor
 @Data
 @NoArgsConstructor

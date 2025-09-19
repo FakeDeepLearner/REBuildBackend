@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(columnList = "author_id"),
+        @Index(columnList = "post_id")
+})
 @NamedQueries(
         value = {
                 @NamedQuery(name = "Comment.countByIdAndUserId",

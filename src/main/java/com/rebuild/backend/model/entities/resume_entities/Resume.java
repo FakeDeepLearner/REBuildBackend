@@ -16,6 +16,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "resumes", uniqueConstraints = {
         @UniqueConstraint(name = "uk_same_user_resume_name", columnNames = {"user_id", "name"})
+}, indexes = {
+        @Index(columnList = "header_id"),
+        @Index(columnList = "education_id"),
+        @Index(columnList = "experience_id"),
+        @Index(columnList = "user_id")
 })
 @NamedQueries(
         value = {
@@ -57,7 +62,7 @@ public class Resume implements Serializable {
             CascadeType.ALL
     }, orphanRemoval = true)
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    @JoinColumn(name = "parent_id", referencedColumnName = "id")
+    @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> experiences;
 
     @ManyToOne(cascade = {

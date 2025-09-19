@@ -11,7 +11,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "friendships")
+@Table(name = "friendships", indexes = {
+        @Index(columnList = "sender_id"),
+        @Index(columnList = "recipient_id")
+})
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
