@@ -44,7 +44,13 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login/initialize")
-    public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm) {
+    public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm,
+                                             @RequestParam(name = "g-recaptcha-response") String userResponse,
+                                             HttpServletRequest request) {
+        if (!userService.captchaVerified(userResponse, request.getRemoteAddr())) {
+            return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
+        }
+
         CredentialValidationDTO credentialValidationDTO = userService.validateLoginCredentials(loginForm);
 
         if (credentialValidationDTO.resentOtp())
@@ -197,21 +203,21 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup/initialize")
-    public ResponseEntity<String> initializeSignup(@Valid @RequestBody SignupForm signupForm){
+    public ResponseEntity<String> initializeSignup(@Valid @RequestBody SignupForm signupForm,
+                                                   @RequestParam(name = "g-recaptcha-response") String userResponse,
+                                                   HttpServletRequest request){
+        
+        if (!userService.captchaVerified(userResponse, request.getRemoteAddr())) {
+            return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
+        }
 
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupForm.password().equals(signupForm.repeatedPassword())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Passwords do not match");
         }
 
-        Optional<User> foundUser = userService.findByEmail(signupForm.email());
 
-        if(foundUser.isPresent()){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("This email is already in use");
-        }
-
-
-        if(signupForm.otpChannel().equals("sms") && signupForm.phoneNumber() == null)
+        if((signupForm.otpChannel().equals("sms") || signupForm.otpChannel().equals("call")) && signupForm.phoneNumber() == null)
         {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You have selected for a code to be sent to " +
                     "your phone, but you haven't entered a phone number");
@@ -219,8 +225,8 @@ public class AuthenticationController {
 
         switch(signupForm.otpChannel())
         {
-            case "sms":
-                otpService.generateOTPCode(signupForm.phoneNumber(), "sms");
+            case "sms", "call":
+                otpService.generateOTPCode(signupForm.phoneNumber(), signupForm.otpChannel());
                 break;
             case "email":
                 otpService.generateOTPCode(signupForm.email(), "email");

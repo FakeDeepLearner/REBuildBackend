@@ -3,11 +3,13 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.repository.CaptchaVerificationRepository;
 import com.rebuild.backend.repository.FriendRelationshipRepository;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.repository.UserRepository;
@@ -23,6 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
@@ -32,10 +36,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -56,6 +62,8 @@ public class UserService{
 
     private final FriendRelationshipRepository friendRelationshipRepository;
 
+    private final CaptchaVerificationRepository verificationRepository;
+
     private final OTPService otpService;
 
 
@@ -65,8 +73,9 @@ public class UserService{
                        ResumeRepository resumeRepository,
                        ProxyManager<String> proxyManager,
                        BucketConfiguration bucketConfiguration,
-                       FriendRelationshipRepository friendRelationshipRepository, SendGrid sendGrid, OTPService otpService) {
+                       FriendRelationshipRepository friendRelationshipRepository, SendGrid sendGrid, CaptchaVerificationRepository verificationRepository, OTPService otpService) {
         this.repository = repository;
+        this.verificationRepository = verificationRepository;
         this.otpService = otpService;
         this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
@@ -127,6 +136,39 @@ public class UserService{
                 }
             }
         }
+    }
+
+    public boolean captchaVerified(String userResponse, String userIp)
+    {
+        String urlToPost = "https://www.google.com/recaptcha/api/siteverify";
+
+        Map<String, String> body = new HashMap<>();
+        body.put("secret", System.getenv("GOOGLE_CAPTCHA_SECRET_KEY"));
+        body.put("response", userResponse);
+        body.put("remoteip", userIp);
+
+        RequestEntity<Map<String, String>> request = RequestEntity.post(urlToPost).body(body);
+
+        ResponseEntity<Map> response = new RestTemplate().exchange(request, Map.class);
+
+        Map<String, String> result = response.getBody();
+
+        if(result == null){
+            return false;
+        }
+        String successString = result.get("success");
+        String timestampString = result.get("challenge_ts");
+        LocalDateTime timestamp = LocalDateTime.parse(timestampString,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZZ"));
+
+        boolean success = Boolean.parseBoolean(successString);
+
+        CaptchaVerificationRecord newRecord = new CaptchaVerificationRecord(userIp,  timestamp, success);
+        verificationRepository.save(newRecord);
+
+        return success;
+
+
     }
 
     public CredentialValidationDTO validateLoginCredentials(LoginForm form) {
