@@ -20,8 +20,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+import java.io.IOException;
 
 
 @RestController
@@ -47,7 +48,7 @@ public class AuthenticationController {
     public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm,
                                              @RequestParam(name = "g-recaptcha-response") String userResponse,
                                              HttpServletRequest request) {
-        if (!userService.captchaVerified(userResponse, request.getRemoteAddr())) {
+        if (userService.captchaFailed(userResponse, request.getRemoteAddr())) {
             return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
         }
 
@@ -207,7 +208,7 @@ public class AuthenticationController {
                                                    @RequestParam(name = "g-recaptcha-response") String userResponse,
                                                    HttpServletRequest request){
         
-        if (!userService.captchaVerified(userResponse, request.getRemoteAddr())) {
+        if (userService.captchaFailed(userResponse, request.getRemoteAddr())) {
             return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
         }
 
@@ -239,11 +240,12 @@ public class AuthenticationController {
     }
 
 
-    private ResponseEntity<?> signUpNewUser(SignupForm signupForm, HttpServletRequest request)
+    private ResponseEntity<?> signUpNewUser(SignupForm signupForm, HttpServletRequest request,
+                                            MultipartFile pictureFile)
     {
         //This block of code deals with creating the user in the database.
         try {
-            User createdUser = userService.createNewUser(signupForm);
+            User createdUser = userService.createNewUser(signupForm, pictureFile);
             // This block of code is used to automatically authenticate the user that just signed up,
             // ensuring a seamless UX
             Authentication auth = authManager.authenticate(
@@ -278,13 +280,19 @@ public class AuthenticationController {
                 }
             }
         }
-        return ResponseEntity.status(500).body("An unexpected error has occurred, please try again later");
+        catch (IOException ioException){
+            return ResponseEntity.status(500).body("An unexpected error has occurred, please try again later. The error is:\n "
+            + ioException.getMessage());
+        }
+
+        return null;
     }
 
-    @PostMapping("/signup/finalize")
-    public ResponseEntity<?> finalizeSignup(@Valid @RequestBody SignupForm signupForm, HttpServletRequest request,
-                                                 @RequestParam String enteredOtpCode){
-
+    @PostMapping(value = "/signup/finalize", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<?> finalizeSignup(@Valid @RequestPart(name = "meta") SignupForm signupForm,
+                                            HttpServletRequest request,
+                                            @RequestPart(name = "file") MultipartFile profilePicture,
+                                            @RequestParam String enteredOtpCode){
 
         VerificationCheck verificationCheck = verifyEnteredCode(signupForm, enteredOtpCode);
 
@@ -292,7 +300,7 @@ public class AuthenticationController {
 
         switch (status){
             case "approved" -> {
-                return signUpNewUser(signupForm, request);
+                return signUpNewUser(signupForm, request, profilePicture);
             }
 
             case "failed" -> {

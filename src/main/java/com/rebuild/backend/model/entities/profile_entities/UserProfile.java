@@ -21,7 +21,8 @@ import static jakarta.persistence.CascadeType.*;
         @Index(columnList = "header_id"),
         @Index(columnList = "education_id"),
         @Index(columnList = "experience_id"),
-        @Index(columnList = "user_id")
+        @Index(columnList = "user_id"),
+        @Index(columnList = "picture_id")
 })
 public class UserProfile {
 
@@ -43,6 +44,10 @@ public class UserProfile {
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> experienceList;
+
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name = "picture_id", referencedColumnName = "id")
+    private ProfilePicture profilePicture;
 
     @Column(name = "page_size")
     private int forumPageSize = 20;

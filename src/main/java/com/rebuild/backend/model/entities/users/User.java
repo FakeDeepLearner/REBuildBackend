@@ -88,7 +88,7 @@ public class User implements UserDetails {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
     })
     @JsonIgnore
-    private UserProfile profile = null;
+    private UserProfile profile;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
     cascade = {

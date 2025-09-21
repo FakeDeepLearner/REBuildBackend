@@ -1,7 +1,11 @@
 package com.rebuild.backend.service.user_services;
 
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
+import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
 import com.rebuild.backend.model.entities.users.User;
@@ -9,10 +13,7 @@ import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.responses.HomePageData;
-import com.rebuild.backend.repository.CaptchaVerificationRepository;
-import com.rebuild.backend.repository.FriendRelationshipRepository;
-import com.rebuild.backend.repository.ResumeRepository;
-import com.rebuild.backend.repository.UserRepository;
+import com.rebuild.backend.repository.*;
 import com.rebuild.backend.service.token_services.OTPService;
 import com.sendgrid.SendGrid;
 import io.github.bucket4j.Bucket;
@@ -27,7 +28,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.core.session.SessionInformation;
@@ -36,8 +36,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -66,6 +69,12 @@ public class UserService{
 
     private final OTPService otpService;
 
+    private final Cloudinary cloudinary;
+
+    private final ProfileRepository profileRepository;
+
+    private final ProfilePictureRepository profilePictureRepository;
+
 
     @Autowired
     public UserService(UserRepository repository,
@@ -73,10 +82,15 @@ public class UserService{
                        ResumeRepository resumeRepository,
                        ProxyManager<String> proxyManager,
                        BucketConfiguration bucketConfiguration,
-                       FriendRelationshipRepository friendRelationshipRepository, SendGrid sendGrid, CaptchaVerificationRepository verificationRepository, OTPService otpService) {
+                       FriendRelationshipRepository friendRelationshipRepository,
+                       SendGrid sendGrid, CaptchaVerificationRepository verificationRepository,
+                       OTPService otpService, Cloudinary cloudinary, ProfileRepository profileRepository, ProfilePictureRepository profilePictureRepository) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
+        this.cloudinary = cloudinary;
+        this.profileRepository = profileRepository;
+        this.profilePictureRepository = profilePictureRepository;
         this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
@@ -138,7 +152,7 @@ public class UserService{
         }
     }
 
-    public boolean captchaVerified(String userResponse, String userIp)
+    public boolean captchaFailed(String userResponse, String userIp)
     {
         String urlToPost = "https://www.google.com/recaptcha/api/siteverify";
 
@@ -154,7 +168,7 @@ public class UserService{
         Map<String, String> result = response.getBody();
 
         if(result == null){
-            return false;
+            return true;
         }
         String successString = result.get("success");
         String timestampString = result.get("challenge_ts");
@@ -166,7 +180,7 @@ public class UserService{
         CaptchaVerificationRecord newRecord = new CaptchaVerificationRecord(userIp,  timestamp, success);
         verificationRepository.save(newRecord);
 
-        return success;
+        return !success;
 
 
     }
@@ -225,14 +239,49 @@ public class UserService{
     }
 
     @Transactional
-    public User createNewUser(SignupForm signupForm){
+    public User createNewUser(SignupForm signupForm, MultipartFile pictureFile) throws IOException {
         String generatedSalt = generateSaltValue(16);
         String pepper = System.getenv("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         ZoneId userTimeZone = ZoneId.of(signupForm.timezoneAsString());
         User newUser = new User(encodedPassword, signupForm.email(),
                 signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt, userTimeZone);
+
+        UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
+        newUser.setProfile(newUserProfile);
+
         return save(newUser);
+    }
+
+    public void modifyProfilePictureOf(UserProfile profile, MultipartFile pictureFile) throws IOException
+    {
+        if (!pictureFile.isEmpty())
+        {
+            if(profile.getProfilePicture() != null)
+            {
+                profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
+                cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
+                        ObjectUtils.emptyMap());
+            }
+
+            @SuppressWarnings("JvmTaintAnalysis")
+            Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
+                            copyToByteArray(pictureFile.getInputStream()),
+                    ObjectUtils.emptyMap());
+            ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
+                    (String) uploadResult.get("asset_id"));
+            profile.setProfilePicture(profilePicture);
+        }
+    }
+
+    public UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
+
+        UserProfile newProfile = new UserProfile();
+        newProfile.setUser(newUser);
+
+        modifyProfilePictureOf(newProfile, pictureFile);
+
+        return profileRepository.save(newProfile);
     }
 
     @Transactional

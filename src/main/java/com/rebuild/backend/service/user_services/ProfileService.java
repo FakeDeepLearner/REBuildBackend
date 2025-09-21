@@ -11,9 +11,10 @@ import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,35 +28,39 @@ public class ProfileService {
 
     private final ObjectConverter objectConverter;
 
+    private final UserService userService;
+
     @Autowired
     public ProfileService(ProfileRepository profileRepository, SubpartsModificationUtility modificationUtility,
-                          ObjectConverter objectConverter) {
+                          ObjectConverter objectConverter, UserService userService) {
         this.profileRepository = profileRepository;
         this.modificationUtility = modificationUtility;
         this.objectConverter = objectConverter;
+        this.userService = userService;
     }
 
     @Transactional
-    public UserProfile createFullProfileFor(FullInformationForm profileForm, User creatingUser) {
-        UserProfile newProfile = getUserProfile(profileForm);
-        newProfile.setUser(creatingUser);
-        creatingUser.setProfile(newProfile);
-        return profileRepository.save(newProfile);
+    public UserProfile createFullProfileFor(FullInformationForm profileForm, User updatingUser,
+                                            MultipartFile pictureFile) throws IOException {
+        UserProfile updatedProfile = getUserProfile(updatingUser.getProfile(), profileForm, pictureFile);
+        return profileRepository.save(updatedProfile);
     }
 
 
-    private UserProfile getUserProfile(FullInformationForm profileForm) {
+    private UserProfile getUserProfile(UserProfile profile, FullInformationForm profileForm, MultipartFile pictureFile) throws IOException {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
 
-        UserProfile newProfile =  getUserProfile(profileForm, startDate, endDate);
+        UserProfile updatedProfile = getUserProfile(profile, profileForm, startDate, endDate);
         List<Experience> experiences = objectConverter.
-                extractProfileExperiences(profileForm.experiences(), newProfile);
-        newProfile.setExperienceList(experiences);
-        return newProfile;
+                extractProfileExperiences(profileForm.experiences(), updatedProfile);
+        updatedProfile.setExperienceList(experiences);
+
+        userService.modifyProfilePictureOf(updatedProfile, pictureFile);
+        return updatedProfile;
     }
 
-    private UserProfile getUserProfile(FullInformationForm profileForm, YearMonth startDate, YearMonth endDate) {
+    private UserProfile getUserProfile(UserProfile profile, FullInformationForm profileForm, YearMonth startDate, YearMonth endDate) {
         Header profileHeader = new Header(profileForm.headerForm().number(),
                 profileForm.headerForm().firstName(),
                 profileForm.headerForm().lastName(),
@@ -64,8 +69,9 @@ public class ProfileService {
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
 
-        return new UserProfile(profileHeader, newEducation,
-                new ArrayList<>());
+        profile.setEducation(newEducation);
+        profile.setHeader(profileHeader);
+        return profile;
     }
 
     @Transactional
@@ -133,22 +139,6 @@ public class ProfileService {
                 profileExperience.getId().equals(experience_id)
         );
         return profileRepository.save(profile);
-    }
-
-    @Transactional
-    public UserProfile updateEntireProfile(UserProfile updatingProfile, FullInformationForm profileForm){
-        YearMonth startDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
-        YearMonth endDate = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
-
-        updatingProfile.setExperienceList(objectConverter.extractProfileExperiences(profileForm.experiences(),
-                updatingProfile));
-        updatingProfile.setHeader(new Header(profileForm.headerForm().number(),
-                profileForm.headerForm().firstName(),
-                profileForm.headerForm().lastName(), profileForm.headerForm().email()));
-        updatingProfile.setEducation(new Education(profileForm.educationForm().schoolName(),
-                profileForm.educationForm().relevantCoursework(),
-                profileForm.educationForm().location(), startDate, endDate));
-        return profileRepository.save(updatingProfile);
     }
 
 }

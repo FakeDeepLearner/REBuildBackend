@@ -10,9 +10,13 @@ import com.rebuild.backend.service.user_services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,11 +34,18 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
-    @PostMapping("/create_profile")
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserProfile createFullProfileFor(@Valid @RequestBody FullInformationForm fullProfileForm,
-                                        @AuthenticationPrincipal User authenticatedUser) {
-        return profileService.createFullProfileFor(fullProfileForm, authenticatedUser);
+    @PostMapping(value = "/update_profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> updateProfile(@Valid @RequestPart(name = "meta") FullInformationForm fullProfileForm,
+                                                @RequestPart(name = "file") MultipartFile pictureFile,
+                                                @AuthenticationPrincipal User authenticatedUser) {
+        try {
+            UserProfile updatedProfile = profileService.createFullProfileFor(fullProfileForm, authenticatedUser, pictureFile);
+            return ResponseEntity.ok(updatedProfile);
+        }
+        catch (IOException ioException) {
+            return ResponseEntity.internalServerError().body("An unexpected error occured:\n " + ioException.getMessage());
+        }
     }
 
     @PatchMapping("/patch/page_size")
@@ -127,11 +138,20 @@ public class ProfileController {
                 experience_id);
     }
 
-    @PutMapping("/update_profile")
+    @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile changeEntireProfile(@AuthenticationPrincipal User updatingUser,
-                                           @Valid @RequestBody FullInformationForm profileForm){
-        return profileService.updateEntireProfile(updatingUser.getProfile(), profileForm);
+    public ResponseEntity<?> changeImage(@AuthenticationPrincipal User changingUser,
+                                   @RequestPart(name = "file") MultipartFile pictureFile)
+    {
+        try {
+            UserProfile profile = changingUser.getProfile();
+            userService.modifyProfilePictureOf(profile, pictureFile);
+            return ResponseEntity.ok().body(profile);
+        }
 
+        catch (IOException ioException) {
+            return ResponseEntity.internalServerError().body("An unexpected error occured:\n " + ioException.getMessage());
+        }
     }
+
 }
