@@ -1,5 +1,6 @@
 package com.rebuild.backend.utils.converters.database_converters;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.springframework.security.crypto.codec.Hex;
@@ -16,10 +17,15 @@ import org.springframework.stereotype.Component;
 * https://docs.spring.io/spring-security/reference/features/integrations/cryptography.html
 * */
 public class DatabaseEncryptor implements AttributeConverter<String, String> {
+
     // The password and salt are used to prevent dictionary attacks in the event that the (encrypted) database
     // is leaked
-    private final BytesEncryptor bytesEncryptor = Encryptors.stronger(System.getenv("DB_ENCRYPTION_PASSWORD"),
-            System.getenv("DB_ENCRYPTION_SALT"));
+    private final BytesEncryptor bytesEncryptor;
+
+    public DatabaseEncryptor(Dotenv dotenv) {
+        this.bytesEncryptor = Encryptors.stronger(dotenv.get("DB_ENCRYPTION_PASSWORD"),
+                dotenv.get("DB_ENCRYPTION_SALT"));
+    }
 
 
     // These methods are actually the implementation of a builtin TextEncoder. However, since I wanted the

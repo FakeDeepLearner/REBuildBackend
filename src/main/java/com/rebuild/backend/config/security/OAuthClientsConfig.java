@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.security;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,24 +12,12 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 @Configuration
 public class OAuthClientsConfig {
 
-    @Value("${GITHUB_CLIENT_ID}")
-    private String githubClientId;
-
-    @Value("${GITHUB_CLIENT_SECRET}")
-    private String githubClientSecret;
-
-    @Value("${GOOGLE_CLIENT_ID}")
-    private String googleClientId;
-
-    @Value("${GOOGLE_CLIENT_SECRET}")
-    private String googleClientSecret;
-
     @Bean
-    public ClientRegistrationRepository clientRegistrationRepository()
+    public ClientRegistrationRepository clientRegistrationRepository(Dotenv dotenv)
     {
         ClientRegistration githubClient = ClientRegistration.withRegistrationId("github").
-                clientId(githubClientId).
-                clientSecret(githubClientSecret).
+                clientId(dotenv.get("GITHUB_CLIENT_ID")).
+                clientSecret(dotenv.get("GITHUB_CLIENT_SECRET")).
                 scope("read:user", "user:email").
                 clientName("GitHub").
                 authorizationUri("https://github.com/login/oauth/authorize").
@@ -39,8 +28,8 @@ public class OAuthClientsConfig {
                 build();
 
         ClientRegistration googleClient = ClientRegistration.withRegistrationId("google").
-                clientId(googleClientId).
-                clientSecret(googleClientSecret).
+                clientId(dotenv.get("GOOGLE_CLIENT_ID")).
+                clientSecret(dotenv.get("GOOGLE_CLIENT_SECRET")).
                 clientName("Google").
                 scope("openid", "profile", "email").
                 authorizationUri("https://accounts.google.com/o/oauth2/auth").

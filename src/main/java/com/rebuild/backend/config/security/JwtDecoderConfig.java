@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.security;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,8 +23,8 @@ import java.util.Base64;
 public class JwtDecoderConfig {
 
     @Bean(name = "rsaKey")
-    public RSAPublicKey publicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String encodedBase64Key = System.getenv("JWT_DECODER_PUBLIC_KEY");
+    public RSAPublicKey publicKey(Dotenv dotenv) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String encodedBase64Key = dotenv.get("JWT_DECODER_PUBLIC_KEY");
         byte[] decodedBase64Key = Base64.getDecoder().decode(encodedBase64Key);
         KeyFactory rsaFactory = KeyFactory.getInstance("RSA");
 

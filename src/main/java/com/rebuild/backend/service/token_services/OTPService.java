@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.users.SentVerificationRecord;
 import com.rebuild.backend.repository.SentVerificationRecordRepository;
 import com.twilio.rest.verify.v2.service.Verification;
 import com.twilio.rest.verify.v2.service.VerificationCheck;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,13 @@ import java.time.LocalDateTime;
 public class OTPService {
 
     private final SentVerificationRecordRepository recordRepository;
+    
+    private final Dotenv dotenv;
 
     @Autowired
-    public OTPService(SentVerificationRecordRepository recordRepository) {
+    public OTPService(SentVerificationRecordRepository recordRepository, Dotenv dotenv) {
         this.recordRepository = recordRepository;
+        this.dotenv = dotenv;
     }
 
     private void recordSentVerification(Verification sentVerification)
@@ -35,14 +39,14 @@ public class OTPService {
 
     public void generateOTPCode(String phoneOrEmail, String channel){
 
-        Verification newVerification = Verification.creator(System.getenv("TWILIO_VERIFY_SERVICE_SID"),
+        Verification newVerification = Verification.creator(dotenv.get("TWILIO_VERIFY_SERVICE_SID"),
                 phoneOrEmail, channel).create();
 
         recordSentVerification(newVerification);
     }
 
     public VerificationCheck validateEnteredOTP(String phoneOrEmail, String enteredOTP){
-        return VerificationCheck.creator(System.getenv("TWILIO_VERIFY_SERVICE_SID")).
+        return VerificationCheck.creator(dotenv.get("TWILIO_VERIFY_SERVICE_SID")).
                 setTo(phoneOrEmail).setCode(enteredOTP).create();
     }
 

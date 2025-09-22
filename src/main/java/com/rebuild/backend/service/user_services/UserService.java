@@ -19,6 +19,7 @@ import com.sendgrid.SendGrid;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -75,6 +76,8 @@ public class UserService{
 
     private final ProfilePictureRepository profilePictureRepository;
 
+    private final Dotenv dotenv;
+
 
     @Autowired
     public UserService(UserRepository repository,
@@ -84,13 +87,16 @@ public class UserService{
                        BucketConfiguration bucketConfiguration,
                        FriendRelationshipRepository friendRelationshipRepository,
                        SendGrid sendGrid, CaptchaVerificationRepository verificationRepository,
-                       OTPService otpService, Cloudinary cloudinary, ProfileRepository profileRepository, ProfilePictureRepository profilePictureRepository) {
+                       OTPService otpService, Cloudinary cloudinary,
+                       ProfileRepository profileRepository,
+                       ProfilePictureRepository profilePictureRepository, Dotenv dotenv) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
         this.cloudinary = cloudinary;
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
+        this.dotenv = dotenv;
         this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
@@ -130,7 +136,7 @@ public class UserService{
     @Transactional
     public void changePassword(User changingUser, String newRawPassword){
         String userSalt = changingUser.getSaltValue();
-        String pepper = System.getenv("PEPPER_VALUE");
+        String pepper = dotenv.get("PEPPER_VALUE");
         String newHashedPassword = encoder.encode(newRawPassword + userSalt + pepper);
 
         changingUser.setPassword(newHashedPassword);
@@ -157,7 +163,7 @@ public class UserService{
         String urlToPost = "https://www.google.com/recaptcha/api/siteverify";
 
         Map<String, String> body = new HashMap<>();
-        body.put("secret", System.getenv("GOOGLE_CAPTCHA_SECRET_KEY"));
+        body.put("secret", dotenv.get("GOOGLE_CAPTCHA_SECRET_KEY"));
         body.put("response", userResponse);
         body.put("remoteip", userIp);
 
@@ -218,7 +224,7 @@ public class UserService{
 
 
         String userSalt = foundUser.getSaltValue();
-        String pepper = System.getenv("PEPPER_VALUE");
+        String pepper = dotenv.get("PEPPER_VALUE");
 
         return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
                 foundUser.getPassword()), foundUser.getEmail(), userChannel, false);
@@ -241,7 +247,7 @@ public class UserService{
     @Transactional
     public User createNewUser(SignupForm signupForm, MultipartFile pictureFile) throws IOException {
         String generatedSalt = generateSaltValue(16);
-        String pepper = System.getenv("PEPPER_VALUE");
+        String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         ZoneId userTimeZone = ZoneId.of(signupForm.timezoneAsString());
         User newUser = new User(encodedPassword, signupForm.email(),
