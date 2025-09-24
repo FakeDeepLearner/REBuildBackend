@@ -19,23 +19,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByPhoneNumber(String phone);
 
-    @Modifying(flushAutomatically = true)
-    @Query("UPDATE User u SET u.password=:newHashedPassword WHERE u.id=:userID")
-    void changePassword(UUID userID, String newHashedPassword);
-
-    @Modifying(flushAutomatically = true)
-    @Query("UPDATE User u SET u.email=:newEmail WHERE u.id=:userID")
-    void changeEmail(UUID userID, String newEmail);
-
-    @Query("SELECT res FROM Resume res JOIN FETCH res.user WHERE res.user.id=:userID")
-    //All the other attributes of a Resume are fetched eagerly, so there is no need to manually fetch them here
-    List<Resume> getAllResumesByID(UUID userID);
-
-    List<User> findByLastLoginTimeBefore(LocalDateTime limit);
-
-
-    Optional<User> findByForumUsername(String forumUsername);
-
 
 
 
