@@ -10,6 +10,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Table(name = "captcha_verifications")
@@ -28,7 +29,7 @@ public class CaptchaVerificationRecord {
 
     @NonNull
     @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 
     @NonNull
     @Column(name = "success", nullable = false)

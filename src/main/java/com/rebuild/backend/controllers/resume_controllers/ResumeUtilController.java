@@ -92,8 +92,7 @@ public class ResumeUtilController {
         Resume downloadingResume = resumeService.findByUserIndex(user, index);
         if (includeMetadata) {
             resumeMetadata = "METADATA: \n" + "\tTime Created: " + downloadingResume.getCreationTime()
-                    + "\n\tLast Modified Time: " + downloadingResume.getLastModifiedTime()
-                    + "\n\t Download Time " + LocalDateTime.now() + "\n\n";
+                    + "\n\tLast Modified Time: " + downloadingResume.getLastModifiedTime();
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", downloadingResume.getName());

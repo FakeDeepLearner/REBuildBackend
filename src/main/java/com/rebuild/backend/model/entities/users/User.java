@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -140,11 +141,11 @@ public class User implements UserDetails {
 
     @JsonIgnore
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime signUpTime = LocalDateTime.now();
+    private ZonedDateTime signUpTime = ZonedDateTime.now(ZoneId.of("UTC"));
 
     @JsonIgnore
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime lastLoginTime = LocalDateTime.now();
+    private ZonedDateTime lastLoginTime = ZonedDateTime.now(ZoneId.of("UTC"));
 
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
@@ -179,7 +180,8 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return lastLoginTime.isAfter(LocalDateTime.now().minusMonths(MONTHS_ALLOWED_BEFORE_EXPIRY));
+        return lastLoginTime.isAfter(ZonedDateTime.now(ZoneId.of("UTC")).
+                minusMonths(MONTHS_ALLOWED_BEFORE_EXPIRY));
     }
 
     @Override

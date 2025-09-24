@@ -11,6 +11,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @RestController
@@ -39,7 +41,7 @@ public class InboxController {
                 userRequests.get(request_index);
 
         requestToAccept.setStatus(RequestStatus.ACCEPTED);
-        requestToAccept.setStatusUpdateDate(LocalDateTime.now());
+        requestToAccept.setStatusUpdateDate(ZonedDateTime.now(ZoneId.of("UTC")));
         friendRequestRepository.save(requestToAccept);
         friendAndMessageService.addFriend(requestToAccept.getSender(), requestToAccept.getRecipient());
 

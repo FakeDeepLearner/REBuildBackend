@@ -55,6 +55,8 @@ spring:
   batch:
     job:
       enabled: true
+  jackson:
+    time-zone: UTC
 
 logging:
   level:

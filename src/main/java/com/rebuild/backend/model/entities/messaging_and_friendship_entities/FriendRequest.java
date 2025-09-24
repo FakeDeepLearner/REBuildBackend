@@ -9,6 +9,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
@@ -31,10 +33,10 @@ public class FriendRequest {
     private RequestStatus status = RequestStatus.PENDING;
 
     @Column(name = "creation_time")
-    private LocalDateTime creationDate = LocalDateTime.now();
+    private ZonedDateTime creationDate = ZonedDateTime.now(ZoneOffset.UTC);
 
     @Column(name = "status_update_time")
-    private LocalDateTime statusUpdateDate = creationDate;
+    private ZonedDateTime statusUpdateDate = creationDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)
