@@ -17,7 +17,7 @@ public class CORSConfig {
                 //NOTE: This is normally invalid, but we will change this once we have an actual frontend.
                 registry.addMapping("/**").
                         allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD").
-                        allowCredentials(true).maxAge(3600).allowedOrigins("*").allowedHeaders("*");
+                        allowCredentials(true).maxAge(3600).allowedOrigins("rerebuild.ca").allowedHeaders("*");
             }
         };
     }
