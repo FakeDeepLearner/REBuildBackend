@@ -6,6 +6,7 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
