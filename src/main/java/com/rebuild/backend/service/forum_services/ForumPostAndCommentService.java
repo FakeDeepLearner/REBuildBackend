@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
@@ -15,8 +16,9 @@ import com.rebuild.backend.repository.CommentReplyRepository;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.specs.ForumPostSpecifications;
-import com.rebuild.backend.specs.SpecificationBuilder;
+import jakarta.persistence.EntityManager;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -27,16 +29,13 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -55,17 +54,25 @@ public class ForumPostAndCommentService {
 
     private final JobLauncher jobLauncher;
 
+    private final EntityManager entityManager;
+
+    private final RedisCacheManager redisCacheManager;
+
 
     @Autowired
     public ForumPostAndCommentService(ResumeService resumeService,
                                       CommentRepository commentRepository, ForumPostRepository postRepository,
                                       CommentReplyRepository commentReplyRepository,
-                                      @Qualifier("jobLauncher") JobLauncher jobLauncher) {
+                                      @Qualifier("jobLauncher") JobLauncher jobLauncher,
+                                      EntityManager entityManager,
+                                      @Qualifier("searchCacheManager") RedisCacheManager redisCacheManager) {
         this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.commentReplyRepository = commentReplyRepository;
         this.jobLauncher = jobLauncher;
+        this.entityManager = entityManager;
+        this.redisCacheManager = redisCacheManager;
     }
 
     @Transactional
@@ -150,42 +157,87 @@ public class ForumPostAndCommentService {
         return commentRepository.countByIdAndUserId(commentID, userID) > 0;
     }
 
-    private Specification<ForumPost> deriveSpecification(ForumSpecsDTO specsDTO){
+    @SuppressWarnings(value = "unchecked")
+    private SearchResultDTO executeSearch(ForumSpecsDTO forumSpecsDTO, String searchToken){
 
-        List<SpecificationBuilder> specificationBuilders = List.of(
-            input -> input.postedUsername() != null ? ForumPostSpecifications.isPostedBy(input.postedUsername()) : null,
-                input -> input.postAfterCutoff() != null ? ForumPostSpecifications.isPostedBefore(input.postAfterCutoff()) : null,
-                input -> input.postBeforeCutoff() != null ? ForumPostSpecifications.isPostedAfter(input.postBeforeCutoff()) : null,
-                input -> input.titleContains() != null ? ForumPostSpecifications.titleContains(input.titleContains()) : null,
-                input -> input.bodyContains() != null ? ForumPostSpecifications.bodyContains(input.bodyContains()) : null,
-                input -> input.titleStartsWith() != null ? ForumPostSpecifications.titleStartsWith(input.titleStartsWith()) : null,
-                input -> input.titleEndsWith() != null ? ForumPostSpecifications.titleEndsWith(input.titleEndsWith()) : null,
-                input -> input.bodyStartsWith() != null ? ForumPostSpecifications.bodyStartsWith(input.bodyStartsWith()) : null,
-                input -> input.bodyEndsWith() != null ? ForumPostSpecifications.bodyEndsWith(input.bodyEndsWith()) : null,
-                input -> input.bodyMinSize() != null ? ForumPostSpecifications.bodyMinSize(input.bodyMinSize()) : null,
-                input -> input.bodyMaxSize() != null ? ForumPostSpecifications.bodyMaxSize(input.bodyMaxSize()) : null
-        );
+        if (searchToken == null) {
+            SearchSession searchSession = Search.session(entityManager);
+            List<UUID> matchedIds = searchSession.search(ForumPost.class)
+                    .select(f -> f.id(UUID.class))
+                    .where(f -> f.bool(b -> {
+                        if (forumSpecsDTO.titleContains() != null) {
+                            b.must(f.match().fields("title").
+                                    matching(forumSpecsDTO.titleContains()));
+                        }
+                        if (forumSpecsDTO.bodyContains() != null) {
+                            b.must(f.match().fields("content").
+                                    matching(forumSpecsDTO.bodyContains()));
+                        }
 
-        return Specification.allOf(
-                specificationBuilders.stream()
-                        .map(builder -> builder.buildSpecification(specsDTO))
-                        .filter(Objects::nonNull).toList());
+                        if (forumSpecsDTO.postAfterCutoff() != null) {
+                            b.must(f.range().field("creationDate").
+                                    atLeast(forumSpecsDTO.postAfterCutoff()));
+                        }
+                        if (forumSpecsDTO.postBeforeCutoff() != null) {
+                            b.must(f.range().field("creationDate").
+                                    atMost(forumSpecsDTO.postBeforeCutoff()));
+                        }
+                    }))
+                    .sort(f -> f.composite(
+                            composite -> {
+                                //Sort by creation date, with ties broken by last modified date
+                                composite.add(f.field("creationDate").desc());
+                                composite.add(f.field("lastModificationDate").desc());
+                            }
+                    ))
+                    .fetchAllHits();
+            String searchResultToken = UUID.randomUUID().toString();
+            Objects.requireNonNull(redisCacheManager.getCache("search_cache")).
+                    put(searchResultToken, matchedIds);
+            return new SearchResultDTO(matchedIds, searchResultToken);
 
+        }
+        else {
+            return new SearchResultDTO((ArrayList<UUID>) Objects.requireNonNull(
+                    Objects.requireNonNull(redisCacheManager.getCache("search_cache")).
+                    get(searchToken)).get(), searchToken);
+        }
     }
 
-    public ForumPostPageResponse getPageResponses(int currentPageNumber, int pageSize,
-                                                  ForumSpecsDTO forumSpecsDTO){
-        Specification<ForumPost> derivedSpecification = deriveSpecification(forumSpecsDTO);
-        //Sort by descending order of creation dates, so the newest posts show up first
-        Pageable pageableResult = PageRequest.of(currentPageNumber, pageSize,
-                Sort.by("creationDate").descending().
-                        //Break any ties by the last modified dates
-                        and(Sort.by("lastModifiedDate").descending()));
-        Page<ForumPost> resultingPage = postRepository.findAll(derivedSpecification, pageableResult);
-        return new ForumPostPageResponse(resultingPage.getContent(), resultingPage.getNumber(),
-                resultingPage.getTotalElements(), resultingPage.getTotalPages(), pageSize);
+    private List<UUID> getNecessaryResults(List<UUID> allIds, int pageNumber, int pageSize)
+    {
+        if (allIds == null || allIds.isEmpty()) {
+            return List.of();
+        }
+
+        int fromIndex = pageNumber * pageSize;
+        if (fromIndex >= allIds.size()) {
+            return List.of();
+        }
+
+        int toIndex = Math.min(fromIndex + pageSize, allIds.size());
+        return allIds.subList(fromIndex, toIndex);
     }
 
+
+    public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
+                                                        String searchToken, ForumSpecsDTO forumSpecsDTO)
+    {
+        SearchResultDTO resultDTO = executeSearch(forumSpecsDTO, searchToken);
+
+        List<UUID> matchedResults = resultDTO.results();
+
+        int numPages = Math.ceilDiv(matchedResults.size(), pageSize);
+
+        List<UUID> matchedList = getNecessaryResults(matchedResults, pageNumber, pageSize);
+
+        List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
+
+        return new ForumPostPageResponse(foundPosts, pageNumber,
+                matchedResults.size(), numPages, pageSize, resultDTO.searchToken());
+
+
+    }
 
     public PostDisplayDTO loadPost(UUID postID){
         ForumPost forumPost = postRepository.findById(postID).orElseThrow(RuntimeException::new);

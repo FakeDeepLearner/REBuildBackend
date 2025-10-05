@@ -8,6 +8,7 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import java.time.LocalDateTime;
@@ -36,9 +37,11 @@ public class ForumPost {
     private UUID id;
 
     @NonNull
+    @FullTextField
     private String title;
 
     @NonNull
+    @FullTextField
     private String content;
 
     @Column(name = "author_name")
@@ -53,10 +56,12 @@ public class ForumPost {
 
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
+    @GenericField
     private LocalDateTime creationDate = LocalDateTime.now();
 
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
+    @GenericField
     private LocalDateTime lastModificationDate = LocalDateTime.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},

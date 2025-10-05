@@ -43,9 +43,10 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size")
                                           int pageSize,
 
-                                          @ModelAttribute ForumSpecsDTO forumSpecsDTO, BindingResult result) {
+                                          @ModelAttribute ForumSpecsDTO forumSpecsDTO, BindingResult result,
+                                          @RequestParam(name = "token", required = false) String searchToken) {
 
-        return postAndCommentService.getPageResponses(pageNumber, pageSize, forumSpecsDTO);
+        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsDTO);
     }
 
     @GetMapping("/get_posts/{post_id}")

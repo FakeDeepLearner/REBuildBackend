@@ -4,17 +4,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
-public record ForumSpecsDTO(String postedUsername,
+public record ForumSpecsDTO(
                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                             LocalDateTime postAfterCutoff,
                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                             LocalDateTime postBeforeCutoff,
                             String titleContains,
-                            String bodyContains,
-                            String titleStartsWith,
-                            String bodyStartsWith,
-                            String titleEndsWith,
-                            String bodyEndsWith,
-                            Integer bodyMinSize,
-                            Integer bodyMaxSize) {
+                            String bodyContains) {
 }
