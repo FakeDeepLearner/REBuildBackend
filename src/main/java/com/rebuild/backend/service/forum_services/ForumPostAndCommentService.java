@@ -164,28 +164,23 @@ public class ForumPostAndCommentService {
             SearchSession searchSession = Search.session(entityManager);
             List<UUID> matchedIds = searchSession.search(ForumPost.class)
                     .select(f -> f.id(UUID.class))
-                    .where(f -> f.bool(b -> {
-                        if (forumSpecsDTO.titleContains() != null) {
-                            b.must(f.match().fields("title").
-                                    matching(forumSpecsDTO.titleContains()));
-                        }
-                        if (forumSpecsDTO.bodyContains() != null) {
-                            b.must(f.match().fields("content").
-                                    matching(forumSpecsDTO.bodyContains()));
-                        }
+                    .where(f -> f.bool().
+                            filter(f.match().
+                                    fields("title").
+                                    matching(forumSpecsDTO.titleContains())).
+                            filter(f.match().
+                                    fields("content").
+                                    matching(forumSpecsDTO.bodyContains())).
+                            filter(f.range().
+                                    field("creationDate").
+                                    atLeast(forumSpecsDTO.postAfterCutoff())).
+                            filter(f.range().
+                                    field("creationDate").
+                                    atMost(forumSpecsDTO.postBeforeCutoff()))
 
-                        if (forumSpecsDTO.postAfterCutoff() != null) {
-                            b.must(f.range().field("creationDate").
-                                    atLeast(forumSpecsDTO.postAfterCutoff()));
-                        }
-                        if (forumSpecsDTO.postBeforeCutoff() != null) {
-                            b.must(f.range().field("creationDate").
-                                    atMost(forumSpecsDTO.postBeforeCutoff()));
-                        }
-                    }))
+                    )
                     .sort(f -> f.composite(
                             composite -> {
-                                //Sort by creation date, with ties broken by last modified date
                                 composite.add(f.field("creationDate").desc());
                                 composite.add(f.field("lastModificationDate").desc());
                             }
