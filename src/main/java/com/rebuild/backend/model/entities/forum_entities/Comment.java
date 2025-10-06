@@ -42,10 +42,12 @@ public class Comment {
     @JsonIgnore
     private ForumPost associatedPost;
 
-    @OneToMany(mappedBy = "topLevelComment", orphanRemoval = true,
-            cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {
+                CascadeType.MERGE, CascadeType.PERSIST
+    })
+    @JoinColumn(name = "parent_comment_id")
     @JsonIgnore
-    private List<CommentReply> replies = new ArrayList<>();
+    private Comment parent;
 
     private int repliesCount = 0;
 

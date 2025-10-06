@@ -3,7 +3,6 @@ package com.rebuild.backend.model.entities.users;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
@@ -112,11 +111,6 @@ public class User implements UserDetails {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "author", fetch = FetchType.LAZY)
     private List<Comment> madeComments = new ArrayList<>();
-
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
-    mappedBy = "author", fetch = FetchType.LAZY)
-    private List<CommentReply> madeReplies = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -7,8 +7,8 @@ import com.rebuild.backend.utils.batch.processors.PostLikeProcessor;
 import com.rebuild.backend.utils.batch.readers.RestartablePostLikeReader;
 import com.rebuild.backend.utils.batch.writers.PostLikesWriter;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -40,7 +40,7 @@ public class PostLikeBatchStepsConfig {
     @Bean
     public Step postLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("postLikeStep", jobRepository).
-                <PostLikeRequest, Like>chunk(20, transactionManager).
+                <PostLikeRequest, Like>chunk(20).
                 reader(postLikeReader).
                 processor(postLikeProcessor).
                 writer(postLikesWriter).

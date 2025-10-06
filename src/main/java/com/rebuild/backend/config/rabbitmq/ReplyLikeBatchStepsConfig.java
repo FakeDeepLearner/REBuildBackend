@@ -7,8 +7,8 @@ import com.rebuild.backend.utils.batch.processors.ReplyLikeProcessor;
 import com.rebuild.backend.utils.batch.readers.RestartableReplyLikeReader;
 import com.rebuild.backend.utils.batch.writers.RepliesWriter;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -38,9 +38,9 @@ public class ReplyLikeBatchStepsConfig {
 
 
     @Bean
-    public Step commentReplyLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step commentReplyLikeStep(JobRepository jobRepository) {
         return new StepBuilder("replyLikeStep", jobRepository).
-                <CommentReplyLikeRequest, Like>chunk(20, transactionManager).
+                <CommentReplyLikeRequest, Like>chunk(20).
                 reader(restartableReplyLikeReader).
                 processor(replyLikeProcessor).
                 writer(repliesWriter).

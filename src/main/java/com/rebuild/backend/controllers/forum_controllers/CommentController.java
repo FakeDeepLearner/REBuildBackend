@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
@@ -32,15 +31,15 @@ public class CommentController {
         return forumPostAndCommentService.makeTopLevelComment(commentForm, post_id, creatingUser);
     }
 
-    @PostMapping("/reply/{top_level_comment_id}/{parent_reply_id}")
+    @PostMapping("/reply/{top_level_comment_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentReply createReply(@PathVariable UUID top_level_comment_id,
-                                    @PathVariable(required = false) UUID parent_reply_id,
+    public Comment createReply(@PathVariable UUID top_level_comment_id,
                                     @RequestBody @Valid CommentForm commentForm,
                                     @AuthenticationPrincipal User creatingUser){
-        return forumPostAndCommentService.createReplyTo(top_level_comment_id, parent_reply_id, creatingUser, commentForm);
+        return forumPostAndCommentService.createReplyTo(top_level_comment_id, creatingUser, commentForm);
     }
 
+    /*
     @GetMapping("/{top_level_comment_id}/replies")
     @ResponseStatus(HttpStatus.OK)
     public List<CommentReply> getReplies(@PathVariable UUID top_level_comment_id){
@@ -52,6 +51,7 @@ public class CommentController {
     public List<CommentReply> expandReplies(){
         return null;
     }
+    */
 
     @DeleteMapping("/delete/{comment_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

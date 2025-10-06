@@ -5,8 +5,8 @@ import com.rebuild.backend.model.forms.dtos.forum_dtos.LikesUpdateDTO;
 import com.rebuild.backend.utils.batch.readers.LikeUpdateBatchReader;
 import com.rebuild.backend.utils.batch.writers.LikeUpdateWriter;
 import jakarta.persistence.EntityManagerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -36,11 +36,11 @@ public class ProcessLikesBatchStepsConfig {
     }
 
     @Bean
-    public Step likesUpdatingStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+    public Step likesUpdatingStep(JobRepository jobRepository,
                                   @Qualifier(value = "likesReader") ItemReader<LikesUpdateDTO> likesReader,
                                   @Qualifier(value = "likeUpdateWriter") ItemWriter<LikesUpdateDTO> likesWriter) throws Exception {
         return new StepBuilder("updateLikesStep", jobRepository).
-                <LikesUpdateDTO, LikesUpdateDTO>chunk(50, transactionManager).
+                <LikesUpdateDTO, LikesUpdateDTO>chunk(50).
                 reader(likesReader).writer(likesWriter).build();
 
      }

@@ -7,8 +7,8 @@ import com.rebuild.backend.utils.batch.processors.CommentLikeProcessor;
 import com.rebuild.backend.utils.batch.readers.RestartableCommentLikeReader;
 import com.rebuild.backend.utils.batch.writers.CommentsWriter;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -38,9 +38,9 @@ public class CommentLikeBatchStepsConfig {
     }
 
     @Bean
-    public Step commentLikeStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step commentLikeStep(JobRepository jobRepository) {
         return new StepBuilder("commentLikeStep", jobRepository).
-                <CommentLikeRequest, Like>chunk(20, transactionManager).
+                <CommentLikeRequest, Like>chunk(20).
                 reader(likeReader).
                 processor(likeProcessor).
                 writer(commentsWriter).

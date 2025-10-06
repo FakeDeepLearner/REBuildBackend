@@ -1,6 +1,5 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -12,23 +11,24 @@ import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
-import com.rebuild.backend.repository.CommentReplyRepository;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.core.job.parameters.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.batch.autoconfigure.JobLauncherApplicationRunner;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -44,15 +44,14 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ForumPostAndCommentService {
 
+
+    private final JobOperator jobOperator;
     private final ResumeService resumeService;
 
     private final CommentRepository commentRepository;
 
     private final ForumPostRepository postRepository;
 
-    private final CommentReplyRepository commentReplyRepository;
-
-    private final JobLauncher jobLauncher;
 
     private final EntityManager entityManager;
 
@@ -60,17 +59,14 @@ public class ForumPostAndCommentService {
 
 
     @Autowired
-    public ForumPostAndCommentService(ResumeService resumeService,
+    public ForumPostAndCommentService(JobOperator jobOperator, ResumeService resumeService,
                                       CommentRepository commentRepository, ForumPostRepository postRepository,
-                                      CommentReplyRepository commentReplyRepository,
-                                      @Qualifier("jobLauncher") JobLauncher jobLauncher,
                                       EntityManager entityManager,
                                       @Qualifier("searchCacheManager") RedisCacheManager redisCacheManager) {
+        this.jobOperator = jobOperator;
         this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
-        this.commentReplyRepository = commentReplyRepository;
-        this.jobLauncher = jobLauncher;
         this.entityManager = entityManager;
         this.redisCacheManager = redisCacheManager;
     }
@@ -108,41 +104,32 @@ public class ForumPostAndCommentService {
         newComment.setAuthorUsername(displayedUsername);
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
-        creatingUser.getMadeComments().add(newComment);
+        newComment.setParent(null);
+        // creatingUser.getMadeComments().add(newComment);
         newComment.setAuthor(creatingUser);
         return commentRepository.save(newComment);
 
     }
 
     @Transactional
-    public CommentReply createReplyTo(UUID top_level_comment_id, UUID parent_reply_id, User creatingUser,
+    public Comment createReplyTo(UUID top_level_comment_id, User creatingUser,
                                       CommentForm commentForm){
         String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
         Comment topLevelComment = commentRepository.findById(top_level_comment_id).
                 orElseThrow(RuntimeException::new);
-        CommentReply parentReply = null;
 
-        if(parent_reply_id != null){
-            parentReply = commentReplyRepository.
-                    findByParentReplyId(parent_reply_id).orElse(null);
-        }
+        Comment newComment = new Comment(commentForm.content());
+        newComment.setAuthorUsername(displayedUsername);
+        newComment.setAuthor(topLevelComment.getAuthor());
+        newComment.setAssociatedPost(topLevelComment.getAssociatedPost());
+        newComment.setParent(topLevelComment);
+        topLevelComment.setRepliesCount(topLevelComment.getRepliesCount() + 1);
 
-        //If we have a parent comment reply, we increase its number of children
-        if(parentReply != null){
-            parentReply.setChildRepliesCount(parentReply.getChildRepliesCount() + 1);
-        }
-        //If we don't have a parent comment, this means that this is a top level reply, and we are
-        // a children of the top level actual comment directly.
-        else{
-            topLevelComment.setRepliesCount(topLevelComment.getRepliesCount() + 1);
-        }
-        CommentReply newReply = new CommentReply(commentForm.content());
-        newReply.setAuthorUsername(displayedUsername);
-        newReply.setAuthor(creatingUser);
-        creatingUser.getMadeReplies().add(newReply);
-        newReply.setParentReply(parentReply);
-        newReply.setTopLevelComment(topLevelComment);
-        return commentReplyRepository.save(newReply);
+
+
+        // creatingUser.getMadeReplies().add(newReply);
+
+        return commentRepository.save(newComment);
     }
 
     private String determineDisplayedUsername(User creatingUser, boolean anonymity){
@@ -267,7 +254,6 @@ public class ForumPostAndCommentService {
                 .addString("lastProcessed", lastProcessedCutoff.toString())
                 .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
 
-        jobLauncher.run(updateLikesJob, parameters);
     }
 
     /*
@@ -288,11 +274,12 @@ public class ForumPostAndCommentService {
                                        @Qualifier(value = "commentRepliesLikeJob") Job commentRepliesLikeJob)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
-            JobParametersInvalidException, JobRestartException {
+            JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
-        jobLauncher.run(commentLikeJob, createParameters(commentLikeJob));
-        jobLauncher.run(postLikeJob, createParameters(postLikeJob));
-        jobLauncher.run(commentRepliesLikeJob, createParameters(commentRepliesLikeJob));
+
+        jobOperator.start(commentLikeJob, createParameters(commentLikeJob));
+        jobOperator.start(postLikeJob, createParameters(postLikeJob));
+        jobOperator.start(commentRepliesLikeJob, createParameters(commentRepliesLikeJob));
     }
 
 }
