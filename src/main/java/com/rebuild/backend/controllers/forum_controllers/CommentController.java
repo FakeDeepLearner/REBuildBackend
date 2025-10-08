@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import jakarta.validation.Valid;
@@ -39,19 +40,13 @@ public class CommentController {
         return forumPostAndCommentService.createReplyTo(top_level_comment_id, creatingUser, commentForm);
     }
 
-    /*
-    @GetMapping("/{top_level_comment_id}/replies")
+
+    @GetMapping("/{parent_comment_id}/replies")
     @ResponseStatus(HttpStatus.OK)
-    public List<CommentReply> getReplies(@PathVariable UUID top_level_comment_id){
-        return null;
+    public List<CommentDisplayDTO> getReplies(@PathVariable UUID parent_comment_id){
+        return forumPostAndCommentService.getCommentExpansionInfo(parent_comment_id);
     }
 
-    @GetMapping("/{top_level_comment_id}/{reply_id}/expand")
-    @ResponseStatus(HttpStatus.OK)
-    public List<CommentReply> expandReplies(){
-        return null;
-    }
-    */
 
     @DeleteMapping("/delete/{comment_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

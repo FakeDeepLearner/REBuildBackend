@@ -112,22 +112,19 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public Comment createReplyTo(UUID top_level_comment_id, User creatingUser,
+    public Comment createReplyTo(UUID parent_comment_id, User creatingUser,
                                       CommentForm commentForm){
         String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
-        Comment topLevelComment = commentRepository.findById(top_level_comment_id).
+        Comment parentComment = commentRepository.findById(parent_comment_id).
                 orElseThrow(RuntimeException::new);
 
         Comment newComment = new Comment(commentForm.content());
         newComment.setAuthorUsername(displayedUsername);
-        newComment.setAuthor(topLevelComment.getAuthor());
-        newComment.setAssociatedPost(topLevelComment.getAssociatedPost());
-        newComment.setParent(topLevelComment);
-        topLevelComment.setRepliesCount(topLevelComment.getRepliesCount() + 1);
+        newComment.setAuthor(creatingUser);
+        newComment.setAssociatedPost(parentComment.getAssociatedPost());
+        newComment.setParent(parentComment);
+        parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
 
-
-
-        // creatingUser.getMadeReplies().add(newReply);
 
         return commentRepository.save(newComment);
     }
@@ -230,6 +227,14 @@ public class ForumPostAndCommentService {
         return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(), forumPost.getAuthorUsername(),
                 displayedComments);
 
+    }
+
+
+    public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id)
+    {
+        List<Comment> replies = commentRepository.findByParentIdOrderByCreationDateAsc(parent_id);
+
+        return replies.stream().map(this::getCommentInfo).toList();
     }
 
 

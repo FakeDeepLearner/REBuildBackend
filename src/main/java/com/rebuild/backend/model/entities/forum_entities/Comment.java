@@ -14,7 +14,8 @@ import java.util.*;
 @Entity
 @Table(name = "comments", indexes = {
         @Index(columnList = "author_id"),
-        @Index(columnList = "post_id")
+        @Index(columnList = "post_id"),
+        @Index(columnList = "parent_comment_id, creation_date")
 })
 @NamedQueries(
         value = {
@@ -51,6 +52,7 @@ public class Comment {
 
     private int repliesCount = 0;
 
+    @Column(name = "creation_date")
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
     private LocalDateTime creationDate = LocalDateTime.now();
