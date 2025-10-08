@@ -1,9 +1,9 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.rebuild.backend.model.entities.resume_entities.PostResume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
@@ -13,6 +13,7 @@ import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
+import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
@@ -28,11 +29,11 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.batch.autoconfigure.JobLauncherApplicationRunner;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,11 +47,12 @@ public class ForumPostAndCommentService {
 
 
     private final JobOperator jobOperator;
-    private final ResumeService resumeService;
 
     private final CommentRepository commentRepository;
 
     private final ForumPostRepository postRepository;
+
+    private final ResumeRepository resumeRepository;
 
 
     private final EntityManager entityManager;
@@ -59,27 +61,31 @@ public class ForumPostAndCommentService {
 
 
     @Autowired
-    public ForumPostAndCommentService(JobOperator jobOperator, ResumeService resumeService,
-                                      CommentRepository commentRepository, ForumPostRepository postRepository,
+    public ForumPostAndCommentService(JobOperator jobOperator,
+                                      CommentRepository commentRepository,
+                                      ForumPostRepository postRepository, ResumeRepository resumeRepository,
                                       EntityManager entityManager,
                                       @Qualifier("searchCacheManager") RedisCacheManager redisCacheManager) {
         this.jobOperator = jobOperator;
-        this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
+        this.resumeRepository = resumeRepository;
         this.entityManager = entityManager;
         this.redisCacheManager = redisCacheManager;
     }
 
     @Transactional
     public ForumPost createNewPost(NewPostForm postForm,
-                                   int resumeIndex,
-                                   User creatingUser){
+                                   User creatingUser, List<MultipartFile> resumeFiles){
         String displayedUsername = determineDisplayedUsername(creatingUser, postForm.remainAnonymous());
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
         newPost.setAuthorUsername(displayedUsername);
-        Resume associatedResume = resumeService.findByUserIndex(creatingUser, resumeIndex);
-        newPost.setResume(associatedResume);
+        List<PostResume> resumes = resumeRepository.findAllById(postForm.resumeIDs()).stream()
+                        .map(PostResume::new).
+                        peek(postResume -> postResume.setAssociatedPost(newPost)).
+                toList();
+        newPost.setResumes(resumes);
+
         newPost.setCreatingUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);
         return postRepository.save(newPost);
@@ -225,6 +231,7 @@ public class ForumPostAndCommentService {
                 stream().map(this::getCommentInfo).toList();
 
         return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(), forumPost.getAuthorUsername(),
+                forumPost.getResumes(),
                 displayedComments);
 
     }

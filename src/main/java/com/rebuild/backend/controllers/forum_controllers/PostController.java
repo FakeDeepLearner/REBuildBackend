@@ -8,11 +8,14 @@ import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,12 +33,12 @@ public class PostController {
         this.forumPostAndCommentService = forumPostAndCommentService;
     }
 
-    @PostMapping("/create/{index}")
-    public ForumPost createNewPost(@PathVariable int index,
-                                   @Valid @RequestBody NewPostForm postForm,
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ForumPost createNewPost(@Valid @RequestPart(name = "metadata") NewPostForm postForm,
+                                   @RequestPart(name = "file") List<MultipartFile> resumeFiles,
                                    @AuthenticationPrincipal User creatingUser) {
         return forumPostAndCommentService.createNewPost(postForm,
-                index, creatingUser);
+                creatingUser, resumeFiles);
     }
 
     @DeleteMapping("/delete/{post_id}")
