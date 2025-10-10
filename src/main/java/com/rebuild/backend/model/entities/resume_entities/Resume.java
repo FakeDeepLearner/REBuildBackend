@@ -6,7 +6,8 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
+import org.springframework.data.elasticsearch.annotations.Field;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
+@Indexed
 public class Resume implements Serializable {
 
     public static final int MAX_VERSION_COUNT = 10;
@@ -44,26 +46,28 @@ public class Resume implements Serializable {
     @Column(
             name = "id"
     )
+    @GenericField
     private UUID id;
 
     @Column(name = "name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
+    @FullTextField
     private String name;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "header_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
+    @IndexedEmbedded
     private Header header;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "education_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
+    @IndexedEmbedded
     private Education education;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
-    }, orphanRemoval = true)
+    }, orphanRemoval = true, mappedBy = "resume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    @JoinColumn(name = "experience_id", referencedColumnName = "id")
+    @IndexedEmbedded
     private List<Experience> experiences;
 
     @ManyToOne(cascade = {
@@ -81,10 +85,12 @@ public class Resume implements Serializable {
 
     @JsonIgnore
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
+    @GenericField
     private LocalDateTime creationTime = LocalDateTime.now();
 
     @JsonIgnore
     @Convert(converter = LocalDateTimeDatabaseConverter.class)
+    @GenericField
     private LocalDateTime lastModifiedTime = LocalDateTime.now();
 
     public Resume(@NonNull String resume_name, @NonNull User user){
@@ -119,7 +125,10 @@ public class Resume implements Serializable {
                         experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
         //Necessary in order for cascading to work properly
-        this.getUser().getResumes().add(this);
+        this.user.getResumes().add(this);
+        this.education.setResume(this);
+        this.header.setResume(this);
+        this.experiences.forEach(experience -> experience.setResume(this));
         this.creationTime = LocalDateTime.now();
         // Technically, the LocalDataTime.now() call will be different from the one above,
         // and we want these dates to match initially

@@ -82,17 +82,20 @@ public class ResumeVersioningService {
 
         if(versionToSwitch.getVersionedHeader() != null && preferencesForm.includeHeader()){
             Header newHeader = getHeader(resume, versionToSwitch, preferencesForm.makeHeaderCopy());
+            newHeader.setResume(resume);
             resume.setHeader(newHeader);
         }
 
         if(versionToSwitch.getVersionedEducation() != null && preferencesForm.includeEducation()){
             Education newEducation = getEducation(resume, versionToSwitch, preferencesForm.makeEducationCopy());
+            newEducation.setResume(resume);
             resume.setEducation(newEducation);
         }
 
         if(versionToSwitch.getVersionedExperiences() != null && !preferencesForm.experienceIndices().isEmpty()){
             List<Experience> newExperiences = getExperiences(resume, versionToSwitch,
                     preferencesForm.makeExperienceCopies(), preferencesForm.experienceIndices());
+            newExperiences.forEach(exp -> exp.setResume(resume));
             resume.setExperiences(newExperiences);
         }
 

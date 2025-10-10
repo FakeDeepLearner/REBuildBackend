@@ -81,6 +81,7 @@ public class ResumeService {
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
+        newHeader.setResume(resume);
         resumeRepository.save(resume);
         return newHeader;
 
@@ -97,6 +98,7 @@ public class ResumeService {
         Experience newExperience = new Experience(experienceForm.companyName(),
                 experienceForm.technologies(), experienceForm.location(), types,
                 start, end, experienceForm.bullets());
+        newExperience.setResume(resume);
 
         if (experiencesIndex == null) {
             resume.addExperience(newExperience);
@@ -105,8 +107,6 @@ public class ResumeService {
             resume.addExperience(experiencesIndex, newExperience);
         }
         return resumeRepository.save(resume);
-
-
 
     }
 
@@ -119,6 +119,7 @@ public class ResumeService {
                 educationForm.location(),
                 startDate, endDate);
         resume.setEducation(education);
+        education.setResume(resume);
         return resumeRepository.save(resume);
     }
 
@@ -152,18 +153,21 @@ public class ResumeService {
     @Transactional
     public Resume setExperiences(Resume resume, List<Experience> newExperiences){
         resume.setExperiences(newExperiences);
+
         return resumeRepository.save(resume);
     }
 
     @Transactional
     public Resume setHeader(Resume resume, Header newHeader){
         resume.setHeader(newHeader);
+        newHeader.setResume(resume);
         return resumeRepository.save(resume);
     }
 
     @Transactional
     public Resume setEducation(Resume resume, Education newEducation){
         resume.setEducation(newEducation);
+        newEducation.setResume(resume);
         return resumeRepository.save(resume);
     }
 
@@ -177,13 +181,16 @@ public class ResumeService {
                 resumeForm.headerForm().firstName(),
                 resumeForm.headerForm().lastName(), resumeForm.headerForm().email());
         resume.setHeader(newHeader);
+        newHeader.setResume(resume);
 
         Education newEducation = new Education(resumeForm.educationForm().schoolName(),
                 resumeForm.educationForm().relevantCoursework(),
                 resumeForm.educationForm().location(),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
+        newEducation.setResume(resume);
         resume.setEducation(newEducation);
+
         resume.setExperiences(objectConverter.extractExperiences(resumeForm.experiences(), resume));
         return resumeRepository.save(resume);
 
