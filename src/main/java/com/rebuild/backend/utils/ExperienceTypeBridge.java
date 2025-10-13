@@ -1,4 +1,4 @@
-package com.rebuild.backend.specs.bridges;
+package com.rebuild.backend.utils;
 
 import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import org.hibernate.search.mapper.pojo.bridge.ValueBridge;

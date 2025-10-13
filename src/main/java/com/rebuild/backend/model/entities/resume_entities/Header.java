@@ -49,7 +49,7 @@ public class Header implements ResumeProperty {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
-    @NonNull
+    @JsonIgnore
     private Resume resume = null;
 
     @Override

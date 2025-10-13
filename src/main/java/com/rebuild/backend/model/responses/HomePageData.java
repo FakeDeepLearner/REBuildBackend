@@ -6,5 +6,6 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import java.util.List;
 
 public record HomePageData(List<Resume> displayedResumes, int currentPage,
-                           long totalItems, int totalPages, int pageSize, UserProfile profileInfo) {
+                           long totalItems, int totalPages, int pageSize, UserProfile profileInfo,
+                           String searchToken) {
 }

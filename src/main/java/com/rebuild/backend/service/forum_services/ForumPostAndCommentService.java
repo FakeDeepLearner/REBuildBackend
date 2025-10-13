@@ -6,7 +6,7 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
+import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
@@ -16,6 +16,7 @@ import com.rebuild.backend.repository.CommentReplyRepository;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -158,25 +159,18 @@ public class ForumPostAndCommentService {
     }
 
     @SuppressWarnings(value = "unchecked")
-    private SearchResultDTO executeSearch(ForumSpecsDTO forumSpecsDTO, String searchToken){
+    private SearchResultDTO executeSearch(ForumSpecsForm forumSpecsForm, String searchToken){
 
         if (searchToken == null) {
             SearchSession searchSession = Search.session(entityManager);
             List<UUID> matchedIds = searchSession.search(ForumPost.class)
                     .select(f -> f.id(UUID.class))
-                    .where(f -> f.bool().
-                            filter(f.match().
-                                    fields("title").
-                                    matching(forumSpecsDTO.titleContains())).
-                            filter(f.match().
-                                    fields("content").
-                                    matching(forumSpecsDTO.bodyContains())).
-                            filter(f.range().
-                                    field("creationDate").
-                                    atLeast(forumSpecsDTO.postAfterCutoff())).
-                            filter(f.range().
-                                    field("creationDate").
-                                    atMost(forumSpecsDTO.postBeforeCutoff()))
+                    .where(f -> new NullSafeQuerySearchBuilder(f).
+                            nullSafeMatch("title", forumSpecsForm.titleContains()).
+                            nullSafeMatch("content", forumSpecsForm.bodyContains()).
+                            nullSafeRangeMatch("creationDate", forumSpecsForm.postAfterCutoff(), true).
+                            nullSafeRangeMatch("creationDate", forumSpecsForm.postBeforeCutoff(), false).
+                            obtain()
 
                     )
                     .sort(f -> f.composite(
@@ -216,13 +210,13 @@ public class ForumPostAndCommentService {
 
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                        String searchToken, ForumSpecsDTO forumSpecsDTO)
+                                                        String searchToken, ForumSpecsForm forumSpecsForm)
     {
-        SearchResultDTO resultDTO = executeSearch(forumSpecsDTO, searchToken);
+        SearchResultDTO resultDTO = executeSearch(forumSpecsForm, searchToken);
 
         List<UUID> matchedResults = resultDTO.results();
 
-        int numPages = Math.ceilDiv(matchedResults.size(), pageSize);
+        int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
 
         List<UUID> matchedList = getNecessaryResults(matchedResults, pageNumber, pageSize);
 

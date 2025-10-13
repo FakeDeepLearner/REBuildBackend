@@ -12,21 +12,25 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
+import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.*;
 import com.rebuild.backend.service.token_services.OTPService;
+import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
 import com.sendgrid.SendGrid;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.cdimascio.dotenv.Dotenv;
+import jakarta.persistence.EntityManager;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AccountExpiredException;
@@ -78,6 +82,10 @@ public class UserService{
 
     private final Dotenv dotenv;
 
+    private final EntityManager entityManager;
+
+    private final RedisCacheManager cacheManager;
+
 
     @Autowired
     public UserService(UserRepository repository,
@@ -89,7 +97,9 @@ public class UserService{
                        SendGrid sendGrid, CaptchaVerificationRepository verificationRepository,
                        OTPService otpService, Cloudinary cloudinary,
                        ProfileRepository profileRepository,
-                       ProfilePictureRepository profilePictureRepository, Dotenv dotenv) {
+                       ProfilePictureRepository profilePictureRepository,
+                       Dotenv dotenv, EntityManager entityManager,
+                       @Qualifier("searchCacheManager") RedisCacheManager cacheManager) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
@@ -97,6 +107,8 @@ public class UserService{
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.dotenv = dotenv;
+        this.entityManager = entityManager;
+        this.cacheManager = cacheManager;
         this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
@@ -320,13 +332,76 @@ public class UserService{
 
     }
 
-    public HomePageData loadHomePageInformation(User user, int pageNumber, int pageSize){
-        Pageable pageableResult = PageRequest.of(pageNumber, pageSize,
-                Sort.by("creationDate").descending().
-                        and(Sort.by("lastModifiedDate").descending()));
-        Page<Resume> resultingPage = resumeRepository.findAllById(user.getId(), pageableResult);
-        return new HomePageData(resultingPage.getContent(), resultingPage.getNumber(), resultingPage.getTotalElements(),
-                resultingPage.getTotalPages(), pageSize, user.getProfile());
+    @SuppressWarnings("unchecked")
+    private SearchResultDTO executeSearch(ResumeSpecsForm specsForm, String searchToken)
+    {
+        if (searchToken == null) {
+            SearchSession searchSession = Search.session(entityManager);
+            List<UUID> matchedIds = searchSession.search(Resume.class)
+                    .select(f -> f.id(UUID.class))
+                    .where(f -> new NullSafeQuerySearchBuilder(f).
+                            nullSafeMatch("header.firstName", specsForm.firstNameContains()).
+                            nullSafeMatch("header.lastName", specsForm.lastNameContains()).
+                            nullSafeMatch("name", specsForm.resumeNameContains()).
+                            nullSafeMatch("education.schoolName", specsForm.schoolNameContains()).
+                            nullSafeMatch("education.relevantCoursework", specsForm.courseWorkContains()).
+                            nullSafeMatch("experiences.companyName", specsForm.companyContains()).
+                            nullSafeMatch("experiences.technologyList", specsForm.technologyListContains()).
+                            nullSafeMatch("experiences.bullets", specsForm.bulletsContains()).
+                            nullSafeRangeMatch("creationTime", specsForm.creationAfterCutoff(), true).
+                            nullSafeRangeMatch("creationTime", specsForm.creationBeforeCutoff(), false).
+                            obtain()
+                    )
+                    .sort(f -> f.composite(
+                            composite -> {
+                                composite.add(f.field("creationTime").desc());
+                                composite.add(f.field("lastModifiedTime").desc());
+                            }
+                    ))
+                    .fetchAllHits();
+            String searchResultToken = UUID.randomUUID().toString();
+            Objects.requireNonNull(cacheManager.getCache("search_cache")).
+                    put(searchResultToken, matchedIds);
+            return new SearchResultDTO(matchedIds, searchResultToken);
+
+        }
+        else {
+            return new SearchResultDTO((ArrayList<UUID>) Objects.requireNonNull(
+                    Objects.requireNonNull(cacheManager.getCache("search_cache")).
+                            get(searchToken)).get(), searchToken);
+        }
+    }
+
+    private List<UUID> getNecessaryResults(List<UUID> allIds, int pageNumber, int pageSize)
+    {
+        if (allIds == null || allIds.isEmpty()) {
+            return List.of();
+        }
+
+        int fromIndex = pageNumber * pageSize;
+        if (fromIndex >= allIds.size()) {
+            return List.of();
+        }
+
+        int toIndex = Math.min(fromIndex + pageSize, allIds.size());
+        return allIds.subList(fromIndex, toIndex);
+    }
+
+
+
+    public HomePageData loadHomePageInformation(ResumeSpecsForm forumSpecsForm, String searchToken,
+                                                User user, int pageNumber, int pageSize){
+        SearchResultDTO resultDTO = executeSearch(forumSpecsForm, searchToken);
+
+        List<UUID> matchedResults = resultDTO.results();
+
+        int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
+
+        List<UUID> matchedList = getNecessaryResults(matchedResults, pageNumber, pageSize);
+
+        List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
+        return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),
+                numPages, pageSize, user.getProfile(), resultDTO.searchToken());
     }
 
     public Bucket returnUserBucket(String loginEmail){

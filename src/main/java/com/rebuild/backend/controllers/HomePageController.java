@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
@@ -42,8 +43,11 @@ public class HomePageController {
     @ResponseStatus(HttpStatus.OK)
     public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
-                                     @RequestParam(defaultValue = "10", name = "size") int pageSize) {
-        return userService.loadHomePageInformation(authenticatedUser, pageNumber, pageSize);
+                                     @RequestParam(defaultValue = "10", name = "size") int pageSize,
+                                     @RequestBody ResumeSpecsForm specsForm,
+                                     @RequestParam(name = "token", required = false) String searchToken) {
+        return userService.loadHomePageInformation(specsForm, searchToken,
+                authenticatedUser, pageNumber, pageSize);
     }
 
     @PostMapping("/api/create")

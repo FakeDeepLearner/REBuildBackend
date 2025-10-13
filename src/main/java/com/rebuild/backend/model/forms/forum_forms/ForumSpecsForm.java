@@ -1,10 +1,10 @@
-package com.rebuild.backend.model.forms.dtos.forum_dtos;
+package com.rebuild.backend.model.forms.forum_forms;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
-public record ForumSpecsDTO(
+public record ForumSpecsForm(
                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                             LocalDateTime postAfterCutoff,
                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

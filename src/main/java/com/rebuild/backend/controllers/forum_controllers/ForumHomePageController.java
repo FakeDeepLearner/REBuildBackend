@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
+import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
@@ -43,10 +43,10 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size")
                                           int pageSize,
 
-                                          @ModelAttribute ForumSpecsDTO forumSpecsDTO, BindingResult result,
+                                          @ModelAttribute ForumSpecsForm forumSpecsForm, BindingResult result,
                                           @RequestParam(name = "token", required = false) String searchToken) {
 
-        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsDTO);
+        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsForm);
     }
 
     @GetMapping("/get_posts/{post_id}")
