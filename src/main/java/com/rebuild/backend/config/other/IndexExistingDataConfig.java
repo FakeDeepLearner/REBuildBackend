@@ -1,6 +1,7 @@
 package com.rebuild.backend.config.other;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
@@ -26,6 +27,18 @@ public class IndexExistingDataConfig {
         massIndexer.
                 batchSizeToLoadObjects(5).
                 threadsToLoadObjects(5).
+                dropAndCreateSchemaOnStart(true).
+                startAndWait();
+    }
+
+    @PostConstruct
+    public void indexResumeData() throws InterruptedException {
+        SearchSession session = Search.session(entityManager);
+        MassIndexer massIndexer = session.massIndexer(Resume.class);
+
+        massIndexer.
+                batchSizeToLoadObjects(10).
+                threadsToLoadObjects(8).
                 dropAndCreateSchemaOnStart(true).
                 startAndWait();
     }

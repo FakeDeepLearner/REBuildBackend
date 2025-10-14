@@ -76,7 +76,9 @@ public class PrefillFromProfileController {
             throw new RuntimeException("Your profile does not have experiences set");
         }
         List<Experience> convertedExperiences = resumeUser.getProfile().getExperienceList().
-                stream().map(objectConverter::convertToExperience).
+                stream().map(objectConverter::convertToExperience).peek(experience -> {
+                    experience.setResume(associatedResume);
+                }).
                 toList();
         return resumeService.setExperiences(associatedResume, convertedExperiences);
 

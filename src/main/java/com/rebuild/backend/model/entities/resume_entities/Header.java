@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import java.util.UUID;
 
@@ -25,22 +26,31 @@ public class Header implements ResumeProperty {
     @NonNull
     @Column(nullable = false, name = "phone_number")
     @Convert(converter = DatabaseEncryptor.class)
+    @FullTextField
     private String number;
 
     @Column(name = "first_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
+    @FullTextField
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
+    @FullTextField
     private String lastName;
 
     @Column(name = "email", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
+    @FullTextField
     private String email;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "resume_id", referencedColumnName = "id")
+    @JsonIgnore
+    private Resume resume = null;
 
     @Override
     public String toString() {

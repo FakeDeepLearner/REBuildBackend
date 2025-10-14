@@ -54,11 +54,13 @@ public class ObjectConverter {
         return convertToOutputList(experienceForms, rawForm ->
         {
             List<ExperienceType> experienceTypes = convertToExperienceTypes(rawForm.experienceTypeValues());
-            return new Experience(rawForm.companyName(),
+            Experience newExperience = new Experience(rawForm.companyName(),
                     rawForm.technologies(), rawForm.location(), experienceTypes,
                     YearMonthStringOperations.getYearMonth(rawForm.startDate()),
                     YearMonthStringOperations.getYearMonth(rawForm.endDate()),
                     rawForm.bullets());
+            newExperience.setResume(associatedResume);
+            return newExperience;
         });
     }
 

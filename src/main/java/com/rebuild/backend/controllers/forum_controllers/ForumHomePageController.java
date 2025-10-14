@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.ForumSpecsDTO;
+import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
@@ -37,7 +37,7 @@ public class ForumHomePageController {
         this.userService = userService;
     }
 
-    @GetMapping(value = "/get_posts")
+    @PostMapping(value = "/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page")
                                           int pageNumber,
@@ -45,10 +45,18 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size")
                                           int pageSize,
 
-                                          @ModelAttribute ForumSpecsDTO forumSpecsDTO, BindingResult result,
+                                          @RequestBody ForumSpecsForm forumSpecsForm,
                                           @RequestParam(name = "token", required = false) String searchToken) {
 
-        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsDTO);
+        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsForm);
+    }
+
+    @GetMapping("/get_posts")
+    @ResponseStatus(HttpStatus.OK)
+    public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page") int pageNumber,
+                                          @RequestParam(defaultValue = "20", name = "size") int pageSize,
+                                          @RequestParam(name = "token", required = false)  String searchToken) {
+        return postAndCommentService.serveGetRequest(pageNumber, pageSize, searchToken);
     }
 
     @GetMapping("/get_posts/{post_id}")

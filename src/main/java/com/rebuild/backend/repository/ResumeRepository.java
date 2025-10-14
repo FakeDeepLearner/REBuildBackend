@@ -17,14 +17,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ResumeRepository extends JpaRepository<Resume, UUID>, JpaSpecificationExecutor<Resume> {
+public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     void deleteById(@NonNull UUID ID);
-
-    int countByIdAndUserId(UUID id, UUID userID);
-
-    @NonNull
-    Page<Resume> findAllById(UUID id,  @NonNull Pageable pageable);
 
 
 }
