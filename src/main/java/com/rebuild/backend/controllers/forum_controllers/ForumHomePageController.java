@@ -35,7 +35,7 @@ public class ForumHomePageController {
         this.userService = userService;
     }
 
-    @GetMapping(value = "/get_posts")
+    @PostMapping(value = "/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page")
                                           int pageNumber,
@@ -43,10 +43,18 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size")
                                           int pageSize,
 
-                                          @ModelAttribute ForumSpecsForm forumSpecsForm, BindingResult result,
+                                          @RequestBody ForumSpecsForm forumSpecsForm,
                                           @RequestParam(name = "token", required = false) String searchToken) {
 
         return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsForm);
+    }
+
+    @GetMapping("/get_posts")
+    @ResponseStatus(HttpStatus.OK)
+    public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page") int pageNumber,
+                                          @RequestParam(defaultValue = "20", name = "size") int pageSize,
+                                          @RequestParam(name = "token", required = false)  String searchToken) {
+        return postAndCommentService.serveGetRequest(pageNumber, pageSize, searchToken);
     }
 
     @GetMapping("/get_posts/{post_id}")

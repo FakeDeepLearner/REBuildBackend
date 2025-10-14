@@ -16,6 +16,7 @@ import com.rebuild.backend.repository.CommentReplyRepository;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.service.util_services.ElasticSearchService;
 import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
@@ -30,6 +31,9 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -55,9 +59,7 @@ public class ForumPostAndCommentService {
 
     private final JobLauncher jobLauncher;
 
-    private final EntityManager entityManager;
-
-    private final RedisCacheManager redisCacheManager;
+    private final ElasticSearchService searchService;
 
 
     @Autowired
@@ -65,15 +67,13 @@ public class ForumPostAndCommentService {
                                       CommentRepository commentRepository, ForumPostRepository postRepository,
                                       CommentReplyRepository commentReplyRepository,
                                       @Qualifier("jobLauncher") JobLauncher jobLauncher,
-                                      EntityManager entityManager,
-                                      @Qualifier("searchCacheManager") RedisCacheManager redisCacheManager) {
+                                      ElasticSearchService searchService) {
         this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.commentReplyRepository = commentReplyRepository;
         this.jobLauncher = jobLauncher;
-        this.entityManager = entityManager;
-        this.redisCacheManager = redisCacheManager;
+        this.searchService = searchService;
     }
 
     @Transactional
@@ -158,74 +158,58 @@ public class ForumPostAndCommentService {
         return commentRepository.countByIdAndUserId(commentID, userID) > 0;
     }
 
-    @SuppressWarnings(value = "unchecked")
-    private SearchResultDTO executeSearch(ForumSpecsForm forumSpecsForm, String searchToken){
-
-        if (searchToken == null) {
-            SearchSession searchSession = Search.session(entityManager);
-            List<UUID> matchedIds = searchSession.search(ForumPost.class)
-                    .select(f -> f.id(UUID.class))
-                    .where(f -> new NullSafeQuerySearchBuilder(f).
-                            nullSafeMatch("title", forumSpecsForm.titleContains()).
-                            nullSafeMatch("content", forumSpecsForm.bodyContains()).
-                            nullSafeRangeMatch("creationDate", forumSpecsForm.postAfterCutoff(), true).
-                            nullSafeRangeMatch("creationDate", forumSpecsForm.postBeforeCutoff(), false).
-                            obtain()
-
-                    )
-                    .sort(f -> f.composite(
-                            composite -> {
-                                composite.add(f.field("creationDate").desc());
-                                composite.add(f.field("lastModificationDate").desc());
-                            }
-                    ))
-                    .fetchAllHits();
-            String searchResultToken = UUID.randomUUID().toString();
-            Objects.requireNonNull(redisCacheManager.getCache("search_cache")).
-                    put(searchResultToken, matchedIds);
-            return new SearchResultDTO(matchedIds, searchResultToken);
-
-        }
-        else {
-            return new SearchResultDTO((ArrayList<UUID>) Objects.requireNonNull(
-                    Objects.requireNonNull(redisCacheManager.getCache("search_cache")).
-                    get(searchToken)).get(), searchToken);
-        }
-    }
-
-    private List<UUID> getNecessaryResults(List<UUID> allIds, int pageNumber, int pageSize)
+    private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize)
     {
-        if (allIds == null || allIds.isEmpty()) {
-            return List.of();
-        }
+        PageRequest request =
+                PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
-        int fromIndex = pageNumber * pageSize;
-        if (fromIndex >= allIds.size()) {
-            return List.of();
-        }
+        Page<ForumPost> foundPage = postRepository.findAll(request);
 
-        int toIndex = Math.min(fromIndex + pageSize, allIds.size());
-        return allIds.subList(fromIndex, toIndex);
+        return new ForumPostPageResponse(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
+                foundPage.getTotalPages(), foundPage.getSize(), null);
     }
 
+    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, String searchToken)
+    {
+        if (searchToken != null)
+        {
+            SearchResultDTO searchResult = searchService.getFromCache(searchToken);
+            if (searchResult != null)
+            {
+                List<UUID> matchedResults = searchResult.results();
+
+                int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
+
+                List<UUID> matchedList = searchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
+
+                List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
+
+                return new ForumPostPageResponse(foundPosts, pageNumber,
+                        matchedResults.size(), numPages, pageSize, searchResult.searchToken());
+            }
+            //Otherwise, we simply return the whole forum post information, paginated.
+            else{
+                return getPaginatedResponse(pageNumber, pageSize);
+            }
+        }
+        return getPaginatedResponse(pageNumber, pageSize);
+    }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
                                                         String searchToken, ForumSpecsForm forumSpecsForm)
     {
-        SearchResultDTO resultDTO = executeSearch(forumSpecsForm, searchToken);
+        SearchResultDTO resultDTO = searchService.executeSearch(forumSpecsForm, searchToken);
 
         List<UUID> matchedResults = resultDTO.results();
 
         int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
 
-        List<UUID> matchedList = getNecessaryResults(matchedResults, pageNumber, pageSize);
+        List<UUID> matchedList = searchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
 
         List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
 
         return new ForumPostPageResponse(foundPosts, pageNumber,
                 matchedResults.size(), numPages, pageSize, resultDTO.searchToken());
-
-
     }
 
     public PostDisplayDTO loadPost(UUID postID){

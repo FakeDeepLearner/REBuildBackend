@@ -3,6 +3,7 @@ package com.rebuild.backend.service.user_services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
@@ -14,9 +15,11 @@ import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
+import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.*;
 import com.rebuild.backend.service.token_services.OTPService;
+import com.rebuild.backend.service.util_services.ElasticSearchService;
 import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
 import com.sendgrid.SendGrid;
 import io.github.bucket4j.Bucket;
@@ -30,6 +33,9 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -82,9 +88,7 @@ public class UserService{
 
     private final Dotenv dotenv;
 
-    private final EntityManager entityManager;
-
-    private final RedisCacheManager cacheManager;
+    private final ElasticSearchService elasticSearchService;
 
 
     @Autowired
@@ -98,8 +102,7 @@ public class UserService{
                        OTPService otpService, Cloudinary cloudinary,
                        ProfileRepository profileRepository,
                        ProfilePictureRepository profilePictureRepository,
-                       Dotenv dotenv, EntityManager entityManager,
-                       @Qualifier("searchCacheManager") RedisCacheManager cacheManager) {
+                       Dotenv dotenv, ElasticSearchService elasticSearchService) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
@@ -107,8 +110,7 @@ public class UserService{
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.dotenv = dotenv;
-        this.entityManager = entityManager;
-        this.cacheManager = cacheManager;
+        this.elasticSearchService = elasticSearchService;
         this.encoder = new BCryptPasswordEncoder();
         this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
@@ -332,72 +334,52 @@ public class UserService{
 
     }
 
-    @SuppressWarnings("unchecked")
-    private SearchResultDTO executeSearch(ResumeSpecsForm specsForm, String searchToken)
+    private HomePageData getPaginatedResumes(int pageNumber, int pageSize, User user)
     {
-        if (searchToken == null) {
-            SearchSession searchSession = Search.session(entityManager);
-            List<UUID> matchedIds = searchSession.search(Resume.class)
-                    .select(f -> f.id(UUID.class))
-                    .where(f -> new NullSafeQuerySearchBuilder(f).
-                            nullSafeMatch("header.firstName", specsForm.firstNameContains()).
-                            nullSafeMatch("header.lastName", specsForm.lastNameContains()).
-                            nullSafeMatch("name", specsForm.resumeNameContains()).
-                            nullSafeMatch("education.schoolName", specsForm.schoolNameContains()).
-                            nullSafeMatch("education.relevantCoursework", specsForm.courseWorkContains()).
-                            nullSafeMatch("experiences.companyName", specsForm.companyContains()).
-                            nullSafeMatch("experiences.technologyList", specsForm.technologyListContains()).
-                            nullSafeMatch("experiences.bullets", specsForm.bulletsContains()).
-                            nullSafeRangeMatch("creationTime", specsForm.creationAfterCutoff(), true).
-                            nullSafeRangeMatch("creationTime", specsForm.creationBeforeCutoff(), false).
-                            obtain()
-                    )
-                    .sort(f -> f.composite(
-                            composite -> {
-                                composite.add(f.field("creationTime").desc());
-                                composite.add(f.field("lastModifiedTime").desc());
-                            }
-                    ))
-                    .fetchAllHits();
-            String searchResultToken = UUID.randomUUID().toString();
-            Objects.requireNonNull(cacheManager.getCache("search_cache")).
-                    put(searchResultToken, matchedIds);
-            return new SearchResultDTO(matchedIds, searchResultToken);
+        PageRequest request =
+                PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
-        }
-        else {
-            return new SearchResultDTO((ArrayList<UUID>) Objects.requireNonNull(
-                    Objects.requireNonNull(cacheManager.getCache("search_cache")).
-                            get(searchToken)).get(), searchToken);
-        }
+        Page<Resume> foundPage = resumeRepository.findAll(request);
+
+        return new HomePageData(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
+                foundPage.getTotalPages(), foundPage.getSize(), user.getProfile(),null);
     }
 
-    private List<UUID> getNecessaryResults(List<UUID> allIds, int pageNumber, int pageSize)
-    {
-        if (allIds == null || allIds.isEmpty()) {
-            return List.of();
-        }
+    public HomePageData getHomePageData(User user, int pageNumber, int pageSize,
+                                        String searchToken){
+        if (searchToken != null)
+        {
+            SearchResultDTO searchResult = elasticSearchService.getFromCache(searchToken);
+            if (searchResult != null)
+            {
+                List<UUID> matchedResults = searchResult.results();
 
-        int fromIndex = pageNumber * pageSize;
-        if (fromIndex >= allIds.size()) {
-            return List.of();
-        }
+                int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
 
-        int toIndex = Math.min(fromIndex + pageSize, allIds.size());
-        return allIds.subList(fromIndex, toIndex);
+                List<UUID> matchedList = elasticSearchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
+
+                List<Resume> foundResumes = resumeRepository.findAllById(matchedList);
+
+                return new HomePageData(foundResumes, pageNumber,
+                        matchedResults.size(), numPages, pageSize, user.getProfile(), searchResult.searchToken());
+            }
+            //Otherwise, we simply return the whole forum post information, paginated.
+            else{
+                return getPaginatedResumes(pageNumber, pageSize, user);
+            }
+        }
+        return getPaginatedResumes(pageNumber, pageSize, user);
     }
 
-
-
-    public HomePageData loadHomePageInformation(ResumeSpecsForm forumSpecsForm, String searchToken,
+    public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm, String searchToken,
                                                 User user, int pageNumber, int pageSize){
-        SearchResultDTO resultDTO = executeSearch(forumSpecsForm, searchToken);
+        SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm, searchToken);
 
         List<UUID> matchedResults = resultDTO.results();
 
         int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
 
-        List<UUID> matchedList = getNecessaryResults(matchedResults, pageNumber, pageSize);
+        List<UUID> matchedList = elasticSearchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
 
         List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
         return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),

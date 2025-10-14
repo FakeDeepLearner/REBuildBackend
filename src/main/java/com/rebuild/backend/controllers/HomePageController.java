@@ -39,15 +39,24 @@ public class HomePageController {
         return resumeService.findByUserIndex(user, index);
     }
 
-    @GetMapping("/home")
+    @PostMapping("/home/search")
     @ResponseStatus(HttpStatus.OK)
     public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize,
                                      @RequestBody ResumeSpecsForm specsForm,
                                      @RequestParam(name = "token", required = false) String searchToken) {
-        return userService.loadHomePageInformation(specsForm, searchToken,
+        return userService.getSearchResult(specsForm, searchToken,
                 authenticatedUser, pageNumber, pageSize);
+    }
+
+    @GetMapping("/home")
+    @ResponseStatus(HttpStatus.OK)
+    public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
+                                     @RequestParam(defaultValue = "0", name = "page") int pageNumber,
+                                     @RequestParam(defaultValue = "10", name = "size") int pageSize,
+                                     @RequestParam(name = "token", required = false) String searchToken) {
+        return userService.getHomePageData(authenticatedUser, pageNumber, pageSize, searchToken);
     }
 
     @PostMapping("/api/create")
