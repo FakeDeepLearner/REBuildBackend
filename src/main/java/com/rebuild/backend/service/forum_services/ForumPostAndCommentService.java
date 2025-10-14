@@ -14,13 +14,7 @@ import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
 import com.rebuild.backend.repository.ResumeRepository;
-import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
-import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
-import jakarta.persistence.EntityManager;
-import org.apache.http.util.EntityUtils;
-import org.hibernate.search.mapper.orm.Search;
-import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
@@ -35,16 +29,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -60,8 +51,6 @@ public class ForumPostAndCommentService {
 
     private final ResumeRepository resumeRepository;
 
-    private final EntityManager entityManager;
-
     private final ElasticSearchService searchService;
 
 
@@ -69,13 +58,11 @@ public class ForumPostAndCommentService {
     public ForumPostAndCommentService(JobOperator jobOperator,
                                       CommentRepository commentRepository,
                                       ForumPostRepository postRepository, ResumeRepository resumeRepository,
-                                      EntityManager entityManager,
-                                      @Qualifier("searchCacheManager") RedisCacheManager redisCacheManager) {
+                                      ElasticSearchService searchService) {
         this.jobOperator = jobOperator;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
-        this.entityManager = entityManager;
         this.searchService = searchService;
     }
 
@@ -238,7 +225,7 @@ public class ForumPostAndCommentService {
     public void runLikesUpdatingJob(@Qualifier(value = "updateLikesJob") Job updateLikesJob)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
-            JobParametersInvalidException, JobRestartException {
+            JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
         // We don't use a variable to subtract minutes from, because we want to be very
         // sensitive in keeping accurate time. 
