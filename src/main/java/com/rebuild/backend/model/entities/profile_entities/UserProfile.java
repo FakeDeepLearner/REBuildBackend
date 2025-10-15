@@ -1,11 +1,13 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +50,12 @@ public class UserProfile {
     @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "picture_id", referencedColumnName = "id")
     private ProfilePicture profilePicture;
+
+    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<ResumeSearchConfiguration> resumeSearchConfigurations = new ArrayList<>();
+
+    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<PostSearchConfiguration> postSearchConfigurations = new ArrayList<>();
 
     @Column(name = "page_size")
     private int forumPageSize = 20;
@@ -92,4 +100,13 @@ public class UserProfile {
     }
 
 
+    public void addPostSearchConfig(PostSearchConfiguration configuration)
+    {
+        this.postSearchConfigurations.add(configuration);
+    }
+
+    public void addResumeSearchConfig(ResumeSearchConfiguration configuration)
+    {
+        this.resumeSearchConfigurations.add(configuration);
+    }
 }

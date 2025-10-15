@@ -1,9 +1,14 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
+import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.repository.ResumeSearchRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;
@@ -14,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -26,10 +32,43 @@ public class HomePageController {
 
     private final ResumeService resumeService;
 
+    private final ResumeSearchRepository searchRepository;
+
     @Autowired
-    public HomePageController(UserService userService, ResumeService resumeService) {
+    public HomePageController(UserService userService, ResumeService resumeService, ResumeSearchRepository searchRepository) {
         this.userService = userService;
         this.resumeService = resumeService;
+        this.searchRepository = searchRepository;
+    }
+
+    @PostMapping("/get_posts/configuration/{config_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getPosts(@RequestParam(name = "token", required = false) String searchToken,
+                                      @AuthenticationPrincipal User user,
+                                      @PathVariable UUID config_id) {
+        try {
+
+            ResumeSearchConfiguration foundConfig = searchRepository.findById(config_id).get();
+
+            
+            ResumeSpecsForm craftedBody = resumeService.createSpecsForm(foundConfig);
+
+            HomePageData response = userService.getSearchResult(craftedBody, null, user,
+                            0, 20);
+
+            return ResponseEntity.ok(response);
+        }
+        catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping( "home/create_resume_search_config")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResumeSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
+                                                        @RequestBody ResumeSpecsForm specsForm)
+    {
+        return resumeService.createSearchConfig(authenticatedUser, specsForm);
     }
 
     @GetMapping("/home/resume/{index}")

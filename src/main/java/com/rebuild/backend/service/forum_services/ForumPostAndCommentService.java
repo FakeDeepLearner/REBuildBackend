@@ -1,6 +1,9 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.resume_entities.PostResume;
+import com.rebuild.backend.model.entities.forum_entities.CommentReply;
+import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -13,6 +16,8 @@ import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.repository.CommentRepository;
 import com.rebuild.backend.repository.ForumPostRepository;
+import com.rebuild.backend.repository.PostSearchRepository;
+import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.repository.ResumeRepository;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
 import org.springframework.batch.core.job.Job;
@@ -53,17 +58,27 @@ public class ForumPostAndCommentService {
 
     private final ElasticSearchService searchService;
 
+    private final PostSearchRepository postSearchRepository;
+
 
     @Autowired
-    public ForumPostAndCommentService(JobOperator jobOperator,
-                                      CommentRepository commentRepository,
-                                      ForumPostRepository postRepository, ResumeRepository resumeRepository,
-                                      ElasticSearchService searchService) {
-        this.jobOperator = jobOperator;
+    public ForumPostAndCommentService(ResumeService resumeService,
+                                      CommentRepository commentRepository, ForumPostRepository postRepository,
+                                      CommentReplyRepository commentReplyRepository,
+                                      @Qualifier("jobLauncher") JobLauncher jobLauncher,
+                                      ElasticSearchService searchService, PostSearchRepository postSearchRepository) {
+        this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
         this.searchService = searchService;
+        this.postSearchRepository = postSearchRepository;
+    }
+
+    public ForumSpecsForm buildSpecsFrom(PostSearchConfiguration configuration)
+    {
+        return new ForumSpecsForm(configuration.getCreationAfterCutoff(), configuration.getCreationBeforeCutoff(),
+                configuration.getTitleSearch(), configuration.getBodySearch());
     }
 
     @Transactional
@@ -110,6 +125,16 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
+    public PostSearchConfiguration createSearchConfig(User creatingUser, ForumSpecsForm forumSpecsForm){
+        UserProfile profile = creatingUser.getProfile();
+        PostSearchConfiguration searchConfig = new PostSearchConfiguration(forumSpecsForm);
+        searchConfig.setAssociatedProfile(profile);
+        profile.addPostSearchConfig(searchConfig);
+        return postSearchRepository.save(searchConfig);
+
+    }
+
+    @Transactional
     public Comment createReplyTo(UUID parent_comment_id, User creatingUser,
                                       CommentForm commentForm){
         String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
@@ -139,7 +164,7 @@ public class ForumPostAndCommentService {
         return commentRepository.countByIdAndUserId(commentID, userID) > 0;
     }
 
-    private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize)
+    private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize, UserProfile profile)
     {
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
@@ -147,11 +172,12 @@ public class ForumPostAndCommentService {
         Page<ForumPost> foundPage = postRepository.findAll(request);
 
         return new ForumPostPageResponse(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize(), null);
+                foundPage.getTotalPages(), foundPage.getSize(), null, profile.getPostSearchConfigurations());
     }
 
-    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, String searchToken)
+    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, String searchToken, User user)
     {
+        UserProfile profile = user.getProfile();
         if (searchToken != null)
         {
             SearchResultDTO searchResult = searchService.getFromCache(searchToken);
@@ -166,19 +192,22 @@ public class ForumPostAndCommentService {
                 List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
 
                 return new ForumPostPageResponse(foundPosts, pageNumber,
-                        matchedResults.size(), numPages, pageSize, searchResult.searchToken());
+                        matchedResults.size(), numPages, pageSize, searchResult.searchToken(),
+                        profile.getPostSearchConfigurations());
             }
             //Otherwise, we simply return the whole forum post information, paginated.
             else{
-                return getPaginatedResponse(pageNumber, pageSize);
+                return getPaginatedResponse(pageNumber, pageSize, profile);
             }
         }
-        return getPaginatedResponse(pageNumber, pageSize);
+        return getPaginatedResponse(pageNumber, pageSize, profile);
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                        String searchToken, ForumSpecsForm forumSpecsForm)
+                                                        String searchToken, ForumSpecsForm forumSpecsForm,
+                                                User user)
     {
+        UserProfile profile = user.getProfile();
         SearchResultDTO resultDTO = searchService.executeSearch(forumSpecsForm, searchToken);
 
         List<UUID> matchedResults = resultDTO.results();
@@ -190,7 +219,8 @@ public class ForumPostAndCommentService {
         List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
 
         return new ForumPostPageResponse(foundPosts, pageNumber,
-                matchedResults.size(), numPages, pageSize, resultDTO.searchToken());
+                matchedResults.size(), numPages, pageSize, resultDTO.searchToken(),
+                profile.getPostSearchConfigurations());
     }
 
     public PostDisplayDTO loadPost(UUID postID){

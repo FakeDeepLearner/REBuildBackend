@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.resume_services;
 
 
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.*;
@@ -12,6 +13,7 @@ import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +33,37 @@ public class ResumeService {
 
     private final ResumeGetUtility getUtility;
 
+    private final ResumeSearchRepository resumeSearchRepository;
+
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          ObjectConverter objectConverter, SubpartsModificationUtility modificationUtility,
-                         ResumeGetUtility getUtility) {
+                         ResumeGetUtility getUtility, ResumeSearchRepository resumeSearchRepository) {
         this.resumeRepository = resumeRepository;
         this.objectConverter = objectConverter;
         this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
+        this.resumeSearchRepository = resumeSearchRepository;
+    }
+
+    public ResumeSpecsForm createSpecsForm(ResumeSearchConfiguration searchConfiguration)
+    {
+        return new ResumeSpecsForm(searchConfiguration.getResumeNameSearch(), searchConfiguration.getFirstNameSearch(),
+                searchConfiguration.getLastNameSearch(), searchConfiguration.getCreationAfterCutoff(),
+                searchConfiguration.getCreationBeforeCutoff(),
+                searchConfiguration.getSchoolNameSearch(), searchConfiguration.getCourseworkSearch(),
+                searchConfiguration.getCompanySearch(),
+                searchConfiguration.getBulletsSearch(), searchConfiguration.getTechnologiesSearch());
+    }
+
+    public ResumeSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
+                                                        ResumeSpecsForm specsForm){
+        UserProfile getProfile = authenticatedUser.getProfile();
+
+        ResumeSearchConfiguration newConfiguration = new ResumeSearchConfiguration(specsForm);
+        newConfiguration.setAssociatedProfile(getProfile);
+        getProfile.addResumeSearchConfig(newConfiguration);
+        return resumeSearchRepository.save(newConfiguration);
     }
 
     @Transactional
