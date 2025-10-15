@@ -56,7 +56,7 @@ public class ResumeService {
                 searchConfiguration.getBulletsSearch(), searchConfiguration.getTechnologiesSearch());
     }
 
-    public ResumeSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
+    public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,
                                                         ResumeSpecsForm specsForm){
         UserProfile getProfile = authenticatedUser.getProfile();
 

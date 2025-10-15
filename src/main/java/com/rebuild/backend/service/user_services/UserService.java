@@ -375,10 +375,10 @@ public class UserService{
         return getPaginatedResumes(pageNumber, pageSize, user);
     }
 
-    public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm, String searchToken,
+    public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm,
                                                 User user, int pageNumber, int pageSize){
         UserProfile profile = user.getProfile();
-        SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm, searchToken);
+        SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm);
 
         List<UUID> matchedResults = resultDTO.results();
 

@@ -27,7 +27,7 @@ public class SearchResultsStorage {
     public RedisCacheManager searchCacheManager()
     {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig().
-                entryTtl(Duration.ofMinutes(2));
+                entryTtl(Duration.ofMinutes(5)).enableTimeToIdle();
 
         return RedisCacheManager.builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory)).
                 cacheDefaults(config).

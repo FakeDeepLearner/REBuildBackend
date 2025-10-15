@@ -53,8 +53,7 @@ public class ForumHomePageController {
 
     @PostMapping("/get_posts/configuration/{config_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getPosts(@RequestParam(name = "token", required = false) String searchToken,
-                                           @AuthenticationPrincipal User user,
+    public ResponseEntity<?> getPosts(@AuthenticationPrincipal User user,
                                            @PathVariable UUID config_id) {
         try {
 
@@ -64,7 +63,7 @@ public class ForumHomePageController {
 
             ForumPostPageResponse response =
                     postAndCommentService.getPagedResult(0, 20,
-                            null, craftedBody, user);
+                             craftedBody, user);
 
             return ResponseEntity.ok(response);
         }
@@ -82,10 +81,9 @@ public class ForumHomePageController {
                                           int pageSize,
 
                                           @RequestBody ForumSpecsForm forumSpecsForm,
-                                          @RequestParam(name = "token", required = false) String searchToken,
                                           @AuthenticationPrincipal User user) {
 
-        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsForm, user);
+        return postAndCommentService.getPagedResult(pageNumber, pageSize, forumSpecsForm, user);
     }
 
     @GetMapping("/get_posts")

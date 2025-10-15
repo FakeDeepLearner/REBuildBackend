@@ -202,11 +202,11 @@ public class ForumPostAndCommentService {
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                        String searchToken, ForumSpecsForm forumSpecsForm,
+                                                ForumSpecsForm forumSpecsForm,
                                                 User user)
     {
         UserProfile profile = user.getProfile();
-        SearchResultDTO resultDTO = searchService.executeSearch(forumSpecsForm, searchToken);
+        SearchResultDTO resultDTO = searchService.executeSearch(forumSpecsForm);
 
         List<UUID> matchedResults = resultDTO.results();
 

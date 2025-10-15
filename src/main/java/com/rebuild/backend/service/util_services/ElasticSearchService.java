@@ -9,6 +9,7 @@ import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Service;
 
@@ -24,32 +25,30 @@ public class ElasticSearchService {
 
     private final RedisCacheManager cacheManager;
 
-    public ElasticSearchService(EntityManager entityManager, RedisCacheManager cacheManager) {
+    public ElasticSearchService(EntityManager entityManager,
+                                @Qualifier("searchCacheManager") RedisCacheManager cacheManager) {
         this.entityManager = entityManager;
         this.cacheManager = cacheManager;
     }
 
-    public SearchResultDTO executeSearch(Object searchForm, String currentToken)
+    public SearchResultDTO executeSearch(Object searchForm)
     {
-        //If we received a token from the client
-        if(currentToken != null)
-        {
-            return getFromCache(searchForm, currentToken);
-        }
 
-        // On the other hand, if we received a null token,
-        // we just immediately execute a search and return the result.
-        else {
-            return executeSearch(searchForm);
+        if (searchForm instanceof ResumeSpecsForm resumeSpecsForm)
+        {
+            return executeResumeSearch(resumeSpecsForm);
         }
+        else if (searchForm instanceof ForumSpecsForm forumSpecsForm){
+            return executePostSearch(forumSpecsForm);
+        }
+        return null;
 
     }
 
     @SuppressWarnings("unchecked")
     public SearchResultDTO getFromCache(String searchToken)
     {
-        List<UUID> cacheResult = (List<UUID>) cacheManager.getCache("search_cache").
-                get(searchToken, List.class);
+        List<UUID> cacheResult = (List<UUID>) cacheManager.getCache("search_cache");
 
         if (cacheResult != null)
         {
@@ -62,38 +61,8 @@ public class ElasticSearchService {
 
     }
 
-    @SuppressWarnings("unchecked")
-    public SearchResultDTO getFromCache(Object searchForm, String searchToken)
-    {
-        List<UUID> cacheResult = (List<UUID>) cacheManager.getCache("search_cache").
-                get(searchToken, List.class);
-
-        if (cacheResult != null)
-        {
-            return new SearchResultDTO(cacheResult, searchToken);
-        }
-        //Otherwise, we need to execute a search and return that result
-        else{
-            return executeSearch(searchForm);
-        }
-    }
 
 
-    private SearchResultDTO executeSearch(Object searchForm)
-    {
-        if (searchForm instanceof ResumeSpecsForm resumeSpecsForm)
-        {
-            return executeResumeSearch(resumeSpecsForm);
-        }
-        else if (searchForm instanceof ForumSpecsForm forumSpecsForm){
-            return executePostSearch(forumSpecsForm);
-        }
-        return null;
-    }
-
-
-
-    @SuppressWarnings("unchecked")
     private SearchResultDTO executeResumeSearch(ResumeSpecsForm specsForm)
     {
         String newSearchToken = UUID.randomUUID().toString();
@@ -127,7 +96,6 @@ public class ElasticSearchService {
 
     }
 
-    @SuppressWarnings(value = "unchecked")
     private SearchResultDTO executePostSearch(ForumSpecsForm forumSpecsForm){
         SearchSession searchSession = Search.session(entityManager);
         List<UUID> matchedIds = searchSession.search(ForumPost.class)

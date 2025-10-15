@@ -43,17 +43,15 @@ public class HomePageController {
 
     @PostMapping("/get_posts/configuration/{config_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getPosts(@RequestParam(name = "token", required = false) String searchToken,
-                                      @AuthenticationPrincipal User user,
+    public ResponseEntity<?> getPosts(@AuthenticationPrincipal User user,
                                       @PathVariable UUID config_id) {
         try {
 
             ResumeSearchConfiguration foundConfig = searchRepository.findById(config_id).get();
 
-            
             ResumeSpecsForm craftedBody = resumeService.createSpecsForm(foundConfig);
 
-            HomePageData response = userService.getSearchResult(craftedBody, null, user,
+            HomePageData response = userService.getSearchResult(craftedBody, user,
                             0, 20);
 
             return ResponseEntity.ok(response);
@@ -83,9 +81,8 @@ public class HomePageController {
     public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize,
-                                     @RequestBody ResumeSpecsForm specsForm,
-                                     @RequestParam(name = "token", required = false) String searchToken) {
-        return userService.getSearchResult(specsForm, searchToken,
+                                     @RequestBody ResumeSpecsForm specsForm) {
+        return userService.getSearchResult(specsForm,
                 authenticatedUser, pageNumber, pageSize);
     }
 
