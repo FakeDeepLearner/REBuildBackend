@@ -1,7 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.resume_entities.PostResume;
-import com.rebuild.backend.model.entities.forum_entities.CommentReply;
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
@@ -62,15 +61,14 @@ public class ForumPostAndCommentService {
 
 
     @Autowired
-    public ForumPostAndCommentService(ResumeService resumeService,
+    public ForumPostAndCommentService(ResumeRepository resumeRepository,
                                       CommentRepository commentRepository, ForumPostRepository postRepository,
-                                      CommentReplyRepository commentReplyRepository,
-                                      @Qualifier("jobLauncher") JobLauncher jobLauncher,
+                                      JobOperator jobOperator,
                                       ElasticSearchService searchService, PostSearchRepository postSearchRepository) {
-        this.resumeService = resumeService;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
+        this.jobOperator = jobOperator;
         this.searchService = searchService;
         this.postSearchRepository = postSearchRepository;
     }
