@@ -1,9 +1,11 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
+import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
+import com.rebuild.backend.repository.PostSearchRepository;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;
@@ -15,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,14 +31,47 @@ public class ForumHomePageController {
 
     private final UserService userService;
 
+    private final PostSearchRepository postSearchRepository;
+
     @Autowired
     public ForumHomePageController(ForumPostAndCommentService postAndCommentService,
-                                   UserService userService) {
+                                   UserService userService, PostSearchRepository postSearchRepository) {
         this.postAndCommentService = postAndCommentService;
         this.userService = userService;
+        this.postSearchRepository = postSearchRepository;
     }
 
-    @PostMapping(value = "/get_posts")
+    @PostMapping( "/create_post_search_config")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PostSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
+                                                      @RequestBody ForumSpecsForm specsForm)
+    {
+        return postAndCommentService.createSearchConfig(authenticatedUser, specsForm);
+    }
+
+    @PostMapping("/get_posts/configuration/{config_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getPosts(@RequestParam(name = "token", required = false) String searchToken,
+                                           @AuthenticationPrincipal User user,
+                                           @PathVariable UUID config_id) {
+        try {
+
+            PostSearchConfiguration foundConfig = postSearchRepository.findById(config_id).get();
+
+            ForumSpecsForm craftedBody = postAndCommentService.buildSpecsFrom(foundConfig);
+
+            ForumPostPageResponse response =
+                    postAndCommentService.getPagedResult(0, 20,
+                            null, craftedBody, user);
+
+            return ResponseEntity.ok(response);
+        }
+        catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page")
                                           int pageNumber,
@@ -44,17 +80,19 @@ public class ForumHomePageController {
                                           int pageSize,
 
                                           @RequestBody ForumSpecsForm forumSpecsForm,
-                                          @RequestParam(name = "token", required = false) String searchToken) {
+                                          @RequestParam(name = "token", required = false) String searchToken,
+                                          @AuthenticationPrincipal User user) {
 
-        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsForm);
+        return postAndCommentService.getPagedResult(pageNumber, pageSize, searchToken, forumSpecsForm, user);
     }
 
     @GetMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                           @RequestParam(defaultValue = "20", name = "size") int pageSize,
-                                          @RequestParam(name = "token", required = false)  String searchToken) {
-        return postAndCommentService.serveGetRequest(pageNumber, pageSize, searchToken);
+                                          @RequestParam(name = "token", required = false)  String searchToken,
+                                          @AuthenticationPrincipal User user) {
+        return postAndCommentService.serveGetRequest(pageNumber, pageSize, searchToken, user);
     }
 
     @GetMapping("/get_posts/{post_id}")

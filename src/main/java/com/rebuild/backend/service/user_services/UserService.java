@@ -269,6 +269,7 @@ public class UserService{
 
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
         newUser.setProfile(newUserProfile);
+        newUserProfile.setUser(newUser);
 
         return save(newUser);
     }
@@ -301,7 +302,7 @@ public class UserService{
 
         modifyProfilePictureOf(newProfile, pictureFile);
 
-        return profileRepository.save(newProfile);
+        return newProfile;
     }
 
     @Transactional
@@ -339,10 +340,11 @@ public class UserService{
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
+        UserProfile profile = user.getProfile();
         Page<Resume> foundPage = resumeRepository.findAll(request);
 
         return new HomePageData(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize(), user.getProfile(),null);
+                foundPage.getTotalPages(), foundPage.getSize(), profile,null, profile.getResumeSearchConfigurations());
     }
 
     public HomePageData getHomePageData(User user, int pageNumber, int pageSize,
@@ -352,6 +354,7 @@ public class UserService{
             SearchResultDTO searchResult = elasticSearchService.getFromCache(searchToken);
             if (searchResult != null)
             {
+                UserProfile profile = user.getProfile();
                 List<UUID> matchedResults = searchResult.results();
 
                 int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
@@ -361,7 +364,8 @@ public class UserService{
                 List<Resume> foundResumes = resumeRepository.findAllById(matchedList);
 
                 return new HomePageData(foundResumes, pageNumber,
-                        matchedResults.size(), numPages, pageSize, user.getProfile(), searchResult.searchToken());
+                        matchedResults.size(), numPages, pageSize, profile, searchResult.searchToken(),
+                        profile.getResumeSearchConfigurations());
             }
             //Otherwise, we simply return the whole forum post information, paginated.
             else{
@@ -373,6 +377,7 @@ public class UserService{
 
     public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm, String searchToken,
                                                 User user, int pageNumber, int pageSize){
+        UserProfile profile = user.getProfile();
         SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm, searchToken);
 
         List<UUID> matchedResults = resultDTO.results();
@@ -383,7 +388,7 @@ public class UserService{
 
         List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
         return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),
-                numPages, pageSize, user.getProfile(), resultDTO.searchToken());
+                numPages, pageSize, profile, resultDTO.searchToken(), profile.getResumeSearchConfigurations());
     }
 
     public Bucket returnUserBucket(String loginEmail){
