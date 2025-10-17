@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/profile/prefill")
@@ -26,12 +27,12 @@ public class PrefillFromProfileController {
         this.resumeService = resumeService;
     }
 
-    @GetMapping("/header/{index}")
+    @GetMapping("/header/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume prefillHeader(@PathVariable int index,
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume prefillHeader(@PathVariable UUID resume_id,
                                 @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findByUserIndex(user, index);
+        Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
@@ -44,12 +45,12 @@ public class PrefillFromProfileController {
         return resumeService.setHeader(associatedResume, transformedHeader);
     }
 
-    @GetMapping("/education/{index}")
+    @GetMapping("/education/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume prefillEducation(@PathVariable int index,
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume prefillEducation(@PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findByUserIndex(user, index);
+        Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");
@@ -62,12 +63,12 @@ public class PrefillFromProfileController {
         return resumeService.setEducation(associatedResume, transformedEducation);
     }
 
-    @GetMapping("/experiences/{index}")
+    @GetMapping("/experiences/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume prefillExperience(@PathVariable int index,
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume prefillExperience(@PathVariable UUID resume_id,
                                                @AuthenticationPrincipal User user){
-        Resume associatedResume = resumeService.findByUserIndex(user, index);
+        Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
             throw new RuntimeException("You haven't set your profile yet, this operation can't be completed");

@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping(value = "/api/resume/post", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.CREATED)
@@ -26,30 +28,30 @@ public class ResumePostController {
         this.resumeService = resumeService;
     }
 
-    @PostMapping("/header/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Header createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable int index,
+    @PostMapping("/header/{resume_id}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Header createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
                                   @AuthenticationPrincipal User user){
-        return resumeService.createNewHeader(user, index, headerForm);
+        return resumeService.createNewHeader(user, resume_id, headerForm);
     }
 
-    @PostMapping("/experience/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    @PostMapping("/experience/{resume_id}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
-                                                 @PathVariable int index,
+                                                 @PathVariable UUID resume_id,
                                                  @AuthenticationPrincipal User user,
                                                  @RequestParam(required = false) Integer experiencesIndex){
 
 
-        return resumeService.createNewExperience(user, index, experienceForm, experiencesIndex);
+        return resumeService.createNewExperience(user, resume_id, experienceForm, experiencesIndex);
 
     }
 
-    @PostMapping("/education/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    @PostMapping("/education/{resume_id}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume createNewEducation(@Valid @RequestBody EducationForm educationForm,
-                                     @PathVariable int index,
+                                     @PathVariable UUID resume_id,
                                      @AuthenticationPrincipal User user ){
-        return resumeService.createNewEducation(user, index, educationForm);
+        return resumeService.createNewEducation(user, resume_id, educationForm);
     }
 }

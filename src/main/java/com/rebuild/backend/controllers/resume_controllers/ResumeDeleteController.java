@@ -23,23 +23,23 @@ public class ResumeDeleteController {
         this.resumeService = resumeService;
     }
 
-    @DeleteMapping("/header/{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume deleteHeader(@PathVariable int index,
+    @DeleteMapping("/header/{resume_id}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume deleteHeader(@PathVariable UUID resume_id,
                                @AuthenticationPrincipal User user) {
-        return resumeService.deleteHeader(user, index);
+        return resumeService.deleteHeader(user, resume_id);
     }
 
-    @DeleteMapping("/experience/{resume_index}/{experience_index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#resume_index")
-    public Resume deleteExperience(@PathVariable int resume_index, @PathVariable int experience_index,
+    @DeleteMapping("/experience/{resume_id}/{experience_index}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume deleteExperience(@PathVariable int experience_index, @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {
-        return resumeService.deleteExperience(user, resume_index, experience_index);
+        return resumeService.deleteExperience(user, resume_id, experience_index);
     }
 
-    @DeleteMapping("/education{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public Resume deleteEducation(@PathVariable int index, @AuthenticationPrincipal User user) {
-        return resumeService.deleteEducation(user, index);
+    @DeleteMapping("/education/{resume_id}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume deleteEducation(@PathVariable UUID resume_id, @AuthenticationPrincipal User user) {
+        return resumeService.deleteEducation(user, resume_id);
     }
 }

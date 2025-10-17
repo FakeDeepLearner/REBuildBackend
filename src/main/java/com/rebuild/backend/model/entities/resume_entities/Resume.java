@@ -22,7 +22,8 @@ import java.util.UUID;
         @Index(columnList = "header_id"),
         @Index(columnList = "education_id"),
         @Index(columnList = "experience_id"),
-        @Index(columnList = "user_id")
+        @Index(columnList = "user_id"),
+        @Index(columnList = "user_id, id")
 })
 @NamedQueries(
         value = {

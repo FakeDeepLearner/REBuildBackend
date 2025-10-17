@@ -81,13 +81,13 @@ public class ProfileService {
     }
 
     @Transactional
-    public Header updateProfileHeader(HeaderForm headerForm, UUID header_id) {
-        return modificationUtility.modifyHeader(headerForm, header_id);
+    public Header updateProfileHeader(HeaderForm headerForm, UUID header_id, User user) {
+        return modificationUtility.modifyHeader(headerForm, header_id, user);
     }
 
     @Transactional
-    public Education updateProfileEducation(EducationForm educationForm, UUID education_id) {
-        return modificationUtility.modifyEducation(educationForm, education_id);
+    public Education updateProfileEducation(EducationForm educationForm, UUID education_id, User user) {
+        return modificationUtility.modifyEducation(educationForm, education_id, user);
     }
 
     @Transactional

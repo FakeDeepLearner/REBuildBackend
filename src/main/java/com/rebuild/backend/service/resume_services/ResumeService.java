@@ -67,8 +67,8 @@ public class ResumeService {
     }
 
     @Transactional
-    public Header changeHeaderInfo(HeaderForm headerForm, UUID headerID){
-        return modificationUtility.modifyHeader(headerForm, headerID);
+    public Header changeHeaderInfo(HeaderForm headerForm, UUID headerID, User user){
+        return modificationUtility.modifyHeader(headerForm, headerID, user);
     }
 
     @Transactional
@@ -84,25 +84,25 @@ public class ResumeService {
         }
     }
 
-    public Resume findByUserIndex(User user, int index){
-        return getUtility.findByUserResumeIndex(user, index);
+    public Resume findByUserIndex(User user, UUID resumeID){
+        return getUtility.findByUserResumeIndex(user, resumeID);
     }
 
     @Transactional
-    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID){
-        return modificationUtility.modifyExperience(experienceForm, experienceID);
+    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, User user){
+        return modificationUtility.modifyExperience(experienceForm, experienceID, user);
 
     }
 
     @Transactional
     public Education changeEducationInfo(EducationForm educationForm,
-                                      UUID educationID){
-       return modificationUtility.modifyEducation(educationForm, educationID);
+                                      UUID educationID, User user){
+       return modificationUtility.modifyEducation(educationForm, educationID, user);
     }
 
     @Transactional
-    public Header createNewHeader(User changingUser, int resumeIndex, HeaderForm headerForm){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+    public Header createNewHeader(User changingUser, UUID resumeId, HeaderForm headerForm){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
@@ -113,10 +113,10 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume createNewExperience(User changingUser, int resumeIndex,
+    public Resume createNewExperience(User changingUser, UUID resumeId,
                                                                    ExperienceForm experienceForm,
                                                                    Integer experiencesIndex){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         List<ExperienceType> types = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
@@ -136,8 +136,8 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume createNewEducation(User changingUser, int resumeIndex, EducationForm educationForm){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+    public Resume createNewEducation(User changingUser, UUID resumeId, EducationForm educationForm){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
@@ -154,23 +154,23 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume deleteEducation(User changingUser, int resumeIndex){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+    public Resume deleteEducation(User changingUser, UUID resumeId){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         resume.setEducation(null);
         return resumeRepository.save(resume);
     }
 
     @Transactional
-    public Resume deleteExperience(User changingUser, int resumeIndex, int experienceIndex){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+    public Resume deleteExperience(User changingUser, UUID resumeId, int experienceIndex){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         resume.getExperiences().remove(experienceIndex);
         return resumeRepository.save(resume);
     }
 
 
     @Transactional
-    public Resume deleteHeader(User changingUser, int resumeIndex){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+    public Resume deleteHeader(User changingUser, UUID resumeId){
+        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         resume.setHeader(null);
         return resumeRepository.save(resume);
     }
@@ -222,16 +222,16 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume changeName(User changingUser, int resumeIndex, String newName){
-        Resume changingResume = getUtility.findByUserResumeIndex(changingUser, resumeIndex);
+    public Resume changeName(User changingUser, UUID resumeId, String newName){
+        Resume changingResume = getUtility.findByUserResumeIndex(changingUser, resumeId);
         changingResume.setName(newName);
         return resumeRepository.save(changingResume);
 
     }
 
     @Transactional
-    public Resume copyResume(User user, int index, String newName){
-        Resume copiedResume = getUtility.findByUserResumeIndex(user, index);
+    public Resume copyResume(User user, UUID resumeId, String newName){
+        Resume copiedResume = getUtility.findByUserResumeIndex(user, resumeId);
         if(newName.equals(copiedResume.getName())){
             throw new RuntimeException("The new resume must have a different name than the original one.");
         }

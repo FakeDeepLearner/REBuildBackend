@@ -47,8 +47,8 @@ public class ResumeVersioningService {
 
 
     @Transactional
-    public ResumeVersion snapshotCurrentData(User user, int index, VersionInclusionForm inclusionForm){
-        Resume copiedResume = getUtility.findByUserResumeIndex(user, index);
+    public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionInclusionForm inclusionForm){
+        Resume copiedResume = getUtility.findByUserResumeIndex(user, resumeId);
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         int currentVersionCount = copiedResume.getVersionCount();
         if(currentVersionCount < Resume.MAX_VERSION_COUNT){
@@ -59,9 +59,9 @@ public class ResumeVersioningService {
 
     @Transactional
     public Resume switchToAnotherVersion(User user,
-                                         int resume_index, int version_index,
+                                         UUID resumeId, int version_index,
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
-        Resume switchingResume = getUtility.findByUserResumeIndex(user, resume_index);
+        Resume switchingResume = getUtility.findByUserResumeIndex(user, resumeId);
 
         ResumeVersion versionToSwitch = findVersionsByIdAndLimit(switchingResume.getId(), version_index).getLast();
         assert versionToSwitch != null;
@@ -175,8 +175,8 @@ public class ResumeVersioningService {
 
 
     @Transactional
-    public void deleteVersion(User user, int resumeIndex, int versionIndex){
-        Resume deletingResume = getUtility.findByUserResumeIndex(user, resumeIndex);
+    public void deleteVersion(User user, UUID resumeId, int versionIndex){
+        Resume deletingResume = getUtility.findByUserResumeIndex(user, resumeId);
         deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
         ResumeVersion versionToDelete = findVersionsByIdAndLimit(deletingResume.getId(), versionIndex).getLast();
         versionRepository.delete(versionToDelete);

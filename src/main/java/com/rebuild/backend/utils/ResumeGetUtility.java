@@ -3,6 +3,7 @@ package com.rebuild.backend.utils;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.repository.ResumeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,19 +18,16 @@ public class ResumeGetUtility {
 
     private final ResumeRepository resumeRepository;
 
-    private final Cache resumeCache;
-
-    public ResumeGetUtility(ResumeRepository resumeRepository,
-                            @Qualifier("resumeCacheManager") RedisCacheManager cacheManager) {
+    @Autowired
+    public ResumeGetUtility(ResumeRepository resumeRepository) {
         this.resumeRepository = resumeRepository;
-        this.resumeCache = cacheManager.getCache("resume_cache");
     }
 
-    @Cacheable(value = "resume_cache", key = "#searchingUser.id.toString()" + "-" + "#index")
-    public Resume findByUserResumeIndex(User searchingUser, int index){
-        List<Resume> userResumes = searchingUser.getResumes();
-
-        return userResumes.get(index - 1);
+    @Cacheable(value = "resume_cache", key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
+    public Resume findByUserResumeIndex(User searchingUser, UUID resumeId){
+        return resumeRepository.findResumeByIdAndUser(resumeId, searchingUser).orElseThrow(
+                () -> new RuntimeException("Resume either does not exist or does not belong to the current user.")
+        );
     }
 
 

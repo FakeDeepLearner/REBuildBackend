@@ -29,12 +29,11 @@ public class ResumePutController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/header/{index}/{header_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
-    public ResponseEntity<Header> modifyHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable int index,
+    @PutMapping("/header/{header_id}")
+    public ResponseEntity<Header> modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                @AuthenticationPrincipal User user, @PathVariable UUID header_id){
         try {
-            Header changedHeader = resumeService.changeHeaderInfo(headerForm, header_id);
+            Header changedHeader = resumeService.changeHeaderInfo(headerForm, header_id, user);
             return ResponseEntity.ok(changedHeader);
         }
         catch (AssertionError e)
@@ -43,13 +42,12 @@ public class ResumePutController {
         }
     }
 
-    @PutMapping("/experience/{resume_index}/{experience_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#resume_index")
+    @PutMapping("/experience/{experience_id}")
     public ResponseEntity<Experience> modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
-                                              @PathVariable int resume_index,
                                               @AuthenticationPrincipal User user, @PathVariable UUID experience_id){
         try {
-            Experience changedExperience = resumeService.changeExperienceInfo(experienceForm, experience_id);
+            Experience changedExperience = resumeService.changeExperienceInfo(experienceForm, experience_id,
+                    user);
             return ResponseEntity.ok(changedExperience);
         }
         catch (AssertionError e) {
@@ -57,15 +55,13 @@ public class ResumePutController {
         }
     }
 
-    @PutMapping("/education/{index}/{education_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    @PutMapping("/education/{education_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Education> modifyEducation(@Valid @RequestBody EducationForm educationForm,
-                                     @PathVariable int index,
                                      @AuthenticationPrincipal User user, @PathVariable UUID education_id){
 
         try {
-            Education changedEducation = resumeService.changeEducationInfo(educationForm, education_id);
+            Education changedEducation = resumeService.changeEducationInfo(educationForm, education_id, user);
             return ResponseEntity.ok(changedEducation);
         }
         catch (AssertionError e)

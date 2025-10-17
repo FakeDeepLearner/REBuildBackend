@@ -47,7 +47,7 @@ public class Header implements ResumeProperty {
     @FullTextField
     private String email;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     @JsonIgnore
     private Resume resume = null;

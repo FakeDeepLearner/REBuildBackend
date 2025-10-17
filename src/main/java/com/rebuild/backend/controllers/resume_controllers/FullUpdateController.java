@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 public class FullUpdateController {
 
@@ -22,13 +24,13 @@ public class FullUpdateController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/api/put/{index}")
+    @PutMapping("/api/put/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
-                                            @PathVariable int index,
+                                            @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user) {
-        Resume associatedResume = resumeService.findByUserIndex(user, index);
+        Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         return resumeService.fullUpdate(associatedResume, fullInformationForm);
 
     }

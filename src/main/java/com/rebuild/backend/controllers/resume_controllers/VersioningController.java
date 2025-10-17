@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/versions")
 public class VersioningController {
@@ -23,22 +25,22 @@ public class VersioningController {
         this.versioningService = versioningService;
     }
 
-    @PostMapping("/create_version/{index}")
+    @PostMapping("/create_version/{resume_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResumeVersion snapshotVersion(@AuthenticationPrincipal User user, @PathVariable int index,
+    public ResumeVersion snapshotVersion(@AuthenticationPrincipal User user, @PathVariable UUID resume_id,
                                          @RequestBody VersionInclusionForm inclusionForm){
-        return versioningService.snapshotCurrentData(user, index, inclusionForm);
+        return versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
     }
 
-    @GetMapping("/switch_version/{resume_index}/{version_index}")
+    @GetMapping("/switch_version/{resume_id}/{version_index}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> switchToVersion(@AuthenticationPrincipal User user,
-                                             @PathVariable int resume_index, @PathVariable int version_index,
+                                             @PathVariable UUID resume_id, @PathVariable int version_index,
                                              @RequestBody VersionSwitchPreferencesForm preferencesForm){
 
         try {
             Resume switchedResume = versioningService.
-                    switchToAnotherVersion(user, resume_index, version_index, preferencesForm);
+                    switchToAnotherVersion(user, resume_id, version_index, preferencesForm);
             return ResponseEntity.ok(switchedResume);
         }
         catch (AssertionError e)
@@ -47,11 +49,11 @@ public class VersioningController {
         }
     }
 
-    @DeleteMapping("/delete_version/{resume_index}/{version_index}")
+    @DeleteMapping("/delete_version/{resume_id}/{version_index}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteVersion(@AuthenticationPrincipal User user,
-                              @PathVariable int resume_index, @PathVariable int version_index){
-        versioningService.deleteVersion(user, resume_index, version_index);
+                              @PathVariable UUID resume_id, @PathVariable int version_index){
+        versioningService.deleteVersion(user, resume_id, version_index);
     }
 
 }

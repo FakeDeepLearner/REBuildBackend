@@ -84,7 +84,7 @@ public class Experience implements ResumeProperty {
     @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION))
     private List<String> bullets;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     @JsonIgnore
     private Resume resume = null;

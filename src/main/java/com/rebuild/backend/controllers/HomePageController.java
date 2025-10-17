@@ -69,11 +69,11 @@ public class HomePageController {
         return resumeService.createSearchConfig(authenticatedUser, specsForm);
     }
 
-    @GetMapping("/home/resume/{index}")
+    @GetMapping("/home/resume/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public Resume getResume(@AuthenticationPrincipal User user,
-                            @PathVariable int index){
-        return resumeService.findByUserIndex(user, index);
+                            @PathVariable UUID resume_id){
+        return resumeService.findByUserIndex(user, resume_id);
     }
 
     @PostMapping("/home/search")

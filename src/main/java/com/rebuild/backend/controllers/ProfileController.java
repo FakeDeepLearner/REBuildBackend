@@ -65,7 +65,7 @@ public class ProfileController {
         if(authenticatedUser.getProfile() == null){
             throw new RuntimeException("No profile found for your account");
         }
-        return profileService.updateProfileHeader(headerForm, header_id);
+        return profileService.updateProfileHeader(headerForm, header_id, authenticatedUser);
     }
 
     @PatchMapping("/patch/education/{education_id}")
@@ -76,7 +76,7 @@ public class ProfileController {
             throw new RuntimeException("No profile found for your account");
         }
         UserProfile profile = authenticatedUser.getProfile();
-        return profileService.updateProfileEducation(educationForm, education_id);
+        return profileService.updateProfileEducation(educationForm, education_id, authenticatedUser);
     }
 
     @PatchMapping("/patch/experiences")

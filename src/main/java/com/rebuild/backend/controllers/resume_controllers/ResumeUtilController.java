@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
+import com.ctc.wstx.shaded.msv_core.datatype.xsd.UnicodeUtil;
 import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
@@ -18,12 +19,12 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
-@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ResumeUtilController {
 
     private final ResumeService resumeService;
@@ -32,14 +33,14 @@ public class ResumeUtilController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/api/resume/change_name{index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString()" + "-" + "#index")
+    @PutMapping("/api/resume/change_name/{resume_id}")
+    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeResumeName(@RequestBody String newName,
-                                              @PathVariable int index,
+                                              @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user) {
         try {
-            Resume changedResume = resumeService.changeName(user, index, newName);
+            Resume changedResume = resumeService.changeName(user, resume_id, newName);
             return ResponseEntity.ok(changedResume);
         }
 
@@ -56,12 +57,12 @@ public class ResumeUtilController {
         return null;
     }
 
-    @PostMapping("/api/resume/copy/{index}")
+    @PostMapping("/api/resume/copy/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> copyResume(@RequestBody String newName,
-                                        @AuthenticationPrincipal User user, @PathVariable int index) {
+                                        @AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
         try {
-            Resume copiedResume = resumeService.copyResume(user, index, newName);
+            Resume copiedResume = resumeService.copyResume(user, resume_id, newName);
             return ResponseEntity.ok(copiedResume);
         }
 
@@ -81,15 +82,14 @@ public class ResumeUtilController {
         return null;
     }
 
-    @GetMapping("/api/download/{index}")
+    @PostMapping("/api/download/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> downloadResumeAsText(@AuthenticationPrincipal User user,
-                                                       @PathVariable int index,
-                                                       @ModelAttribute boolean includeMetadata,
-                                                       BindingResult result) {
+                                                       @PathVariable UUID resume_id,
+                                                       @RequestBody boolean includeMetadata) {
         String resumeMetadata = "";
 
-        Resume downloadingResume = resumeService.findByUserIndex(user, index);
+        Resume downloadingResume = resumeService.findByUserIndex(user, resume_id);
         if (includeMetadata) {
             resumeMetadata = "METADATA: \n" + "\tTime Created: " + downloadingResume.getCreationTime()
                     + "\n\tLast Modified Time: " + downloadingResume.getLastModifiedTime()
