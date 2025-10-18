@@ -1,9 +1,9 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5433/resumes
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: 12Eren89@
+  profiles:
+    active: "local"
+
+---
+spring:
   session:
     redis:
       flush-mode: on_save
@@ -25,7 +25,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql:
     properties:
       hibernate:
         format_sql: true
@@ -81,3 +81,39 @@ server:
     key-store-password: 12Eren89
 
 
+---
+
+spring:
+  config:
+    activate:
+      on-profile: "local"
+  datasource:
+    url: jdbc:postgresql://localhost:5433/resumes
+    driver-class-name: org.postgresql.Driver
+    username: ${LOCAL_DATABASE_USER}
+    password: ${LOCAL_DATABASE_PASSWORD}
+
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: "test"
+  datasource:
+    url: ${TEST_DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${AURORA_TEST_USERNAME}
+    password: ${AURORA_TEST_PASSWORD}
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: "prod"
+  datasource:
+    url: ${PROD_DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${AURORA_PROD_USERNAME}
+    password: ${AURORA_PROD_PASSWORD}
