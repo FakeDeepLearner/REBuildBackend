@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
@@ -43,10 +44,8 @@ public class Resume implements Serializable {
     public static final int MAX_VERSION_COUNT = 10;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(
-            name = "id"
-    )
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     @GenericField
     private UUID id;
 

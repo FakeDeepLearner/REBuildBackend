@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository;
+package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +22,8 @@ import java.util.UUID;
 public class Message {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})

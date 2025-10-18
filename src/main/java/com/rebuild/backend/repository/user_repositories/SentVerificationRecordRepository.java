@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository;
+package com.rebuild.backend.repository.user_repositories;
 
 import com.rebuild.backend.model.entities.users.SentVerificationRecord;
 import org.springframework.data.jpa.repository.JpaRepository;

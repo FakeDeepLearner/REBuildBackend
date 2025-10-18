@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.users;
 
+import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,6 +21,8 @@ import java.util.UUID;
 public class CaptchaVerificationRecord {
 
     @Id
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @NonNull

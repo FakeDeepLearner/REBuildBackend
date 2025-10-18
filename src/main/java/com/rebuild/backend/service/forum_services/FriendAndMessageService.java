@@ -2,13 +2,10 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.repository.FriendRelationshipRepository;
-import com.rebuild.backend.repository.UserRepository;
-import com.rebuild.backend.service.user_services.UserService;
+import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
+import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class FriendAndMessageService {

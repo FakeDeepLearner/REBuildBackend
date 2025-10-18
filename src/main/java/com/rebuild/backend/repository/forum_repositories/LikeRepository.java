@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository;
+package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import org.springframework.data.jpa.repository.JpaRepository;

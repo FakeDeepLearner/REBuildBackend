@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: ${TEST_DATABASE_URL}
+    url: jdbc:postgresql://localhost:5433/resumes
     driver-class-name: org.postgresql.Driver
-    username: ${AURORA_TEST_USERNAME}
-    password: ${AURORA_TEST_PASSWORD}
+    username: postgres
+    password: 12Eren89@
   session:
     redis:
       flush-mode: on_save

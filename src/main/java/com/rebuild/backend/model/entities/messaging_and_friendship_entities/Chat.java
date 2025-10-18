@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +17,8 @@ import java.util.*;
 public class Chat {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     @JsonIgnore
     private UUID id;
 

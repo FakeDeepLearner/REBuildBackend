@@ -5,15 +5,15 @@ import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.forms.resume_forms.*;
-import com.rebuild.backend.repository.*;
 
+import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
+import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

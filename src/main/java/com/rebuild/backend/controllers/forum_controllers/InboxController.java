@@ -3,7 +3,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.RequestStatus;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.repository.FriendRequestRepository;
+import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

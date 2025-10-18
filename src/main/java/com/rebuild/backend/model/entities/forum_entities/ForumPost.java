@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.PostResume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,7 +34,8 @@ import java.util.UUID;
 public class ForumPost {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     @JsonIgnore
     private UUID id;
 

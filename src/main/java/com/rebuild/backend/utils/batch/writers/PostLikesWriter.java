@@ -1,7 +1,7 @@
 package com.rebuild.backend.utils.batch.writers;
 
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.repository.LikeRepository;
+import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import lombok.NonNull;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;

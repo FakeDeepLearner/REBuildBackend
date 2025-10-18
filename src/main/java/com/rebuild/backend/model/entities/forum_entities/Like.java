@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
+import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,7 +22,8 @@ import java.util.UUID;
 public class Like {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @NonNull

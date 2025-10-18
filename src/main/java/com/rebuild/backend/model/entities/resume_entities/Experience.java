@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.utils.ExperienceTypeBridge;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.ExperienceTypesConverter;
 import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
@@ -28,13 +29,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
-public class Experience implements ResumeProperty {
+public class Experience {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(
-            name = "id"
-    )
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @Column(name = "company_name", nullable = false)

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,7 +30,8 @@ import static jakarta.persistence.CascadeType.*;
 public class UserProfile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     @JsonIgnore
     private UUID id;
 

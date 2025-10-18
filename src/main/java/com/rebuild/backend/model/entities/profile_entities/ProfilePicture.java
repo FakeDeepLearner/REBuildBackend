@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
+import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +17,8 @@ import java.util.UUID;
 public class ProfilePicture {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @Column(name = "public_id", nullable = false)

@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
@@ -28,10 +29,8 @@ import java.util.UUID;
 //@RequiredArgsConstructor
 public class PostResume {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(
-            name = "id"
-    )
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

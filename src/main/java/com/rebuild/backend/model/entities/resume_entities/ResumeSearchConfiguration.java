@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
+import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +20,8 @@ import java.util.UUID;
 public class ResumeSearchConfiguration {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GenerateV7UUID
+    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @Column(name = "resume_name_search")

@@ -1,14 +1,11 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
-import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.model.responses.HomePageData;
-import com.rebuild.backend.repository.ResumeSearchRepository;
+import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;

@@ -4,7 +4,7 @@ import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.*;
-import com.rebuild.backend.repository.ProfileRepository;
+import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
