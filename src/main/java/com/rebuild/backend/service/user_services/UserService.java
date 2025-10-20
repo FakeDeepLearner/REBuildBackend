@@ -135,6 +135,11 @@ public class UserService{
     }
 
 
+    public User findByEmailNoOptional(String email){
+        return findByEmail(email).orElse(null);
+    }
+
+
     @Transactional
     public void changePassword(User changingUser, String newRawPassword){
         String userSalt = changingUser.getSaltValue();
@@ -209,7 +214,13 @@ public class UserService{
 
         else
         {
-            userChannel = "sms";
+            if(form.callMe())
+            {
+                userChannel = "call";
+            }
+            else {
+                userChannel = "sms";
+            }
         }
 
         try {
