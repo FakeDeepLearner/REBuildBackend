@@ -59,6 +59,8 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class UserService{
 
+    private final static int SALT_VALUE_LENGTH = 16;
+
 
     private final UserRepository repository;
 
@@ -208,7 +210,8 @@ public class UserService{
         User foundUser = findByEmailOrPhone(formField).orElse(null);
 
         if (foundUser == null) {
-            return new CredentialValidationDTO(false, "whatever", "whatever", false);
+            return new CredentialValidationDTO(false, "whatever",
+                    "whatever", false);
         }
 
 
@@ -220,7 +223,14 @@ public class UserService{
 
         else
         {
-            userChannel = "sms";
+            if(form.callMe())
+            {
+                userChannel = "call";
+            }
+            else {
+                userChannel = "sms";
+            }
+
         }
 
         try {
@@ -248,16 +258,16 @@ public class UserService{
         save(deletingUser);
     }
 
-    private String generateSaltValue(int length){
+    private String generateSaltValue(){
         SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[length];
+        byte[] salt = new byte[SALT_VALUE_LENGTH];
         random.nextBytes(salt);
         return Base64.getEncoder().encodeToString(salt);
     }
 
     @Transactional
     public User createNewUser(SignupForm signupForm, MultipartFile pictureFile) throws IOException {
-        String generatedSalt = generateSaltValue(16);
+        String generatedSalt = generateSaltValue();
         String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         ZoneId userTimeZone = ZoneId.of(signupForm.timezoneAsString());
@@ -267,8 +277,13 @@ public class UserService{
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
         newUser.setProfile(newUserProfile);
         newUserProfile.setUser(newUser);
-
-        return save(newUser);
+        try {
+            return save(newUser);
+        }
+        //TODO: Add proper error handling here, and
+        catch (ConstraintViolationException e){
+            return createNewUser(signupForm, pictureFile);
+        }
     }
 
     public void modifyProfilePictureOf(UserProfile profile, MultipartFile pictureFile) throws IOException

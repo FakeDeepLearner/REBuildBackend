@@ -68,7 +68,7 @@ public class User implements UserDetails {
     private String phoneNumber;
 
     @NonNull
-    @Column(name = "salt_value", nullable = false)
+    @Column(name = "salt_value", nullable = false, unique = true)
     private String saltValue;
 
     @Column(name = "time_zone", nullable = false)
