@@ -49,8 +49,7 @@ public class UserProfile {
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> experienceList;
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "picture_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
 
     @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)

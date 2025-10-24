@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.GenerateV7UUID;
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,6 +37,7 @@ public class FriendRelationship {
     @ManyToOne
     private User recipient;
 
-
+    @Column(name = "creation_time", nullable = false)
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime friendshipTime =  LocalDateTime.now();
 }

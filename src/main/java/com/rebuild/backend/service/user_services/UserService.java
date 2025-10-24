@@ -139,11 +139,6 @@ public class UserService{
     }
 
 
-    public User findByEmailNoOptional(String email){
-        return findByEmail(email).orElse(null);
-    }
-
-
     @Transactional
     public void changePassword(User changingUser, String newRawPassword){
         String userSalt = changingUser.getSaltValue();
@@ -287,8 +282,9 @@ public class UserService{
                             copyToByteArray(pictureFile.getInputStream()),
                     ObjectUtils.emptyMap());
             ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
-                    (String) uploadResult.get("asset_id"));
+                    (String) uploadResult.get("asset_id"), (String) uploadResult.get("secure_url"));
             profile.setProfilePicture(profilePicture);
+            profilePicture.setAssociatedProfile(profile);
         }
     }
 

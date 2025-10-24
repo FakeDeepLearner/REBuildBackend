@@ -3,8 +3,12 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.GenerateV7UUID;
+import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,19 +23,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
+@Indexed
 public class Message {
 
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
+    @GenericField
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinColumn(name = "sender_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "recipient_id")
+    @NonNull
     private User sender;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "recipient_id")
+    @NonNull
     private User recipient;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
@@ -41,7 +49,10 @@ public class Message {
 
     @NonNull
     @Column(name = "content", nullable = false)
+    @FullTextField
     private String content;
 
+    @Column(name = "creationDate")
+    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     private LocalDateTime createdAt = LocalDateTime.now();
 }
