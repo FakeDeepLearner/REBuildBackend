@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +10,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
-@Table(name = "chats")
+@Table(name = "chats", indexes = {
+        @Index(columnList = "initiating_user_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,16 +25,20 @@ public class Chat {
     @JsonIgnore
     private UUID id;
 
+    //The actual names of these don't matter. It just matters that one is defined as the initiator.
+    //This is necessary to make the mappings back in the User class more understandable.
     @NonNull
-    @Column(nullable = false, name = "initiator_name")
-    private String initiatorUsername;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "initiating_user_id", referencedColumnName = "id")
+    private User initiatingUser;
 
     @NonNull
-    @Column(nullable = false, name = "recipient_name")
-    private String recipientUsername;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiving_user_id", referencedColumnName = "id")
+    private User receivingUser;
 
-    //TODO: There might be a better data structure (NavigableSet) instead of just a plain list for this.
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY)
+    @OrderBy(value = "createdAt ASC")
     private List<Message> messages = Collections.synchronizedList(new ArrayList<>());
 
     private LocalDateTime createdAt = LocalDateTime.now();

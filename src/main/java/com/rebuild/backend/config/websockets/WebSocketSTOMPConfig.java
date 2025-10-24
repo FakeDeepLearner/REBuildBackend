@@ -12,14 +12,14 @@ public class WebSocketSTOMPConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes("/resume");
-        registry.enableSimpleBroker("/broadcast");
+        registry.setApplicationDestinationPrefixes("/app");
+        registry.enableSimpleBroker("/chats");
     }
 
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/live-editing");
+        registry.addEndpoint("/connect").setAllowedOrigins("rerebuild.ca").withSockJS();
     }
 
 }

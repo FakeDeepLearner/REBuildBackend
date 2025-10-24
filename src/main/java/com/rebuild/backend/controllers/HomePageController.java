@@ -1,11 +1,15 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
+import com.rebuild.backend.model.responses.DisplayChatResponse;
+import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
+import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;
@@ -13,9 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
@@ -31,11 +39,18 @@ public class HomePageController {
 
     private final ResumeSearchRepository searchRepository;
 
+    private final FriendAndMessageService friendAndMessageService;
+
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
     @Autowired
-    public HomePageController(UserService userService, ResumeService resumeService, ResumeSearchRepository searchRepository) {
+    public HomePageController(UserService userService, ResumeService resumeService,
+                              ResumeSearchRepository searchRepository, FriendAndMessageService friendAndMessageService, SimpMessagingTemplate simpMessagingTemplate) {
         this.userService = userService;
         this.resumeService = resumeService;
         this.searchRepository = searchRepository;
+        this.friendAndMessageService = friendAndMessageService;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     @PostMapping("/get_posts/configuration/{config_id}")
@@ -81,6 +96,38 @@ public class HomePageController {
                                      @RequestBody ResumeSpecsForm specsForm) {
         return userService.getSearchResult(specsForm,
                 authenticatedUser, pageNumber, pageSize);
+    }
+
+
+    @GetMapping("/chats/all_chats")
+    public List<DisplayChatResponse> showAllChats(@AuthenticationPrincipal User authenticatedUser) {
+        return friendAndMessageService.displayAllChats(authenticatedUser);
+    }
+
+    @GetMapping("/chats/load/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LoadChatResponse loadChat(@PathVariable UUID chat_id,
+                                     @AuthenticationPrincipal User authenticatedUser) {
+        return friendAndMessageService.loadChat(chat_id, authenticatedUser);
+    }
+
+    @PostMapping("/chats/initialize/{recipient_id}")
+    public Message initializeChat(@PathVariable UUID recipient_id,
+                                  @RequestBody String messageContent,
+                                  @AuthenticationPrincipal User authenticatedUser) {
+        return friendAndMessageService.createMessage(authenticatedUser, recipient_id, messageContent);
+    }
+
+    @MessageMapping("/app/messages")
+    public Message sendMessageToChat(UUID chatId, UUID receivingUserId,
+                                     @AuthenticationPrincipal User authenticatedUser,
+                                     @Payload String messageContent) {
+        Message createdMessage =
+                friendAndMessageService.createMessage(authenticatedUser, receivingUserId, messageContent);
+
+        simpMessagingTemplate.convertAndSend("/chats/" + chatId, createdMessage);
+
+        return createdMessage;
     }
 
     @GetMapping("/home")

@@ -17,10 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -32,7 +29,8 @@ import java.util.UUID;
         @Index(columnList = "lastLoginTime")
 })
 @RequiredArgsConstructor
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
@@ -112,8 +110,14 @@ public class User implements UserDetails {
     private List<Comment> madeComments = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Chat> chats = new ArrayList<>();
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
+    mappedBy = "initiatingUser")
+    private List<Chat> initiatedChats = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
+            mappedBy = "receivingUser")
+    private List<Chat> receivedChats = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;
@@ -198,4 +202,24 @@ public class User implements UserDetails {
         return this.phoneNumber;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(getId(), user.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
+
+
+    public void addSenderChat(Chat chat){
+        initiatedChats.add(chat);
+    }
+
+    public void addReceiverChat(Chat chat){
+        receivedChats.add(chat);
+    }
 }
