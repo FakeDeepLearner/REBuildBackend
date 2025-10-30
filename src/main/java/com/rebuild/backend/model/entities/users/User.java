@@ -11,6 +11,9 @@ import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDat
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,6 +36,7 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Indexed
 public class User implements UserDetails {
 
     private static final int FREE_MAX_RESUME_LIMIT = 25;
@@ -97,6 +101,7 @@ public class User implements UserDetails {
 
     @Convert(converter = DatabaseEncryptor.class)
     @Column(name = "forum_username", nullable = false)
+    @FullTextField
     private String forumUsername;
 
     @JsonIgnore

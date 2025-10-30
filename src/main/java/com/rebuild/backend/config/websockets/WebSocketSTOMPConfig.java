@@ -14,6 +14,7 @@ public class WebSocketSTOMPConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
         registry.enableSimpleBroker("/chats");
+        registry.setUserDestinationPrefix("/users");
     }
 
 

@@ -2,6 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.users.User;
@@ -10,6 +11,7 @@ import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.repository.forum_repositories.ChatRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
+import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import com.rebuild.backend.repository.forum_repositories.MessageRepository;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
@@ -33,15 +35,18 @@ public class FriendAndMessageService {
 
     private final ProfilePictureRepository profilePictureRepository;
 
+    private final FriendRequestRepository friendRequestRepository;
+
     @Autowired
     public FriendAndMessageService(UserRepository userRepository,
                                    FriendRelationshipRepository friendRelationshipRepository,
-                                   ChatRepository chatRepository, MessageRepository messageRepository, ProfilePictureRepository profilePictureRepository) {
+                                   ChatRepository chatRepository, MessageRepository messageRepository, ProfilePictureRepository profilePictureRepository, FriendRequestRepository friendRequestRepository) {
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.profilePictureRepository = profilePictureRepository;
+        this.friendRequestRepository = friendRequestRepository;
     }
 
     //Friendship is symmetric, so it doesn't matter for this method who the users are
@@ -53,9 +58,19 @@ public class FriendAndMessageService {
     }
 
 
-    public void sendFriendRequest(User sender, String recipientUsername)
+    public FriendRequest sendFriendRequest(User sender, UUID recipientId)
     {
-        
+        User recipient = userRepository.findById(recipientId).orElseThrow();
+
+        friendRelationshipRepository.findByTwoUsers(sender, recipient).
+                ifPresent(l ->
+                {
+                    throw new AssertionError("Friendship already exists");
+                });
+
+        FriendRequest newRequest = new FriendRequest(sender, recipient);
+
+        return friendRequestRepository.save(newRequest);
     }
 
     private Chat createChatBetween(User sender, User recipient)

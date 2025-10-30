@@ -5,9 +5,11 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
+import com.rebuild.backend.model.responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.user_services.UserService;
+import com.rebuild.backend.service.util_services.ElasticSearchService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,12 +34,15 @@ public class ForumHomePageController {
 
     private final PostSearchRepository postSearchRepository;
 
+    private final ElasticSearchService elasticSearchService;
+
     @Autowired
     public ForumHomePageController(ForumPostAndCommentService postAndCommentService,
-                                   UserService userService, PostSearchRepository postSearchRepository) {
+                                   UserService userService, PostSearchRepository postSearchRepository, ElasticSearchService elasticSearchService) {
         this.postAndCommentService = postAndCommentService;
         this.userService = userService;
         this.postSearchRepository = postSearchRepository;
+        this.elasticSearchService = elasticSearchService;
     }
 
     @PostMapping( "/create_post_search_config")
@@ -46,6 +51,12 @@ public class ForumHomePageController {
                                                       @RequestBody ForumSpecsForm specsForm)
     {
         return postAndCommentService.createSearchConfig(authenticatedUser, specsForm);
+    }
+
+    @PostMapping("/username_search")
+    public UsernameSearchResponse searchUsernames(@RequestParam String username)
+    {
+        return postAndCommentService.getUsernameSearchResults(username);
     }
 
     @PostMapping("/get_posts/configuration/{config_id}")
