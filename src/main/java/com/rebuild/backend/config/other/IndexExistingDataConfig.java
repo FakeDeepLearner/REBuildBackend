@@ -43,4 +43,16 @@ public class IndexExistingDataConfig {
                 startAndWait();
     }
 
+    @PostConstruct
+    public void indexUser() throws InterruptedException {
+        SearchSession session = Search.session(entityManager);
+        MassIndexer massIndexer = session.massIndexer(User.class);
+
+        massIndexer.
+                batchSizeToLoadObjects(10).
+                threadsToLoadObjects(8).
+                dropAndCreateSchemaOnStart(true).
+                startAndWait();
+    }
+
 }

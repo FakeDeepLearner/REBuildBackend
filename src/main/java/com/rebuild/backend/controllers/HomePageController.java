@@ -111,23 +111,18 @@ public class HomePageController {
         return friendAndMessageService.loadChat(chat_id, authenticatedUser);
     }
 
-    @PostMapping("/chats/initialize/{recipient_id}")
-    public Message initializeChat(@PathVariable UUID recipient_id,
+    @PostMapping("/chats/send_message/{recipient_id}")
+    public Message sendMessage(@PathVariable UUID recipient_id,
                                   @RequestBody String messageContent,
                                   @AuthenticationPrincipal User authenticatedUser) {
-        return friendAndMessageService.createMessage(authenticatedUser, recipient_id, messageContent);
-    }
+        Message createdMessage = friendAndMessageService.
+                createMessage(authenticatedUser, recipient_id, messageContent);
 
-    @MessageMapping("/app/messages")
-    public Message sendMessageToChat(UUID chatId, UUID receivingUserId,
-                                     @AuthenticationPrincipal User authenticatedUser,
-                                     @Payload String messageContent) {
-        Message createdMessage =
-                friendAndMessageService.createMessage(authenticatedUser, receivingUserId, messageContent);
-
-        simpMessagingTemplate.convertAndSend("/chats/" + chatId, createdMessage);
-
+        simpMessagingTemplate.convertAndSendToUser(recipient_id.toString(),
+                "/messages", createdMessage);
         return createdMessage;
+
+
     }
 
     @GetMapping("/home")

@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
+import com.rebuild.backend.model.entities.users.Inbox;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
@@ -59,6 +60,7 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class UserService{
 
+    private final int SALT_BYTE_LENGTH = 16;
 
     private final UserRepository repository;
 
@@ -243,16 +245,16 @@ public class UserService{
         save(deletingUser);
     }
 
-    private String generateSaltValue(int length){
+    private String generateSaltValue(){
         SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[length];
+        byte[] salt = new byte[SALT_BYTE_LENGTH];
         random.nextBytes(salt);
         return Base64.getEncoder().encodeToString(salt);
     }
 
     @Transactional
     public User createNewUser(SignupForm signupForm, MultipartFile pictureFile) throws IOException {
-        String generatedSalt = generateSaltValue(16);
+        String generatedSalt = generateSaltValue();
         String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         ZoneId userTimeZone = ZoneId.of(signupForm.timezoneAsString());
@@ -262,6 +264,8 @@ public class UserService{
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
         newUser.setProfile(newUserProfile);
         newUserProfile.setUser(newUser);
+        Inbox newInbox = new Inbox(newUser);
+        newUser.setInbox(newInbox);
 
         return save(newUser);
     }

@@ -136,4 +136,15 @@ public class ElasticSearchService {
         int toIndex = Math.min(fromIndex + pageSize, allIds.size());
         return allIds.subList(fromIndex, toIndex);
     }
+
+
+    public List<UUID> executeUserSearch(String exampleName)
+    {
+        SearchSession searchSession = Search.session(entityManager);
+
+        return searchSession.search(ForumPost.class)
+                .select(f -> f.id(UUID.class)).
+                where(f -> new NullSafeQuerySearchBuilder(f)
+                        .nullSafeMatch("forumUsername", exampleName).obtain()).fetchAllHits();
+    }
 }

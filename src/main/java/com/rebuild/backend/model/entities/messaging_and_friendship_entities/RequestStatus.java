@@ -8,7 +8,5 @@ public enum RequestStatus {
 
     ACCEPTED,
 
-    TIMED_OUT, //Timed out and no longer valid after a certain amount of time (TBD)
-
     CANCELLED;  //Cancelled and abandoned by the sender
 }

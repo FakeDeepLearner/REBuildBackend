@@ -7,16 +7,19 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
+import com.rebuild.backend.model.responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
+import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParameters;
@@ -58,18 +61,21 @@ public class ForumPostAndCommentService {
 
     private final PostSearchRepository postSearchRepository;
 
+    private final UserRepository userRepository;
+
 
     @Autowired
     public ForumPostAndCommentService(ResumeRepository resumeRepository,
                                       CommentRepository commentRepository, ForumPostRepository postRepository,
                                       JobOperator jobOperator,
-                                      ElasticSearchService searchService, PostSearchRepository postSearchRepository) {
+                                      ElasticSearchService searchService, PostSearchRepository postSearchRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
         this.jobOperator = jobOperator;
         this.searchService = searchService;
         this.postSearchRepository = postSearchRepository;
+        this.userRepository = userRepository;
     }
 
     public ForumSpecsForm buildSpecsFrom(PostSearchConfiguration configuration)
@@ -245,6 +251,19 @@ public class ForumPostAndCommentService {
         return new CommentDisplayDTO(comment.getId(), comment.getContent(),
                 comment.getAuthorUsername(), comment.getRepliesCount());
     }
+
+
+    public UsernameSearchResponse getUsernameSearchResults(String username)
+    {
+        List<UUID> foundIds = searchService.executeUserSearch(username);
+
+        List<UsernameSearchResultDTO> searchResultDTOS =
+                userRepository.findAllById(foundIds).stream()
+                        .map(user -> new UsernameSearchResultDTO(user.getId(), user.getForumUsername())).
+                        toList();
+        return new UsernameSearchResponse(searchResultDTOS);
+    }
+
 
 
     //Every minute
