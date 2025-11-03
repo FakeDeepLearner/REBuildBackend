@@ -3,13 +3,14 @@ package com.rebuild.backend.service.resume_services;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.*;
-import com.rebuild.backend.model.forms.resume_forms.VersionInclusionForm;
+import com.rebuild.backend.model.forms.resume_forms.VersionCreationForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeVersionRepository;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,14 +41,9 @@ public class ResumeVersioningService {
         this.entityManager = entityManager;
     }
 
-    private List<ResumeVersion> findVersionsByIdAndLimit(UUID resumeId, int limit){
-        return entityManager.createNamedQuery("ResumeVersion.findAllByResumeIdWithLimit", ResumeVersion.class).
-                setParameter("resumeId", resumeId).setMaxResults(limit).getResultList();
-    }
-
 
     @Transactional
-    public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionInclusionForm inclusionForm){
+    public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionCreationForm inclusionForm){
         Resume copiedResume = getUtility.findByUserResumeIndex(user, resumeId);
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         int currentVersionCount = copiedResume.getVersionCount();
@@ -59,11 +55,11 @@ public class ResumeVersioningService {
 
     @Transactional
     public Resume switchToAnotherVersion(User user,
-                                         UUID resumeId, int version_index,
+                                         UUID resumeId, UUID versionId,
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
         Resume switchingResume = getUtility.findByUserResumeIndex(user, resumeId);
 
-        ResumeVersion versionToSwitch = findVersionsByIdAndLimit(switchingResume.getId(), version_index).getLast();
+        ResumeVersion versionToSwitch = versionRepository.findById(versionId).orElse(null);
         assert versionToSwitch != null;
 
         handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
@@ -154,31 +150,30 @@ public class ResumeVersioningService {
     }
 
 
-    private ResumeVersion createSnapshot(Resume resume, VersionInclusionForm inclusionForm){
+    private ResumeVersion createSnapshot(Resume resume, VersionCreationForm inclusionForm){
         ResumeVersion newVersion = new ResumeVersion();
-        Header newHeader = objectConverter.createVersionedHeader(resume.getHeader(),
+        objectConverter.createVersionedHeader(resume.getHeader(),
                 inclusionForm.includeHeader(), newVersion);
-        Education newEducation = objectConverter.createVersionedEducation(
+        objectConverter.createVersionedEducation(
                 resume.getEducation(), inclusionForm.includeEducation(), newVersion
         );
-        List<Experience> experiences = objectConverter.createVersionedExperiences(
+        objectConverter.createVersionedExperiences(
                 resume.getExperiences(), inclusionForm.includeExperience(), newVersion
         );
         String versionedName = inclusionForm.includeName() ? resume.getName() : null;
         newVersion.setVersionedName(versionedName);
-        newVersion.setVersionedHeader(newHeader);
-        newVersion.setVersionedEducation(newEducation);
-        newVersion.setVersionedExperiences(experiences);
         newVersion.setAssociatedResume(resume);
+        resume.getVersions().add(newVersion);
         return newVersion;
     }
 
 
     @Transactional
-    public void deleteVersion(User user, UUID resumeId, int versionIndex){
+    public void deleteVersion(User user, UUID resumeId, UUID versionId){
         Resume deletingResume = getUtility.findByUserResumeIndex(user, resumeId);
         deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
-        ResumeVersion versionToDelete = findVersionsByIdAndLimit(deletingResume.getId(), versionIndex).getLast();
+        ResumeVersion versionToDelete = versionRepository.findById(versionId).orElse(null);
+        assert versionToDelete != null;
         versionRepository.delete(versionToDelete);
         resumeRepository.save(deletingResume);
     }

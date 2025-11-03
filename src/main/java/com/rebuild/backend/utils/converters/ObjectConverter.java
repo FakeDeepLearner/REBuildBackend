@@ -64,45 +64,50 @@ public class ObjectConverter {
         });
     }
 
-    public Header createVersionedHeader(Header originalHeader, boolean shouldBeNull,
+    public void createVersionedHeader(Header originalHeader, boolean shouldBeNull,
                                                  ResumeVersion resumeVersion){
         if(shouldBeNull){
-            return null;
+            return;
         }
 
-        return new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
+        Header newHeader = new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
                 originalHeader.getLastName(), originalHeader.getEmail());
+        resumeVersion.setVersionedHeader(newHeader);
     }
 
 
-    public Education createVersionedEducation(Education originalEducation, boolean shouldBeNull,
+    public void createVersionedEducation(Education originalEducation, boolean shouldBeNull,
                                                        ResumeVersion resumeVersion){
         if(shouldBeNull){
-            return null;
+            return;
         }
-
-        return new Education(originalEducation.getSchoolName(), originalEducation.getRelevantCoursework(),
+        Education newEducation = new Education(originalEducation.getSchoolName(), originalEducation.getRelevantCoursework(),
                 originalEducation.getLocation(), originalEducation.getStartDate(), originalEducation.getEndDate());
+        resumeVersion.setVersionedEducation(newEducation);
+
     }
 
-    public List<Experience> createVersionedExperiences(List<Experience> originalExperiences,
-                                                                boolean shouldBeNull,
-                                                                ResumeVersion resumeVersion){
+    public void createVersionedExperiences(List<Experience> originalExperiences,
+                                           boolean shouldBeNull,
+                                           ResumeVersion resumeVersion){
         if(shouldBeNull){
-            return null;
+            return;
         }
+        List<Experience> newExperiences = originalExperiences.stream().map(
+                rawExperience ->
+                    new Experience(
+                            rawExperience.getCompanyName(),
+                            rawExperience.getTechnologyList(),
+                            rawExperience.getLocation(),
+                            rawExperience.getExperienceTypes(),
+                            rawExperience.getStartDate(),
+                            rawExperience.getEndDate(),
+                            rawExperience.getBullets()
+                    )
 
-        return originalExperiences.stream().map(
-                rawExperience -> new Experience(
-                        rawExperience.getCompanyName(),
-                        rawExperience.getTechnologyList(),
-                        rawExperience.getLocation(),
-                        rawExperience.getExperienceTypes(),
-                        rawExperience.getStartDate(),
-                        rawExperience.getEndDate(),
-                        rawExperience.getBullets()
-                )
         ).toList();
+
+        resumeVersion.setVersionedExperiences(newExperiences);
     }
 
     public List<ExperienceType> convertToExperienceTypes(List<String> typesList)

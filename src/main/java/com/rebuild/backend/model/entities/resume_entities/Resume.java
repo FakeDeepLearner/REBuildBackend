@@ -2,13 +2,14 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
+import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
-import org.springframework.data.elasticsearch.annotations.Field;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -68,7 +69,12 @@ public class Resume implements Serializable {
     }, orphanRemoval = true, mappedBy = "resume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
     @IndexedEmbedded
-    private List<Experience> experiences;
+    private List<Experience> experiences = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
+    orphanRemoval = true, mappedBy = "associatedResume")
+    private List<ResumeVersion> versions = new ArrayList<>();
+
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -101,14 +107,14 @@ public class Resume implements Serializable {
         this.name = resume_name;
     }
 
-    public Resume(@NonNull Resume originalResume, @NonNull String newName){
+    public Resume(@NonNull Resume originalResume, @NonNull ResumeCreationForm creationForm){
         if(originalResume.getUser().maxResumeLimitReached()){
             throw new RuntimeException("You have reached the maximum number of resumes you can create");
         }
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
-        this.name = newName;
+        this.name = creationForm.newName();
         this.user = originalResume.getUser();
         // We are creating new objects here,
         // because we do not want them to be a reference to the original ones.
@@ -134,6 +140,14 @@ public class Resume implements Serializable {
         // and we want these dates to match initially
         this.lastModifiedTime = this.creationTime;
 
+        if (creationForm.copyVersions())
+        {
+            for (ResumeVersion resumeVersion : originalResume.getVersions()) {
+                this.versions.add(ResumeVersion.copy(resumeVersion));
+            }
+
+        }
+
     }
 
     public void addExperience(Experience experience){
@@ -155,10 +169,4 @@ public class Resume implements Serializable {
         return sb.toString();
     }
 
-    public static Resume deepCopy(Resume originalResume){
-
-        String copiedName = originalResume.getName();
-
-        return new Resume(originalResume, copiedName);
-    }
 }

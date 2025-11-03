@@ -61,4 +61,19 @@ public class ResumeVersion {
     @JoinColumn(name = "associated_resume_id", nullable = false, referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "fk_version_resume_id"))
     private Resume associatedResume;
+
+    public static ResumeVersion copy(ResumeVersion resumeVersion) {
+        return new ResumeVersion(resumeVersion);
+    }
+
+    public ResumeVersion(ResumeVersion other)
+    {
+        this.associatedResume = other.associatedResume;
+        this.versionedHeader = Header.copy(other.versionedHeader);
+        this.versionedEducation = Education.copy(other.versionedEducation);
+        this.versionedExperiences = other.versionedExperiences.stream()
+                .map(Experience::copy).toList();
+        this.versionedName = other.versionedName;
+        this.createdDate = LocalDateTime.now();
+    }
 }

@@ -4,6 +4,7 @@ import com.ctc.wstx.shaded.msv_core.datatype.xsd.UnicodeUtil;
 import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.cache.annotation.CacheEvict;
@@ -59,10 +60,10 @@ public class ResumeUtilController {
 
     @PostMapping("/api/resume/copy/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> copyResume(@RequestBody String newName,
+    public ResponseEntity<?> copyResume(@RequestBody ResumeCreationForm creationForm,
                                         @AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
         try {
-            Resume copiedResume = resumeService.copyResume(user, resume_id, newName);
+            Resume copiedResume = resumeService.copyResume(user, resume_id, creationForm);
             return ResponseEntity.ok(copiedResume);
         }
 

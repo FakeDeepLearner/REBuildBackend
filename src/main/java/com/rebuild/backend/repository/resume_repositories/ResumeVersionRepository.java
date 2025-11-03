@@ -11,8 +11,4 @@ import java.util.UUID;
 @Repository
 public interface ResumeVersionRepository extends JpaRepository<ResumeVersion, UUID> {
 
-    Optional<ResumeVersion> findOldestVersionByResumeId(UUID resumeId);
-
-    List<ResumeVersion> findAllByResumeIdWithLimit(UUID resumeId, int limit);
-
 }
