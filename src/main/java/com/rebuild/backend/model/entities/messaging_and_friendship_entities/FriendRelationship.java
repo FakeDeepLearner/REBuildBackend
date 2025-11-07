@@ -14,8 +14,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "friendships", indexes = {
-        @Index(columnList = "sender_id"),
+        @Index(columnList = "sender_id, recipient_id"),
         @Index(columnList = "recipient_id")
+}, uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"sender_id, recipient_id"})
 })
 @Data
 @NoArgsConstructor

@@ -18,27 +18,23 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 @Configuration
 public class RabbitMQConfig {
 
-    private final static String COMMENT_QUEUE_NAME = "commentsQueue";
+    public final static String FRIENDS_QUEUE_NAME = "friendsQueue";
 
-    private final static String POSTS_QUEUE_NAME = "postsQueue";
+    public final static String COMMENT_QUEUE_NAME = "commentsQueue";
 
-    private final static String REPLIES_QUEUE_NAME = "repliesQueue";
+    public final static String POSTS_QUEUE_NAME = "postsQueue";
 
-    private final static String EXCHANGE_NAME = "likesExchange";
+    public final static String EXCHANGE_NAME = "likesExchange";
 
-    private final static String COMMENT_ROUTING_KEY = "commentLikesRoutingKey";
+    public final static String COMMENT_ROUTING_KEY = "commentLikesRoutingKey";
 
-    private final static String POST_ROUTING_KEY = "postLikesRoutingKey";
+    public final static String POST_ROUTING_KEY = "postLikesRoutingKey";
 
-    private final static String REPLY_ROUTING_KEY = "replyLikesRoutingKey";
+    public final static String FRIENDS_ROUTING_KEY = "friendsRoutingKey";
 
     @Bean
     public ConnectionFactory cachingFactory(){
         return new CachingConnectionFactory("localhost");
-    }
-
-    public Queue replyLikesQueue(){
-        return new Queue(REPLIES_QUEUE_NAME, true);
     }
 
     @Bean
@@ -49,6 +45,11 @@ public class RabbitMQConfig {
     @Bean
     public Queue commentLikesQueue() {
         return new Queue(COMMENT_QUEUE_NAME, true);
+    }
+
+    @Bean
+    public Queue friendsQueue() {
+        return new Queue(FRIENDS_QUEUE_NAME, true);
     }
 
     @Bean
@@ -67,8 +68,8 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding replyLikesBinding(){
-        return BindingBuilder.bind(replyLikesQueue()).to(likesExchange()).with(REPLY_ROUTING_KEY);
+    public Binding friendsBinding(){
+        return BindingBuilder.bind(friendsQueue()).to(likesExchange()).with(FRIENDS_ROUTING_KEY);
     }
 
     @Bean

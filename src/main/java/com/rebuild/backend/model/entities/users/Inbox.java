@@ -39,12 +39,15 @@ public class Inbox {
     @NonNull
     private User associatedUser;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = {
+    @OneToMany(mappedBy = "associatedInbox", fetch = FetchType.LAZY, cascade = {
      CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH
     })
-    @JoinColumn(name = "request_id")
-    @OrderColumn(name = "insert_position")
-    private List<FriendRequest> pendingRequests = new ArrayList<>();
+    private List<FriendRequest> friendRequests = new ArrayList<>();
+
+
+    public void addFriendRequest(FriendRequest friendRequest) {
+        friendRequests.add(friendRequest);
+    }
 
 
 }

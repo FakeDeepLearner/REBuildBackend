@@ -1,11 +1,10 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.StatusAndError;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
@@ -15,9 +14,23 @@ import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository
 import com.rebuild.backend.repository.forum_repositories.MessageRepository;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
+import com.rebuild.backend.service.util_services.RabbitProducingService;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.core.job.parameters.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +38,8 @@ import java.util.UUID;
 
 @Service
 public class FriendAndMessageService {
+
+    private final JobOperator jobOperator;
 
     private final UserRepository userRepository;
     private final FriendRelationshipRepository friendRelationshipRepository;
@@ -37,40 +52,102 @@ public class FriendAndMessageService {
 
     private final FriendRequestRepository friendRequestRepository;
 
+    private final RabbitProducingService rabbitProducingService;
+
     @Autowired
-    public FriendAndMessageService(UserRepository userRepository,
+    public FriendAndMessageService(JobOperator jobOperator, UserRepository userRepository,
                                    FriendRelationshipRepository friendRelationshipRepository,
-                                   ChatRepository chatRepository, MessageRepository messageRepository, ProfilePictureRepository profilePictureRepository, FriendRequestRepository friendRequestRepository) {
+                                   ChatRepository chatRepository, MessageRepository messageRepository, ProfilePictureRepository profilePictureRepository, FriendRequestRepository friendRequestRepository, RabbitProducingService rabbitProducingService) {
+        this.jobOperator = jobOperator;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.friendRequestRepository = friendRequestRepository;
+        this.rabbitProducingService = rabbitProducingService;
     }
 
-    //Friendship is symmetric, so it doesn't matter for this method who the users are
-    public void addFriend(User sender, User recipient)
+    public StatusAndError addFriend(User receiver, UUID friendRequestId)
     {
-        FriendRelationship friendRelationship = new FriendRelationship(sender, recipient);
+        FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId).orElse(null);
 
-        friendRelationshipRepository.save(friendRelationship);
+        assert friendRequest != null : "Request not found";
+
+        //Check that the recipient is actually this user before doing anything
+        if (friendRequest.getRecipient().equals(receiver))
+        {
+
+            friendRequest.setStatus(RequestStatus.ACCEPTED);
+
+            FriendRequest savedRequest = friendRequestRepository.save(friendRequest);
+
+            User sender = savedRequest.getSender();
+
+            FriendRelationship newRelationship = new FriendRelationship(sender, receiver);
+
+            friendRelationshipRepository.save(newRelationship);
+
+            return new StatusAndError(HttpStatus.OK, "You have added " + sender.getUsername() + " as a friend");
+        }
+
+        else
+        {
+          return new StatusAndError(HttpStatus.UNAUTHORIZED, "This request is not addressed to you");
+        }
+
+
+
+
+    }
+
+    public StatusAndError declineFriendshipRequest(User declininguser, UUID friendRequestId)
+    {
+        FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId).orElse(null);
+
+        assert friendRequest != null : "Request not found";
+
+        if(friendRequest.getRecipient().equals(declininguser))
+        {
+            friendRequest.setStatus(RequestStatus.REJECTED);
+
+            FriendRequest savedRequest = friendRequestRepository.save(friendRequest);
+
+            return new StatusAndError(HttpStatus.OK, "Friend request declined");
+        }
+
+        else
+        {
+            return new StatusAndError(HttpStatus.UNAUTHORIZED,  "This request is not addressed to you");
+        }
     }
 
 
-    public FriendRequest sendFriendRequest(User sender, UUID recipientId)
+    public StatusAndError sendFriendRequest(User sender, UUID recipientId)
     {
-        User recipient = userRepository.findById(recipientId).orElseThrow();
+        User recipient = userRepository.findById(recipientId).orElse(null);
 
-        friendRelationshipRepository.findByTwoUsers(sender, recipient).
-                ifPresent(l ->
-                {
-                    throw new AssertionError("Friendship already exists");
-                });
+        assert recipient != null : "Recipient not found";
 
-        FriendRequest newRequest = new FriendRequest(sender, recipient);
+        Optional<FriendRequest> foundRequest =
+                friendRequestRepository.findByTwoUsers(sender, recipient);
 
-        return friendRequestRepository.save(newRequest);
+        if (foundRequest.isPresent()) {
+            return new StatusAndError(HttpStatus.CONFLICT,
+                    "You already have an existing friend request with this user");
+        }
+
+        Optional<FriendRelationship> foundRelationship =
+                friendRelationshipRepository.findByTwoUsers(sender, recipient);
+        if (foundRelationship.isPresent()) {
+            return new StatusAndError(HttpStatus.CONFLICT,
+                    "You are already friends with this user");
+        }
+
+        FriendRequestDTO friendRequestDTO = new FriendRequestDTO(sender, recipientId);
+
+        rabbitProducingService.sendFriendshipRequest(friendRequestDTO);
+        return new StatusAndError(HttpStatus.ACCEPTED, "The request has been sent");
     }
 
     private Chat createChatBetween(User sender, User recipient)
@@ -139,6 +216,36 @@ public class FriendAndMessageService {
 
         String pictureUrl = foundPicture.map(ProfilePicture::getSecure_url).orElse(null);
         return new LoadChatResponse(userName, userID, messages, pictureUrl);
+    }
+
+    /*
+     * We use this method to create parameters for each job
+     * separately, because we can't use the same timestamp value for the 3 different jobs we want to run.
+     * */
+    private JobParameters createParameters(Job runningJob)
+    {
+        return new JobParametersBuilder().
+                addLong("timestamp", System.currentTimeMillis()).
+                addString("name", runningJob.getName()).toJobParameters();
+    }
+
+
+    //Every 10 seconds
+    @Scheduled(fixedRate = 10 * 1000)
+    public void runLikesUpdatingJob(@Qualifier(value = "friendLikeJob") Job friendLikeJob)
+            throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException,
+            JobParametersInvalidException, JobRestartException, NoSuchJobException {
+
+        // We don't use a variable to subtract minutes from, because we want to be very
+        // sensitive in keeping accurate time.
+        LocalDateTime lastProcessedCutoff = LocalDateTime.now().minusMinutes(10L);
+
+        JobParameters parameters = new JobParametersBuilder()
+                .addString("lastProcessed", lastProcessedCutoff.toString())
+                .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
+
+        jobOperator.start(friendLikeJob, createParameters(friendLikeJob));
     }
 
 

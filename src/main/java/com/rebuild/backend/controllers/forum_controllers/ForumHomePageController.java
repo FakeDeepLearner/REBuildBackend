@@ -34,15 +34,12 @@ public class ForumHomePageController {
 
     private final PostSearchRepository postSearchRepository;
 
-    private final ElasticSearchService elasticSearchService;
-
     @Autowired
     public ForumHomePageController(ForumPostAndCommentService postAndCommentService,
-                                   UserService userService, PostSearchRepository postSearchRepository, ElasticSearchService elasticSearchService) {
+                                   UserService userService, PostSearchRepository postSearchRepository) {
         this.postAndCommentService = postAndCommentService;
         this.userService = userService;
         this.postSearchRepository = postSearchRepository;
-        this.elasticSearchService = elasticSearchService;
     }
 
     @PostMapping( "/create_post_search_config")

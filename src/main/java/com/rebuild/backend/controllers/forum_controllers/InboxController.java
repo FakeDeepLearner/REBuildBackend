@@ -3,15 +3,22 @@ package com.rebuild.backend.controllers.forum_controllers;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.RequestStatus;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.StatusAndError;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
+import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.user_services.UserService;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/inbox")
@@ -30,32 +37,32 @@ public class InboxController {
         this.friendRequestRepository = friendRequestRepository;
     }
 
-    //TODO: This one method has 3 database transactions. See if there is a way to reduce that
-    @PostMapping("/accept_request/{request_index}")
-    public void acceptFriendshipRequest(@PathVariable int request_index,
-                                        @AuthenticationPrincipal User acceptingUser) {
-        List<FriendRequest> userRequests = acceptingUser.getInbox().getPendingRequests();
-        FriendRequest requestToAccept =
-                userRequests.get(request_index);
+    @PostMapping("/accept_request/{request_id}")
+    public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
+                                                                   @AuthenticationPrincipal User acceptingUser) {
+        StatusAndError result = friendAndMessageService.addFriend(acceptingUser, request_id);
 
-        requestToAccept.setStatus(RequestStatus.ACCEPTED);
-        requestToAccept.setStatusUpdateDate(LocalDateTime.now());
-        friendRequestRepository.save(requestToAccept);
-        friendAndMessageService.addFriend(requestToAccept.getSender(), requestToAccept.getRecipient());
-
-
-        //We remove this friend request from the recipient's inbox. It is accepted, there is no point of
-        //it staying there anymore.
-        userRequests.remove(request_index);
-        userService.save(acceptingUser);
+        return ResponseEntity.ok(result.message());
 
     }
 
-    @PostMapping("/send_request")
-    public void sendFriendshipRequest(@RequestBody String recipientUsername,
-                                      @AuthenticationPrincipal User sendingUser)
+    @PostMapping("/decline_request/{request_id}")
+    public ResponseEntity<@NonNull String> declineFriendshipRequest(@PathVariable UUID request_id,
+                                                                   @AuthenticationPrincipal User acceptingUser) {
+        StatusAndError result =
+                friendAndMessageService.declineFriendshipRequest(acceptingUser, request_id);
+
+        return ResponseEntity.status(result.status()).body(result.message());
+
+    }
+
+    @PostMapping("/send_friendship/{recipient_id}")
+    public ResponseEntity<@NonNull String> sendFriendshipRequest(@PathVariable UUID recipient_id,
+                                                                 @AuthenticationPrincipal User sendingUser)
     {
+        StatusAndError requestResult =
+                friendAndMessageService.sendFriendRequest(sendingUser, recipient_id);
 
-
+        return ResponseEntity.status(requestResult.status()).body(requestResult.message());
     }
 }
