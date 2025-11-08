@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.StatusAndError;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.repository.forum_repositories.ChatRepository;
@@ -218,15 +219,30 @@ public class FriendAndMessageService {
         return new LoadChatResponse(userName, userID, messages, pictureUrl);
     }
 
+    public List<UsernameSearchResultDTO> loadUserInbox(User loadingUser)
+    {
+        List<FriendRequest> pendingRequests = loadingUser.getInbox().getFriendRequests().
+                stream().filter(request -> RequestStatus.PENDING.equals(request.getStatus())).
+                toList();
+
+        return pendingRequests.stream()
+                .map(request -> {
+                    UUID userID = request.getSender().getId();
+                    String userName = request.getSender().getForumUsername();
+                    return new UsernameSearchResultDTO(userID, userName);
+                }).toList();
+
+    }
+
     /*
      * We use this method to create parameters for each job
      * separately, because we can't use the same timestamp value for the 3 different jobs we want to run.
      * */
-    private JobParameters createParameters(Job runningJob)
+    private JobParametersBuilder createParameters(Job runningJob)
     {
         return new JobParametersBuilder().
                 addLong("timestamp", System.currentTimeMillis()).
-                addString("name", runningJob.getName()).toJobParameters();
+                addString("name", runningJob.getName());
     }
 
 
@@ -237,15 +253,17 @@ public class FriendAndMessageService {
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
-        // We don't use a variable to subtract minutes from, because we want to be very
-        // sensitive in keeping accurate time.
-        LocalDateTime lastProcessedCutoff = LocalDateTime.now().minusMinutes(10L);
+        jobOperator.start(friendLikeJob, createParameters(friendLikeJob).toJobParameters());
+    }
 
-        JobParameters parameters = new JobParametersBuilder()
-                .addString("lastProcessed", lastProcessedCutoff.toString())
-                .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
-
-        jobOperator.start(friendLikeJob, createParameters(friendLikeJob));
+    @Scheduled(cron = "@midnight")
+    public void runFriendRequestsJob(@Qualifier(value = "friendRequestJob") Job friendRequestJob)
+            throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException,
+            JobParametersInvalidException, JobRestartException, NoSuchJobException
+    {
+        jobOperator.start(friendRequestJob, createParameters(friendRequestJob)
+                .addString("dateCutoff", LocalDateTime.now().minusDays(7).toString()).toJobParameters());
     }
 
 

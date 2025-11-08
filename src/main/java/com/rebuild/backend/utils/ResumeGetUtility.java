@@ -20,7 +20,7 @@ public class ResumeGetUtility {
     }
 
     @Cacheable(value = "resume_cache", key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
-    public Resume findByUserResumeIndex(User searchingUser, UUID resumeId){
+    public Resume findByUserResumeId(User searchingUser, UUID resumeId){
         return resumeRepository.findResumeByIdAndUser(resumeId, searchingUser).orElseThrow(
                 () -> new RuntimeException("Resume either does not exist or does not belong to the current user.")
         );

@@ -10,7 +10,6 @@ import com.rebuild.backend.repository.resume_repositories.ResumeVersionRepositor
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +43,7 @@ public class ResumeVersioningService {
 
     @Transactional
     public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionCreationForm inclusionForm){
-        Resume copiedResume = getUtility.findByUserResumeIndex(user, resumeId);
+        Resume copiedResume = getUtility.findByUserResumeId(user, resumeId);
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         int currentVersionCount = copiedResume.getVersionCount();
         if(currentVersionCount < Resume.MAX_VERSION_COUNT){
@@ -57,7 +56,7 @@ public class ResumeVersioningService {
     public Resume switchToAnotherVersion(User user,
                                          UUID resumeId, UUID versionId,
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
-        Resume switchingResume = getUtility.findByUserResumeIndex(user, resumeId);
+        Resume switchingResume = getUtility.findByUserResumeId(user, resumeId);
 
         ResumeVersion versionToSwitch = versionRepository.findById(versionId).orElse(null);
         assert versionToSwitch != null;
@@ -170,7 +169,7 @@ public class ResumeVersioningService {
 
     @Transactional
     public void deleteVersion(User user, UUID resumeId, UUID versionId){
-        Resume deletingResume = getUtility.findByUserResumeIndex(user, resumeId);
+        Resume deletingResume = getUtility.findByUserResumeId(user, resumeId);
         deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
         ResumeVersion versionToDelete = versionRepository.findById(versionId).orElse(null);
         assert versionToDelete != null;

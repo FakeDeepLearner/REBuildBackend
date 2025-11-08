@@ -4,10 +4,12 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Mess
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.model.responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -156,6 +158,12 @@ public class HomePageController {
 
         //Should never get here.
         return null;
+    }
+
+    @GetMapping("/home/get_inbox")
+    @ResponseStatus(OK)
+    public List<UsernameSearchResultDTO> getInbox(@AuthenticationPrincipal User authenticatedUser) {
+        return friendAndMessageService.loadUserInbox(authenticatedUser);
     }
 
     @DeleteMapping("/api/delete/{res_id}")

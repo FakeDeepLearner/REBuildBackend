@@ -265,6 +265,16 @@ public class ForumPostAndCommentService {
     }
 
 
+    /*
+     * We use this method to create parameters for each job
+     * separately, because we can't use the same timestamp value for the 3 different jobs we want to run.
+     * */
+    private JobParametersBuilder createParameters(Job runningJob)
+    {
+        return new JobParametersBuilder().
+                addLong("timestamp", System.currentTimeMillis()).
+                addString("name", runningJob.getName());
+    }
 
     //Every minute
     @Scheduled(fixedRate = 60 * 1000)
@@ -277,23 +287,14 @@ public class ForumPostAndCommentService {
         // sensitive in keeping accurate time. 
         LocalDateTime lastProcessedCutoff = LocalDateTime.now().minusMinutes(10L);
 
-        JobParameters parameters = new JobParametersBuilder()
+        JobParameters parameters = createParameters(updateLikesJob)
                 .addString("lastProcessed", lastProcessedCutoff.toString())
-                .addLong("timestamp", System.currentTimeMillis()).toJobParameters();
+                .toJobParameters();
 
         jobOperator.start(updateLikesJob, parameters);
     }
 
-    /*
-    * We use this method to create parameters for each job
-    * separately, because we can't use the same timestamp value for the 3 different jobs we want to run.
-    * */
-    private JobParameters createParameters(Job runningJob)
-    {
-        return new JobParametersBuilder().
-                addLong("timestamp", System.currentTimeMillis()).
-                addString("name", runningJob.getName()).toJobParameters();
-    }
+
 
     //Every 15 seconds
     @Scheduled(fixedRate = 15 * 1000)
@@ -305,9 +306,9 @@ public class ForumPostAndCommentService {
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
 
-        jobOperator.start(commentLikeJob, createParameters(commentLikeJob));
-        jobOperator.start(postLikeJob, createParameters(postLikeJob));
-        jobOperator.start(commentRepliesLikeJob, createParameters(commentRepliesLikeJob));
+        jobOperator.start(commentLikeJob, createParameters(commentLikeJob).toJobParameters());
+        jobOperator.start(postLikeJob, createParameters(postLikeJob).toJobParameters());
+        jobOperator.start(commentRepliesLikeJob, createParameters(commentRepliesLikeJob).toJobParameters());
     }
 
 }

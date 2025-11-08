@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 
 @Configuration
 public class ProcessLikesBatchStepsConfig {
@@ -41,7 +42,8 @@ public class ProcessLikesBatchStepsConfig {
                                   @Qualifier(value = "likeUpdateWriter") ItemWriter<LikesUpdateDTO> likesWriter) throws Exception {
         return new StepBuilder("updateLikesStep", jobRepository).
                 <LikesUpdateDTO, LikesUpdateDTO>chunk(50).
-                reader(likesReader).writer(likesWriter).build();
+                reader(likesReader).writer(likesWriter).faultTolerant().
+                skip(NoSuchElementException.class).skipLimit(50).build();
 
      }
 

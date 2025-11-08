@@ -17,6 +17,6 @@ public class FriendsWriter implements ItemWriter<FriendRequest> {
 
     @Override
     public void write(Chunk<? extends FriendRequest> chunk) throws Exception {
-        friendRequestRepository.saveAll(friendRequestRepository.findAll());
+        friendRequestRepository.saveAll(chunk);
     }
 }

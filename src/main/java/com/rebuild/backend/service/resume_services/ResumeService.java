@@ -85,7 +85,7 @@ public class ResumeService {
     }
 
     public Resume findByUserIndex(User user, UUID resumeID){
-        return getUtility.findByUserResumeIndex(user, resumeID);
+        return getUtility.findByUserResumeId(user, resumeID);
     }
 
     @Transactional
@@ -102,7 +102,7 @@ public class ResumeService {
 
     @Transactional
     public Header createNewHeader(User changingUser, UUID resumeId, HeaderForm headerForm){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
         resume.setHeader(newHeader);
@@ -116,7 +116,7 @@ public class ResumeService {
     public Resume createNewExperience(User changingUser, UUID resumeId,
                                                                    ExperienceForm experienceForm,
                                                                    Integer experiencesIndex){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         List<ExperienceType> types = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
@@ -137,7 +137,7 @@ public class ResumeService {
 
     @Transactional
     public Resume createNewEducation(User changingUser, UUID resumeId, EducationForm educationForm){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
         YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
         Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
@@ -155,14 +155,14 @@ public class ResumeService {
 
     @Transactional
     public Resume deleteEducation(User changingUser, UUID resumeId){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setEducation(null);
         return resumeRepository.save(resume);
     }
 
     @Transactional
     public Resume deleteExperience(User changingUser, UUID resumeId, int experienceIndex){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.getExperiences().remove(experienceIndex);
         return resumeRepository.save(resume);
     }
@@ -170,7 +170,7 @@ public class ResumeService {
 
     @Transactional
     public Resume deleteHeader(User changingUser, UUID resumeId){
-        Resume resume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setHeader(null);
         return resumeRepository.save(resume);
     }
@@ -223,7 +223,7 @@ public class ResumeService {
 
     @Transactional
     public Resume changeName(User changingUser, UUID resumeId, String newName){
-        Resume changingResume = getUtility.findByUserResumeIndex(changingUser, resumeId);
+        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
         changingResume.setName(newName);
         return resumeRepository.save(changingResume);
 
@@ -231,7 +231,7 @@ public class ResumeService {
 
     @Transactional
     public Resume copyResume(User user, UUID resumeId, ResumeCreationForm creationForm){
-        Resume copiedResume = getUtility.findByUserResumeIndex(user, resumeId);
+        Resume copiedResume = getUtility.findByUserResumeId(user, resumeId);
         if(creationForm.newName().equals(copiedResume.getName())){
             throw new RuntimeException("The new resume must have a different name than the original one.");
         }
