@@ -28,7 +28,6 @@ public class Inbox {
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = {

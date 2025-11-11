@@ -32,7 +32,6 @@ public class UserProfile {
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = {

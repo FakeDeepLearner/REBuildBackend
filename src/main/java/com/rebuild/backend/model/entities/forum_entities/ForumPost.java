@@ -36,7 +36,6 @@ public class ForumPost {
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     @NonNull

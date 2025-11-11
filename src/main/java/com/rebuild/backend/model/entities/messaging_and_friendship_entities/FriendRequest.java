@@ -26,7 +26,6 @@ public class FriendRequest {
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     @Column(name = "status")

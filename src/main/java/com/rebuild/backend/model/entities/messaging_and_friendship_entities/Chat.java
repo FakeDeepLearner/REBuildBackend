@@ -22,7 +22,6 @@ public class Chat {
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     //The actual names of these don't matter. It just matters that one is defined as the initiator.

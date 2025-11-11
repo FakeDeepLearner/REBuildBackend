@@ -46,7 +46,6 @@ public class User implements UserDetails {
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     @Column(
@@ -56,7 +55,6 @@ public class User implements UserDetails {
     @NonNull
     @JsonIgnore
     private String password;
-
 
     @Column(
             nullable = false,

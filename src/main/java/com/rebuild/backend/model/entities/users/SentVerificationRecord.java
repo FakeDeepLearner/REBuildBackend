@@ -22,7 +22,6 @@ public class SentVerificationRecord {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-
     @Column(name = "channel", nullable = false)
     @NonNull
     private String channel;

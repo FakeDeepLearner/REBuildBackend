@@ -28,6 +28,7 @@ import java.util.UUID;
 @NoArgsConstructor
 //@RequiredArgsConstructor
 public class PostResume {
+
     @Id
     @GenerateV7UUID
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
