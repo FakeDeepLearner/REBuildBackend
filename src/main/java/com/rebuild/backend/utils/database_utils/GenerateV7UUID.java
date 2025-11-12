@@ -1,6 +1,5 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.database_utils;
 
-import jakarta.persistence.Column;
 import org.hibernate.annotations.IdGeneratorType;
 
 import java.lang.annotation.ElementType;

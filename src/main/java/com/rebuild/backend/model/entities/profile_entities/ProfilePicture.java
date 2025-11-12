@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
-import com.rebuild.backend.utils.GenerateV7UUID;
+import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
 

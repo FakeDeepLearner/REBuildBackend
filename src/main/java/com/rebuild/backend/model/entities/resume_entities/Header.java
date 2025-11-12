@@ -3,12 +3,10 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import com.rebuild.backend.utils.GenerateV7UUID;
+import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.generator.BeforeExecutionGenerator;
-import org.hibernate.id.uuid.UuidGenerator;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import java.util.UUID;

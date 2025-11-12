@@ -3,7 +3,11 @@ spring:
     active: "local"
 
 ---
+
 spring:
+  datasource:
+    hikari:
+      connection-init-sql: "SET current_user_id TO NULL"
   session:
     redis:
       flush-mode: on_save

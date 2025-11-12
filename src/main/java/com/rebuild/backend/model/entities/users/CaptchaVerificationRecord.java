@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.users;
 
-import com.rebuild.backend.utils.GenerateV7UUID;
+import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

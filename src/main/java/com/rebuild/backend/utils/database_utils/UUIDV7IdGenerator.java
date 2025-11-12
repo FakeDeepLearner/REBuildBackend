@@ -1,11 +1,8 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.database_utils;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.generator.*;
-import org.hibernate.id.uuid.UuidGenerator;
-import org.springframework.stereotype.Component;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.sql.Connection;
 import java.sql.ResultSet;
