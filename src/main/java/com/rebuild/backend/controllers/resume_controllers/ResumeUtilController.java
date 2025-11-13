@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.utils.database_utils.UserContext;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -40,12 +41,15 @@ public class ResumeUtilController {
     public ResponseEntity<?> changeResumeName(@RequestBody String newName,
                                               @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user) {
+        UserContext.set(resume_id);
         try {
             Resume changedResume = resumeService.changeName(user, resume_id, newName);
+            UserContext.clear();
             return ResponseEntity.ok(changedResume);
         }
 
         catch (DataIntegrityViolationException e){
+            UserContext.clear();
             Throwable cause = e.getCause();
 
             if(cause instanceof ConstraintViolationException violationException &&
@@ -54,7 +58,7 @@ public class ResumeUtilController {
             }
         }
 
-
+        UserContext.clear();
         return null;
     }
 
@@ -62,12 +66,15 @@ public class ResumeUtilController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> copyResume(@RequestBody ResumeCreationForm creationForm,
                                         @AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
+        UserContext.set(user.getId());
         try {
             Resume copiedResume = resumeService.copyResume(user, resume_id, creationForm);
+            UserContext.clear();
             return ResponseEntity.ok(copiedResume);
         }
 
         catch (DataIntegrityViolationException e){
+            UserContext.clear();
             Throwable cause = e.getCause();
 
             if(cause instanceof ConstraintViolationException violationException &&
@@ -77,9 +84,10 @@ public class ResumeUtilController {
         }
 
         catch (RuntimeException e){
+            UserContext.clear();
             return ResponseEntity.status(BAD_REQUEST).body(e.getMessage());
         }
-
+        UserContext.clear();
         return null;
     }
 
@@ -88,6 +96,7 @@ public class ResumeUtilController {
     public ResponseEntity<String> downloadResumeAsText(@AuthenticationPrincipal User user,
                                                        @PathVariable UUID resume_id,
                                                        @RequestBody boolean includeMetadata) {
+        UserContext.set(user.getId());
         String resumeMetadata = "";
 
         Resume downloadingResume = resumeService.findByUserIndex(user, resume_id);
@@ -99,6 +108,7 @@ public class ResumeUtilController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", downloadingResume.getName());
         headers.setContentType(MediaType.TEXT_PLAIN);
+        UserContext.clear();
         return ResponseEntity.status(200).headers(headers).body(resumeMetadata + downloadingResume);
 
     }

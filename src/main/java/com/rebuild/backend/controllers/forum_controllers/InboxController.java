@@ -9,6 +9,7 @@ import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepos
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.user_services.UserService;
+import com.rebuild.backend.utils.database_utils.UserContext;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,17 +41,20 @@ public class InboxController {
     @PostMapping("/accept_request/{request_id}")
     public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
                                                                    @AuthenticationPrincipal User acceptingUser) {
+        UserContext.set(acceptingUser.getId());
         StatusAndError result = friendAndMessageService.addFriend(acceptingUser, request_id);
-
+        UserContext.clear();
         return ResponseEntity.ok(result.message());
 
     }
 
     @PostMapping("/decline_request/{request_id}")
     public ResponseEntity<@NonNull String> declineFriendshipRequest(@PathVariable UUID request_id,
-                                                                   @AuthenticationPrincipal User acceptingUser) {
+                                                                    @AuthenticationPrincipal User acceptingUser) {
+        UserContext.set(acceptingUser.getId());
         StatusAndError result =
                 friendAndMessageService.declineFriendshipRequest(acceptingUser, request_id);
+        UserContext.clear();
 
         return ResponseEntity.status(result.status()).body(result.message());
 

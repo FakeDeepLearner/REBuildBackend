@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.VersionCreationForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.service.resume_services.ResumeVersioningService;
+import com.rebuild.backend.utils.database_utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,10 @@ public class VersioningController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResumeVersion snapshotVersion(@AuthenticationPrincipal User user, @PathVariable UUID resume_id,
                                          @RequestBody VersionCreationForm inclusionForm){
-        return versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
+        UserContext.set(user.getId());
+        ResumeVersion newVersion = versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
+        UserContext.clear();
+        return newVersion;
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")

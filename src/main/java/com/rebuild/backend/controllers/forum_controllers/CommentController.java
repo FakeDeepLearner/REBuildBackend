@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
+import com.rebuild.backend.utils.database_utils.UserContext;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,10 +53,9 @@ public class CommentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable UUID comment_id,
                               @AuthenticationPrincipal User deletingUser){
-        if(!forumPostAndCommentService.commentBelongsToUser(comment_id, deletingUser.getId())){
-            throw new RuntimeException("That comment doesn't belong to you, you can't delete it");
-        }
+        UserContext.set(deletingUser.getId());
         forumPostAndCommentService.deleteComment(comment_id);
+        UserContext.clear();
     }
 
 }

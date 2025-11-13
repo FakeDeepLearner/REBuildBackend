@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.utils.database_utils.UserContext;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,9 +46,8 @@ public class PostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable UUID post_id,
                            @AuthenticationPrincipal User creatingUser) {
-        if(!forumPostAndCommentService.postBelongsToUser(post_id, creatingUser.getId())) {
-            throw new RuntimeException("That post does not belong to you");
-        }
+        UserContext.set(creatingUser.getId());
         forumPostAndCommentService.deletePost(post_id);
+        UserContext.clear();
     }
 }
