@@ -1,8 +1,6 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,9 +18,8 @@ import java.util.*;
 public class Chat {
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @JsonIgnore
     private UUID id;
 
     //The actual names of these don't matter. It just matters that one is defined as the initiator.

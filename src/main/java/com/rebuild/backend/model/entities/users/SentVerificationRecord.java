@@ -1,7 +1,5 @@
 package com.rebuild.backend.model.entities.users;
 
-import com.rebuild.backend.utils.GenerateV7UUID;
-import jakarta.annotation.security.DenyAll;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,10 +16,9 @@ import java.util.UUID;
 public class SentVerificationRecord {
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
-
 
     @Column(name = "channel", nullable = false)
     @NonNull
