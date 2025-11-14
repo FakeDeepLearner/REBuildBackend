@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.utils.elastic_utils.ExperienceTypeBridge;
-import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.ExperienceTypesConverter;
 import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
@@ -32,7 +31,7 @@ import java.util.UUID;
 public class Experience {
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 

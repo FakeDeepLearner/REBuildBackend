@@ -2,7 +2,6 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,7 +26,7 @@ import java.util.UUID;
 public class PostResume {
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 

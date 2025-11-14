@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.entities.versioning_entities;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,7 +28,7 @@ import java.util.UUID;
 public class ResumeVersion {
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 

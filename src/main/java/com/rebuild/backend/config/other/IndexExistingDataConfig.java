@@ -2,6 +2,7 @@ package com.rebuild.backend.config.other;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.users.User;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;

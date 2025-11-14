@@ -6,7 +6,6 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
@@ -43,7 +42,7 @@ public class User implements UserDetails {
     private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 

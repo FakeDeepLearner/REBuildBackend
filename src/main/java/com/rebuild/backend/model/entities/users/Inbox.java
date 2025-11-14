@@ -2,7 +2,6 @@ package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.utils.database_utils.GenerateV7UUID;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +24,7 @@ import java.util.UUID;
 public class Inbox {
 
     @Id
-    @GenerateV7UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
