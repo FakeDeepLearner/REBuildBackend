@@ -3,7 +3,6 @@ package com.rebuild.backend.controllers.resume_controllers;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.utils.database_utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
@@ -28,28 +27,19 @@ public class ResumeDeleteController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume deleteHeader(@PathVariable UUID resume_id,
                                @AuthenticationPrincipal User user) {
-        UserContext.set(resume_id);
-        Resume deletedResume = resumeService.deleteHeader(user, resume_id);
-        UserContext.clear();
-        return deletedResume;
+        return resumeService.deleteHeader(user, resume_id);
     }
 
     @DeleteMapping("/experience/{resume_id}/{experience_index}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume deleteExperience(@PathVariable int experience_index, @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {
-        UserContext.set(resume_id);
-        Resume deletedResume = resumeService.deleteExperience(user, resume_id, experience_index);
-        UserContext.clear();
-        return deletedResume;
+        return resumeService.deleteExperience(user, resume_id, experience_index);
     }
 
     @DeleteMapping("/education/{resume_id}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume deleteEducation(@PathVariable UUID resume_id, @AuthenticationPrincipal User user) {
-        UserContext.set(resume_id);
-        Resume deletedResume = resumeService.deleteEducation(user, resume_id);
-        UserContext.clear();
-        return deletedResume;
+        return resumeService.deleteEducation(user, resume_id);
     }
 }

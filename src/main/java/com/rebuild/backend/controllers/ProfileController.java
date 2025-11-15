@@ -21,69 +21,59 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/profile/control")
+@RequestMapping("/api/profile")
 public class ProfileController {
-    private final UserService userService;
 
     private final ProfileService profileService;
 
     @Autowired
-    public ProfileController(UserService userService,
-                             ProfileService profileService) {
-        this.userService = userService;
+    public ProfileController(ProfileService profileService) {
         this.profileService = profileService;
     }
 
     @PostMapping(value = "/update_profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> updateProfile(@Valid @RequestPart(name = "meta") FullInformationForm fullProfileForm,
-                                                @RequestPart(name = "file") MultipartFile pictureFile,
-                                                @AuthenticationPrincipal User authenticatedUser) {
+                                           @RequestPart(name = "file") MultipartFile pictureFile,
+                                           @AuthenticationPrincipal User authenticatedUser) {
         try {
             UserProfile updatedProfile = profileService.createFullProfileFor(fullProfileForm, authenticatedUser, pictureFile);
             return ResponseEntity.ok(updatedProfile);
         }
         catch (IOException ioException) {
-            return ResponseEntity.internalServerError().body("An unexpected error occured:\n " + ioException.getMessage());
+            return ResponseEntity.internalServerError().body("An unexpected error occurred:\n " + ioException.getMessage());
         }
     }
 
-    @PatchMapping("/patch/page_size")
+    @PatchMapping("/patch/page_size/{profile_id}")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updatePageSize(@RequestBody int newPageSize,
-                                      @AuthenticationPrincipal User authenticatedUser) {
-        if(authenticatedUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.changePageSize(authenticatedUser.getProfile(), newPageSize);
+                                      @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID profile_id) {
+        return profileService.changePageSize(authenticatedUser, profile_id, newPageSize);
     }
 
-    @PatchMapping("/patch/header/{header_id}")
+    @PatchMapping("/patch/header/{profile_id}/{header_id}")
     @ResponseStatus(HttpStatus.OK)
     public Header updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
-                                      @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID header_id) {
-        if(authenticatedUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.updateProfileHeader(headerForm, header_id, authenticatedUser);
+                                      @AuthenticationPrincipal User authenticatedUser,
+                                      @PathVariable UUID header_id, @PathVariable UUID profile_id) {
+        return profileService.updateProfileHeader(headerForm, header_id, profile_id, authenticatedUser);
     }
 
-    @PatchMapping("/patch/education/{education_id}")
+    @PatchMapping("/patch/education/{profile_id}/{education_id}")
     @ResponseStatus(HttpStatus.OK)
     public Education updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
-                                            @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID education_id) {
-        if(authenticatedUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        UserProfile profile = authenticatedUser.getProfile();
-        return profileService.updateProfileEducation(educationForm, education_id, authenticatedUser);
+                                            @AuthenticationPrincipal User authenticatedUser,
+                                            @PathVariable UUID education_id, @PathVariable UUID profile_id) {
+        return profileService.updateProfileEducation(educationForm, education_id, profile_id, authenticatedUser);
     }
 
-    @PatchMapping("/patch/experiences")
+    @PatchMapping("/patch/experiences/{profile_id}")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileExperiences(@Valid @RequestBody List<ExperienceForm>
                                                                   experienceFormList,
-                                                   @AuthenticationPrincipal User authenticatedUser) {
+                                                   @AuthenticationPrincipal User authenticatedUser,
+                                                @PathVariable UUID profile_id) {
         if(authenticatedUser.getProfile() == null){
             throw new RuntimeException("No profile found for your account");
         }
@@ -91,61 +81,47 @@ public class ProfileController {
         return profileService.updateProfileExperiences(profile, experienceFormList);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{profile_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfile(@AuthenticationPrincipal User deletingUser){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        profileService.deleteProfile(deletingUser.getProfile().getId());
+    public void deleteProfile(@AuthenticationPrincipal User deletingUser, @PathVariable UUID profile_id) {
+        profileService.deleteProfile(deletingUser, profile_id);
     }
 
-    @DeleteMapping("/delete/header")
+    @DeleteMapping("/delete/header/{profile_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteProfileHeader(@AuthenticationPrincipal User deletingUser){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.deleteProfileHeader(deletingUser.getProfile());
+    public UserProfile deleteProfileHeader(@AuthenticationPrincipal User deletingUser, @PathVariable UUID profile_id) {
+        return profileService.deleteProfileHeader(deletingUser, profile_id);
     }
 
-    @DeleteMapping("/delete/education")
+    @DeleteMapping("/delete/education/{profile_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteProfileEducation(@AuthenticationPrincipal User deletingUser){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.deleteProfileEducation(deletingUser.getProfile());
+    public UserProfile deleteProfileEducation(@AuthenticationPrincipal User deletingUser,  @PathVariable UUID profile_id) {
+        return profileService.deleteProfileEducation(deletingUser, profile_id);
     }
 
-    @DeleteMapping("/delete/experiences")
+    @DeleteMapping("/delete/experiences/{profile_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteProfileExperiences(@AuthenticationPrincipal User deletingUser){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.deleteProfileExperiences(deletingUser.getProfile());
+    public UserProfile deleteProfileExperiences(@AuthenticationPrincipal User deletingUser, @PathVariable UUID profile_id) {
+
+        return profileService.deleteProfileExperiences(deletingUser, profile_id);
     }
 
-    @DeleteMapping("/delete/experiences/{experience_id}")
+    @DeleteMapping("/delete/experiences/{profile_id}/{experience_id}")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteSpecificExperience(@AuthenticationPrincipal User deletingUser,
-                                                @PathVariable UUID experience_id){
-        if(deletingUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        return profileService.deleteSpecificProfileExperience(deletingUser.getProfile(),
+                                                @PathVariable UUID experience_id, @PathVariable UUID profile_id) {
+        return profileService.deleteSpecificProfileExperience(deletingUser, profile_id,
                 experience_id);
     }
 
-    @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(value = "/update_image/{profile_id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeImage(@AuthenticationPrincipal User changingUser,
-                                   @RequestPart(name = "file") MultipartFile pictureFile)
+                                   @RequestPart(name = "file") MultipartFile pictureFile,
+                                         @PathVariable UUID profile_id)
     {
         try {
-            UserProfile profile = changingUser.getProfile();
-            userService.modifyProfilePictureOf(profile, pictureFile);
+            UserProfile profile = profileService.modifyProfilePictureOf(changingUser, profile_id, pictureFile);
             return ResponseEntity.ok().body(profile);
         }
 

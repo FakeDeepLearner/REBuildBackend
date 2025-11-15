@@ -67,8 +67,8 @@ public class ResumeService {
     }
 
     @Transactional
-    public Header changeHeaderInfo(HeaderForm headerForm, UUID headerID, User user){
-        return modificationUtility.modifyHeader(headerForm, headerID, user);
+    public Header changeHeaderInfo(HeaderForm headerForm, UUID headerID, UUID resumeId, User user){
+        return modificationUtility.modifyResumeHeader(headerForm, headerID, resumeId, user);
     }
 
     @Transactional
@@ -89,15 +89,16 @@ public class ResumeService {
     }
 
     @Transactional
-    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, User user){
-        return modificationUtility.modifyExperience(experienceForm, experienceID, user);
+    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
+                                           User user){
+        return modificationUtility.modifyResumeExperience(experienceForm, experienceID, resumeId, user);
 
     }
 
     @Transactional
     public Education changeEducationInfo(EducationForm educationForm,
-                                      UUID educationID, User user){
-       return modificationUtility.modifyEducation(educationForm, educationID, user);
+                                      UUID educationID, UUID resumeId, User user){
+       return modificationUtility.modifyResumeEducation(educationForm, educationID, resumeId, user);
     }
 
     @Transactional

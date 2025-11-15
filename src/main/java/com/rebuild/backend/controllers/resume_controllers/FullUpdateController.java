@@ -4,7 +4,6 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.FullInformationForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.utils.database_utils.UserContext;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,9 +30,7 @@ public class FullUpdateController {
     public Resume updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
                                             @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user) {
-        UserContext.set(user.getId());
         Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
-        UserContext.clear();
         return resumeService.fullUpdate(associatedResume, fullInformationForm);
 
     }

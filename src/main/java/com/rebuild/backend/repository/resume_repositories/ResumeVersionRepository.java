@@ -1,5 +1,6 @@
 package com.rebuild.backend.repository.resume_repositories;
 
+import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,5 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface ResumeVersionRepository extends JpaRepository<ResumeVersion, UUID> {
+
+    Optional<ResumeVersion> findByIdAndAssociatedResume(UUID id, Resume associatedResume);
 
 }

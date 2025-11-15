@@ -1,9 +1,13 @@
 package com.rebuild.backend.service.user_services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.*;
+import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
@@ -11,11 +15,13 @@ import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,15 +34,18 @@ public class ProfileService {
 
     private final ObjectConverter objectConverter;
 
-    private final UserService userService;
+    private final ProfilePictureRepository profilePictureRepository;
+
+    private final Cloudinary cloudinary;
 
     @Autowired
     public ProfileService(ProfileRepository profileRepository, SubpartsModificationUtility modificationUtility,
-                          ObjectConverter objectConverter, UserService userService) {
+                          ObjectConverter objectConverter, ProfilePictureRepository profilePictureRepository, Cloudinary cloudinary) {
         this.profileRepository = profileRepository;
         this.modificationUtility = modificationUtility;
         this.objectConverter = objectConverter;
-        this.userService = userService;
+        this.profilePictureRepository = profilePictureRepository;
+        this.cloudinary = cloudinary;
     }
 
     @Transactional
@@ -44,6 +53,12 @@ public class ProfileService {
                                             MultipartFile pictureFile) throws IOException {
         UserProfile updatedProfile = getUserProfile(updatingUser.getProfile(), profileForm, pictureFile);
         return profileRepository.save(updatedProfile);
+    }
+
+    private UserProfile getProfileByIdAndUser(UUID id, User user) {
+        return profileRepository.findByIdAndUser(id, user).orElseThrow(
+                () -> new BelongingException("The profile either does not exist or does not belong to you.")
+        );
     }
 
 
@@ -56,7 +71,7 @@ public class ProfileService {
                 extractProfileExperiences(profileForm.experiences(), updatedProfile);
         updatedProfile.setExperienceList(experiences);
 
-        userService.modifyProfilePictureOf(updatedProfile, pictureFile);
+        modifyProfilePictureOf(updatedProfile.getUser(), profile.getId(), pictureFile);
         return updatedProfile;
     }
 
@@ -68,26 +83,53 @@ public class ProfileService {
         Education newEducation = new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
+        newEducation.setProfile(profile);
+        profileHeader.setProfile(profile);
 
         profile.setEducation(newEducation);
         profile.setHeader(profileHeader);
         return profile;
     }
 
+    public UserProfile modifyProfilePictureOf(User chngingUser, UUID profileId, MultipartFile pictureFile) throws IOException
+    {
+        UserProfile profile = getProfileByIdAndUser(profileId, chngingUser);
+        if (!pictureFile.isEmpty())
+        {
+            if(profile.getProfilePicture() != null)
+            {
+                profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
+                cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
+                        ObjectUtils.emptyMap());
+            }
+
+            @SuppressWarnings("JvmTaintAnalysis")
+            Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
+                            copyToByteArray(pictureFile.getInputStream()),
+                    ObjectUtils.emptyMap());
+            ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
+                    (String) uploadResult.get("asset_id"), (String) uploadResult.get("secure_url"));
+            profile.setProfilePicture(profilePicture);
+            profilePicture.setAssociatedProfile(profile);
+        }
+        return profile;
+    }
+
     @Transactional
-    public UserProfile changePageSize(UserProfile profile, int newPageSize){
+    public UserProfile changePageSize(User changingUser, UUID profileId, int newPageSize){
+        UserProfile profile = getProfileByIdAndUser(profileId, changingUser);
         profile.setForumPageSize(newPageSize);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public Header updateProfileHeader(HeaderForm headerForm, UUID header_id, User user) {
-        return modificationUtility.modifyHeader(headerForm, header_id, user);
+    public Header updateProfileHeader(HeaderForm headerForm, UUID header_id, UUID profile_id, User user) {
+        return modificationUtility.modifyProfileHeader(headerForm, header_id, profile_id, user);
     }
 
     @Transactional
-    public Education updateProfileEducation(EducationForm educationForm, UUID education_id, User user) {
-        return modificationUtility.modifyEducation(educationForm, education_id, user);
+    public Education updateProfileEducation(EducationForm educationForm, UUID education_id, UUID profile_id, User user) {
+        return modificationUtility.modifyProfileEducation(educationForm, education_id, profile_id, user);
     }
 
     @Transactional
@@ -110,30 +152,35 @@ public class ProfileService {
     }
 
     @Transactional
-    public void deleteProfile(UUID profile_id){
-        profileRepository.deleteById(profile_id);
+    public void deleteProfile(User deletingUser, UUID profile_id){
+        UserProfile profile = getProfileByIdAndUser(profile_id, deletingUser);
+        profileRepository.delete(profile);
     }
 
     @Transactional
-    public UserProfile deleteProfileExperiences(UserProfile profile){
+    public UserProfile deleteProfileExperiences(User deletingUser, UUID profileId){
+        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
         profile.setExperienceList(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public UserProfile deleteProfileEducation(UserProfile profile){
+    public UserProfile deleteProfileEducation(User deletingUser, UUID profileId){
+        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
         profile.setEducation(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public UserProfile deleteProfileHeader(UserProfile profile){
+    public UserProfile deleteProfileHeader(User deletingUser, UUID profileId){
+        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
         profile.setHeader(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public UserProfile deleteSpecificProfileExperience(UserProfile profile, UUID experience_id){
+    public UserProfile deleteSpecificProfileExperience(User deletingUser, UUID profileId ,UUID experience_id){
+        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
         profile.getExperienceList().
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)

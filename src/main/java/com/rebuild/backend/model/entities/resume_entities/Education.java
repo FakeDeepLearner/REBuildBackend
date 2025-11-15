@@ -4,6 +4,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
@@ -68,6 +69,11 @@ public class Education {
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     @JsonIgnore
     private Resume resume = null;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    @JsonIgnore
+    private UserProfile profile;
 
 
     public String toString() {

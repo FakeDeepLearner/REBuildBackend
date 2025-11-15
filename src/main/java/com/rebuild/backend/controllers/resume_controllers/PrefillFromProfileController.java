@@ -4,7 +4,6 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.converters.ObjectConverter;
-import com.rebuild.backend.utils.database_utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
@@ -33,7 +32,6 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume prefillHeader(@PathVariable UUID resume_id,
                                 @AuthenticationPrincipal User user){
-        UserContext.set(user.getId());
         Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
@@ -44,7 +42,6 @@ public class PrefillFromProfileController {
         }
         Header originalHeader = resumeUser.getProfile().getHeader();
         Header transformedHeader = objectConverter.convertToHeader(originalHeader);
-        UserContext.clear();
         return resumeService.setHeader(associatedResume, transformedHeader);
     }
 
@@ -53,7 +50,6 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume prefillEducation(@PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user){
-        UserContext.set(user.getId());
         Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
@@ -64,7 +60,6 @@ public class PrefillFromProfileController {
         }
         Education originalEducation = resumeUser.getProfile().getEducation();
         Education transformedEducation = objectConverter.convertToEducation(originalEducation);
-        UserContext.clear();
         return resumeService.setEducation(associatedResume, transformedEducation);
     }
 
@@ -73,7 +68,6 @@ public class PrefillFromProfileController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume prefillExperience(@PathVariable UUID resume_id,
                                                @AuthenticationPrincipal User user){
-        UserContext.set(user.getId());
         Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
         User resumeUser = associatedResume.getUser();
         if(resumeUser.getProfile() == null){
@@ -87,7 +81,6 @@ public class PrefillFromProfileController {
                     experience.setResume(associatedResume);
                 }).
                 toList();
-        UserContext.clear();
         return resumeService.setExperiences(associatedResume, convertedExperiences);
 
     }
