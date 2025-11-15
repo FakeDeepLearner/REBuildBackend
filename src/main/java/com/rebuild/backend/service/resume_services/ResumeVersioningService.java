@@ -3,6 +3,7 @@ package com.rebuild.backend.service.resume_services;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.*;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.VersionCreationForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
@@ -40,6 +41,13 @@ public class ResumeVersioningService {
         this.entityManager = entityManager;
     }
 
+    private ResumeVersion findByResumeAndVersionId(UUID versionId, Resume resume)
+    {
+        return versionRepository.findByIdAndAssociatedResume(versionId, resume).orElseThrow(
+                () -> new BelongingException("This version either does not exist or does not belong to this resume")
+        );
+    }
+
 
     @Transactional
     public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionCreationForm inclusionForm){
@@ -58,9 +66,7 @@ public class ResumeVersioningService {
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
         Resume switchingResume = getUtility.findByUserResumeId(user, resumeId);
 
-        ResumeVersion versionToSwitch = versionRepository.findById(versionId).orElse(null);
-        assert versionToSwitch != null;
-
+        ResumeVersion versionToSwitch = findByResumeAndVersionId(versionId, switchingResume);
         handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
         versionRepository.save(versionToSwitch);
         return resumeRepository.save(switchingResume);
@@ -170,10 +176,9 @@ public class ResumeVersioningService {
     @Transactional
     public void deleteVersion(User user, UUID resumeId, UUID versionId){
         Resume deletingResume = getUtility.findByUserResumeId(user, resumeId);
-        deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
-        ResumeVersion versionToDelete = versionRepository.findById(versionId).orElse(null);
-        assert versionToDelete != null;
+        ResumeVersion versionToDelete = findByResumeAndVersionId(versionId, deletingResume);
         versionRepository.delete(versionToDelete);
+        deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
         resumeRepository.save(deletingResume);
     }
 }

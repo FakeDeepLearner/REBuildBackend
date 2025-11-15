@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-import com.ctc.wstx.shaded.msv_core.datatype.xsd.UnicodeUtil;
 import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
@@ -13,7 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.time.LocalDateTime;
@@ -54,7 +52,6 @@ public class ResumeUtilController {
             }
         }
 
-
         return null;
     }
 
@@ -79,7 +76,6 @@ public class ResumeUtilController {
         catch (RuntimeException e){
             return ResponseEntity.status(BAD_REQUEST).body(e.getMessage());
         }
-
         return null;
     }
 

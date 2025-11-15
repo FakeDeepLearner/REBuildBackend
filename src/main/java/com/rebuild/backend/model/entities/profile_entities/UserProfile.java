@@ -33,21 +33,19 @@ public class UserProfile {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = {
-            ALL
-    })
-    @JoinColumn(name = "header_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "profile")
     private Header header;
 
-    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "education_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "profile")
     private Education education;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "experience_id", referencedColumnName = "id")
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.ALL
+    }, orphanRemoval = true, mappedBy = "resume")
+    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
     private List<Experience> experienceList;
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
+    @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
 
     @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)

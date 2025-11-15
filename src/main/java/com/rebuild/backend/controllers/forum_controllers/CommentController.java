@@ -52,9 +52,6 @@ public class CommentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable UUID comment_id,
                               @AuthenticationPrincipal User deletingUser){
-        if(!forumPostAndCommentService.commentBelongsToUser(comment_id, deletingUser.getId())){
-            throw new RuntimeException("That comment doesn't belong to you, you can't delete it");
-        }
         forumPostAndCommentService.deleteComment(comment_id);
     }
 

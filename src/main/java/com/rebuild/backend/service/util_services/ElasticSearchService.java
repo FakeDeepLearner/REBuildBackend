@@ -5,7 +5,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
-import com.rebuild.backend.utils.NullSafeQuerySearchBuilder;
+import com.rebuild.backend.utils.elastic_utils.NullSafeQuerySearchBuilder;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;

@@ -16,7 +16,6 @@ public class PersistentLogin {
     @Column(nullable = false, name = "username", length = 64)
     private String username;
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "series", length = 64)

@@ -79,11 +79,7 @@ public class UserService{
 
     private final OTPService otpService;
 
-    private final Cloudinary cloudinary;
-
-    private final ProfileRepository profileRepository;
-
-    private final ProfilePictureRepository profilePictureRepository;
+    private final ProfileService profileService;
 
     private final Dotenv dotenv;
 
@@ -97,17 +93,13 @@ public class UserService{
                        ProxyManager<String> proxyManager,
                        BucketConfiguration bucketConfiguration,
                        FriendRelationshipRepository friendRelationshipRepository,
-                       SendGrid sendGrid, CaptchaVerificationRepository verificationRepository,
-                       OTPService otpService, Cloudinary cloudinary,
-                       ProfileRepository profileRepository,
-                       ProfilePictureRepository profilePictureRepository,
+                       CaptchaVerificationRepository verificationRepository,
+                       OTPService otpService, ProfileService profileService,
                        Dotenv dotenv, ElasticSearchService elasticSearchService) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
-        this.cloudinary = cloudinary;
-        this.profileRepository = profileRepository;
-        this.profilePictureRepository = profilePictureRepository;
+        this.profileService = profileService;
         this.dotenv = dotenv;
         this.elasticSearchService = elasticSearchService;
         this.encoder = new BCryptPasswordEncoder();
@@ -270,36 +262,12 @@ public class UserService{
         return save(newUser);
     }
 
-    public void modifyProfilePictureOf(UserProfile profile, MultipartFile pictureFile) throws IOException
-    {
-        if (!pictureFile.isEmpty())
-        {
-            if(profile.getProfilePicture() != null)
-            {
-                profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
-                cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
-                        ObjectUtils.emptyMap());
-            }
-
-            @SuppressWarnings("JvmTaintAnalysis")
-            Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
-                            copyToByteArray(pictureFile.getInputStream()),
-                    ObjectUtils.emptyMap());
-            ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
-                    (String) uploadResult.get("asset_id"), (String) uploadResult.get("secure_url"));
-            profile.setProfilePicture(profilePicture);
-            profilePicture.setAssociatedProfile(profile);
-        }
-    }
-
     public UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
 
         UserProfile newProfile = new UserProfile();
         newProfile.setUser(newUser);
 
-        modifyProfilePictureOf(newProfile, pictureFile);
-
-        return newProfile;
+        return profileService.modifyProfilePictureOf(newUser, newProfile.getId(), pictureFile);
     }
 
     @Transactional

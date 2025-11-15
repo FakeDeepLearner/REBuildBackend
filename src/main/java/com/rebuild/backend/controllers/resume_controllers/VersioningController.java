@@ -29,7 +29,8 @@ public class VersioningController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResumeVersion snapshotVersion(@AuthenticationPrincipal User user, @PathVariable UUID resume_id,
                                          @RequestBody VersionCreationForm inclusionForm){
-        return versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
+        ResumeVersion newVersion = versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
+        return newVersion;
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")
@@ -37,16 +38,9 @@ public class VersioningController {
     public ResponseEntity<?> switchToVersion(@AuthenticationPrincipal User user,
                                              @PathVariable UUID resume_id, @PathVariable UUID version_id,
                                              @RequestBody VersionSwitchPreferencesForm preferencesForm){
-
-        try {
-            Resume switchedResume = versioningService.
-                    switchToAnotherVersion(user, resume_id, version_id, preferencesForm);
-            return ResponseEntity.ok(switchedResume);
-        }
-        catch (AssertionError e)
-        {
-            return ResponseEntity.notFound().build();
-        }
+        Resume switchedResume = versioningService.
+                switchToAnotherVersion(user, resume_id, version_id, preferencesForm);
+        return ResponseEntity.ok(switchedResume);
     }
 
     @DeleteMapping("/delete_version/{resume_id}/{version_id}")

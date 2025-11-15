@@ -1,16 +1,17 @@
 package com.rebuild.backend.service.util_services;
 
-import com.rebuild.backend.model.entities.resume_entities.Education;
-import com.rebuild.backend.model.entities.resume_entities.Experience;
-import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
-import com.rebuild.backend.model.entities.resume_entities.Header;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.repository.resume_repositories.EducationRepository;
 import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
 import com.rebuild.backend.repository.resume_repositories.HeaderRepository;
+import com.rebuild.backend.repository.user_repositories.ProfileRepository;
+import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ public class SubpartsModificationUtility {
 
     private final RedisCacheManager cacheManager;
 
+    private final ProfileRepository profileRepository;
 
     private final EducationRepository educationRepository;
 
@@ -38,26 +40,125 @@ public class SubpartsModificationUtility {
 
     private final ObjectConverter objectConverter;
 
+    private final ResumeGetUtility getUtility;
+
     @Autowired
     public SubpartsModificationUtility(HeaderRepository headerRepository,
-                                       @Qualifier("resumeCacheManager") RedisCacheManager cacheManager,
+                                       @Qualifier("resumeCacheManager") RedisCacheManager cacheManager, ProfileRepository profileRepository,
                                        EducationRepository educationRepository,
                                        ExperienceRepository experienceRepository,
-                                       ObjectConverter objectConverter) {
+                                       ObjectConverter objectConverter, ResumeGetUtility getUtility) {
         this.headerRepository = headerRepository;
         this.cacheManager = cacheManager;
+        this.profileRepository = profileRepository;
         this.educationRepository = educationRepository;
         this.experienceRepository = experienceRepository;
         this.objectConverter = objectConverter;
+        this.getUtility = getUtility;
     }
 
+    @Transactional
+    public Header modifyResumeHeader(HeaderForm headerForm, UUID headerId,
+                                    UUID resumeId, User changingUser)
+    {
+        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
+        Header changingHeader = headerRepository.findByIdAndResume(headerId, changingResume).orElseThrow(
+                () -> new BelongingException("The header either does not exist or does not belong to this resume.")
+        );
+
+        Header newHeader = modifyHeader(changingHeader, headerForm);
+        evictResumeFromCache(changingUser.getId(), resumeId);
+        return newHeader;
+    }
 
     @Transactional
-    public Experience modifyExperience(ExperienceForm experienceForm, UUID experienceID,
-                                       User changingUser){
-        Experience changingExperience = experienceRepository.findById(experienceID).orElse(null);
-        assert changingExperience != null : "Experience not found";
+    public Experience modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
+                                    UUID resumeId, User changingUser)
+    {
+        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
+        Experience changingExperience = experienceRepository.findByIdAndResume(experienceId, changingResume).orElseThrow(
+                () -> new BelongingException("The experience either does not exist or does not belong to this resume.")
+        );
 
+        Experience newExp = modifyExperience(changingExperience, experienceForm);
+        evictResumeFromCache(changingUser.getId(), resumeId);
+        return newExp;
+    }
+
+    @Transactional
+    public Education modifyResumeEducation(EducationForm educationForm, UUID educationId,
+                                    UUID resumeId, User changingUser)
+    {
+        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
+        Education changingEducation = educationRepository.findByIdAndResume(educationId, changingResume).orElseThrow(
+                () -> new BelongingException("The education either does not exist or does not belong to this resume.")
+        );
+
+        Education newEducation = modifyEducation(changingEducation, educationForm);
+        evictResumeFromCache(changingUser.getId(), resumeId);
+        return newEducation;
+    }
+
+    @Transactional
+    public Header modifyProfileHeader(HeaderForm headerForm, UUID headerId,
+                                     UUID profileId, User changingUser)
+    {
+        UserProfile changingProfile = profileRepository.findByIdAndUser(profileId, changingUser).orElseThrow(
+                () -> new BelongingException("The profile either does not exist or does not belong to you.")
+        );
+        Header changingHeader = headerRepository.findByIdAndProfile(headerId, changingProfile).orElseThrow(
+                () -> new BelongingException("The header either does not exist or does not belong to this profile.")
+        );
+
+        return modifyHeader(changingHeader, headerForm);
+    }
+
+    @Transactional
+    public Education modifyProfileEducation(EducationForm educationForm, UUID educationId,
+                                     UUID profileId, User changingUser)
+    {
+        UserProfile changingProfile = profileRepository.findByIdAndUser(profileId, changingUser).orElseThrow(
+                () -> new BelongingException("The profile either does not exist or does not belong to you.")
+        );
+        Education changingEducation = educationRepository.findByIdAndProfile(educationId, changingProfile).orElseThrow(
+                () -> new BelongingException("The education either does not exist or does not belong to this profile.")
+        );
+
+        return modifyEducation(changingEducation, educationForm);
+    }
+
+    @Transactional
+    public Experience modifyProfileExperience(ExperienceForm experienceForm, UUID experienceId,
+                                     UUID profileId, User changingUser)
+    {
+        UserProfile changingProfile = profileRepository.findByIdAndUser(profileId, changingUser).orElseThrow(
+                () -> new BelongingException("The profile either does not exist or does not belong to you.")
+        );
+        Experience changingExperience = experienceRepository.findByIdAndProfile(experienceId, changingProfile).orElseThrow(
+                () -> new BelongingException("The experience either does not exist or does not belong to this profile.")
+        );
+
+        return modifyExperience(changingExperience, experienceForm);
+    }
+
+    private void evictResumeFromCache(UUID userId, UUID resumeId)
+    {
+        String combinedCacheKey = userId.toString() + ':' + resumeId.toString();
+        Objects.requireNonNull(cacheManager.getCache("resume_cache")).
+                evictIfPresent(combinedCacheKey);
+    }
+
+    private Header modifyHeader(Header header, HeaderForm headerForm)
+    {
+        header.setEmail(headerForm.email());
+        header.setNumber(headerForm.number());
+        header.setFirstName(headerForm.firstName());
+        header.setLastName(headerForm.lastName());
+        return headerRepository.save(header);
+    }
+
+    private Experience modifyExperience(Experience changingExperience, ExperienceForm experienceForm)
+    {
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         List<ExperienceType> experienceTypes = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
@@ -68,51 +169,16 @@ public class SubpartsModificationUtility {
         changingExperience.setTechnologyList(experienceForm.technologies());
         changingExperience.setCompanyName(experienceForm.companyName());
         changingExperience.setExperienceTypes(experienceTypes);
-        if (changingExperience.getResume() != null) {
-            evictResumeFromCache(changingUser.getId(), changingExperience.getResume().getId());
-        }
         return experienceRepository.save(changingExperience);
-
     }
 
-
-    @Transactional
-    public Education modifyEducation(EducationForm educationForm,
-                                     UUID educationID, User changingUser){
-        Education education = educationRepository.findById(educationID).orElse(null);
-        assert education != null : "Education not found";
+    private Education modifyEducation(Education education, EducationForm educationForm){
         education.setRelevantCoursework(educationForm.relevantCoursework());
         education.setSchoolName(educationForm.schoolName());
         education.setLocation(educationForm.location());
         education.setStartDate(YearMonthStringOperations.getYearMonth(educationForm.startDate()));
         education.setEndDate(YearMonthStringOperations.getYearMonth(educationForm.endDate()));
-        if(education.getResume() != null){
-            evictResumeFromCache(changingUser.getId(), education.getResume().getId());
-        }
         return educationRepository.save(education);
-    }
-
-
-    @Transactional
-    public Header modifyHeader(HeaderForm headerForm, UUID headerID, User changingUser){
-        // undoAdder.addUndoResumeState(resID, resume);
-        Header header = headerRepository.findById(headerID).orElse(null);
-        assert header != null : "Header not found";
-        header.setEmail(headerForm.email());
-        header.setNumber(headerForm.number());
-        header.setFirstName(headerForm.firstName());
-        header.setLastName(headerForm.lastName());
-        if(header.getResume() != null){
-            evictResumeFromCache(changingUser.getId(),  header.getResume().getId());
-        }
-        return headerRepository.save(header);
-    }
-
-    private void evictResumeFromCache(UUID userId, UUID resumeId)
-    {
-        String combinedCacheKey = userId.toString() + ':' + resumeId.toString();
-        Objects.requireNonNull(cacheManager.getCache("resume_cache")).
-                evictIfPresent(combinedCacheKey);
     }
 
 

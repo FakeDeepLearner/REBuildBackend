@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,9 +44,6 @@ public class PostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable UUID post_id,
                            @AuthenticationPrincipal User creatingUser) {
-        if(!forumPostAndCommentService.postBelongsToUser(post_id, creatingUser.getId())) {
-            throw new RuntimeException("That post does not belong to you");
-        }
         forumPostAndCommentService.deletePost(post_id);
     }
 }

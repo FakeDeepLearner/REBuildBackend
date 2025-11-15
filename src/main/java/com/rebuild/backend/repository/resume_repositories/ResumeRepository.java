@@ -6,6 +6,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     void deleteById(@NonNull UUID ID);
 
-    Optional<Resume> findResumeByIdAndUser(UUID id, User user);
+    Optional<Resume> findByIdAndUser(UUID id, User user);
 
 
 }
