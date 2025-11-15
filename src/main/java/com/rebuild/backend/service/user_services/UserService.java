@@ -290,7 +290,7 @@ public class UserService{
         User userToUnlock = findByEmailOrPhone(emailOrPhone).orElse(null);
         assert userToUnlock != null;
 
-        userToUnlock.setLastLoginTime(ZonedDateTime.now(ZoneId.of("UTC")));
+        userToUnlock.setLastLoginTime(LocalDateTime.now());
         save(userToUnlock);
     }
 
