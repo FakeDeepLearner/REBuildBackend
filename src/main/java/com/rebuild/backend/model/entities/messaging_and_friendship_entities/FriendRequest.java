@@ -27,10 +27,6 @@ public class FriendRequest {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private RequestStatus status = RequestStatus.PENDING;
-
     @Column(name = "creation_time")
     private LocalDateTime creationDate = LocalDateTime.now();
 

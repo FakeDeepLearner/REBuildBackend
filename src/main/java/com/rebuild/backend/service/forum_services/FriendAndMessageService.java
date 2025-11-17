@@ -3,6 +3,7 @@ package com.rebuild.backend.service.forum_services;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.dtos.StatusAndError;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.MessageDisplayDTO;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -69,61 +71,41 @@ public class FriendAndMessageService {
         this.rabbitProducingService = rabbitProducingService;
     }
 
-    public StatusAndError addFriend(User receiver, UUID friendRequestId)
+    @Transactional
+    public StatusAndError acceptFriendshipRequest(User receiver, UUID friendRequestId)
     {
-        FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId).orElse(null);
-
-        assert friendRequest != null : "Request not found";
-
-        //Check that the recipient is actually this user before doing anything
-        if (friendRequest.getRecipient().equals(receiver))
-        {
-
-            friendRequest.setStatus(RequestStatus.ACCEPTED);
-
-            FriendRequest savedRequest = friendRequestRepository.save(friendRequest);
-
-            User sender = savedRequest.getSender();
-
-            FriendRelationship newRelationship = new FriendRelationship(sender, receiver);
-
-            friendRelationshipRepository.save(newRelationship);
-
-            return new StatusAndError(HttpStatus.OK, "You have added " + sender.getUsername() + " as a friend");
-        }
-
-        else
-        {
-          return new StatusAndError(HttpStatus.UNAUTHORIZED, "This request is not addressed to you");
-        }
+        FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, receiver).
+                orElseThrow(() ->
+                        new BelongingException("This friend request either does not exist or has not been addressed to you."));
 
 
+        User sender = friendRequest.getSender();
 
+        FriendRelationship newRelationship = new FriendRelationship(sender, receiver);
+
+        friendRelationshipRepository.save(newRelationship);
+
+        friendRequestRepository.delete(friendRequest);
+
+        return new StatusAndError(HttpStatus.OK, "You have added " + sender.getUsername() + " as a friend");
 
     }
 
+    @Transactional
     public StatusAndError declineFriendshipRequest(User declininguser, UUID friendRequestId)
     {
-        FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId).orElse(null);
+        FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, declininguser).
+                orElseThrow(() ->
+                        new BelongingException("This friend either does not exist or has not been addressed to you."));
 
-        assert friendRequest != null : "Request not found";
+        friendRequestRepository.delete(friendRequest);
 
-        if(friendRequest.getRecipient().equals(declininguser))
-        {
-            friendRequest.setStatus(RequestStatus.REJECTED);
+        return new StatusAndError(HttpStatus.OK, "Friend request declined");
 
-            FriendRequest savedRequest = friendRequestRepository.save(friendRequest);
-
-            return new StatusAndError(HttpStatus.OK, "Friend request declined");
-        }
-
-        else
-        {
-            return new StatusAndError(HttpStatus.UNAUTHORIZED,  "This request is not addressed to you");
-        }
     }
 
 
+    @Transactional
     public StatusAndError sendFriendRequest(User sender, UUID recipientId)
     {
         User recipient = userRepository.findById(recipientId).orElse(null);
@@ -135,7 +117,8 @@ public class FriendAndMessageService {
 
         if (foundRequest.isPresent()) {
             return new StatusAndError(HttpStatus.CONFLICT,
-                    "You already have an existing friend request with this user");
+                    "You already have an existing friend request with this user, you cannot send " +
+                            "another one until it is either declined or times out.");
         }
 
         Optional<FriendRelationship> foundRelationship =
@@ -221,11 +204,7 @@ public class FriendAndMessageService {
 
     public List<UsernameSearchResultDTO> loadUserInbox(User loadingUser)
     {
-        List<FriendRequest> pendingRequests = loadingUser.getInbox().getFriendRequests().
-                stream().filter(request -> RequestStatus.PENDING.equals(request.getStatus())).
-                toList();
-
-        return pendingRequests.stream()
+        return loadingUser.getInbox().getFriendRequests().stream()
                 .map(request -> {
                     UUID userID = request.getSender().getId();
                     String userName = request.getSender().getForumUsername();
