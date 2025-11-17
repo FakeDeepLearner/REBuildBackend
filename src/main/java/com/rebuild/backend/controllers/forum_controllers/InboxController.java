@@ -33,7 +33,7 @@ public class InboxController {
     @PostMapping("/accept_request/{request_id}")
     public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
                                                                    @AuthenticationPrincipal User acceptingUser) {
-        StatusAndError result = friendAndMessageService.addFriend(acceptingUser, request_id);
+        StatusAndError result = friendAndMessageService.acceptFriendshipRequest(acceptingUser, request_id);
         return ResponseEntity.ok(result.message());
 
     }

@@ -1,7 +1,6 @@
 package com.rebuild.backend.utils.batch.writers;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.RequestStatus;
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -22,14 +21,10 @@ public class FriendStatusUpgradeWriter implements ItemWriter<FriendRequest> {
     }
 
     @Override
-    public void write(Chunk<? extends FriendRequest> chunk) throws Exception {
-        List<FriendRequest> requestList = new ArrayList<>();
+    public void write(Chunk<? extends FriendRequest> chunk) {
 
-        for (FriendRequest friendRequest : chunk.getItems()) {
-            friendRequest.setStatus(RequestStatus.TIMED_OUT);
-            requestList.add(friendRequest);
-        }
+        List<FriendRequest> requestList = new ArrayList<>(chunk.getItems());
 
-        friendRequestRepository.saveAll(requestList);
+        friendRequestRepository.deleteAllInBatch(requestList);
     }
 }
