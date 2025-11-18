@@ -9,7 +9,6 @@ import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.HomePageData;
-import com.rebuild.backend.model.responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -19,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -114,15 +111,18 @@ public class HomePageController {
     }
 
     @PostMapping("/chats/send_message/{recipient_id}")
-    public Message sendMessage(@PathVariable UUID recipient_id,
-                                  @RequestBody String messageContent,
-                                  @AuthenticationPrincipal User authenticatedUser) {
+    public ResponseEntity<?> sendMessage(@PathVariable UUID recipient_id,
+                                              @RequestBody String messageContent,
+                                              @AuthenticationPrincipal User authenticatedUser) {
         Message createdMessage = friendAndMessageService.
                 createMessage(authenticatedUser, recipient_id, messageContent);
-
+        if (createdMessage == null){
+            return ResponseEntity.status(UNAUTHORIZED).
+                    body("You cannot start a chat with this user unless you are friends with them");
+        }
         simpMessagingTemplate.convertAndSendToUser(recipient_id.toString(),
                 "/messages", createdMessage);
-        return createdMessage;
+        return ResponseEntity.ok(createdMessage);
 
 
     }
