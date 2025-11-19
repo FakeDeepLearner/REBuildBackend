@@ -37,7 +37,8 @@ public class ProfileController {
                                            @RequestPart(name = "file") MultipartFile pictureFile,
                                            @AuthenticationPrincipal User authenticatedUser) {
         try {
-            UserProfile updatedProfile = profileService.createFullProfileFor(fullProfileForm, authenticatedUser, pictureFile);
+            UserProfile updatedProfile = profileService.createFullProfileFor
+                    (fullProfileForm, authenticatedUser, pictureFile, false);
             return ResponseEntity.ok(updatedProfile);
         }
         catch (IOException ioException) {
