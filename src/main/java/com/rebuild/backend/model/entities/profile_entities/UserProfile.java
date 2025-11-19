@@ -57,6 +57,9 @@ public class UserProfile {
     @Column(name = "page_size")
     private int forumPageSize = 20;
 
+    @Column(name = "exclusive_friend_messages")
+    private boolean messagesFromFriendsOnly = false;
+    
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,
             MERGE,

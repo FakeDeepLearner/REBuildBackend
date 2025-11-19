@@ -50,8 +50,9 @@ public class ProfileService {
 
     @Transactional
     public UserProfile createFullProfileFor(FullInformationForm profileForm, User updatingUser,
-                                            MultipartFile pictureFile) throws IOException {
-        UserProfile updatedProfile = getUserProfile(updatingUser.getProfile(), profileForm, pictureFile);
+                                            MultipartFile pictureFile, boolean messagesFromFriends) throws IOException {
+        UserProfile updatedProfile = getUserProfile(updatingUser.getProfile(), profileForm, pictureFile,
+                messagesFromFriends);
         return profileRepository.save(updatedProfile);
     }
 
@@ -62,7 +63,9 @@ public class ProfileService {
     }
 
 
-    private UserProfile getUserProfile(UserProfile profile, FullInformationForm profileForm, MultipartFile pictureFile) throws IOException {
+    private UserProfile getUserProfile(UserProfile profile,
+                                       FullInformationForm profileForm, MultipartFile pictureFile,
+                                       boolean messagesFromFriends) throws IOException {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
 
@@ -70,9 +73,10 @@ public class ProfileService {
         List<Experience> experiences = objectConverter.
                 extractProfileExperiences(profileForm.experiences(), updatedProfile);
         updatedProfile.setExperienceList(experiences);
+        updatedProfile.setMessagesFromFriendsOnly(messagesFromFriends);
 
         modifyProfilePictureOf(updatedProfile.getUser(), profile.getId(), pictureFile);
-        return updatedProfile;
+        return profileRepository.save(updatedProfile);
     }
 
     private UserProfile getUserProfile(UserProfile profile, FullInformationForm profileForm, YearMonth startDate, YearMonth endDate) {
