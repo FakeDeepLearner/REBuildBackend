@@ -14,10 +14,11 @@ public class CORSConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
-                //NOTE: This is normally invalid, but we will change this once we have an actual frontend.
                 registry.addMapping("/**").
                         allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD").
-                        allowCredentials(true).maxAge(3600).allowedOrigins("rerebuild.ca").allowedHeaders("*");
+                        allowCredentials(true).maxAge(3600).
+                        allowedOrigins("rerebuild.ca").
+                        allowedHeaders("Idempotency-Key");
             }
         };
     }
