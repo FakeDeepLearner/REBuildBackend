@@ -25,7 +25,7 @@ public class ElasticSearchService {
     private final RedisCacheManager cacheManager;
 
     public ElasticSearchService(EntityManager entityManager,
-                                @Qualifier("searchCacheManager") RedisCacheManager cacheManager) {
+                                RedisCacheManager cacheManager) {
         this.entityManager = entityManager;
         this.cacheManager = cacheManager;
     }

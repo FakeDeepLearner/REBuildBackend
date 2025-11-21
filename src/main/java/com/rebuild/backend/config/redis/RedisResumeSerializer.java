@@ -3,6 +3,7 @@ package com.rebuild.backend.config.redis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
@@ -17,6 +18,7 @@ public class RedisResumeSerializer implements RedisSerializer<Resume> {
 
     private final ObjectMapper mapper;
 
+    @Autowired
     public RedisResumeSerializer(@Qualifier("mapper") ObjectMapper mapper) {
         this.mapper = mapper;
     }

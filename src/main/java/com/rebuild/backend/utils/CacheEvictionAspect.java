@@ -21,7 +21,7 @@ public class CacheEvictionAspect {
     private final RedisCacheManager cacheManager;
 
     @Autowired
-    public CacheEvictionAspect(@Qualifier("resumeCacheManager") RedisCacheManager cacheManager) {
+    public CacheEvictionAspect(RedisCacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
 

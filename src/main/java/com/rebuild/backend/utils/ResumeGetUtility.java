@@ -20,7 +20,7 @@ public class ResumeGetUtility {
         this.resumeRepository = resumeRepository;
     }
 
-    @Cacheable(value = "resume_cache", key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
+    @Cacheable(cacheManager = "cacheManager", value = "resume_cache", key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
     public Resume findByUserResumeId(User searchingUser, UUID resumeId){
         return resumeRepository.findByIdAndUser(resumeId, searchingUser).orElseThrow(
                 () -> new BelongingException("Resume either does not exist or does not belong to you.")

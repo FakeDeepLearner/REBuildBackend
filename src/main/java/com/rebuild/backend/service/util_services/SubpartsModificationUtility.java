@@ -44,7 +44,7 @@ public class SubpartsModificationUtility {
 
     @Autowired
     public SubpartsModificationUtility(HeaderRepository headerRepository,
-                                       @Qualifier("resumeCacheManager") RedisCacheManager cacheManager, ProfileRepository profileRepository,
+                                       RedisCacheManager cacheManager, ProfileRepository profileRepository,
                                        EducationRepository educationRepository,
                                        ExperienceRepository experienceRepository,
                                        ObjectConverter objectConverter, ResumeGetUtility getUtility) {
