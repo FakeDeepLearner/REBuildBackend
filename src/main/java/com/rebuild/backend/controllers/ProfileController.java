@@ -20,15 +20,21 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
+
 @RestController
 @RequestMapping("/api/profile")
 public class ProfileController {
 
     private final ProfileService profileService;
 
+    private final UserService userService;
+
     @Autowired
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(ProfileService profileService, UserService userService) {
         this.profileService = profileService;
+        this.userService = userService;
     }
 
     @PostMapping(value = "/update_profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -129,6 +135,19 @@ public class ProfileController {
         catch (IOException ioException) {
             return ResponseEntity.internalServerError().body("An unexpected error occured:\n " + ioException.getMessage());
         }
+    }
+
+    @DeleteMapping("/delete_phone")
+    @ResponseStatus(NO_CONTENT)
+    public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {
+        userService.removePhoneOf(authenticatedUser);
+    }
+
+    @PostMapping("/update_time_zone")
+    @ResponseStatus(OK)
+    public User updateTimeZone(@AuthenticationPrincipal User updatingUser,
+                               @RequestBody String timeZone){
+        return userService.modifyTimeZone(updatingUser, timeZone);
     }
 
 }

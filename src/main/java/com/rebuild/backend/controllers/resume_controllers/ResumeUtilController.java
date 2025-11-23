@@ -23,7 +23,7 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 
-@RestController
+@RestController("/api/utils")
 public class ResumeUtilController {
 
     private final ResumeService resumeService;
@@ -32,7 +32,7 @@ public class ResumeUtilController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/api/resume/change_name/{resume_id}")
+    @PutMapping("/change_name/{resume_id}")
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeResumeName(@RequestBody String newName,
@@ -55,7 +55,7 @@ public class ResumeUtilController {
         return null;
     }
 
-    @PostMapping("/api/resume/copy/{resume_id}")
+    @PostMapping("/copy/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> copyResume(@RequestBody ResumeCreationForm creationForm,
                                         @AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
@@ -79,7 +79,7 @@ public class ResumeUtilController {
         return null;
     }
 
-    @PostMapping("/api/download/{resume_id}")
+    @PostMapping("/download/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> downloadResumeAsText(@AuthenticationPrincipal User user,
                                                        @PathVariable UUID resume_id,
@@ -99,7 +99,7 @@ public class ResumeUtilController {
 
     }
 
-    @GetMapping("/api/view_experience_values")
+    @GetMapping("/view_experience_values")
     public Collection<String> getPossibleExperienceValues()
     {
         return Arrays.stream(ExperienceType.values()).

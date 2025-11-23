@@ -19,7 +19,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping(value = "/api/resume/post", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.CREATED)
-@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ResumePostController {
     private final ResumeService resumeService;
 

@@ -30,6 +30,7 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
+@RequestMapping("/home")
 public class HomePageController {
 
     private final UserService userService;
@@ -72,7 +73,7 @@ public class HomePageController {
         }
     }
 
-    @PostMapping( "home/create_resume_search_config")
+    @PostMapping( "/create_resume_search_config")
     @ResponseStatus(HttpStatus.CREATED)
     public ResumeSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
                                                         @RequestBody ResumeSpecsForm specsForm)
@@ -80,14 +81,14 @@ public class HomePageController {
         return resumeService.createSearchConfig(authenticatedUser, specsForm);
     }
 
-    @GetMapping("/home/resume/{resume_id}")
+    @GetMapping("/resume/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public Resume getResume(@AuthenticationPrincipal User user,
                             @PathVariable UUID resume_id){
         return resumeService.findByUserIndex(user, resume_id);
     }
 
-    @PostMapping("/home/search")
+    @PostMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
@@ -127,7 +128,7 @@ public class HomePageController {
 
     }
 
-    @GetMapping("/home")
+    @GetMapping("/")
     @ResponseStatus(HttpStatus.OK)
     public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
@@ -160,31 +161,10 @@ public class HomePageController {
         return null;
     }
 
-    @GetMapping("/home/get_inbox")
+    @GetMapping("/get_inbox")
     @ResponseStatus(OK)
     public List<UsernameSearchResultDTO> getInbox(@AuthenticationPrincipal User authenticatedUser) {
         return friendAndMessageService.loadUserInbox(authenticatedUser);
-    }
-
-    @DeleteMapping("/api/delete/{res_id}")
-    @ResponseStatus(NO_CONTENT)
-    public void deleteResume(@PathVariable UUID res_id){
-        resumeService.deleteById(res_id);
-    }
-
-
-    @DeleteMapping("/api/delete_phone")
-    @ResponseStatus(NO_CONTENT)
-    public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {
-
-        userService.removePhoneOf(authenticatedUser);
-    }
-
-    @PostMapping("/api/update_time_zone")
-    @ResponseStatus(OK)
-    public User updateTimeZone(@AuthenticationPrincipal User updatingUser,
-                               @RequestBody String timeZone){
-        return userService.modifyTimeZone(updatingUser, timeZone);
     }
 
 }

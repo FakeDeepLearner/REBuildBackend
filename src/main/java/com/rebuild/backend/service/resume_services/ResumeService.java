@@ -150,8 +150,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public void deleteById(UUID id){
-        resumeRepository.deleteById(id);
+    public void deleteById(User deletingUser, UUID id){
+        Resume resume = getUtility.findByUserResumeId(deletingUser, id);
+        resumeRepository.delete(resume);
     }
 
     @Transactional
