@@ -137,7 +137,7 @@ public class HomePageController {
         return userService.getHomePageData(authenticatedUser, pageNumber, pageSize, searchToken);
     }
 
-    @PostMapping("/api/create")
+    @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> createNewResume(@RequestBody String name,
                                           @AuthenticationPrincipal User authenticatedUser) {

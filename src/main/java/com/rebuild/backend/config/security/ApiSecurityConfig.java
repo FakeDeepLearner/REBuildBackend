@@ -19,13 +19,13 @@ public class ApiSecurityConfig {
     @Order(4)
     public SecurityFilterChain apiSecurityChain(HttpSecurity security) throws Exception {
         security.authorizeHttpRequests(config -> config.
-                requestMatchers(HttpMethod.GET, "/api/**").authenticated().
-                requestMatchers(HttpMethod.POST, "/api/**").authenticated().
-                requestMatchers(HttpMethod.PUT,  "/api/**").authenticated().
-                requestMatchers(HttpMethod.DELETE,  "/api/**").authenticated().
-                requestMatchers(HttpMethod.GET,  "/api/post/**",
-                         "/api/put/**", "/api/delete/**").denyAll()
-        ).redirectToHttps(Customizer.withDefaults());
+                requestMatchers(HttpMethod.GET, "/api/**", "/home/**").authenticated().
+                requestMatchers(HttpMethod.POST, "/api/**", "/home/**").authenticated().
+                requestMatchers(HttpMethod.PUT,  "/api/**", "/home/**").authenticated().
+                requestMatchers(HttpMethod.DELETE,  "/api/**", "/home/**").authenticated().
+                requestMatchers(HttpMethod.PATCH,  "/api/**", "/home/**").authenticated().
+                        requestMatchers("/auth/**").permitAll())
+                .redirectToHttps(Customizer.withDefaults());
         return security.build();
 
 

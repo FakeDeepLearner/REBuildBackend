@@ -26,7 +26,7 @@ import java.io.IOException;
 
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/auth")
 public class AuthenticationController {
 
     private final AuthenticationManager authManager;
