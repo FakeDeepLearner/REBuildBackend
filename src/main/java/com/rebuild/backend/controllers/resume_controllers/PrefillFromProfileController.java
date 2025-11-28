@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,14 @@ public class PrefillFromProfileController {
 
     private final ResumeService resumeService;
 
+    private final ResumeRepository resumeRepository;
+
     @Autowired
     public PrefillFromProfileController(ObjectConverter objectConverter,
-                                        ResumeService resumeService) {
+                                        ResumeService resumeService, ResumeRepository resumeRepository) {
         this.objectConverter = objectConverter;
         this.resumeService = resumeService;
+        this.resumeRepository = resumeRepository;
     }
 
     @GetMapping("/header/{resume_id}")
@@ -42,7 +46,8 @@ public class PrefillFromProfileController {
         }
         Header originalHeader = resumeUser.getProfile().getHeader();
         Header transformedHeader = objectConverter.convertToHeader(originalHeader);
-        return resumeService.setHeader(associatedResume, transformedHeader);
+        resumeService.setHeader(associatedResume, transformedHeader);
+        return resumeRepository.save(associatedResume);
     }
 
     @GetMapping("/education/{resume_id}")
@@ -60,7 +65,8 @@ public class PrefillFromProfileController {
         }
         Education originalEducation = resumeUser.getProfile().getEducation();
         Education transformedEducation = objectConverter.convertToEducation(originalEducation);
-        return resumeService.setEducation(associatedResume, transformedEducation);
+        resumeService.setEducation(associatedResume, transformedEducation);
+        return resumeRepository.save(associatedResume);
     }
 
     @GetMapping("/experiences/{resume_id}")
@@ -81,7 +87,8 @@ public class PrefillFromProfileController {
                     experience.setResume(associatedResume);
                 }).
                 toList();
-        return resumeService.setExperiences(associatedResume, convertedExperiences);
+        resumeService.setExperiences(associatedResume, convertedExperiences);
+        return resumeRepository.save(associatedResume);
 
     }
 }

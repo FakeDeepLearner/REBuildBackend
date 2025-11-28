@@ -178,24 +178,60 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume setExperiences(Resume resume, List<Experience> newExperiences){
+    public void setExperiences(Resume resume, List<Experience> newExperiences){
+        newExperiences.forEach(exp -> exp.setResume(resume));
         resume.setExperiences(newExperiences);
 
-        return resumeRepository.save(resume);
     }
 
     @Transactional
-    public Resume setHeader(Resume resume, Header newHeader){
-        resume.setHeader(newHeader);
-        newHeader.setResume(resume);
-        return resumeRepository.save(resume);
+    public void setHeader(Resume resume, Header newHeader){
+        Header resumeHeader = resume.getHeader();
+
+        if (!resumeHeader.getEmail().equals(newHeader.getEmail())){
+            resumeHeader.setEmail(newHeader.getEmail());
+        }
+
+        if (!resumeHeader.getNumber().equals(newHeader.getNumber())){
+            resumeHeader.setNumber(newHeader.getNumber());
+        }
+
+        if (!resumeHeader.getFirstName().equals(newHeader.getFirstName())){
+            resumeHeader.setFirstName(newHeader.getFirstName());
+        }
+
+        if (!resumeHeader.getLastName().equals(newHeader.getLastName())){
+            resumeHeader.setLastName(newHeader.getLastName());
+        }
+
     }
 
     @Transactional
-    public Resume setEducation(Resume resume, Education newEducation){
-        resume.setEducation(newEducation);
-        newEducation.setResume(resume);
-        return resumeRepository.save(resume);
+    public void setEducation(Resume resume, Education newEducation){
+        Education resumeEducation =  resume.getEducation();
+
+        if (!resumeEducation.getLocation().equals(newEducation.getLocation())){
+            resumeEducation.setLocation(newEducation.getLocation());
+        }
+
+        if (!resumeEducation.getSchoolName().equals(newEducation.getSchoolName())){
+            resumeEducation.setSchoolName(newEducation.getSchoolName());
+        }
+
+        if (!resumeEducation.getRelevantCoursework().equals(newEducation.getRelevantCoursework())){
+            resumeEducation.setRelevantCoursework(newEducation.getRelevantCoursework());
+        }
+
+        if (!resumeEducation.getStartDate().equals(newEducation.getStartDate())){
+            resumeEducation.setStartDate(newEducation.getStartDate());
+        }
+
+        // If the end date is null, this means that it is "Present", which in turn means that we don't need to do
+        // any further comparisons.
+        if (newEducation.getEndDate() == null || !resumeEducation.getEndDate().equals(newEducation.getEndDate())){
+            resumeEducation.setEndDate(newEducation.getEndDate());
+        }
+
     }
 
     @Transactional
@@ -207,18 +243,16 @@ public class ResumeService {
         Header newHeader = new Header(resumeForm.headerForm().number(),
                 resumeForm.headerForm().firstName(),
                 resumeForm.headerForm().lastName(), resumeForm.headerForm().email());
-        resume.setHeader(newHeader);
-        newHeader.setResume(resume);
+        setHeader(resume, newHeader);
 
         Education newEducation = new Education(resumeForm.educationForm().schoolName(),
                 resumeForm.educationForm().relevantCoursework(),
                 resumeForm.educationForm().location(),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
-        newEducation.setResume(resume);
-        resume.setEducation(newEducation);
+        setEducation(resume, newEducation);
 
-        resume.setExperiences(objectConverter.extractExperiences(resumeForm.experiences(), resume));
+        setExperiences(resume, objectConverter.extractExperiences(resumeForm.experiences(), resume));
         return resumeRepository.save(resume);
 
     }

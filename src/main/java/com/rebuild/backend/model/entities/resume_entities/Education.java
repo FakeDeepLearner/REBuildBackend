@@ -59,7 +59,6 @@ public class Education {
     private YearMonth startDate;
 
     @Column(name = "end_date", nullable = false)
-    @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
     @GenericField
@@ -68,7 +67,7 @@ public class Education {
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     @JsonIgnore
-    private Resume resume = null;
+    private Resume resume;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
@@ -82,6 +81,15 @@ public class Education {
                 "\tCoursework: " + relevantCoursework + "\n" +
                 "\tLocation: " + location +
                 "\n\n\n";
+    }
+
+    public Education(String schoolName, List<String> relevantCoursework, String location,
+                     YearMonth startDate, YearMonth endDate) {
+        this.schoolName = schoolName;
+        this.relevantCoursework = relevantCoursework;
+        this.location = location;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     public static Education copy(Education other)

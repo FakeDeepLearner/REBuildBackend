@@ -29,16 +29,13 @@ public class ResumeVersioningService {
 
     private final ResumeVersionRepository versionRepository;
 
-    private final EntityManager entityManager;
-
     public ResumeVersioningService(ResumeRepository resumeRepository, ResumeGetUtility getUtility,
                                    ObjectConverter objectConverter,
-                                   ResumeVersionRepository versionRepository, EntityManager entityManager) {
+                                   ResumeVersionRepository versionRepository) {
         this.resumeRepository = resumeRepository;
         this.getUtility = getUtility;
         this.objectConverter = objectConverter;
         this.versionRepository = versionRepository;
-        this.entityManager = entityManager;
     }
 
     private ResumeVersion findByResumeAndVersionId(UUID versionId, Resume resume)
@@ -89,6 +86,7 @@ public class ResumeVersioningService {
 
         if(versionToSwitch.getVersionedEducation() != null && preferencesForm.includeEducation()){
             Education newEducation = getEducation(resume, versionToSwitch, preferencesForm.makeEducationCopy());
+
             newEducation.setResume(resume);
             resume.setEducation(newEducation);
         }

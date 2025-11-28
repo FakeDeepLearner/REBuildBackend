@@ -29,8 +29,7 @@ public class VersioningController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResumeVersion snapshotVersion(@AuthenticationPrincipal User user, @PathVariable UUID resume_id,
                                          @RequestBody VersionCreationForm inclusionForm){
-        ResumeVersion newVersion = versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
-        return newVersion;
+        return versioningService.snapshotCurrentData(user, resume_id, inclusionForm);
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")
