@@ -70,7 +70,6 @@ public class Experience {
     private YearMonth startDate;
 
     @Column(name = "end_date")
-    @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
     @GenericField
@@ -86,7 +85,7 @@ public class Experience {
     @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     @JsonIgnore
-    private Resume resume = null;
+    private Resume resume;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
@@ -102,6 +101,19 @@ public class Experience {
                 "\t\tBullets: " + bullets + "\n" +
                 "\t\tStart Date: " + startDate + "\n" +
                 "\t\tEnd Date: " + endDate + "\n";
+    }
+
+    public Experience(String companyName, List<String> technologyList, String location,
+                      Collection<ExperienceType> experienceTypes, YearMonth startDate, YearMonth endDate,
+                      List<String> bullets) {
+        this.companyName = companyName;
+        this.technologyList = technologyList;
+        this.location = location;
+        this.experienceTypes = experienceTypes;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.bullets = bullets;
+
     }
 
     public static Experience copy(Experience other)
