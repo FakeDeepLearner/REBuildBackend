@@ -3,6 +3,7 @@ package com.rebuild.backend.utils.converters.database_converters;
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.codec.Utf8;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
@@ -22,13 +23,15 @@ public class DatabaseEncryptor implements AttributeConverter<String, String> {
     // is leaked
     private final BytesEncryptor bytesEncryptor;
 
+    @Autowired
     public DatabaseEncryptor(Dotenv dotenv) {
         this.bytesEncryptor = Encryptors.stronger(dotenv.get("DB_ENCRYPTION_PASSWORD"),
                 dotenv.get("DB_ENCRYPTION_SALT"));
     }
 
 
-    // These methods are actually the implementation of a builtin TextEncoder. However, since I wanted the
+    // These methods are actually the implementation of a builtin TextEncoder.
+    // However, since I wanted the
     // support of the stronger BytesEncryptor, I just did that implementation myself.
     @Override
     public String convertToDatabaseColumn(String plainText) {
