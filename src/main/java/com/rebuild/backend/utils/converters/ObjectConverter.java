@@ -14,24 +14,6 @@ import java.util.stream.Collectors;
 @Component
 public class ObjectConverter {
 
-    public Experience convertToExperience(Experience profileExperience){
-        return new Experience(profileExperience.getCompanyName(), profileExperience.getTechnologyList(),
-                profileExperience.getLocation(), profileExperience.getExperienceTypes(),
-                profileExperience.getStartDate(), profileExperience.getEndDate(), profileExperience.getBullets());
-    }
-
-    public Header convertToHeader(Header profileHeader){
-        return new Header(profileHeader.getNumber(), profileHeader.getFirstName(), profileHeader.getLastName(),
-                profileHeader.getEmail());
-    }
-
-
-    public Education convertToEducation(Education profileEducation){
-        return new Education(profileEducation.getSchoolName(), profileEducation.getRelevantCoursework(),
-                profileEducation.getLocation(),
-                profileEducation.getStartDate(), profileEducation.getEndDate());
-    }
-
     private <I, O> List<O> convertToOutputList(List<I> inputList, Function<I, O> converter){
         return inputList.stream().map(converter).collect(Collectors.toList());
     }
