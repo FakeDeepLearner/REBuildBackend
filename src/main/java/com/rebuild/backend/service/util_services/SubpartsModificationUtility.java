@@ -182,5 +182,49 @@ public class SubpartsModificationUtility {
     }
 
 
+    public void modifyHeaderData(Header newHeader, Header currentHeader) {
+        if (!currentHeader.getEmail().equals(newHeader.getEmail())){
+            currentHeader.setEmail(newHeader.getEmail());
+        }
+
+        if (!currentHeader.getNumber().equals(newHeader.getNumber())){
+            currentHeader.setNumber(newHeader.getNumber());
+        }
+
+        if (!currentHeader.getFirstName().equals(newHeader.getFirstName())){
+            currentHeader.setFirstName(newHeader.getFirstName());
+        }
+
+        if (!currentHeader.getLastName().equals(newHeader.getLastName())){
+            currentHeader.setLastName(newHeader.getLastName());
+        }
+    }
+
+    public void modifyEducationData(Education newEducation, Education currentEducation) {
+        if (!currentEducation.getLocation().equals(newEducation.getLocation())){
+            currentEducation.setLocation(newEducation.getLocation());
+        }
+
+        if (!currentEducation.getSchoolName().equals(newEducation.getSchoolName())){
+            currentEducation.setSchoolName(newEducation.getSchoolName());
+        }
+
+        if (!currentEducation.getRelevantCoursework().equals(newEducation.getRelevantCoursework())){
+            currentEducation.setRelevantCoursework(newEducation.getRelevantCoursework());
+        }
+
+        if (!currentEducation.getStartDate().equals(newEducation.getStartDate())){
+            currentEducation.setStartDate(newEducation.getStartDate());
+        }
+
+        // If the end date is null, this means that it is "Present", which in turn means that we don't need to do
+        // any further comparisons.
+        if (newEducation.getEndDate() == null || !currentEducation.getEndDate().equals(newEducation.getEndDate())){
+            currentEducation.setEndDate(newEducation.getEndDate());
+        }
+    }
+
+
+
 
 }

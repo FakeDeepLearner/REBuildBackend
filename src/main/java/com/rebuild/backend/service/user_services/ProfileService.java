@@ -69,7 +69,7 @@ public class ProfileService {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
 
-        UserProfile updatedProfile = getUserProfile(profile, profileForm, startDate, endDate);
+        UserProfile updatedProfile = updateHeaderAndEducation(profile, profileForm, startDate, endDate);
         List<Experience> experiences = objectConverter.
                 extractProfileExperiences(profileForm.experiences(), updatedProfile);
         updatedProfile.setExperienceList(experiences);
@@ -79,7 +79,8 @@ public class ProfileService {
         return profileRepository.save(updatedProfile);
     }
 
-    private UserProfile getUserProfile(UserProfile profile, FullInformationForm profileForm, YearMonth startDate, YearMonth endDate) {
+    private UserProfile updateHeaderAndEducation(UserProfile profile, FullInformationForm profileForm,
+                                                 YearMonth startDate, YearMonth endDate) {
         Header profileHeader = new Header(profileForm.headerForm().number(),
                 profileForm.headerForm().firstName(),
                 profileForm.headerForm().lastName(),
@@ -87,13 +88,39 @@ public class ProfileService {
         Education newEducation = new Education(profileForm.educationForm().schoolName(),
                 profileForm.educationForm().relevantCoursework(),
                 profileForm.educationForm().location(), startDate, endDate);
-        newEducation.setProfile(profile);
-        profileHeader.setProfile(profile);
-
-        profile.setEducation(newEducation);
-        profile.setHeader(profileHeader);
+        modifyProfileHeader(profile, profileHeader);
+        modifyProfileEducation(profile, newEducation);
         return profile;
     }
+
+    public void modifyProfileHeader(UserProfile profile, Header newHeader)
+    {
+        Header profileHeader = profile.getHeader();
+
+        if (profileHeader == null) {
+            profile.setHeader(newHeader);
+            newHeader.setProfile(profile);
+            return;
+        }
+
+        modificationUtility.modifyHeaderData(newHeader, profileHeader);
+    }
+
+
+    public void modifyProfileEducation(UserProfile profile, Education newEducation)
+    {
+        Education profileEducation = profile.getEducation();
+
+        if (profileEducation == null) {
+            profile.setEducation(newEducation);
+            newEducation.setProfile(profile);
+            return;
+        }
+
+        modificationUtility.modifyEducationData(newEducation, profileEducation);
+    }
+
+
 
     public UserProfile modifyProfilePictureOf(User chngingUser, UUID profileId, MultipartFile pictureFile) throws IOException
     {
@@ -137,8 +164,9 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile updateProfileExperiences(UserProfile profile,
+    public UserProfile updateProfileExperiences(UUID profileId, User updatingUser,
                                                 List<ExperienceForm> newExperiences){
+        UserProfile profile = getProfileByIdAndUser(profileId, updatingUser);
 
         List<Experience> transformedExperiences = newExperiences.stream().
                 map((rawExperienceData) -> {
