@@ -8,6 +8,7 @@ import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
+import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
@@ -187,22 +188,13 @@ public class ResumeService {
     @Transactional
     public void setHeader(Resume resume, Header newHeader){
         Header resumeHeader = resume.getHeader();
-
-        if (!resumeHeader.getEmail().equals(newHeader.getEmail())){
-            resumeHeader.setEmail(newHeader.getEmail());
+        if (resumeHeader == null) {
+            resume.setHeader(newHeader);
+            newHeader.setResume(resume);
+            return;
         }
 
-        if (!resumeHeader.getNumber().equals(newHeader.getNumber())){
-            resumeHeader.setNumber(newHeader.getNumber());
-        }
-
-        if (!resumeHeader.getFirstName().equals(newHeader.getFirstName())){
-            resumeHeader.setFirstName(newHeader.getFirstName());
-        }
-
-        if (!resumeHeader.getLastName().equals(newHeader.getLastName())){
-            resumeHeader.setLastName(newHeader.getLastName());
-        }
+        modificationUtility.modifyHeaderData(newHeader, resumeHeader);
 
     }
 
@@ -210,27 +202,12 @@ public class ResumeService {
     public void setEducation(Resume resume, Education newEducation){
         Education resumeEducation =  resume.getEducation();
 
-        if (!resumeEducation.getLocation().equals(newEducation.getLocation())){
-            resumeEducation.setLocation(newEducation.getLocation());
+        if (resumeEducation == null) {
+            resume.setEducation(newEducation);
+            newEducation.setResume(resume);
+            return;
         }
-
-        if (!resumeEducation.getSchoolName().equals(newEducation.getSchoolName())){
-            resumeEducation.setSchoolName(newEducation.getSchoolName());
-        }
-
-        if (!resumeEducation.getRelevantCoursework().equals(newEducation.getRelevantCoursework())){
-            resumeEducation.setRelevantCoursework(newEducation.getRelevantCoursework());
-        }
-
-        if (!resumeEducation.getStartDate().equals(newEducation.getStartDate())){
-            resumeEducation.setStartDate(newEducation.getStartDate());
-        }
-
-        // If the end date is null, this means that it is "Present", which in turn means that we don't need to do
-        // any further comparisons.
-        if (newEducation.getEndDate() == null || !resumeEducation.getEndDate().equals(newEducation.getEndDate())){
-            resumeEducation.setEndDate(newEducation.getEndDate());
-        }
+        modificationUtility.modifyEducationData(newEducation, resumeEducation);
 
     }
 

@@ -81,11 +81,7 @@ public class ProfileController {
                                                                   experienceFormList,
                                                    @AuthenticationPrincipal User authenticatedUser,
                                                 @PathVariable UUID profile_id) {
-        if(authenticatedUser.getProfile() == null){
-            throw new RuntimeException("No profile found for your account");
-        }
-        UserProfile profile = authenticatedUser.getProfile();
-        return profileService.updateProfileExperiences(profile, experienceFormList);
+        return profileService.updateProfileExperiences(profile_id, authenticatedUser, experienceFormList);
     }
 
     @DeleteMapping("/delete/{profile_id}")
