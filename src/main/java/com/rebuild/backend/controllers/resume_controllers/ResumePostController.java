@@ -38,11 +38,10 @@ public class ResumePostController {
     @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                  @PathVariable UUID resume_id,
-                                                 @AuthenticationPrincipal User user,
-                                                 @RequestParam(required = false) Integer experiencesIndex){
+                                                 @AuthenticationPrincipal User user){
 
 
-        return resumeService.createNewExperience(user, resume_id, experienceForm, experiencesIndex);
+        return resumeService.createNewExperience(user, resume_id, experienceForm);
 
     }
 

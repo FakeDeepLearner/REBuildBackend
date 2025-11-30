@@ -20,12 +20,9 @@ public class PrefillFromProfileController {
 
     private final ResumeService resumeService;
 
-    private final ResumeRepository resumeRepository;
-
     @Autowired
-    public PrefillFromProfileController(ResumeService resumeService, ResumeRepository resumeRepository) {
+    public PrefillFromProfileController(ResumeService resumeService) {
         this.resumeService = resumeService;
-        this.resumeRepository = resumeRepository;
     }
 
     @GetMapping("/header/{resume_id}")

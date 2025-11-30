@@ -66,9 +66,11 @@ public class SubpartsModificationUtility {
                 () -> new BelongingException("The header either does not exist or does not belong to this resume.")
         );
 
-        Header newHeader = modifyHeader(changingHeader, headerForm);
+        Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
+                headerForm.email());
+        modifyHeaderData(newHeader, changingHeader);
         evictResumeFromCache(changingUser.getId(), resumeId);
-        return newHeader;
+        return headerRepository.save(changingHeader);
     }
 
     @Transactional
@@ -93,10 +95,13 @@ public class SubpartsModificationUtility {
         Education changingEducation = educationRepository.findByIdAndResume(educationId, changingResume).orElseThrow(
                 () -> new BelongingException("The education either does not exist or does not belong to this resume.")
         );
+        Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
+                educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),
+                YearMonthStringOperations.getYearMonth(educationForm.endDate()));
 
-        Education newEducation = modifyEducation(changingEducation, educationForm);
+        modifyEducationData(newEducation, changingEducation);
         evictResumeFromCache(changingUser.getId(), resumeId);
-        return newEducation;
+        return educationRepository.save(changingEducation);
     }
 
     @Transactional
@@ -110,7 +115,11 @@ public class SubpartsModificationUtility {
                 () -> new BelongingException("The header either does not exist or does not belong to this profile.")
         );
 
-        return modifyHeader(changingHeader, headerForm);
+        Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
+                headerForm.email());
+        modifyHeaderData(newHeader, changingHeader);
+        return headerRepository.save(changingHeader);
+
     }
 
     @Transactional
@@ -124,7 +133,12 @@ public class SubpartsModificationUtility {
                 () -> new BelongingException("The education either does not exist or does not belong to this profile.")
         );
 
-        return modifyEducation(changingEducation, educationForm);
+        Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
+                educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),
+                YearMonthStringOperations.getYearMonth(educationForm.endDate()));
+
+        modifyEducationData(newEducation, changingEducation);
+        return educationRepository.save(changingEducation);
     }
 
     @Transactional
@@ -148,15 +162,6 @@ public class SubpartsModificationUtility {
                 evictIfPresent(combinedCacheKey);
     }
 
-    private Header modifyHeader(Header header, HeaderForm headerForm)
-    {
-        header.setEmail(headerForm.email());
-        header.setNumber(headerForm.number());
-        header.setFirstName(headerForm.firstName());
-        header.setLastName(headerForm.lastName());
-        return headerRepository.save(header);
-    }
-
     private Experience modifyExperience(Experience changingExperience, ExperienceForm experienceForm)
     {
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
@@ -170,15 +175,6 @@ public class SubpartsModificationUtility {
         changingExperience.setCompanyName(experienceForm.companyName());
         changingExperience.setExperienceTypes(experienceTypes);
         return experienceRepository.save(changingExperience);
-    }
-
-    private Education modifyEducation(Education education, EducationForm educationForm){
-        education.setRelevantCoursework(educationForm.relevantCoursework());
-        education.setSchoolName(educationForm.schoolName());
-        education.setLocation(educationForm.location());
-        education.setStartDate(YearMonthStringOperations.getYearMonth(educationForm.startDate()));
-        education.setEndDate(YearMonthStringOperations.getYearMonth(educationForm.endDate()));
-        return educationRepository.save(education);
     }
 
 

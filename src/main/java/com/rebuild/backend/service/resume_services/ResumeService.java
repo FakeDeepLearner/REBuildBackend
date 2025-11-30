@@ -121,8 +121,7 @@ public class ResumeService {
 
     @Transactional
     public Resume createNewExperience(User changingUser, UUID resumeId,
-                                                                   ExperienceForm experienceForm,
-                                                                   Integer experiencesIndex){
+                                      ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
@@ -132,12 +131,8 @@ public class ResumeService {
                 start, end, experienceForm.bullets());
         newExperience.setResume(resume);
 
-        if (experiencesIndex == null) {
-            resume.addExperience(newExperience);
-        }
-        else {
-            resume.addExperience(experiencesIndex, newExperience);
-        }
+        resume.addExperience(newExperience);
+
         return resumeRepository.save(resume);
 
     }
@@ -206,7 +201,6 @@ public class ResumeService {
     @Transactional
     public void setEducation(Resume resume, Education newEducation){
         Education resumeEducation =  resume.getEducation();
-
         if (resumeEducation == null) {
             resume.setEducation(newEducation);
             newEducation.setResume(resume);
