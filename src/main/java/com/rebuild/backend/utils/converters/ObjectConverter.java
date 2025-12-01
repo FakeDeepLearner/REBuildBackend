@@ -48,52 +48,6 @@ public class ObjectConverter {
         });
     }
 
-    public void createVersionedHeader(Header originalHeader, boolean shouldBeNull,
-                                                 ResumeVersion resumeVersion){
-        if(shouldBeNull){
-            return;
-        }
-
-        Header newHeader = new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
-                originalHeader.getLastName(), originalHeader.getEmail());
-        resumeVersion.setVersionedHeader(newHeader);
-    }
-
-
-    public void createVersionedEducation(Education originalEducation, boolean shouldBeNull,
-                                                       ResumeVersion resumeVersion){
-        if(shouldBeNull){
-            return;
-        }
-        Education newEducation = new Education(originalEducation.getSchoolName(), originalEducation.getRelevantCoursework(),
-                originalEducation.getLocation(), originalEducation.getStartDate(), originalEducation.getEndDate());
-        resumeVersion.setVersionedEducation(newEducation);
-
-    }
-
-    public void createVersionedExperiences(List<Experience> originalExperiences,
-                                           boolean shouldBeNull,
-                                           ResumeVersion resumeVersion){
-        if(shouldBeNull){
-            return;
-        }
-        List<Experience> newExperiences = originalExperiences.stream().map(
-                rawExperience ->
-                    new Experience(
-                            rawExperience.getCompanyName(),
-                            rawExperience.getTechnologyList(),
-                            rawExperience.getLocation(),
-                            rawExperience.getExperienceTypes(),
-                            rawExperience.getStartDate(),
-                            rawExperience.getEndDate(),
-                            rawExperience.getBullets()
-                    )
-
-        ).toList();
-
-        resumeVersion.setVersionedExperiences(newExperiences);
-    }
-
     public List<ExperienceType> convertToExperienceTypes(List<String> typesList)
     {
         return typesList.stream().

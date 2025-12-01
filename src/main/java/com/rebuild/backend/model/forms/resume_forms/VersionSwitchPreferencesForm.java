@@ -1,9 +1,10 @@
 package com.rebuild.backend.model.forms.resume_forms;
 
 import java.util.List;
+import java.util.UUID;
 
 public record VersionSwitchPreferencesForm(boolean includeHeader, boolean includeEducation,
-                                                 List<Integer> experienceIndices, List<Integer> sectionIndices,
-                                                 boolean makeHeaderCopy, boolean makeEducationCopy,
-                                                 boolean makeExperienceCopies){
+                                           List<UUID> experienceIds,
+                                           boolean makeHeaderCopy, boolean makeEducationCopy,
+                                           boolean makeExperienceCopies){
 }

@@ -14,7 +14,9 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -29,13 +31,17 @@ public class ResumeVersioningService {
 
     private final ResumeVersionRepository versionRepository;
 
+    private final ResumeService resumeService;
+
     public ResumeVersioningService(ResumeRepository resumeRepository, ResumeGetUtility getUtility,
                                    ObjectConverter objectConverter,
-                                   ResumeVersionRepository versionRepository) {
+                                   ResumeVersionRepository versionRepository,
+                                   ResumeService resumeService) {
         this.resumeRepository = resumeRepository;
         this.getUtility = getUtility;
         this.objectConverter = objectConverter;
         this.versionRepository = versionRepository;
+        this.resumeService = resumeService;
     }
 
     private ResumeVersion findByResumeAndVersionId(UUID versionId, Resume resume)
@@ -80,28 +86,24 @@ public class ResumeVersioningService {
 
         if(versionToSwitch.getVersionedHeader() != null && preferencesForm.includeHeader()){
             Header newHeader = getHeader(resume, versionToSwitch, preferencesForm.makeHeaderCopy());
-            newHeader.setResume(resume);
-            resume.setHeader(newHeader);
+            resumeService.setHeader(resume, newHeader);
         }
 
         if(versionToSwitch.getVersionedEducation() != null && preferencesForm.includeEducation()){
             Education newEducation = getEducation(resume, versionToSwitch, preferencesForm.makeEducationCopy());
-
-            newEducation.setResume(resume);
-            resume.setEducation(newEducation);
+            resumeService.setEducation(resume, newEducation);
         }
 
-        if(versionToSwitch.getVersionedExperiences() != null && !preferencesForm.experienceIndices().isEmpty()){
+        if(versionToSwitch.getVersionedExperiences() != null && !preferencesForm.experienceIds().isEmpty()){
             List<Experience> newExperiences = getExperiences(resume, versionToSwitch,
-                    preferencesForm.makeExperienceCopies(), preferencesForm.experienceIndices());
-            newExperiences.forEach(exp -> exp.setResume(resume));
-            resume.setExperiences(newExperiences);
+                    preferencesForm.makeExperienceCopies(), preferencesForm.experienceIds());
+            resumeService.setExperiences(resume, newExperiences);
         }
 
     }
 
-    private static List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch,
-                                                   boolean makeCopies, List<Integer> indicesToSelect){
+    private List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch,
+                                                   boolean makeCopies, List<UUID> identifiersToSelect){
         if (!makeCopies) {
             List<Experience> oldResumeExperiences = resume.getExperiences();
 
@@ -112,21 +114,30 @@ public class ResumeVersioningService {
         else
         {
             List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+            Set<UUID> convertedSet = new HashSet<>(identifiersToSelect);
 
-            return indicesToSelect.stream()
-                    .map(versionedExperiences::get)
-                    .map(Experience::copy).toList();
+            return versionedExperiences.stream().
+                    filter(experience -> convertedSet.contains(experience.getId())).toList();
         }
     }
 
-    private static Education getEducation(Resume resume, ResumeVersion versionToSwitch, boolean makeCopy) {
+    private Education getEducation(Resume resume, ResumeVersion versionToSwitch, boolean makeCopy) {
+        // If we don't want to make a copy of the versioned education, we simply swap the version with the resume
+        // and the ResumeVersion. The exact same logic holds for the methods below as well.
         if (!makeCopy) {
 
             Education oldResumeEducation = resume.getEducation();
 
             Education versionedEducation = versionToSwitch.getVersionedEducation();
 
-            versionToSwitch.setVersionedEducation(oldResumeEducation);
+            /*
+             * We set the versioned attribute into a copy of the old one rather than the original one,
+             * because we want to avoid a potential bug where the identifier of the versioned education and
+             * the new one on the resume will be the same, since updating the resume now takes inplace instead
+             * of a simple attribute set. Since the copying code creates a new attribute, it avoids those bugs.
+             * The exact same logic follows for the getHeader and the getExperiences functions as well.
+             * */
+            versionToSwitch.setVersionedEducation(Education.copy(oldResumeEducation));
             return versionedEducation;
         }
         else
@@ -135,13 +146,13 @@ public class ResumeVersioningService {
         }
     }
 
-    private static Header getHeader(Resume resume, ResumeVersion versionToSwitch, boolean makeCopy) {
+    private Header getHeader(Resume resume, ResumeVersion versionToSwitch, boolean makeCopy) {
         if (!makeCopy) {
             Header oldResumeHeader = resume.getHeader();
 
             Header versionedHeader = versionToSwitch.getVersionedHeader();
 
-            versionToSwitch.setVersionedHeader(oldResumeHeader);
+            versionToSwitch.setVersionedHeader(Header.copy(oldResumeHeader));
 
             return versionedHeader;
         }
@@ -155,12 +166,12 @@ public class ResumeVersioningService {
 
     private ResumeVersion createSnapshot(Resume resume, VersionCreationForm inclusionForm){
         ResumeVersion newVersion = new ResumeVersion();
-        objectConverter.createVersionedHeader(resume.getHeader(),
+        createVersionedHeader(resume.getHeader(),
                 inclusionForm.includeHeader(), newVersion);
-        objectConverter.createVersionedEducation(
+        createVersionedEducation(
                 resume.getEducation(), inclusionForm.includeEducation(), newVersion
         );
-        objectConverter.createVersionedExperiences(
+        createVersionedExperiences(
                 resume.getExperiences(), inclusionForm.includeExperience(), newVersion
         );
         String versionedName = inclusionForm.includeName() ? resume.getName() : null;
@@ -168,6 +179,40 @@ public class ResumeVersioningService {
         newVersion.setAssociatedResume(resume);
         resume.getVersions().add(newVersion);
         return newVersion;
+    }
+
+
+    private void createVersionedHeader(Header originalHeader, boolean shouldBeNull,
+                                      ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return;
+        }
+
+        Header newHeader = Header.copy(originalHeader);
+        resumeVersion.setVersionedHeader(newHeader);
+    }
+
+
+    private void createVersionedEducation(Education originalEducation, boolean shouldBeNull,
+                                         ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return;
+        }
+        Education newEducation = Education.copy(originalEducation);
+        resumeVersion.setVersionedEducation(newEducation);
+
+    }
+
+    private void createVersionedExperiences(List<Experience> originalExperiences,
+                                           boolean shouldBeNull,
+                                           ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return;
+        }
+        List<Experience> newExperiences = originalExperiences.stream().map(
+                Experience::copy).toList();
+
+        resumeVersion.setVersionedExperiences(newExperiences);
     }
 
 
