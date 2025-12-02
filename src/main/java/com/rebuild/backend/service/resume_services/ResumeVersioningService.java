@@ -9,8 +9,6 @@ import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeVersionRepository;
 import com.rebuild.backend.utils.ResumeGetUtility;
-import com.rebuild.backend.utils.converters.ObjectConverter;
-import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,19 +25,15 @@ public class ResumeVersioningService {
 
     private final ResumeGetUtility getUtility;
 
-    private final ObjectConverter objectConverter;
-
     private final ResumeVersionRepository versionRepository;
 
     private final ResumeService resumeService;
 
     public ResumeVersioningService(ResumeRepository resumeRepository, ResumeGetUtility getUtility,
-                                   ObjectConverter objectConverter,
                                    ResumeVersionRepository versionRepository,
                                    ResumeService resumeService) {
         this.resumeRepository = resumeRepository;
         this.getUtility = getUtility;
-        this.objectConverter = objectConverter;
         this.versionRepository = versionRepository;
         this.resumeService = resumeService;
     }

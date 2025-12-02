@@ -4,22 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.utils.elastic_utils.ExperienceTypeBridge;
-import com.rebuild.backend.utils.converters.database_converters.ExperienceTypesConverter;
 import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
-import com.rebuild.backend.utils.serializers.ExperienceTypesSerializer;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef;
 import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
 import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.time.YearMonth;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,13 +49,10 @@ public class Experience {
     @FullTextField
     private String location;
 
-    @Column(name = "types")
-    @Convert(converter = ExperienceTypesConverter.class)
-    @JsonSerialize(using = ExperienceTypesSerializer.class)
+    @Column(name = "experience_type")
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
-    valueBridge = @ValueBridgeRef(type = ExperienceTypeBridge.class))
-    private Collection<ExperienceType> experienceTypes;
+    @FullTextField
+    private String experienceType;
 
     @Column(name = "start_date", nullable = false)
     @NonNull
@@ -97,19 +89,19 @@ public class Experience {
                 "\t\tCompany Name: " + companyName + "\n" +
                 "\t\tTechnologies: " + technologyList + "\n" +
                 "\t\tLocation: " + location + "\n" +
-                "\t\tType: " + experienceTypes + "\n" +
+                "\t\tType: " + experienceType + "\n" +
                 "\t\tBullets: " + bullets + "\n" +
                 "\t\tStart Date: " + startDate + "\n" +
                 "\t\tEnd Date: " + endDate + "\n";
     }
 
     public Experience(String companyName, List<String> technologyList, String location,
-                      Collection<ExperienceType> experienceTypes, YearMonth startDate, YearMonth endDate,
+                      String experienceType, YearMonth startDate, YearMonth endDate,
                       List<String> bullets) {
         this.companyName = companyName;
         this.technologyList = technologyList;
         this.location = location;
-        this.experienceTypes = experienceTypes;
+        this.experienceType = experienceType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.bullets = bullets;
@@ -118,7 +110,7 @@ public class Experience {
 
     public static Experience copy(Experience other)
     {
-        return new Experience(other.companyName, other.technologyList, other.location, other.experienceTypes,
+        return new Experience(other.companyName, other.technologyList, other.location, other.experienceType,
                 other.startDate, other.endDate, other.bullets);
 
     }

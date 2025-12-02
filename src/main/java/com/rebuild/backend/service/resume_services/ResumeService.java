@@ -13,13 +13,10 @@ import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
-import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -31,8 +28,6 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
 
-    private final ObjectConverter objectConverter;
-
     private final SubpartsModificationUtility modificationUtility;
 
     private final ResumeGetUtility getUtility;
@@ -42,10 +37,9 @@ public class ResumeService {
 
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
-                         ObjectConverter objectConverter, SubpartsModificationUtility modificationUtility,
+                         SubpartsModificationUtility modificationUtility,
                          ResumeGetUtility getUtility, ResumeSearchRepository resumeSearchRepository, ProfileRepository profileRepository) {
         this.resumeRepository = resumeRepository;
-        this.objectConverter = objectConverter;
         this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
         this.resumeSearchRepository = resumeSearchRepository;
@@ -125,9 +119,8 @@ public class ResumeService {
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
-        List<ExperienceType> types = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
         Experience newExperience = new Experience(experienceForm.companyName(),
-                experienceForm.technologies(), experienceForm.location(), types,
+                experienceForm.technologies(), experienceForm.location(), experienceForm.experienceType(),
                 start, end, experienceForm.bullets());
         newExperience.setResume(resume);
 
@@ -228,7 +221,7 @@ public class ResumeService {
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
         setEducation(resume, newEducation);
 
-        setExperiences(resume, objectConverter.extractExperiences(resumeForm.experiences(), resume));
+        setExperiences(resume, extractExperiences(resumeForm.experiences(), resume));
         return resumeRepository.save(resume);
 
     }
@@ -294,6 +287,21 @@ public class ResumeService {
                 toList();
         setExperiences(associatedResume, newExperiences);
         return resumeRepository.save(associatedResume);
+
+    }
+
+
+    private List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
+        return experienceForms.stream().map( rawForm -> {
+                    Experience newExperience = new Experience(rawForm.companyName(),
+                            rawForm.technologies(), rawForm.location(), rawForm.experienceType(),
+                            YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                            YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                            rawForm.bullets());
+                    newExperience.setResume(associatedResume);
+                    return newExperience;
+                }
+            ).toList();
 
     }
 

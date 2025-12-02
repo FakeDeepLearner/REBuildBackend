@@ -13,15 +13,12 @@ import com.rebuild.backend.repository.resume_repositories.HeaderRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.utils.ResumeGetUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
-import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -38,8 +35,6 @@ public class SubpartsModificationUtility {
 
     private final ExperienceRepository experienceRepository;
 
-    private final ObjectConverter objectConverter;
-
     private final ResumeGetUtility getUtility;
 
     @Autowired
@@ -47,13 +42,12 @@ public class SubpartsModificationUtility {
                                        RedisCacheManager cacheManager, ProfileRepository profileRepository,
                                        EducationRepository educationRepository,
                                        ExperienceRepository experienceRepository,
-                                       ObjectConverter objectConverter, ResumeGetUtility getUtility) {
+                                       ResumeGetUtility getUtility) {
         this.headerRepository = headerRepository;
         this.cacheManager = cacheManager;
         this.profileRepository = profileRepository;
         this.educationRepository = educationRepository;
         this.experienceRepository = experienceRepository;
-        this.objectConverter = objectConverter;
         this.getUtility = getUtility;
     }
 
@@ -166,14 +160,13 @@ public class SubpartsModificationUtility {
     {
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
-        List<ExperienceType> experienceTypes = objectConverter.convertToExperienceTypes(experienceForm.experienceTypeValues());
         changingExperience.setLocation(experienceForm.location());
         changingExperience.setEndDate(end);
         changingExperience.setStartDate(start);
         changingExperience.setBullets(experienceForm.bullets());
         changingExperience.setTechnologyList(experienceForm.technologies());
         changingExperience.setCompanyName(experienceForm.companyName());
-        changingExperience.setExperienceTypes(experienceTypes);
+        changingExperience.setExperienceType(experienceForm.experienceType());
         return experienceRepository.save(changingExperience);
     }
 

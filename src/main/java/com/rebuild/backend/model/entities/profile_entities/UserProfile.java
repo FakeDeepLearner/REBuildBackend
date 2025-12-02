@@ -92,7 +92,7 @@ public class UserProfile {
         List<Experience> newExperiences = originalProfile.getExperienceList().stream().map(
                 oldExperience -> new Experience(oldExperience.getCompanyName(),
                         oldExperience.getTechnologyList(), oldExperience.getLocation(),
-                        oldExperience.getExperienceTypes(), oldExperience.getStartDate(),
+                        oldExperience.getExperienceType(), oldExperience.getStartDate(),
                         oldExperience.getEndDate(), oldExperience.getBullets())
         ).toList();
 

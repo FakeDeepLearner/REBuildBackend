@@ -126,7 +126,7 @@ public class Resume implements Serializable {
                 originalHeader.getEmail());
         this.experiences = originalExperiences.stream().map(
                 experience -> new Experience(experience.getCompanyName(), experience.getTechnologyList(),
-                        experience.getLocation(), experience.getExperienceTypes(),
+                        experience.getLocation(), experience.getExperienceType(),
                         experience.getStartDate(), experience.getEndDate(), experience.getBullets())
         ).toList();
         //Necessary in order for cascading to work properly

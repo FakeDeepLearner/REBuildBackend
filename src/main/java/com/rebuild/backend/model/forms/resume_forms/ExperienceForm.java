@@ -12,7 +12,7 @@ public record ExperienceForm(@NotBlank(message = "Company name may not be blank"
 
                              String location,
 
-                             List<String> experienceTypeValues,
+                             String experienceType,
                              String startDate,
                              String endDate,
                              @NotEmpty(message = "The bullets may not be empty") List<String> bullets) {

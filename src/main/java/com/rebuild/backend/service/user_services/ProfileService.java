@@ -11,7 +11,6 @@ import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.YearMonthStringOperations;
-import com.rebuild.backend.utils.converters.ObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,18 +31,15 @@ public class ProfileService {
 
     private final SubpartsModificationUtility modificationUtility;
 
-    private final ObjectConverter objectConverter;
-
     private final ProfilePictureRepository profilePictureRepository;
 
     private final Cloudinary cloudinary;
 
     @Autowired
     public ProfileService(ProfileRepository profileRepository, SubpartsModificationUtility modificationUtility,
-                          ObjectConverter objectConverter, ProfilePictureRepository profilePictureRepository, Cloudinary cloudinary) {
+                          ProfilePictureRepository profilePictureRepository, Cloudinary cloudinary) {
         this.profileRepository = profileRepository;
         this.modificationUtility = modificationUtility;
-        this.objectConverter = objectConverter;
         this.profilePictureRepository = profilePictureRepository;
         this.cloudinary = cloudinary;
     }
@@ -70,8 +66,7 @@ public class ProfileService {
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
 
         UserProfile updatedProfile = updateHeaderAndEducation(profile, profileForm, startDate, endDate);
-        List<Experience> experiences = objectConverter.
-                extractProfileExperiences(profileForm.experiences(), updatedProfile);
+        List<Experience> experiences = extractProfileExperiences(profileForm.experiences(), updatedProfile);
         updatedProfile.setExperienceList(experiences);
         updatedProfile.setMessagesFromFriendsOnly(messagesFromFriends);
 
@@ -172,9 +167,8 @@ public class ProfileService {
                 map((rawExperienceData) -> {
                     YearMonth startDate = YearMonthStringOperations.getYearMonth(rawExperienceData.startDate());
                     YearMonth endDate = YearMonthStringOperations.getYearMonth(rawExperienceData.endDate());
-                    List<ExperienceType> experienceTypes = objectConverter.convertToExperienceTypes(rawExperienceData.experienceTypeValues());
                     return new Experience(rawExperienceData.companyName(), rawExperienceData.technologies(),
-                    rawExperienceData.location(), experienceTypes,
+                    rawExperienceData.location(), rawExperienceData.experienceType(),
                     startDate, endDate, rawExperienceData.bullets());
                 }).toList();
 
@@ -218,6 +212,21 @@ public class ProfileService {
                 profileExperience.getId().equals(experience_id)
         );
         return profileRepository.save(profile);
+    }
+
+
+    private List<Experience> extractProfileExperiences(List<ExperienceForm> experienceForms, UserProfile profile){
+        return experienceForms.stream().map( rawForm -> {
+                    Experience newExperience = new Experience(rawForm.companyName(),
+                            rawForm.technologies(), rawForm.location(), rawForm.experienceType(),
+                            YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                            YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                            rawForm.bullets());
+                    newExperience.setProfile(profile);
+                    return newExperience;
+                }
+        ).toList();
+
     }
 
 }
