@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -178,7 +179,7 @@ public class UserService{
         }
         String successString = result.get("success");
         String timestampString = result.get("challenge_ts");
-        LocalDateTime timestamp = LocalDateTime.parse(timestampString,
+        ZonedDateTime timestamp = ZonedDateTime.parse(timestampString,
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZZ"));
 
         boolean success = Boolean.parseBoolean(successString);
