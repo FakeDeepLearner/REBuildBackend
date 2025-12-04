@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
@@ -28,7 +31,7 @@ public class FriendRequest {
     private UUID id;
 
     @Column(name = "creation_time")
-    private LocalDateTime creationDate = LocalDateTime.now();
+    private Instant creationDate = Instant.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)

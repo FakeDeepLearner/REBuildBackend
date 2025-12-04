@@ -6,7 +6,6 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,8 +15,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Entity
@@ -137,12 +137,10 @@ public class User implements UserDetails {
     private boolean enabled = false;
 
     @JsonIgnore
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime signUpTime = LocalDateTime.now();
+    private Instant signUpTime = Instant.now();
 
     @JsonIgnore
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime lastLoginTime = LocalDateTime.now();
+    private Instant lastLoginTime = Instant.now();
 
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
@@ -177,7 +175,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return lastLoginTime.isAfter(LocalDateTime.now().minusMonths(MONTHS_ALLOWED_BEFORE_EXPIRY));
+        return lastLoginTime.isAfter(Instant.now().minus(MONTHS_ALLOWED_BEFORE_EXPIRY, ChronoUnit.MONTHS));
     }
 
     @Override

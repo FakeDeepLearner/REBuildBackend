@@ -7,6 +7,7 @@ import lombok.NonNull;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Component
@@ -14,6 +15,6 @@ public class PostLikeProcessor implements ItemProcessor<PostLikeRequest, Like> {
 
     @Override
     public Like process(@NonNull PostLikeRequest item) throws Exception {
-        return new Like(item.likingUserUsername(), item.likedPostId(), LikeType.POST, LocalDateTime.now());
+        return new Like(item.likingUserUsername(), item.likedPostId(), LikeType.POST, Instant.now());
     }
 }

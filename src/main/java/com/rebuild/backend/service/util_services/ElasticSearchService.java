@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -77,8 +78,10 @@ public class ElasticSearchService {
                         nullSafeMatch("experiences.companyName", specsForm.companyContains()).
                         nullSafeMatch("experiences.technologyList", specsForm.technologyListContains()).
                         nullSafeMatch("experiences.bullets", specsForm.bulletsContains()).
-                        nullSafeRangeMatch("creationTime", specsForm.creationAfterCutoff(), true).
-                        nullSafeRangeMatch("creationTime", specsForm.creationBeforeCutoff(), false).
+                        nullSafeRangeMatch("creationTime",
+                                Instant.parse(specsForm.creationAfterCutoff()), true).
+                        nullSafeRangeMatch("creationTime",
+                                Instant.parse(specsForm.creationBeforeCutoff()), false).
                         obtain()
                 )
                 .sort(f -> f.composite(
@@ -102,8 +105,10 @@ public class ElasticSearchService {
                 .where(f -> new NullSafeQuerySearchBuilder(f).
                         nullSafeMatch("title", forumSpecsForm.titleContains()).
                         nullSafeMatch("content", forumSpecsForm.bodyContains()).
-                        nullSafeRangeMatch("creationDate", forumSpecsForm.postAfterCutoff(), true).
-                        nullSafeRangeMatch("creationDate", forumSpecsForm.postBeforeCutoff(), false).
+                        nullSafeRangeMatch("creationDate",
+                                Instant.parse(forumSpecsForm.postAfterCutoff()), true).
+                        nullSafeRangeMatch("creationDate",
+                                Instant.parse(forumSpecsForm.postBeforeCutoff()), false).
                         obtain()
 
                 )

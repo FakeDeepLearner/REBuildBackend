@@ -49,8 +49,8 @@ public class ResumeService {
     public ResumeSpecsForm createSpecsForm(ResumeSearchConfiguration searchConfiguration)
     {
         return new ResumeSpecsForm(searchConfiguration.getResumeNameSearch(), searchConfiguration.getFirstNameSearch(),
-                searchConfiguration.getLastNameSearch(), searchConfiguration.getCreationAfterCutoff(),
-                searchConfiguration.getCreationBeforeCutoff(),
+                searchConfiguration.getLastNameSearch(), searchConfiguration.getCreationAfterCutoff().toString(),
+                searchConfiguration.getCreationBeforeCutoff().toString(),
                 searchConfiguration.getSchoolNameSearch(), searchConfiguration.getCourseworkSearch(),
                 searchConfiguration.getCompanySearch(),
                 searchConfiguration.getBulletsSearch(), searchConfiguration.getTechnologiesSearch());
