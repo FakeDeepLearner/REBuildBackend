@@ -45,23 +45,5 @@ public class CacheEvictionAspect {
         if(result instanceof Resume resume) {
             evictFromCache(resume.getId());
         }
-        /*
-        if(result instanceof OptionalValueAndErrorResult valueAndErrorResult
-                && valueAndErrorResult.returnedStatus() == HttpStatus.OK) {
-            Object[] args = joinPoint.getArgs();
-
-            for(Object arg : args) {
-                if(arg instanceof Resume resume) {
-                    evictFromCache(resume.getId());
-                    break;
-                }
-                if(arg instanceof UUID resumeId) {
-                    evictFromCache(resumeId);
-                    break;
-                }
-            }
-        }
-        */
-
     }
 }

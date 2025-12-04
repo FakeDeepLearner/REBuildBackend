@@ -1,5 +1,6 @@
 package com.rebuild.backend.service.resume_services;
 
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.*;

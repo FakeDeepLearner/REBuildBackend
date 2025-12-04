@@ -35,14 +35,15 @@ public class ForumPost {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
+    @GenericField(searchable = Searchable.YES)
     private UUID id;
 
     @NonNull
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String title;
 
     @NonNull
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String content;
 
     @Column(name = "author_name")
@@ -55,11 +56,9 @@ public class ForumPost {
     @JsonIgnore
     private User creatingUser;
 
-    @JsonIgnore
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant creationDate = Instant.now();
 
-    @JsonIgnore
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant lastModificationDate = Instant.now();
 

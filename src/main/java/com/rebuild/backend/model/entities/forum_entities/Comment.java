@@ -53,10 +53,8 @@ public class Comment {
     private int repliesCount = 0;
 
     @Column(name = "creation_date")
-    @JsonIgnore
     private Instant creationDate = Instant.now();
 
-    @JsonIgnore
     private Instant modificationDate = Instant.now();
 
     @NonNull
@@ -68,7 +66,6 @@ public class Comment {
 
     @Column(name = "author_name")
     private String authorUsername;
-
 
     @JsonGetter(value = "authorUsername")
     private String determineAuthorName()

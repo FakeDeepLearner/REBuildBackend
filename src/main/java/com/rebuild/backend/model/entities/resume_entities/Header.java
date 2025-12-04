@@ -7,6 +7,7 @@ import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import java.util.UUID;
@@ -28,25 +29,25 @@ public class Header {
     @NonNull
     @Column(nullable = false, name = "phone_number")
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String number;
 
     @Column(name = "first_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String lastName;
 
     @Column(name = "email", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String email;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})

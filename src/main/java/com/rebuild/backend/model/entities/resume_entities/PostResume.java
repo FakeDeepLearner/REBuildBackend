@@ -54,7 +54,6 @@ public class PostResume {
     @JsonIgnore
     private ForumPost associatedPost;
 
-    @JsonIgnore
     private Instant creationTime = Instant.now();
 
 

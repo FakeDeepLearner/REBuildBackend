@@ -9,6 +9,8 @@ import com.rebuild.backend.utils.converters.database_converters.DatabaseEncrypto
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
 import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
@@ -34,44 +36,46 @@ public class Experience {
     @Column(name = "company_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String companyName;
 
     @ElementCollection
     @CollectionTable(name = "technologies", joinColumns = @JoinColumn(name = "experience_id"))
     @Column(nullable = false)
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION))
+    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
+    searchable = Searchable.YES)
     private List<String> technologyList;
 
     @Column(name = "location", nullable = false)
     @NonNull
-    @FullTextField
+    @FullTextField(searchable = Searchable.YES)
     private String location;
 
     @Column(name = "experience_type")
     @NonNull
-    @FullTextField
+    @FullTextField(searchable =  Searchable.YES)
     private String experienceType;
 
     @Column(name = "start_date", nullable = false)
     @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField
+    @GenericField(searchable = Searchable.YES, sortable =  Sortable.YES)
     private YearMonth startDate;
 
     @Column(name = "end_date")
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField
+    @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private YearMonth endDate;
 
     @ElementCollection
     @CollectionTable(name = "bullets", joinColumns = @JoinColumn(name = "experience_id"))
     @Column(name = "bullets", nullable = false)
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION))
+    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
+    searchable = Searchable.YES)
     private List<String> bullets;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})

@@ -47,13 +47,13 @@ public class Resume implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @GenericField
+    @GenericField(searchable = Searchable.YES)
     private UUID id;
 
     @Column(name = "name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField
+    @FullTextField(searchable =  Searchable.YES)
     private String name;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
@@ -89,11 +89,10 @@ public class Resume implements Serializable {
     @Column(name = "version_count", nullable = false)
     private int versionCount = 0;
 
-    @JsonIgnore
     @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private Instant creationTime = Instant.now();
 
-    @JsonIgnore
+
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant lastModifiedTime = Instant.now();
 
