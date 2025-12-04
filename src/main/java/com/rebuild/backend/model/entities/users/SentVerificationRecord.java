@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.users;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -31,5 +32,5 @@ public class SentVerificationRecord {
 
     @Column(name = "sent_timestamp", nullable = false)
     @NonNull
-    private ZonedDateTime timestamp;
+    private Instant timestamp;
 }

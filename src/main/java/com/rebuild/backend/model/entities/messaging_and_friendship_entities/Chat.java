@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -38,5 +39,6 @@ public class Chat {
     @OrderBy(value = "createdAt ASC")
     private List<Message> messages = Collections.synchronizedList(new ArrayList<>());
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+
+    private Instant createdAt = Instant.now();
 }

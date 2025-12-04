@@ -2,11 +2,10 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,8 +55,7 @@ public class PostResume {
     private ForumPost associatedPost;
 
     @JsonIgnore
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationTime = LocalDateTime.now();
+    private Instant creationTime = Instant.now();
 
 
     public PostResume(@NonNull Resume originalResume){
@@ -70,7 +68,7 @@ public class PostResume {
         this.header = Header.copy(originalHeader);
         this.experiences = originalExperiences.stream().map(
                 Experience::copy).toList();
-        this.creationTime = LocalDateTime.now();
+        this.creationTime = Instant.now();
 
     }
 }

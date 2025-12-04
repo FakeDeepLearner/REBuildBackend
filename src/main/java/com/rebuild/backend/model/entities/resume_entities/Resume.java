@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -89,14 +90,12 @@ public class Resume implements Serializable {
     private int versionCount = 0;
 
     @JsonIgnore
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    @GenericField
-    private LocalDateTime creationTime = LocalDateTime.now();
+    @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
+    private Instant creationTime = Instant.now();
 
     @JsonIgnore
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    @GenericField
-    private LocalDateTime lastModifiedTime = LocalDateTime.now();
+    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
+    private Instant lastModifiedTime = Instant.now();
 
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;
@@ -134,7 +133,7 @@ public class Resume implements Serializable {
         this.education.setResume(this);
         this.header.setResume(this);
         this.experiences.forEach(experience -> experience.setResume(this));
-        this.creationTime = LocalDateTime.now();
+        this.creationTime = Instant.now();
         // Technically, the LocalDataTime.now() call will be different from the one above,
         // and we want these dates to match initially
         this.lastModifiedTime = this.creationTime;

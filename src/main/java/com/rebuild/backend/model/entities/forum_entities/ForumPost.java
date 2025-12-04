@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.PostResume;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.search.engine.backend.types.Searchable;
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -54,15 +55,13 @@ public class ForumPost {
     @JsonIgnore
     private User creatingUser;
 
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
-    @GenericField
-    private LocalDateTime creationDate = LocalDateTime.now();
+    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
+    private Instant creationDate = Instant.now();
 
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
-    @GenericField
-    private LocalDateTime lastModificationDate = LocalDateTime.now();
+    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
+    private Instant lastModificationDate = Instant.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},
             mappedBy = "associatedPost", fetch = FetchType.LAZY)

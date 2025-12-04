@@ -1,12 +1,11 @@
 package com.rebuild.backend.model.entities.versioning_entities;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,8 +48,7 @@ public class ResumeVersion {
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime createdDate = LocalDateTime.now();
+    private Instant createdDate = Instant.now();
 
     @ManyToOne(cascade = {
             CascadeType.PERSIST,
@@ -72,6 +70,6 @@ public class ResumeVersion {
         this.versionedExperiences = other.versionedExperiences.stream()
                 .map(Experience::copy).toList();
         this.versionedName = other.versionedName;
-        this.createdDate = LocalDateTime.now();
+        this.createdDate = Instant.now();
     }
 }

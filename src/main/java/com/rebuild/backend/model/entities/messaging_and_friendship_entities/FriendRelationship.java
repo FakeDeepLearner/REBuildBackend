@@ -1,14 +1,13 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -39,6 +38,5 @@ public class FriendRelationship {
     private User recipient;
 
     @Column(name = "creation_time", nullable = false)
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime friendshipTime =  LocalDateTime.now();
+    private Instant friendshipTime =  Instant.now();
 }

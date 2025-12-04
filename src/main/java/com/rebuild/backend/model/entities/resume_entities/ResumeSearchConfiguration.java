@@ -3,11 +3,10 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -47,12 +46,10 @@ public class ResumeSearchConfiguration {
     private String technologiesSearch;
 
     @Column(name = "creation_after")
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationAfterCutoff;
+    private Instant creationAfterCutoff;
 
     @Column(name = "creation_before")
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationBeforeCutoff;
+    private Instant creationBeforeCutoff;
 
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
@@ -72,8 +69,8 @@ public class ResumeSearchConfiguration {
         this.courseworkSearch = baseForm.courseWorkContains();
         this.companySearch = baseForm.companyContains();
         this.technologiesSearch = baseForm.technologyListContains();
-        this.creationAfterCutoff = baseForm.creationAfterCutoff();
-        this.creationBeforeCutoff = baseForm.creationBeforeCutoff();
+        this.creationAfterCutoff = Instant.parse(baseForm.creationAfterCutoff());
+        this.creationBeforeCutoff = Instant.parse(baseForm.creationBeforeCutoff());
     }
 
 

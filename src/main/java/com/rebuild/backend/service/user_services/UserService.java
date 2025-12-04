@@ -51,6 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -179,12 +180,10 @@ public class UserService{
         }
         String successString = result.get("success");
         String timestampString = result.get("challenge_ts");
-        ZonedDateTime timestamp = ZonedDateTime.parse(timestampString,
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZZ"));
 
         boolean success = Boolean.parseBoolean(successString);
 
-        CaptchaVerificationRecord newRecord = new CaptchaVerificationRecord(userIp,  timestamp, success);
+        CaptchaVerificationRecord newRecord = new CaptchaVerificationRecord(userIp,  Instant.now(), success);
         verificationRepository.save(newRecord);
 
         return !success;
@@ -290,7 +289,7 @@ public class UserService{
         User userToUnlock = findByEmailOrPhone(emailOrPhone).orElse(null);
         assert userToUnlock != null;
 
-        userToUnlock.setLastLoginTime(LocalDateTime.now());
+        userToUnlock.setLastLoginTime(Instant.now());
         save(userToUnlock);
     }
 

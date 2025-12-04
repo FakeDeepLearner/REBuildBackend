@@ -80,7 +80,8 @@ public class ForumPostAndCommentService {
 
     public ForumSpecsForm buildSpecsFrom(PostSearchConfiguration configuration)
     {
-        return new ForumSpecsForm(configuration.getCreationAfterCutoff(), configuration.getCreationBeforeCutoff(),
+        return new ForumSpecsForm(configuration.getCreationAfterCutoff().toString(),
+                configuration.getCreationBeforeCutoff().toString(),
                 configuration.getTitleSearch(), configuration.getBodySearch());
     }
 

@@ -1,11 +1,10 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -41,6 +40,5 @@ public class Like {
     @CreationTimestamp
     @NonNull
     @Column(nullable = false, updatable = false, name = "liking_timestamp")
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime likedDateTime;
+    private Instant likeTimestamp;
 }

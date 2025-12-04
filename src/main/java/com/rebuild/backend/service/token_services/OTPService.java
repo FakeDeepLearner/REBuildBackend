@@ -8,6 +8,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
@@ -31,9 +32,7 @@ public class OTPService {
 
         String to = sentVerification.getTo();
 
-        ZonedDateTime timestamp = sentVerification.getDateCreated();
-
-        SentVerificationRecord newVerificationRecord = new SentVerificationRecord(channel, to, timestamp);
+        SentVerificationRecord newVerificationRecord = new SentVerificationRecord(channel, to, Instant.now());
 
         recordRepository.save(newVerificationRecord);
     }

@@ -3,12 +3,11 @@ package com.rebuild.backend.model.entities.forum_entities;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 
 @Entity
@@ -54,13 +53,11 @@ public class Comment {
     private int repliesCount = 0;
 
     @Column(name = "creation_date")
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
-    private LocalDateTime creationDate = LocalDateTime.now();
+    private Instant creationDate = Instant.now();
 
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
     @JsonIgnore
-    private LocalDateTime modificationDate = LocalDateTime.now();
+    private Instant modificationDate = Instant.now();
 
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)

@@ -3,13 +3,12 @@ package com.rebuild.backend.model.entities.forum_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
-import com.rebuild.backend.utils.converters.database_converters.LocalDateTimeDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -31,12 +30,10 @@ public class PostSearchConfiguration {
     private String bodySearch;
 
     @Column(name = "creation_after")
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationAfterCutoff;
+    private Instant creationAfterCutoff;
 
     @Column(name = "creation_before")
-    @Convert(converter = LocalDateTimeDatabaseConverter.class)
-    private LocalDateTime creationBeforeCutoff;
+    private Instant creationBeforeCutoff;
 
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
@@ -49,7 +46,7 @@ public class PostSearchConfiguration {
     {
         this.titleSearch = specsForm.titleContains();
         this.bodySearch = specsForm.bodyContains();
-        this.creationAfterCutoff = specsForm.postAfterCutoff();
-        this.creationBeforeCutoff = specsForm.postBeforeCutoff();
+        this.creationAfterCutoff = Instant.parse(specsForm.postAfterCutoff());
+        this.creationBeforeCutoff = Instant.parse(specsForm.postBeforeCutoff());
     }
 }
