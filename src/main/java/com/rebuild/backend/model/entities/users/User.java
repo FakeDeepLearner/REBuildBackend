@@ -69,10 +69,6 @@ public class User implements UserDetails {
     @Column(name = "salt_value", nullable = false)
     private String saltValue;
 
-    @Column(name = "time_zone", nullable = false)
-    @NonNull
-    private ZoneId timeZone = ZoneId.of("UTC");
-
     @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
     cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
@@ -146,14 +142,12 @@ public class User implements UserDetails {
                 @NonNull String email,
                 String phoneNumber,
                 String forumUsername,
-                @NonNull String saltValue,
-                @NonNull ZoneId timeZone) {
+                @NonNull String saltValue) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.forumUsername = forumUsername;
         this.saltValue = saltValue;
-        this.timeZone = timeZone;
     }
 
     @Override

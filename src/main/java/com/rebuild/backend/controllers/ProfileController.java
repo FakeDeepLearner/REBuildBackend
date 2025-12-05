@@ -138,12 +138,4 @@ public class ProfileController {
     public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {
         userService.removePhoneOf(authenticatedUser);
     }
-
-    @PostMapping("/update_time_zone")
-    @ResponseStatus(OK)
-    public User updateTimeZone(@AuthenticationPrincipal User updatingUser,
-                               @RequestBody String timeZone){
-        return userService.modifyTimeZone(updatingUser, timeZone);
-    }
-
 }

@@ -249,9 +249,8 @@ public class UserService{
         String generatedSalt = generateSaltValue();
         String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
-        ZoneId userTimeZone = ZoneId.of(signupForm.timezoneAsString());
         User newUser = new User(encodedPassword, signupForm.email(),
-                signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt, userTimeZone);
+                signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt);
 
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
         newUser.setProfile(newUserProfile);
@@ -268,14 +267,6 @@ public class UserService{
         newProfile.setUser(newUser);
 
         return profileService.modifyProfilePictureOf(newUser, newProfile.getId(), pictureFile);
-    }
-
-    @Transactional
-    public User modifyTimeZone(User modifyingUser, String newTimeZone)
-    {
-        ZoneId newUserZone = ZoneId.of(newTimeZone);
-        modifyingUser.setTimeZone(newUserZone);
-        return save(modifyingUser);
     }
 
     @Transactional
