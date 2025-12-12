@@ -17,6 +17,16 @@ public class OtherConfigs {
     @Order()
     public SecurityFilterChain otherPropertiesChain(HttpSecurity security) throws Exception{
         security.
+                headers(
+                        headers -> {
+                            headers.contentSecurityPolicy(
+                                    csp -> {
+                                        csp.policyDirectives("default-src 'self'; script-src 'self'; " +
+                                                "img-src 'self'; frame-ancestors 'none';");
+                                    }
+                            );
+                        }
+                ).
                 csrf(AbstractHttpConfigurer::disable).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return security.build();
