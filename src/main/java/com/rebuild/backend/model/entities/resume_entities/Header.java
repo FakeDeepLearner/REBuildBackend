@@ -10,6 +10,8 @@ import lombok.*;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.UUID;
 
 
@@ -19,7 +21,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
-public class Header {
+public class Header implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 2L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

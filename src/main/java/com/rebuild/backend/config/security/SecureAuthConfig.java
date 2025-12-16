@@ -2,37 +2,55 @@ package com.rebuild.backend.config.security;
 
 
 
-import com.rebuild.backend.utils.LogoutController;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+
+import static org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter.Directive.COOKIES;
 
 
 @Configuration
 @EnableWebSecurity
 public class SecureAuthConfig {
 
-    private final LogoutController logoutController;
+    @Bean
+    public SessionRegistry sessionRegistry(){
+        return new SessionRegistryImpl();
+    }
 
-    @Autowired
-    public SecureAuthConfig(LogoutController logoutController) {
-        this.logoutController = logoutController;
+    //Needed in order to make sure that the SessionRegistry listens to session invalidations and timeouts
+    @Bean
+    public HttpSessionEventPublisher eventPublisher(){
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public CsrfTokenRepository csrfTokenRepository() {
+        HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
+
+        repository.setHeaderName("X-CSRF-TOKEN");
+        repository.setSessionAttributeName("_csrfToken");
+        repository.setParameterName("_csrfToken");
+
+        return repository;
+
     }
 
     @Bean
@@ -40,38 +58,39 @@ public class SecureAuthConfig {
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
                                                          RememberMeServices rememberMeServices,
                                                          RememberMeAuthenticationFilter rememberMeAuthenticationFilter,
-                                                         ClientRegistrationRepository registrationRepository) throws Exception {
+                                                         ClientRegistrationRepository registrationRepository,
+                                                         CsrfTokenRepository tokenRepository) throws Exception {
         security
                 //Form login is disabled, because it expects everything to be done in one endpoint.
                 //However, our standard (non-OAuth) login flow has 2 separate endpoints that need to be called.
                 .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .oauth2Login(config ->
                         config.clientRegistrationRepository(registrationRepository).
                                 loginPage("/login"))
                 .logout(config -> config.
                     logoutUrl("/logout").
                     logoutSuccessUrl("/login?logout=true").
-                    addLogoutHandler(logoutController).deleteCookies("JSESSIONID").permitAll())
+                    addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(COOKIES))).
+                        permitAll())
                 .rememberMe(rememberMe ->
                         rememberMe.rememberMeServices(rememberMeServices).useSecureCookie(true).
                                 rememberMeCookieName("REMEMBERED_USER_COOKIE"))
-                .addFilterAfter(rememberMeAuthenticationFilter, AnonymousAuthenticationFilter.class);
+                .addFilterAfter(rememberMeAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .csrf(csrf ->
+                        csrf.csrfTokenRepository(tokenRepository)).
+                sessionManagement(session ->
+                        session.invalidSessionUrl("/login?sessionInvalid=true").
+                                sessionFixation().changeSessionId().
+                        sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                                .maximumSessions(1).maxSessionsPreventsLogin(true).
+                                sessionRegistry(sessionRegistry()).
+                                expiredUrl("/login?sessionExpired=true"));
+
         return security.build();
 
 
     }
 
-    @Bean
-    public AuthenticationEntryPoint unauthorizedAuthEntry(){
-        return (request, response, authException) -> {
-            //401 = Unauthorized
-            response.setStatus(401);
-            response.setHeader("WWW-Authenticate",
-                    "Bearer error=\"invalid_token\", " +
-                            "error_description=\"Your token has either expired, its credentials do not match," +
-                            "or its claims do not match\"");
-            response.getWriter().write(authException.getMessage());
 
-        };
-    }
 }

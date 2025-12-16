@@ -18,6 +18,8 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +32,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class Education {
+public class Education implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 3L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

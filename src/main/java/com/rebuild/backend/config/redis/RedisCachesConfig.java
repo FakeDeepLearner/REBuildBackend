@@ -1,6 +1,5 @@
 package com.rebuild.backend.config.redis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,14 +19,11 @@ public class RedisCachesConfig {
 
     private final RedisResumeSerializer resumeSerializer;
 
-    private final ObjectMapper objectMapper;
-
     @Autowired
     public RedisCachesConfig(RedisConnectionFactory connectionFactory,
-                             RedisResumeSerializer resumeSerializer, ObjectMapper objectMapper) {
+                             RedisResumeSerializer resumeSerializer) {
         this.connectionFactory = connectionFactory;
         this.resumeSerializer = resumeSerializer;
-        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -39,7 +35,7 @@ public class RedisCachesConfig {
                 entryTtl(Duration.ofSeconds(30)).
                 serializeValuesWith(RedisSerializationContext.
                         SerializationPair.
-                        fromSerializer(new RedisResumeSerializer(objectMapper)));
+                        fromSerializer(resumeSerializer));
 
         RedisCacheConfiguration idempotencyConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofSeconds(30));

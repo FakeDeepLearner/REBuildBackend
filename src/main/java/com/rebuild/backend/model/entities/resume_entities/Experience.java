@@ -16,6 +16,8 @@ import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerEx
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +28,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
-public class Experience {
+public class Experience implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 4L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
