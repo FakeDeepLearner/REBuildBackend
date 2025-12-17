@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.batch.processors;
+package com.rebuild.backend.batch.processors;
 
 import com.rebuild.backend.model.entities.forum_entities.LikeType;
 import com.rebuild.backend.model.entities.forum_entities.Like;

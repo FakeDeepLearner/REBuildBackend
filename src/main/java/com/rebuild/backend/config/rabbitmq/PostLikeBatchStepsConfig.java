@@ -3,11 +3,12 @@ package com.rebuild.backend.config.rabbitmq;
 import com.google.common.base.Throwables;
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
-import com.rebuild.backend.utils.batch.processors.PostLikeProcessor;
-import com.rebuild.backend.utils.batch.readers.RestartablePostLikeReader;
-import com.rebuild.backend.utils.batch.writers.PostLikesWriter;
+import com.rebuild.backend.batch.processors.PostLikeProcessor;
+import com.rebuild.backend.batch.readers.RestartablePostLikeReader;
+import com.rebuild.backend.batch.writers.PostLikesWriter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.step.Step;
 
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -53,6 +54,7 @@ public class PostLikeBatchStepsConfig {
     @Bean
     public Job postLikeJob(JobRepository jobRepository, @Qualifier("postLikeStep") Step postLikeStep) {
         return new JobBuilder("postLikeJob", jobRepository).start(postLikeStep).
+                incrementer(new RunIdIncrementer()).
                 build();
     }
 

@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.batch.writers;
+package com.rebuild.backend.batch.writers;
 
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -30,32 +30,22 @@ public class LikeUpdateWriter implements ItemWriter<LikesUpdateDTO> {
 
     @Override
     public void write(@NonNull Chunk<? extends LikesUpdateDTO> chunk) throws Exception {
-        List<ForumPost> updatedPosts = new ArrayList<>();
-        List<Comment> updatedComments = new ArrayList<>();
         for (LikesUpdateDTO likesUpdateDTO : chunk.getItems()) {
             switch (likesUpdateDTO.typeOfTarget()){
                 case COMMENT -> {
                     Comment comment = commentRepository.findById(likesUpdateDTO.targetObjectId()).orElseThrow();
-
                     comment.setLikeCount((int) (comment.getLikeCount() + likesUpdateDTO.numItemsRead()));
-                    updatedComments.add(comment);
+                    commentRepository.saveAndFlush(comment);
                 }
 
                 case POST -> {
                     ForumPost post = postRepository.findById(likesUpdateDTO.targetObjectId()).orElseThrow();
-
                     post.setLikeCount((int) (post.getLikeCount() + likesUpdateDTO.numItemsRead()));
-                    updatedPosts.add(post);
+                    postRepository.saveAndFlush(post);
 
                 }
 
             }
         }
-
-        // Doing the transactions this way is a lot more efficient. We only have 1 connection to the database
-        // instead of potentially hundreds.
-        commentRepository.saveAll(updatedComments);
-        postRepository.saveAll(updatedPosts);
-
     }
 }

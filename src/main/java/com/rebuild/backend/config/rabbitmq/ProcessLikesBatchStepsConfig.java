@@ -2,10 +2,10 @@ package com.rebuild.backend.config.rabbitmq;
 
 
 import com.rebuild.backend.model.forms.dtos.forum_dtos.LikesUpdateDTO;
-import com.rebuild.backend.utils.batch.readers.LikeUpdateBatchReader;
-import com.rebuild.backend.utils.batch.writers.LikeUpdateWriter;
+import com.rebuild.backend.batch.readers.LikeUpdateBatchReader;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -13,12 +13,10 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -40,7 +38,7 @@ public class ProcessLikesBatchStepsConfig {
     public Step likesUpdatingStep(JobRepository jobRepository,
                                   @Qualifier(value = "likesReader") ItemReader<LikesUpdateDTO> likesReader,
                                   @Qualifier(value = "likeUpdateWriter") ItemWriter<LikesUpdateDTO> likesWriter) throws Exception {
-        return new StepBuilder("updateLikesStep", jobRepository).
+            return new StepBuilder("updateLikesStep", jobRepository).
                 <LikesUpdateDTO, LikesUpdateDTO>chunk(50).
                 reader(likesReader).writer(likesWriter).faultTolerant().
                 skip(NoSuchElementException.class).skipLimit(50).build();
@@ -50,6 +48,7 @@ public class ProcessLikesBatchStepsConfig {
     @Bean
     public Job updateLikesJob(JobRepository jobRepository, @Qualifier("likesUpdatingStep") Step likesStep) {
         return new JobBuilder("updateLikesJob", jobRepository).start(likesStep).
+                incrementer(new RunIdIncrementer()).
                 build();
     }
 

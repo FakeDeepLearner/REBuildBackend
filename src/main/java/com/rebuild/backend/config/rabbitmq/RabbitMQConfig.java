@@ -87,7 +87,7 @@ public class RabbitMQConfig {
 
     @Bean
     public JobOperator jobOperator(JobRepository repository) {
-        TaskExecutorJobOperator operator =  new TaskExecutorJobOperator();
+        TaskExecutorJobOperator operator = new TaskExecutorJobOperator();
         operator.setJobRepository(repository);
         return operator;
     }

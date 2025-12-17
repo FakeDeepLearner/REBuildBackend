@@ -273,7 +273,6 @@ public class ForumPostAndCommentService {
     private JobParametersBuilder createParameters(Job runningJob)
     {
         return new JobParametersBuilder().
-                addLong("timestamp", System.currentTimeMillis()).
                 addString("name", runningJob.getName());
     }
 
@@ -300,8 +299,7 @@ public class ForumPostAndCommentService {
     //Every 15 seconds
     @Scheduled(fixedRate = 15 * 1000)
     public void runLikesProcessingJobs(@Qualifier(value = "commentLikeJob") Job commentLikeJob,
-                                       @Qualifier(value = "postLikeJob") Job postLikeJob,
-                                       @Qualifier(value = "commentRepliesLikeJob") Job commentRepliesLikeJob)
+                                       @Qualifier(value = "postLikeJob") Job postLikeJob)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
@@ -309,7 +307,6 @@ public class ForumPostAndCommentService {
 
         jobOperator.start(commentLikeJob, createParameters(commentLikeJob).toJobParameters());
         jobOperator.start(postLikeJob, createParameters(postLikeJob).toJobParameters());
-        jobOperator.start(commentRepliesLikeJob, createParameters(commentRepliesLikeJob).toJobParameters());
     }
 
 }

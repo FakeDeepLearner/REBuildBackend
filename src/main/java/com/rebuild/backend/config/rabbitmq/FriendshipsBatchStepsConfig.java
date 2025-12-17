@@ -1,16 +1,13 @@
 package com.rebuild.backend.config.rabbitmq;
 
-import com.google.common.base.Throwables;
-import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
-import com.rebuild.backend.utils.batch.processors.FriendsProcessor;
-import com.rebuild.backend.utils.batch.readers.FriendsReader;
-import com.rebuild.backend.utils.batch.writers.FriendsWriter;
-import org.hibernate.exception.ConstraintViolationException;
+import com.rebuild.backend.batch.processors.FriendsProcessor;
+import com.rebuild.backend.batch.readers.FriendsReader;
+import com.rebuild.backend.batch.writers.FriendsWriter;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -53,6 +50,8 @@ public class FriendshipsBatchStepsConfig {
 
     @Bean
     public Job friendLikeJob(JobRepository jobRepository, @Qualifier("friendLikeStep") Step friendLikeStep) {
-        return new JobBuilder("friendLikeJob", jobRepository).start(friendLikeStep).build();
+        return new JobBuilder("friendLikeJob", jobRepository).start(friendLikeStep).
+                incrementer(new RunIdIncrementer()).
+                build();
     }
 }

@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.batch.readers;
+package com.rebuild.backend.batch.readers;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import jakarta.persistence.EntityManagerFactory;

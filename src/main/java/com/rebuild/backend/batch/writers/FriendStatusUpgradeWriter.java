@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.batch.writers;
+package com.rebuild.backend.batch.writers;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;

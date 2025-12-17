@@ -1,13 +1,12 @@
 package com.rebuild.backend.config.rabbitmq;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.LikesUpdateDTO;
-import com.rebuild.backend.utils.batch.readers.FriendRequestsReader;
-import com.rebuild.backend.utils.batch.readers.LikeUpdateBatchReader;
+import com.rebuild.backend.batch.readers.FriendRequestsReader;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -48,6 +47,7 @@ public class FriendStatusProcessingBatchStepsConfig {
     @Bean
     public Job friendStatusJob(JobRepository jobRepository, @Qualifier("friendStatusStep") Step statusStep) {
         return new JobBuilder("friendStatusJob", jobRepository).start(statusStep).
+                incrementer(new RunIdIncrementer()).
                 build();
     }
 }

@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.batch.readers;
+package com.rebuild.backend.batch.readers;
 
 import com.rebuild.backend.model.forms.dtos.forum_dtos.LikesUpdateDTO;
 import jakarta.persistence.EntityManager;

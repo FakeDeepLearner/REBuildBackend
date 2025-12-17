@@ -4,7 +4,5 @@ public enum LikeType {
 
     POST,
 
-    COMMENT,
-
-    COMMENT_REPLY;
+    COMMENT
 }

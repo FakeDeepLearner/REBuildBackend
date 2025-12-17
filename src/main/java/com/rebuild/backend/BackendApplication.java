@@ -2,6 +2,8 @@ package com.rebuild.backend;
 
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.configuration.annotation.EnableJdbcJobRepository;
+import org.springframework.batch.core.job.JobKeyGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories
 @EnableJpaAuditing
 @EnableBatchProcessing
+@EnableJdbcJobRepository
 @EnableRabbit
 @EnableTransactionManagement
 public class BackendApplication {
