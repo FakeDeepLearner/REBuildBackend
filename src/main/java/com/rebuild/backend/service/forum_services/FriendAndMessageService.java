@@ -254,7 +254,6 @@ public class FriendAndMessageService {
     private JobParametersBuilder createParameters(Job runningJob)
     {
         return new JobParametersBuilder().
-                addLong("timestamp", System.currentTimeMillis()).
                 addString("name", runningJob.getName());
     }
 
@@ -276,7 +275,7 @@ public class FriendAndMessageService {
             JobParametersInvalidException, JobRestartException, NoSuchJobException
     {
         jobOperator.start(friendRequestJob, createParameters(friendRequestJob)
-                .addString("dateCutoff", LocalDateTime.now().minusDays(7).toString()).toJobParameters());
+                .toJobParameters());
     }
 
 

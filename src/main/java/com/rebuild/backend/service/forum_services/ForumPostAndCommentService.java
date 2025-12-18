@@ -283,12 +283,8 @@ public class ForumPostAndCommentService {
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
-        // We don't use a variable to subtract minutes from, because we want to be very
-        // sensitive in keeping accurate time. 
-        LocalDateTime lastProcessedCutoff = LocalDateTime.now().minusMinutes(10L);
 
         JobParameters parameters = createParameters(updateLikesJob)
-                .addString("lastProcessed", lastProcessedCutoff.toString())
                 .toJobParameters();
 
         jobOperator.start(updateLikesJob, parameters);
