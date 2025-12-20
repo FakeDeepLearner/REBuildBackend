@@ -12,7 +12,7 @@ import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
 import com.rebuild.backend.utils.ResumeGetUtility;
-import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
@@ -73,15 +73,10 @@ public class ResumeService {
 
     @Transactional
     public Resume createNewResumeFor(String resume_name, User user){
-        if(user.maxResumeLimitReached()){
-            throw new RuntimeException("You have reached the maximum amount of resumes you can have as a free user.");
-        }
-        else{
-            Resume newResume = new Resume(resume_name, user);
-            user.getResumes().add(newResume);
-            return resumeRepository.save(newResume);
+        Resume newResume = new Resume(resume_name, user);
+        user.getResumes().add(newResume);
+        return resumeRepository.save(newResume);
 
-        }
     }
 
     public Resume findByUserIndex(User user, UUID resumeID){

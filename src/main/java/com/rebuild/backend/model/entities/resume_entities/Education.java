@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.utils.converters.database_converters.YearMonthDatabaseConverter;
-import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
+import com.rebuild.backend.utils.converters.YearMonthDatabaseConverter;
+import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
 import jakarta.persistence.*;
 import lombok.*;

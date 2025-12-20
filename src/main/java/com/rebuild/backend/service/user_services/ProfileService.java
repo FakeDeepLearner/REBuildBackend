@@ -10,7 +10,7 @@ import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
-import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -6,7 +6,7 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
+import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
@@ -16,7 +16,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -36,8 +35,6 @@ import java.util.*;
 @AllArgsConstructor
 @Indexed
 public class User implements UserDetails {
-
-    private static final int FREE_MAX_RESUME_LIMIT = 25;
 
     private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
 
@@ -187,14 +184,9 @@ public class User implements UserDetails {
         return enabled;
     }
 
-    public boolean maxResumeLimitReached(){
-        return authority.equals(Authority.USER_FREE) && numberOfResumes == FREE_MAX_RESUME_LIMIT;
-    }
-
     public String stringifiedNumber(){
         return this.phoneNumber;
     }
-
 
     @Override
     public boolean equals(Object o) {

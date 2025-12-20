@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.converters.database_converters;
+package com.rebuild.backend.utils.converters;
 
 
 import jakarta.persistence.AttributeConverter;

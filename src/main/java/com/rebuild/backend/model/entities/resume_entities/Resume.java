@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
-import com.rebuild.backend.utils.converters.database_converters.DatabaseEncryptor;
+import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -109,9 +109,6 @@ public class Resume implements Serializable {
     }
 
     public Resume(@NonNull Resume originalResume, @NonNull ResumeCreationForm creationForm){
-        if(originalResume.getUser().maxResumeLimitReached()){
-            throw new RuntimeException("You have reached the maximum number of resumes you can create");
-        }
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
@@ -155,9 +152,6 @@ public class Resume implements Serializable {
         experiences.add(experience);
     }
 
-    public void addExperience(int index, Experience experience){
-        experiences.add(index, experience);
-    }
 
 
     @Override

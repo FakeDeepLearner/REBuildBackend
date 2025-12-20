@@ -1,12 +1,9 @@
-package com.rebuild.backend.utils.converters.database_converters;
+package com.rebuild.backend.utils.converters;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.codec.Hex;
-import org.springframework.security.crypto.codec.Utf8;
-import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Component;

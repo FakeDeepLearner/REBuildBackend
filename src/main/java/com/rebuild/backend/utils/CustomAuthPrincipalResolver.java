@@ -40,13 +40,6 @@ public class CustomAuthPrincipalResolver implements HandlerMethodArgumentResolve
     private final ExpressionParser parser = new SpelExpressionParser();
     private final SecurityAnnotationScanner<@NonNull AuthenticationPrincipal> scanner = SecurityAnnotationScanners.requireUnique(AuthenticationPrincipal.class);
 
-    private final UserService userService;
-
-    @Autowired
-    public CustomAuthPrincipalResolver(UserService userService) {
-        this.userService = userService;
-    }
-
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -62,9 +55,13 @@ public class CustomAuthPrincipalResolver implements HandlerMethodArgumentResolve
         if (authentication == null) {
             return null;
         } else {
-            //The principal is a type of UserDetails, when the DaoAuthenticationProvider is used.
-            // For other potential providers, we will make sure that this is the case if it isn't already.
+            // The principal is a type of User, since our UserDetailsService returns an actual User type.
+            // Even though it is stored as a UserDetails in the authentication flow, its actual type is still User
             Object principal = authentication.getPrincipal();
+
+            if (principal == null) {
+                return null;
+            }
             AuthenticationPrincipal annotation = this.findMethodAnnotation(parameter);
             Assert.notNull(annotation, "@AuthenticationPrincipal is required. Call supportsParameter first.");
 
@@ -77,22 +74,12 @@ public class CustomAuthPrincipalResolver implements HandlerMethodArgumentResolve
              * What we need is checking that a type of User (rhs) being assignable to a type of UserDetails (lhs).
              * This will succeed, since UserDetails is a superinterface of User
              */
-            if (principal != null &&
-                    !ClassUtils.isAssignable(principal.getClass(), parameter.getParameterType())) {
+            if (!ClassUtils.isAssignable(principal.getClass(), parameter.getParameterType())) {
                 return null;
             } else {
-
-                if (principal instanceof UserDetails details)
-                {
-                    String principalUsername = details.getUsername();
-
-                    Optional<User> foundUser = userService.findByEmailOrPhone(principalUsername);
-
-                    if  (foundUser.isPresent()) {
-                        return foundUser.get();
-                    }
-                }
-                return null;
+                //Since the principal is of type User, this means we can just simply return it.
+                //It is guaranteed that it is not null by this point.
+                return principal;
             }
         }
     }

@@ -12,7 +12,7 @@ import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
 import com.rebuild.backend.repository.resume_repositories.HeaderRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.utils.ResumeGetUtility;
-import com.rebuild.backend.utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Component;
