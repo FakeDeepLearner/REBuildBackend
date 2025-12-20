@@ -212,13 +212,10 @@ public class UserService{
             userChannel = "email";
         }
 
-        else
-        {
-            if(form.callMe())
-            {
+        else {
+            if (form.callMe()) {
                 userChannel = "call";
-            }
-            else {
+            } else {
                 userChannel = "sms";
             }
         }
