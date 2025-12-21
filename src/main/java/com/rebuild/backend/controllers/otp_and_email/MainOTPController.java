@@ -32,18 +32,18 @@ public class MainOTPController {
 
     @PostMapping("/send_code/sms")
     public void sendOTPCodeToPhone(@AuthenticationPrincipal User relevantUser){
-        sendOneTimePasscode(relevantUser.stringifiedNumber(), "sms");
+        sendOneTimePasscode(relevantUser.getPhoneNumber(), "sms");
     }
 
     @PostMapping("/send_code/email")
     public void sendOTPCodeToEmail(@AuthenticationPrincipal User relevantUser){
-        sendOneTimePasscode(relevantUser.stringifiedNumber(), "email");
+        sendOneTimePasscode(relevantUser.getPhoneNumber(), "email");
     }
 
     @PostMapping("/verify/new_email")
     public ResponseEntity<String> validateOTPForNewEmail(@RequestBody EmailChangeForm emailChangeForm,
                                                  @AuthenticationPrincipal User changingUser){
-        VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.stringifiedNumber(),
+        VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.getPhoneNumber(),
                 emailChangeForm.enteredOTP());
 
         String status = verificationCheck.getStatus();
@@ -61,7 +61,7 @@ public class MainOTPController {
             case "expired" -> {
                 //We send the notification again via the same channel that the user used to originally obtain it.
                 String oldChannel = verificationCheck.getChannel().toString();
-                sendOneTimePasscode(changingUser.stringifiedNumber(), oldChannel);
+                sendOneTimePasscode(changingUser.getPhoneNumber(), oldChannel);
                 return ResponseEntity.status(HttpStatus.GONE).body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }
@@ -82,7 +82,7 @@ public class MainOTPController {
     @PostMapping("/verify/new_password")
     public ResponseEntity<String> validateOTPForNewPassword(@RequestBody PasswordResetForm passwordResetForm,
                                        @AuthenticationPrincipal User changingUser){
-        VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.stringifiedNumber(),
+        VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.getPhoneNumber(),
                 passwordResetForm.enteredOTP());
 
         String status = verificationCheck.getStatus();
@@ -100,7 +100,7 @@ public class MainOTPController {
             case "expired" -> {
                 //We send the notification again via the same channel that the user used to originally obtain it.
                 String oldChannel = verificationCheck.getChannel().toString();
-                sendOneTimePasscode(changingUser.stringifiedNumber(), oldChannel);
+                sendOneTimePasscode(changingUser.getForumUsername(), oldChannel);
                 return ResponseEntity.status(HttpStatus.GONE).body("The passcode that you requested has expired, " +
                         "we have sent you a new one.");
             }

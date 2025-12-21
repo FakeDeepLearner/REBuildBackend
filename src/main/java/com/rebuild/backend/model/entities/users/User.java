@@ -14,6 +14,9 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -34,7 +37,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Indexed
-public class User implements UserDetails {
+public class User implements UserDetails, OidcUser {
 
     private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
 
@@ -148,6 +151,11 @@ public class User implements UserDetails {
     }
 
     @Override
+    public Map<String, Object> getAttributes() {
+        return Map.of();
+    }
+
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         SimpleGrantedAuthority freeAuthority = new SimpleGrantedAuthority(Authority.USER_FREE.name());
         SimpleGrantedAuthority paidAuthority = new SimpleGrantedAuthority(Authority.USER_PAID.name());
@@ -184,10 +192,6 @@ public class User implements UserDetails {
         return enabled;
     }
 
-    public String stringifiedNumber(){
-        return this.phoneNumber;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
@@ -206,5 +210,25 @@ public class User implements UserDetails {
 
     public void addReceiverChat(Chat chat){
         receivedChats.add(chat);
+    }
+
+    @Override
+    public Map<String, Object> getClaims() {
+        return Map.of();
+    }
+
+    @Override
+    public OidcUserInfo getUserInfo() {
+        return null;
+    }
+
+    @Override
+    public OidcIdToken getIdToken() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return id.toString();
     }
 }
