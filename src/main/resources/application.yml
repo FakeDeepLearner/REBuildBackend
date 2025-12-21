@@ -10,10 +10,6 @@ spring:
       flush-mode: on_save
       namespace: spring:session
     timeout: 30m
-  data:
-    redis:
-      host: localhost
-      port: 6379
   cache:
     type: redis
   thymeleaf:

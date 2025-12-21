@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.redis;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,9 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
@@ -29,16 +32,30 @@ public class RedisCachesConfig {
 
     private final RedisProfileSerializer profileSerializer;
 
+    private final Dotenv dotenv;
+
     @Autowired
     public RedisCachesConfig(RedisResumeSerializer resumeSerializer,
                              RedisProfileSerializer profileSerializer) {
         this.resumeSerializer = resumeSerializer;
         this.profileSerializer = profileSerializer;
+        this.dotenv = dotenv;
     }
 
     @Bean
     public LettuceConnectionFactory connectionFactory(){
-        return new LettuceConnectionFactory(new RedisStandaloneConfiguration(host, port));
+        RedisStandaloneConfiguration standaloneConfiguration =
+                new RedisStandaloneConfiguration(dotenv.get("REDIS_DATABASE_URL"),
+                        Integer.parseInt(dotenv.get("REDIS_DATABASE_PORT")));
+
+        standaloneConfiguration.setPassword(dotenv.get("REDIS_DATABASE_PASSWORD"));
+
+        LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder().
+                commandTimeout(Duration.ofSeconds(10))
+                .shutdownTimeout(Duration.ofMinutes(1))
+                .useSsl().build();
+
+        return new LettuceConnectionFactory(standaloneConfiguration, clientConfiguration);
     }
 
     @Bean
@@ -61,7 +78,7 @@ public class RedisCachesConfig {
                 entryTtl(Duration.ofSeconds(30));
 
 
-        return RedisCacheManager.builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
+        return RedisCacheManager.builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
                 .withCacheConfiguration("idempotency_cache", idempotencyConfig)
                 .withCacheConfiguration("resume_cache", resumeCacheConfig)
                 .withCacheConfiguration("search_cache", searchResultsCacheConfig)
