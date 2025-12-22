@@ -58,7 +58,7 @@ public class ResumeService {
 
     public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,
                                                         ResumeSpecsForm specsForm){
-        UserProfile getProfile = authenticatedUser.getProfile();
+        UserProfile getProfile = authenticatedUser.getUserProfile();
 
         ResumeSearchConfiguration newConfiguration = new ResumeSearchConfiguration(specsForm);
         newConfiguration.setAssociatedProfile(getProfile);
@@ -245,7 +245,7 @@ public class ResumeService {
     {
         Resume associatedResume = findByUserIndex(authenticatedUser, resumeID);
 
-        Header header = authenticatedUser.getProfile().getHeader();
+        Header header = authenticatedUser.getUserProfile().getHeader();
         if(header== null){
             throw new PrefillException("Your profile does not have a header set");
         }
@@ -258,7 +258,7 @@ public class ResumeService {
     {
         Resume associatedResume = findByUserIndex(authenticatedUser, resumeID);
 
-        Education education = authenticatedUser.getProfile().getEducation();
+        Education education = authenticatedUser.getUserProfile().getEducation();
         if(education == null){
             throw new PrefillException("Your profile does not have an education set");
         }
@@ -271,7 +271,7 @@ public class ResumeService {
     public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser){
 
         Resume associatedResume = findByUserIndex(authenticatedUser, resumeID);
-        List<Experience> experienceList = authenticatedUser.getProfile().getExperienceList();
+        List<Experience> experienceList = authenticatedUser.getUserProfile().getExperienceList();
         if(experienceList == null){
             throw new PrefillException("Your profile does not have experiences set");
         }

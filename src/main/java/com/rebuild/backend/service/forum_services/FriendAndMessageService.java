@@ -18,7 +18,6 @@ import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.RabbitProducingService;
 import org.springframework.batch.core.job.Job;
-import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.job.parameters.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobOperator;
@@ -33,8 +32,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -178,7 +175,7 @@ public class FriendAndMessageService {
         }
 
         //If the recipient has not selected the setting, just send the message with the content.
-        if(!recipient.getProfile().isMessagesFromFriendsOnly())
+        if(!recipient.getUserProfile().isMessagesFromFriendsOnly())
         {
             return createNewMessage(sender, recipient, messageContent);
         }

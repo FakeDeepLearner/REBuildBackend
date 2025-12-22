@@ -47,7 +47,7 @@ public class ProfileService {
     @Transactional
     public UserProfile createFullProfileFor(FullInformationForm profileForm, User updatingUser,
                                             MultipartFile pictureFile, boolean messagesFromFriends) throws IOException {
-        UserProfile updatedProfile = getUserProfile(updatingUser.getProfile(), profileForm, pictureFile,
+        UserProfile updatedProfile = getUserProfile(updatingUser.getUserProfile(), profileForm, pictureFile,
                 messagesFromFriends);
         return profileRepository.save(updatedProfile);
     }

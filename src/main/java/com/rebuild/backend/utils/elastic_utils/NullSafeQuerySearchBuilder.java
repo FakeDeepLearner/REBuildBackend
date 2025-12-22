@@ -26,24 +26,27 @@ public class NullSafeQuerySearchBuilder {
         return this;
     }
 
-    public NullSafeQuerySearchBuilder nullSafeRangeMatch(String attribute,
-                                                         Object filterValue, boolean atLeast)
+    public NullSafeQuerySearchBuilder atLeast(String attribute, Object filterValue)
     {
         if (filterValue != null)
         {
-            if (atLeast) {
-                booleanPredicateClausesStep.filter(searchPredicateFactory.range().
-                        field(attribute).atLeast(filterValue));
-            }
-            else{
-                booleanPredicateClausesStep.filter(searchPredicateFactory.range().
-                        field(attribute).atMost(filterValue));
-            }
+            booleanPredicateClausesStep.filter(searchPredicateFactory.range().
+            field(attribute).atLeast(filterValue));
         }
         return this;
     }
 
-    public BooleanPredicateClausesStep<?, ?> obtain()
+    public NullSafeQuerySearchBuilder atMost(String attribute, Object filterValue)
+    {
+        if (filterValue != null)
+        {
+            booleanPredicateClausesStep.filter(searchPredicateFactory.range().
+                    field(attribute).atMost(filterValue));
+        }
+        return this;
+    }
+
+    public BooleanPredicateClausesStep<?, ?> getResult()
     {
         return booleanPredicateClausesStep;
     }

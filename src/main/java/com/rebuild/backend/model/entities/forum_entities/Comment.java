@@ -63,13 +63,4 @@ public class Comment {
 
     @Column(name = "likes_count", nullable = false)
     private int likeCount = 0;
-
-    @Column(name = "author_name")
-    private String authorUsername;
-
-    @JsonGetter(value = "authorUsername")
-    private String determineAuthorName()
-    {
-        return authorUsername != null ? authorUsername : "Anonymous";
-    }
 }

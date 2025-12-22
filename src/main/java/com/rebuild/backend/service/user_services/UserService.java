@@ -1,10 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
-import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
@@ -19,12 +16,9 @@ import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
-import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
-import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.token_services.OTPService;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
-import com.sendgrid.SendGrid;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
@@ -45,17 +39,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -254,14 +243,21 @@ public class UserService{
 
     @Transactional
     public User createNewUser(SignupForm signupForm, MultipartFile pictureFile) throws IOException {
+        String generatedBackupForumName = "Anonymous#" + UUID.randomUUID().toString().substring(0, 8);
         String generatedSalt = generateSaltValue();
         String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         User newUser = new User(encodedPassword, signupForm.email(),
-                signupForm.phoneNumber(), signupForm.forumUsername(), generatedSalt);
+                signupForm.phoneNumber(), generatedSalt);
+
+        if (signupForm.forumUsername() != null) {
+            newUser.setForumUsername(signupForm.forumUsername());
+        }
+
+        newUser.setBackupForumUsername(generatedBackupForumName);
 
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
-        newUser.setProfile(newUserProfile);
+        newUser.setUserProfile(newUserProfile);
         newUserProfile.setUser(newUser);
         Inbox newInbox = new Inbox(newUser);
         newUser.setInbox(newInbox);
@@ -304,7 +300,7 @@ public class UserService{
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
-        UserProfile profile = user.getProfile();
+        UserProfile profile = user.getUserProfile();
         Page<Resume> foundPage = resumeRepository.findAll(request);
 
         return new HomePageData(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
@@ -318,7 +314,7 @@ public class UserService{
             SearchResultDTO searchResult = elasticSearchService.getFromCache(searchToken);
             if (searchResult != null)
             {
-                UserProfile profile = user.getProfile();
+                UserProfile profile = user.getUserProfile();
                 List<UUID> matchedResults = searchResult.results();
 
                 int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
@@ -341,7 +337,7 @@ public class UserService{
 
     public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm,
                                                 User user, int pageNumber, int pageSize){
-        UserProfile profile = user.getProfile();
+        UserProfile profile = user.getUserProfile();
         SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm);
 
         List<UUID> matchedResults = resultDTO.results();

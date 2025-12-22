@@ -46,13 +46,10 @@ public class ForumPost {
     @FullTextField(searchable = Searchable.YES)
     private String content;
 
-    @Column(name = "author_name")
-    private String authorUsername;
-
     @OneToMany(mappedBy = "associatedPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostResume> resumes;
 
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @JsonIgnore
     private User creatingUser;
 
@@ -63,7 +60,7 @@ public class ForumPost {
     private Instant lastModificationDate = Instant.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},
-            mappedBy = "associatedPost", fetch = FetchType.LAZY)
+            mappedBy = "associatedPost")
     @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
 
@@ -72,12 +69,5 @@ public class ForumPost {
 
     @Column(name = "comments_count", nullable = false)
     private int commentCount = 0;
-
-
-    @JsonGetter(value = "authorUsername")
-    private String determineAuthorName()
-    {
-        return authorUsername != null ? authorUsername : "Anonymous";
-    }
 
 }

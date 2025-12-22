@@ -40,7 +40,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -88,9 +87,7 @@ public class ForumPostAndCommentService {
     @Transactional
     public ForumPost createNewPost(NewPostForm postForm,
                                    User creatingUser, List<MultipartFile> resumeFiles){
-        String displayedUsername = determineDisplayedUsername(creatingUser, postForm.remainAnonymous());
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
-        newPost.setAuthorUsername(displayedUsername);
         List<PostResume> resumes = resumeRepository.findAllById(postForm.resumeIDs()).stream()
                         .map(PostResume::new).
                         peek(postResume -> postResume.setAssociatedPost(newPost)).
@@ -114,11 +111,9 @@ public class ForumPostAndCommentService {
 
     @Transactional
     public Comment makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
-        String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
         ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
         post.setCommentCount(post.getCommentCount() + 1);
         Comment newComment = new Comment(commentForm.content());
-        newComment.setAuthorUsername(displayedUsername);
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
         newComment.setParent(null);
@@ -130,7 +125,7 @@ public class ForumPostAndCommentService {
 
     @Transactional
     public PostSearchConfiguration createSearchConfig(User creatingUser, ForumSpecsForm forumSpecsForm){
-        UserProfile profile = creatingUser.getProfile();
+        UserProfile profile = creatingUser.getUserProfile();
         PostSearchConfiguration searchConfig = new PostSearchConfiguration(forumSpecsForm);
         searchConfig.setAssociatedProfile(profile);
         profile.addPostSearchConfig(searchConfig);
@@ -141,12 +136,10 @@ public class ForumPostAndCommentService {
     @Transactional
     public Comment createReplyTo(UUID parent_comment_id, User creatingUser,
                                       CommentForm commentForm){
-        String displayedUsername = determineDisplayedUsername(creatingUser, commentForm.remainAnonymous());
         Comment parentComment = commentRepository.findById(parent_comment_id).
                 orElseThrow(RuntimeException::new);
 
         Comment newComment = new Comment(commentForm.content());
-        newComment.setAuthorUsername(displayedUsername);
         newComment.setAuthor(creatingUser);
         newComment.setAssociatedPost(parentComment.getAssociatedPost());
         newComment.setParent(parentComment);
@@ -154,18 +147,6 @@ public class ForumPostAndCommentService {
 
 
         return commentRepository.save(newComment);
-    }
-
-    private String determineDisplayedUsername(User creatingUser, boolean anonymity){
-        return anonymity ? null : creatingUser.getForumUsername();
-    }
-
-    public boolean postBelongsToUser(UUID postID, UUID userID){
-        return postRepository.countByIdAndUserId(postID, userID) > 0;
-    }
-
-    public boolean commentBelongsToUser(UUID commentID, UUID userID){
-        return commentRepository.countByIdAndUserId(commentID, userID) > 0;
     }
 
     private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize, UserProfile profile)
@@ -181,7 +162,7 @@ public class ForumPostAndCommentService {
 
     public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, String searchToken, User user)
     {
-        UserProfile profile = user.getProfile();
+        UserProfile profile = user.getUserProfile();
         if (searchToken != null)
         {
             SearchResultDTO searchResult = searchService.getFromCache(searchToken);
@@ -211,7 +192,7 @@ public class ForumPostAndCommentService {
                                                 ForumSpecsForm forumSpecsForm,
                                                 User user)
     {
-        UserProfile profile = user.getProfile();
+        UserProfile profile = user.getUserProfile();
         SearchResultDTO resultDTO = searchService.executeSearch(forumSpecsForm);
 
         List<UUID> matchedResults = resultDTO.results();
@@ -230,10 +211,10 @@ public class ForumPostAndCommentService {
     public PostDisplayDTO loadPost(UUID postID){
         ForumPost forumPost = postRepository.findById(postID).orElseThrow(RuntimeException::new);
 
-        List<CommentDisplayDTO> displayedComments = forumPost.getComments().
-                stream().map(this::getCommentInfo).toList();
+        List<CommentDisplayDTO> displayedComments = postRepository.loadCommentsById(postID);
 
-        return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(), forumPost.getAuthorUsername(),
+        return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(),
+                forumPost.getCreatingUser().getForumUsername(),
                 forumPost.getResumes(),
                 displayedComments);
 
@@ -242,15 +223,7 @@ public class ForumPostAndCommentService {
 
     public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id)
     {
-        List<Comment> replies = commentRepository.findByParentIdOrderByCreationDateAsc(parent_id);
-
-        return replies.stream().map(this::getCommentInfo).toList();
-    }
-
-
-    private CommentDisplayDTO getCommentInfo(Comment comment){
-        return new CommentDisplayDTO(comment.getId(), comment.getContent(),
-                comment.getAuthorUsername(), comment.getRepliesCount());
+        return commentRepository.loadParentCommentInfo(parent_id);
     }
 
 

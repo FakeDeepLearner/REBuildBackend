@@ -9,7 +9,6 @@ import com.rebuild.backend.utils.elastic_utils.NullSafeQuerySearchBuilder;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Service;
 
@@ -78,11 +77,9 @@ public class ElasticSearchService {
                         nullSafeMatch("experiences.companyName", specsForm.companyContains()).
                         nullSafeMatch("experiences.technologyList", specsForm.technologyListContains()).
                         nullSafeMatch("experiences.bullets", specsForm.bulletsContains()).
-                        nullSafeRangeMatch("creationTime",
-                                Instant.parse(specsForm.creationAfterCutoff()), true).
-                        nullSafeRangeMatch("creationTime",
-                                Instant.parse(specsForm.creationBeforeCutoff()), false).
-                        obtain()
+                        atLeast("creationTime", Instant.parse(specsForm.creationAfterCutoff())).
+                        atMost("creationTime", Instant.parse(specsForm.creationBeforeCutoff())).
+                        getResult()
                 )
                 .sort(f -> f.composite(
                         composite -> {
@@ -105,11 +102,9 @@ public class ElasticSearchService {
                 .where(f -> new NullSafeQuerySearchBuilder(f).
                         nullSafeMatch("title", forumSpecsForm.titleContains()).
                         nullSafeMatch("content", forumSpecsForm.bodyContains()).
-                        nullSafeRangeMatch("creationDate",
-                                Instant.parse(forumSpecsForm.postAfterCutoff()), true).
-                        nullSafeRangeMatch("creationDate",
-                                Instant.parse(forumSpecsForm.postBeforeCutoff()), false).
-                        obtain()
+                        atLeast("creationDate", Instant.parse(forumSpecsForm.postAfterCutoff())).
+                        atMost("creationDate", Instant.parse(forumSpecsForm.postBeforeCutoff())).
+                        getResult()
 
                 )
                 .sort(f -> f.composite(
@@ -149,6 +144,6 @@ public class ElasticSearchService {
         return searchSession.search(ForumPost.class)
                 .select(f -> f.id(UUID.class)).
                 where(f -> new NullSafeQuerySearchBuilder(f)
-                        .nullSafeMatch("forumUsername", exampleName).obtain()).fetchAllHits();
+                        .nullSafeMatch("forumUsername", exampleName).getResult()).fetchAllHits();
     }
 }

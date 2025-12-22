@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableCaching
 @EnableWebSecurity
 @EnableMethodSecurity
-@ConfigurationPropertiesScan
 @EnableScheduling
 @EnableJpaRepositories
 @EnableJpaAuditing

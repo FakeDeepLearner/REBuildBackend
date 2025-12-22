@@ -80,7 +80,7 @@ public class User implements UserDetails, OidcUser {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
     })
     @JsonIgnore
-    private UserProfile profile;
+    private UserProfile userProfile;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
     cascade = {
@@ -91,10 +91,14 @@ public class User implements UserDetails, OidcUser {
     @OrderColumn(name = "insertion_order")
     private List<Resume> resumes = new ArrayList<>();
 
-    @Convert(converter = DatabaseEncryptor.class)
-    @Column(name = "forum_username", nullable = false)
+
+    @Column(name = "forum_username")
     @FullTextField
     private String forumUsername;
+
+
+    @Column(name = "backup_forum_username", nullable = false)
+    private String backupForumUsername;
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
@@ -141,12 +145,10 @@ public class User implements UserDetails, OidcUser {
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
                 String phoneNumber,
-                String forumUsername,
                 @NonNull String saltValue) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.forumUsername = forumUsername;
         this.saltValue = saltValue;
     }
 
