@@ -69,13 +69,6 @@ public class User implements UserDetails, OidcUser {
     @Column(name = "salt_value", nullable = false, unique = true)
     private String saltValue;
 
-    @OneToOne(orphanRemoval = true, mappedBy = "associatedUser",
-    cascade = {
-            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
-    })
-    @JsonIgnore
-    private Inbox inbox;
-
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
     })
@@ -232,5 +225,11 @@ public class User implements UserDetails, OidcUser {
     @Override
     public String getName() {
         return id.toString();
+    }
+
+
+    public String getForumUsername() {
+        if  (forumUsername == null) return backupForumUsername;
+        return forumUsername;
     }
 }

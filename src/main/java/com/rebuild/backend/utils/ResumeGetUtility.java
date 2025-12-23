@@ -27,5 +27,12 @@ public class ResumeGetUtility {
         );
     }
 
+    @Cacheable(cacheManager = "cacheManager", value = "resume_cache", key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
+    public Resume findByUserAndIdWithExtraInfo(User searchingUser, UUID resumeId){
+        return resumeRepository.findByIdAndUserWithOtherData(resumeId, searchingUser).orElseThrow(
+                () -> new BelongingException("Resume either does not exist or does not belong to you.")
+        );
+    }
+
 
 }

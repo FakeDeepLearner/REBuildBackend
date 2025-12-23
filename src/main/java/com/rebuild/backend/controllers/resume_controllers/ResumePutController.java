@@ -70,7 +70,7 @@ public class ResumePutController {
     public Resume updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
                                    @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {
-        Resume associatedResume = resumeService.findByUserIndex(user, resume_id);
+        Resume associatedResume = resumeService.findByUserAndResumeId(user, resume_id);
         return resumeService.fullUpdate(associatedResume, fullInformationForm);
 
     }

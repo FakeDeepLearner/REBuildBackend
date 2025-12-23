@@ -1,7 +1,5 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.users.Inbox;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -40,10 +38,5 @@ public class FriendRequest {
     @NonNull
     private User recipient;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "inbox_id", referencedColumnName = "id", nullable = false)
-    @NonNull
-    private Inbox associatedInbox;
 }
 

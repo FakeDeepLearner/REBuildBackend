@@ -57,7 +57,9 @@ public class FriendAndMessageService {
     @Autowired
     public FriendAndMessageService(JobOperator jobOperator, UserRepository userRepository,
                                    FriendRelationshipRepository friendRelationshipRepository,
-                                   ChatRepository chatRepository, MessageRepository messageRepository, ProfilePictureRepository profilePictureRepository, FriendRequestRepository friendRequestRepository, RabbitProducingService rabbitProducingService) {
+                                   ChatRepository chatRepository, MessageRepository messageRepository,
+                                   ProfilePictureRepository profilePictureRepository,
+                                   FriendRequestRepository friendRequestRepository, RabbitProducingService rabbitProducingService) {
         this.jobOperator = jobOperator;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
@@ -84,7 +86,7 @@ public class FriendAndMessageService {
 
         friendRequestRepository.delete(friendRequest);
 
-        return new StatusAndError(HttpStatus.OK, "You have added " + sender.getUsername() + " as a friend");
+        return new StatusAndError(HttpStatus.OK, "You have added " + sender.getForumUsername() + " as a friend");
 
     }
 
@@ -174,7 +176,8 @@ public class FriendAndMessageService {
             return createNewMessage(sender, recipient, messageContent, foundChat.get());
         }
 
-        //If the recipient has not selected the setting, just send the message with the content.
+        // If the recipient has not selected the setting, just send the message with the content,
+        // creating a chat between the users first
         if(!recipient.getUserProfile().isMessagesFromFriendsOnly())
         {
             return createNewMessage(sender, recipient, messageContent);
@@ -205,7 +208,7 @@ public class FriendAndMessageService {
                     String picture_url = profilePictureRepository.findByUserId(otherChatUser.getId()).
                             map(ProfilePicture::getSecure_url).orElse(null);
                     UUID chatId = chat.getId();
-                    String username = otherChatUser.getUsername();
+                    String username = otherChatUser.getForumUsername();
 
                     return new DisplayChatResponse(chatId, username, picture_url);
                 }).toList();
@@ -213,7 +216,7 @@ public class FriendAndMessageService {
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
     {
-        Chat chat = chatRepository.findById(chatId).orElse(null);
+        Chat chat = chatRepository.findByIdWithMessages(chatId).orElse(null);
         assert chat != null : "Chat with this ID not found";
         User receiver = chat.getReceivingUser();
         UUID userID = receiver.getId();
@@ -233,15 +236,9 @@ public class FriendAndMessageService {
         return new LoadChatResponse(userName, userID, messages, pictureUrl);
     }
 
-    public List<UsernameSearchResultDTO> loadUserInbox(User loadingUser)
+    public List<UsernameSearchResultDTO> loadUserFriendRequests(User loadingUser)
     {
-        return loadingUser.getInbox().getFriendRequests().stream()
-                .map(request -> {
-                    UUID userID = request.getSender().getId();
-                    String userName = request.getSender().getForumUsername();
-                    return new UsernameSearchResultDTO(userID, userName);
-                }).toList();
-
+        return friendRequestRepository.loadByUser(loadingUser);
     }
 
     /*

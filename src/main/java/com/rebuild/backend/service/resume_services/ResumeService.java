@@ -79,7 +79,7 @@ public class ResumeService {
 
     }
 
-    public Resume findByUserIndex(User user, UUID resumeID){
+    public Resume findByUserAndResumeId(User user, UUID resumeID){
         return getUtility.findByUserResumeId(user, resumeID);
     }
 
@@ -243,7 +243,7 @@ public class ResumeService {
 
     public Resume prefillHeader(UUID resumeID, User authenticatedUser)
     {
-        Resume associatedResume = findByUserIndex(authenticatedUser, resumeID);
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
 
         Header header = authenticatedUser.getUserProfile().getHeader();
         if(header== null){
@@ -256,8 +256,7 @@ public class ResumeService {
 
     public Resume prefillEducation(UUID resumeID, User authenticatedUser)
     {
-        Resume associatedResume = findByUserIndex(authenticatedUser, resumeID);
-
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
         Education education = authenticatedUser.getUserProfile().getEducation();
         if(education == null){
             throw new PrefillException("Your profile does not have an education set");
@@ -270,7 +269,7 @@ public class ResumeService {
 
     public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser){
 
-        Resume associatedResume = findByUserIndex(authenticatedUser, resumeID);
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
         List<Experience> experienceList = authenticatedUser.getUserProfile().getExperienceList();
         if(experienceList == null){
             throw new PrefillException("Your profile does not have experiences set");

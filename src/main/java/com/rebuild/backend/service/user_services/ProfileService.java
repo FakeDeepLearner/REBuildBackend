@@ -205,7 +205,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile deleteSpecificProfileExperience(User deletingUser, UUID profileId ,UUID experience_id){
+    public UserProfile deleteSpecificProfileExperience(User deletingUser, UUID profileId, UUID experience_id){
         UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
         profile.getExperienceList().
                 removeIf(profileExperience ->

@@ -50,11 +50,12 @@ public class ResumeVersioningService {
     @Transactional
     public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionCreationForm inclusionForm){
         Resume copiedResume = getUtility.findByUserResumeId(user, resumeId);
-        ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
-        int currentVersionCount = copiedResume.getVersionCount();
-        if(currentVersionCount < Resume.MAX_VERSION_COUNT){
-            copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
+        if (copiedResume.getVersionCount() >= Resume.MAX_VERSION_COUNT)
+        {
+            return null;
         }
+        ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
+        copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
         return versionRepository.save(newVersion);
     }
 
@@ -62,7 +63,7 @@ public class ResumeVersioningService {
     public Resume switchToAnotherVersion(User user,
                                          UUID resumeId, UUID versionId,
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
-        Resume switchingResume = getUtility.findByUserResumeId(user, resumeId);
+        Resume switchingResume = getUtility.findByUserAndIdWithExtraInfo(user, resumeId);
 
         ResumeVersion versionToSwitch = findByResumeAndVersionId(versionId, switchingResume);
         handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
@@ -73,8 +74,8 @@ public class ResumeVersioningService {
 
     private void handleVersionSwitch(Resume resume, ResumeVersion versionToSwitch,
                                      VersionSwitchPreferencesForm preferencesForm){
-        if(versionToSwitch.getVersionedName() != null){
-            String tempName =  resume.getName();
+        if(versionToSwitch.getVersionedName() != null && preferencesForm.includeName()){
+            String tempName = resume.getName();
             resume.setName(versionToSwitch.getVersionedName());
             versionToSwitch.setVersionedName(tempName);
         }
@@ -99,20 +100,24 @@ public class ResumeVersioningService {
 
     private List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch,
                                                    boolean makeCopies, List<UUID> identifiersToSelect){
+
         if (!makeCopies) {
             List<Experience> oldResumeExperiences = resume.getExperiences();
 
-            List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
+            List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences().stream().
+                    filter(experience -> identifiersToSelect.contains(experience.getId())).toList();
+
             versionToSwitch.setVersionedExperiences(oldResumeExperiences);
             return versionedExperiences;
         }
         else
         {
             List<Experience> versionedExperiences = versionToSwitch.getVersionedExperiences();
-            Set<UUID> convertedSet = new HashSet<>(identifiersToSelect);
 
             return versionedExperiences.stream().
-                    filter(experience -> convertedSet.contains(experience.getId())).toList();
+                    filter(experience -> identifiersToSelect.contains(experience.getId())).
+                    map(Experience::copy)
+                    .toList();
         }
     }
 
@@ -135,6 +140,7 @@ public class ResumeVersioningService {
             versionToSwitch.setVersionedEducation(Education.copy(oldResumeEducation));
             return versionedEducation;
         }
+        //If we instead want to make copies, we just make a copy of the versioned education and return it.
         else
         {
             return Education.copy(versionToSwitch.getVersionedEducation());

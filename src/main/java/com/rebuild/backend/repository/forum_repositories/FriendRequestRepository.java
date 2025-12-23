@@ -3,6 +3,7 @@ package com.rebuild.backend.repository.forum_repositories;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +21,14 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
     Optional<FriendRequest> findByTwoUsers(User user1, User user2);
 
     Optional<FriendRequest> findByIdAndRecipient(UUID id, User recipient);
+
+
+    @Query(value = """
+            SELECT NEW com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO(
+            s.id, COALESCE(s.forumUsername, s.backupForumUsername))
+            FROM FriendRequest f
+            JOIN f.sender s
+            WHERE f.recipient=?1
+           """)
+    List<UsernameSearchResultDTO> loadByUser(User user);
 }

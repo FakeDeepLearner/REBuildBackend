@@ -85,7 +85,7 @@ public class HomePageController {
     @ResponseStatus(HttpStatus.OK)
     public Resume getResume(@AuthenticationPrincipal User user,
                             @PathVariable UUID resume_id){
-        return resumeService.findByUserIndex(user, resume_id);
+        return resumeService.findByUserAndResumeId(user, resume_id);
     }
 
     @PostMapping("/search")
@@ -161,10 +161,10 @@ public class HomePageController {
         return null;
     }
 
-    @GetMapping("/get_inbox")
+    @GetMapping("/friends")
     @ResponseStatus(OK)
-    public List<UsernameSearchResultDTO> getInbox(@AuthenticationPrincipal User authenticatedUser) {
-        return friendAndMessageService.loadUserInbox(authenticatedUser);
+    public List<UsernameSearchResultDTO> loadFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
+        return friendAndMessageService.loadUserFriendRequests(authenticatedUser);
     }
 
 }

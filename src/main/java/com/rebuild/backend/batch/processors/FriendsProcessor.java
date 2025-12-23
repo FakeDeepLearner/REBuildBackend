@@ -26,9 +26,6 @@ public class FriendsProcessor implements ItemProcessor<FriendRequestDTO, FriendR
             return null;
         }
 
-        FriendRequest newRequest = new FriendRequest(item.sender(), foundUser, foundUser.getInbox());
-        foundUser.getInbox().addFriendRequest(newRequest);
-
-        return newRequest;
+        return new FriendRequest(item.sender(), foundUser);
     }
 }

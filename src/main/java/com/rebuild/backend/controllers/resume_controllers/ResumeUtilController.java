@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import java.time.LocalDateTime;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -86,7 +86,7 @@ public class ResumeUtilController {
                                                        @RequestBody boolean includeMetadata) {
         String resumeMetadata = "";
 
-        Resume downloadingResume = resumeService.findByUserIndex(user, resume_id);
+        Resume downloadingResume = resumeService.findByUserAndResumeId(user, resume_id);
         if (includeMetadata) {
             resumeMetadata = "METADATA: \n" + "\tTime Created: " + downloadingResume.getCreationTime()
                     + "\n\tLast Modified Time: " + downloadingResume.getLastModifiedTime();

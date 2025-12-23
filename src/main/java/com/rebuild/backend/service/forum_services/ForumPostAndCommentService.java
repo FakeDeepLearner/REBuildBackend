@@ -88,7 +88,7 @@ public class ForumPostAndCommentService {
     public ForumPost createNewPost(NewPostForm postForm,
                                    User creatingUser, List<MultipartFile> resumeFiles){
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
-        List<PostResume> resumes = resumeRepository.findAllById(postForm.resumeIDs()).stream()
+        List<PostResume> resumes = resumeRepository.findAllByIdWithOtherData(postForm.resumeIDs()).stream()
                         .map(PostResume::new).
                         peek(postResume -> postResume.setAssociatedPost(newPost)).
                 toList();

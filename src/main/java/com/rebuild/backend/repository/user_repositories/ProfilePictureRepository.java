@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public interface ProfilePictureRepository extends JpaRepository<ProfilePicture, UUID> {
 
-    void deleteProfilePictureByAsset_id(String asset_id);
 
     void deleteProfilePictureByPublic_id(String public_id);
 

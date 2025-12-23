@@ -5,7 +5,6 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Frie
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
-import com.rebuild.backend.model.entities.users.Inbox;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
@@ -101,31 +100,15 @@ public class UserService{
         this.friendRelationshipRepository = friendRelationshipRepository;
     }
 
-    public void invalidateAllSessions(String username){
-        List<SessionInformation> allSessions = sessionRegistry.getAllSessions(username, false);
-        if (allSessions != null) {
-            allSessions.forEach(SessionInformation::expireNow);
-        }
-    }
-
     public Optional<User> findByEmailOrPhone(String emailOrPhone)
     {
         if(emailOrPhone.contains("@"))
         {
-            return findByEmail(emailOrPhone);
+            return repository.findByEmail(emailOrPhone);
         }
         else {
             return repository.findByPhoneNumber(emailOrPhone);
         }
-    }
-
-    public Optional<User> findByEmail(String email){
-        return repository.findByEmail(email);
-    }
-
-
-    public User findByEmailNoOptional(String email){
-        return findByEmail(email).orElse(null);
     }
 
 
@@ -231,7 +214,7 @@ public class UserService{
     @Transactional
     public void removePhoneOf(User deletingUser){
         deletingUser.setPhoneNumber(null);
-        save(deletingUser);
+        repository.save(deletingUser);
     }
 
     private String generateSaltValue(){
@@ -259,23 +242,16 @@ public class UserService{
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
         newUser.setUserProfile(newUserProfile);
         newUserProfile.setUser(newUser);
-        Inbox newInbox = new Inbox(newUser);
-        newUser.setInbox(newInbox);
 
-        return save(newUser);
+        return repository.save(newUser);
     }
 
-    public UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
+    private UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
 
         UserProfile newProfile = new UserProfile();
         newProfile.setUser(newUser);
 
         return profileService.modifyProfilePictureOf(newUser, newProfile.getId(), pictureFile);
-    }
-
-    @Transactional
-    public User save(User user){
-        return repository.save(user);
     }
 
     @Transactional
@@ -285,13 +261,13 @@ public class UserService{
         assert userToUnlock != null;
 
         userToUnlock.setLastLoginTime(Instant.now());
-        save(userToUnlock);
+        repository.save(userToUnlock);
     }
 
     @Transactional
     public User modifyForumUsername(User modifyingUser, String newUsername){
         modifyingUser.setForumUsername(newUsername);
-        return save(modifyingUser);
+        return repository.save(modifyingUser);
 
     }
 
@@ -358,12 +334,5 @@ public class UserService{
     }
 
 
-    //Friendship is symmetric, so it doesn't matter for this method who the users are
-    public void addFriend(User sender, User recipient)
-    {
-        FriendRelationship friendRelationship = new FriendRelationship(sender, recipient);
-
-        friendRelationshipRepository.save(friendRelationship);
-    }
 
 }
