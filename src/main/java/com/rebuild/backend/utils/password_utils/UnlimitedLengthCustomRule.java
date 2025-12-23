@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.constraints.password.rules;
+package com.rebuild.backend.utils.password_utils;
 
 import org.passay.LengthRule;
 import org.passay.PasswordData;

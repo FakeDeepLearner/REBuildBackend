@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
@@ -100,13 +101,18 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public void deletePost(UUID postID){
-        postRepository.deleteById(postID);
+    public void deletePost(UUID postID, User deletingUser){
+        ForumPost postToDelete = postRepository.findByIdAndCreatingUser(postID, deletingUser).
+                orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
+        postRepository.delete(postToDelete);
     }
 
     @Transactional
-    public void deleteComment(UUID commentID){
-        commentRepository.deleteById(commentID);
+    public void deleteComment(UUID commentID, User deletingUser){
+        Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
+                () -> new BelongingException("This comment does not belong to you")
+        );
+        commentRepository.delete(commentToDelete);
     }
 
     @Transactional

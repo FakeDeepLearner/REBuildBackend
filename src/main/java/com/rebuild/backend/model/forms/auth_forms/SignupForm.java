@@ -1,11 +1,9 @@
 package com.rebuild.backend.model.forms.auth_forms;
 
-import com.rebuild.backend.model.constraints.password.constraints_and_validators.NoEmailInPasswordConstraint;
-import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordStrengthConstraint;
+import com.rebuild.backend.utils.password_utils.PasswordStrengthConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-@NoEmailInPasswordConstraint
 public record SignupForm(
                          @Email(message = "Must be a valid email")
                          @NotBlank(message = "Email is required")

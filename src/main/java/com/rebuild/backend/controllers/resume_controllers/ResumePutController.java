@@ -32,35 +32,29 @@ public class ResumePutController {
     }
 
     @PutMapping("/header/{resume_id}/{header_id}")
-    public ResponseEntity<Header> modifyHeader(@Valid @RequestBody HeaderForm headerForm,
+    public Header modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                                @AuthenticationPrincipal User user,
                                                @PathVariable UUID header_id, @PathVariable UUID resume_id){
-        Header changedHeader = resumeService.changeHeaderInfo(headerForm, header_id, resume_id, user);
-        return ResponseEntity.ok(changedHeader);
+        return resumeService.changeHeaderInfo(headerForm, header_id, resume_id, user);
 
     }
 
     @PutMapping("/experience/{resume_id}/{experience_id}")
-    public ResponseEntity<Experience> modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
+    public Experience modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                        @AuthenticationPrincipal User user,
                                                        @PathVariable UUID experience_id, @PathVariable UUID resume_id){
 
-        Experience changedExperience = resumeService.changeExperienceInfo(experienceForm, experience_id,
-                resume_id,
-                    user);
-        return ResponseEntity.ok(changedExperience);
-
-
+        return resumeService.changeExperienceInfo(experienceForm, experience_id,
+                resume_id, user);
     }
 
     @PutMapping("/education/{resume_id}/{education_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Education> modifyEducation(@Valid @RequestBody EducationForm educationForm,
+    public Education modifyEducation(@Valid @RequestBody EducationForm educationForm,
                                                      @AuthenticationPrincipal User user,
                                                      @PathVariable UUID education_id, @PathVariable UUID resume_id){
-        Education changedEducation = resumeService.changeEducationInfo(educationForm,
+        return resumeService.changeEducationInfo(educationForm,
                 education_id, resume_id, user);
-        return ResponseEntity.ok(changedEducation);
 
     }
 

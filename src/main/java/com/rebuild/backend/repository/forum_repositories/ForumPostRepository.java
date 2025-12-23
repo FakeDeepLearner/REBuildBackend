@@ -1,6 +1,7 @@
 package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
@@ -36,4 +37,6 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
     @NonNull
     Page<ForumPost> findAll(@NonNull Pageable pageable);
+
+    Optional<ForumPost> findByIdAndCreatingUser(UUID id, User creatingUser);
 }

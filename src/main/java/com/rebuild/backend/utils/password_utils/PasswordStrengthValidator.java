@@ -1,6 +1,5 @@
-package com.rebuild.backend.model.constraints.password.constraints_and_validators;
+package com.rebuild.backend.utils.password_utils;
 
-import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordStrengthConstraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.passay.PasswordData;

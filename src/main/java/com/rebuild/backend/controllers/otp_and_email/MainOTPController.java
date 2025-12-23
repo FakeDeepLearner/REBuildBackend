@@ -43,6 +43,11 @@ public class MainOTPController {
     @PostMapping("/verify/new_email")
     public ResponseEntity<String> validateOTPForNewEmail(@RequestBody EmailChangeForm emailChangeForm,
                                                  @AuthenticationPrincipal User changingUser){
+
+        if (!emailChangeForm.newEmail().equals(emailChangeForm.newEmailConfirmation()))
+        {
+            return ResponseEntity.badRequest().body("The provided emails do not match");
+        }
         VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.getPhoneNumber(),
                 emailChangeForm.enteredOTP());
 
@@ -82,6 +87,11 @@ public class MainOTPController {
     @PostMapping("/verify/new_password")
     public ResponseEntity<String> validateOTPForNewPassword(@RequestBody PasswordResetForm passwordResetForm,
                                        @AuthenticationPrincipal User changingUser){
+
+        if (!passwordResetForm.newPassword().equals(passwordResetForm.confirmNewPassword()))
+        {
+            return ResponseEntity.badRequest().body("The provided passwords do not match");
+        }
         VerificationCheck verificationCheck = otpService.validateEnteredOTP(changingUser.getPhoneNumber(),
                 passwordResetForm.enteredOTP());
 

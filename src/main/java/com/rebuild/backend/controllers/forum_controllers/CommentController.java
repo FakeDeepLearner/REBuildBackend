@@ -52,7 +52,7 @@ public class CommentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable UUID comment_id,
                               @AuthenticationPrincipal User deletingUser){
-        forumPostAndCommentService.deleteComment(comment_id);
+        forumPostAndCommentService.deleteComment(comment_id, deletingUser);
     }
 
 }

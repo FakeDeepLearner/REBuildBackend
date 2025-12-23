@@ -1,7 +1,7 @@
 package com.rebuild.backend.config.other;
 
-import com.rebuild.backend.model.constraints.password.rules.IllegalWhitespacesRule;
-import com.rebuild.backend.model.constraints.password.rules.UnlimitedLengthCustomRule;
+import com.rebuild.backend.utils.password_utils.IllegalWhitespacesRule;
+import com.rebuild.backend.utils.password_utils.UnlimitedLengthCustomRule;
 import com.rebuild.backend.utils.password_utils.PasswordMessageResolver;
 import com.rebuild.backend.utils.password_utils.PasswordProps;
 import org.passay.*;

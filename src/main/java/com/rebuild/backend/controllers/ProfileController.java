@@ -129,7 +129,8 @@ public class ProfileController {
         }
 
         catch (IOException ioException) {
-            return ResponseEntity.internalServerError().body("An unexpected error occured:\n " + ioException.getMessage());
+            return ResponseEntity.internalServerError().body("An unexpected error occurred:\n " +
+                    ioException.getMessage());
         }
     }
 

@@ -1,9 +1,7 @@
 package com.rebuild.backend.model.forms.auth_forms;
 
-import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordStrengthConstraint;
-import com.rebuild.backend.model.constraints.password.constraints_and_validators.PasswordsMatchConstraint;
+import com.rebuild.backend.utils.password_utils.PasswordStrengthConstraint;
 
-@PasswordsMatchConstraint
 public record PasswordResetForm(
                                 @PasswordStrengthConstraint
                                 String newPassword,

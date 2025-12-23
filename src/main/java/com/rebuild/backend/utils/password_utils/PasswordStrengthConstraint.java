@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.constraints.email;
+package com.rebuild.backend.utils.password_utils;
 
 import jakarta.validation.Constraint;
 
@@ -8,9 +8,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-@Constraint(validatedBy = EmailMatchValidator.class)
-public @interface EmailMatchConstraint {
+@Target({ElementType.FIELD})
+@Constraint(validatedBy = PasswordStrengthValidator.class)
+public @interface PasswordStrengthConstraint {
 
-    String message() default "The emails provided must match";
 }

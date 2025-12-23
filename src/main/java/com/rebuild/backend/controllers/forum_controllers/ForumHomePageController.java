@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
@@ -51,18 +52,21 @@ public class ForumHomePageController {
     }
 
     @PostMapping("/username_search")
-    public UsernameSearchResponse searchUsernames(@RequestParam String username)
+    public UsernameSearchResponse searchUsernames(@RequestBody String username)
     {
         return postAndCommentService.getUsernameSearchResults(username);
     }
 
-    @PostMapping("/get_posts/configuration/{config_id}")
+    @GetMapping("/get_posts/configuration/{config_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getPosts(@AuthenticationPrincipal User user,
                                            @PathVariable UUID config_id) {
         try {
 
-            PostSearchConfiguration foundConfig = postSearchRepository.findById(config_id).get();
+            PostSearchConfiguration foundConfig =
+                    postSearchRepository.findByIdAndAssociatedProfileUser(config_id, user).orElseThrow(
+                            () -> new BelongingException("This configuration does not belong to you")
+                    );
 
             ForumSpecsForm craftedBody = postAndCommentService.buildSpecsFrom(foundConfig);
 

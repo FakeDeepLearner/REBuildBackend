@@ -44,6 +44,6 @@ public class PostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable UUID post_id,
                            @AuthenticationPrincipal User creatingUser) {
-        forumPostAndCommentService.deletePost(post_id);
+        forumPostAndCommentService.deletePost(post_id, creatingUser);
     }
 }
