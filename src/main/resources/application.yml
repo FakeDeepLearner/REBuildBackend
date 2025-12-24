@@ -1,11 +1,11 @@
 spring:
   profiles:
     active: "local"
-
+  config:
+    import: optional:file:.env[.properties]
 ---
 
 spring:
-  datasource:
   session:
     redis:
       flush-mode: on_save
@@ -13,13 +13,9 @@ spring:
     timeout: 30m
   cache:
     type: redis
-  thymeleaf:
-    check-template-location: false
   rabbitmq:
     host: localhost
     port: 5672
-  config:
-    import: optional:file:.env[.properties]
   jpa:
     hibernate:
       ddl-auto: update
@@ -43,9 +39,9 @@ spring:
     allow-bean-definition-overriding: true
   docker:
     compose:
-      lifecycle-management: start_only
       start:
         command: up
+      lifecycle-management: start-and-stop
   cloud:
     aws:
       s3:
