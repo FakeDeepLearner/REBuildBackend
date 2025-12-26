@@ -31,11 +31,11 @@ public class ResumePutController {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/header/{resume_id}/{header_id}")
+    @PutMapping("/header/{resume_id}/")
     public Header modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                                @AuthenticationPrincipal User user,
-                                               @PathVariable UUID header_id, @PathVariable UUID resume_id){
-        return resumeService.changeHeaderInfo(headerForm, header_id, resume_id, user);
+                                                @PathVariable UUID resume_id){
+        return resumeService.changeHeaderInfo(headerForm, resume_id, user);
 
     }
 
@@ -48,13 +48,13 @@ public class ResumePutController {
                 resume_id, user);
     }
 
-    @PutMapping("/education/{resume_id}/{education_id}")
+    @PutMapping("/education/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     public Education modifyEducation(@Valid @RequestBody EducationForm educationForm,
                                                      @AuthenticationPrincipal User user,
-                                                     @PathVariable UUID education_id, @PathVariable UUID resume_id){
+                                                     @PathVariable UUID resume_id){
         return resumeService.changeEducationInfo(educationForm,
-                education_id, resume_id, user);
+                resume_id, user);
 
     }
 
@@ -64,8 +64,7 @@ public class ResumePutController {
     public Resume updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
                                    @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {
-        Resume associatedResume = resumeService.findByUserAndResumeId(user, resume_id);
-        return resumeService.fullUpdate(associatedResume, fullInformationForm);
+        return resumeService.fullUpdate(user, resume_id, fullInformationForm);
 
     }
 }

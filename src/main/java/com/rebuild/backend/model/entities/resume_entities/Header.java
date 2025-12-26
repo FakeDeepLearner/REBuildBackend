@@ -4,6 +4,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,7 +33,7 @@ public class Header implements Serializable {
     private UUID id;
 
     @NonNull
-    @Column(nullable = false, name = "phone_number")
+    @Column(name = "phone_number")
     @Convert(converter = DatabaseEncryptor.class)
     @FullTextField(searchable = Searchable.YES)
     private String number;
@@ -54,6 +55,11 @@ public class Header implements Serializable {
     @Convert(converter = DatabaseEncryptor.class)
     @FullTextField(searchable = Searchable.YES)
     private String email;
+
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "resume_id", referencedColumnName = "id")
+    @JsonIgnore
+    private ResumeVersion version;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")

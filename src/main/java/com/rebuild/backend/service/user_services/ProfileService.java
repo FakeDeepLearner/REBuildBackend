@@ -47,17 +47,11 @@ public class ProfileService {
     @Transactional
     public UserProfile createFullProfileFor(FullInformationForm profileForm, User updatingUser,
                                             MultipartFile pictureFile, boolean messagesFromFriends) throws IOException {
-        UserProfile updatedProfile = getUserProfile(updatingUser.getUserProfile(), profileForm, pictureFile,
+        UserProfile profile = profileRepository.findByUserWithAllData(updatingUser);
+        UserProfile updatedProfile = getUserProfile(profile, profileForm, pictureFile,
                 messagesFromFriends);
         return profileRepository.save(updatedProfile);
     }
-
-    private UserProfile getProfileByIdAndUser(UUID id, User user) {
-        return profileRepository.findByIdAndUser(id, user).orElseThrow(
-                () -> new BelongingException("The profile either does not exist or does not belong to you.")
-        );
-    }
-
 
     private UserProfile getUserProfile(UserProfile profile,
                                        FullInformationForm profileForm, MultipartFile pictureFile,
@@ -70,7 +64,7 @@ public class ProfileService {
         updatedProfile.setExperienceList(experiences);
         updatedProfile.setMessagesFromFriendsOnly(messagesFromFriends);
 
-        modifyProfilePictureOf(updatedProfile.getUser(), profile.getId(), pictureFile);
+        modifyProfilePictureOf(updatedProfile.getUser(), pictureFile);
         return profileRepository.save(updatedProfile);
     }
 
@@ -117,9 +111,9 @@ public class ProfileService {
 
 
 
-    public UserProfile modifyProfilePictureOf(User chngingUser, UUID profileId, MultipartFile pictureFile) throws IOException
+    public UserProfile modifyProfilePictureOf(User chngingUser, MultipartFile pictureFile) throws IOException
     {
-        UserProfile profile = getProfileByIdAndUser(profileId, chngingUser);
+        UserProfile profile = profileRepository.findByUser(chngingUser);
         if (!pictureFile.isEmpty())
         {
             if(profile.getProfilePicture() != null)
@@ -142,26 +136,31 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile changePageSize(User changingUser, UUID profileId, int newPageSize){
-        UserProfile profile = getProfileByIdAndUser(profileId, changingUser);
+    public UserProfile changePageSize(User changingUser, int newPageSize){
+        UserProfile profile = profileRepository.findByUser(changingUser);
         profile.setForumPageSize(newPageSize);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public Header updateProfileHeader(HeaderForm headerForm, UUID header_id, UUID profile_id, User user) {
-        return modificationUtility.modifyProfileHeader(headerForm, header_id, profile_id, user);
+    public Header updateProfileHeader(HeaderForm headerForm, User user) {
+        return modificationUtility.modifyProfileHeader(headerForm, user);
     }
 
     @Transactional
-    public Education updateProfileEducation(EducationForm educationForm, UUID education_id, UUID profile_id, User user) {
-        return modificationUtility.modifyProfileEducation(educationForm, education_id, profile_id, user);
+    public Education updateProfileEducation(EducationForm educationForm, User user) {
+        return modificationUtility.modifyProfileEducation(educationForm, user);
+    }
+
+    public Experience updateProfileExperience(ExperienceForm experienceForm, User user,
+                                              UUID experienceId) {
+        return modificationUtility.modifyProfileExperience(experienceForm, experienceId, user);
     }
 
     @Transactional
-    public UserProfile updateProfileExperiences(UUID profileId, User updatingUser,
+    public UserProfile updateProfileExperiences(User updatingUser,
                                                 List<ExperienceForm> newExperiences){
-        UserProfile profile = getProfileByIdAndUser(profileId, updatingUser);
+        UserProfile profile = profileRepository.findByUser(updatingUser);
 
         List<Experience> transformedExperiences = newExperiences.stream().
                 map((rawExperienceData) -> {
@@ -178,35 +177,35 @@ public class ProfileService {
     }
 
     @Transactional
-    public void deleteProfile(User deletingUser, UUID profile_id){
-        UserProfile profile = getProfileByIdAndUser(profile_id, deletingUser);
+    public void deleteProfile(User deletingUser){
+        UserProfile profile = profileRepository.findByUser(deletingUser);
         profileRepository.delete(profile);
     }
 
     @Transactional
-    public UserProfile deleteProfileExperiences(User deletingUser, UUID profileId){
-        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
+    public UserProfile deleteProfileExperiences(User deletingUser){
+        UserProfile profile = profileRepository.findByUser(deletingUser);
         profile.setExperienceList(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public UserProfile deleteProfileEducation(User deletingUser, UUID profileId){
-        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
+    public UserProfile deleteProfileEducation(User deletingUser){
+        UserProfile profile = profileRepository.findByUser(deletingUser);
         profile.setEducation(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public UserProfile deleteProfileHeader(User deletingUser, UUID profileId){
-        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
+    public UserProfile deleteProfileHeader(User deletingUser){
+        UserProfile profile = profileRepository.findByUser(deletingUser);
         profile.setHeader(null);
         return profileRepository.save(profile);
     }
 
     @Transactional
-    public UserProfile deleteSpecificProfileExperience(User deletingUser, UUID profileId, UUID experience_id){
-        UserProfile profile = getProfileByIdAndUser(profileId, deletingUser);
+    public UserProfile deleteSpecificProfileExperience(User deletingUser, UUID experience_id){
+        UserProfile profile = profileRepository.findByUser(deletingUser);
         profile.getExperienceList().
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)

@@ -1,6 +1,5 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-import com.rebuild.backend.model.entities.resume_entities.ExperienceType;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
@@ -15,10 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -101,8 +97,11 @@ public class ResumeUtilController {
     @GetMapping("/view_experience_values")
     public Collection<String> getPossibleExperienceValues()
     {
-        return Arrays.stream(ExperienceType.values()).
-                map(ExperienceType::getStoredValue).
-                toList();
+        return Arrays.asList(
+                "Full Time", "Part Time",
+                "Casual", "Volunteer",
+                "Internship", "Contract",
+                "Freelance", "Self-Employed"
+        );
     }
 }

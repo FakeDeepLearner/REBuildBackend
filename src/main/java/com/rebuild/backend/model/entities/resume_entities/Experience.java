@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.utils.converters.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import com.rebuild.backend.utils.serializers.YearMonthSerializer;
@@ -46,7 +47,6 @@ public class Experience implements Serializable {
 
     @ElementCollection
     @CollectionTable(name = "technologies", joinColumns = @JoinColumn(name = "experience_id"))
-    @Column(nullable = false)
     @NonNull
     @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
     searchable = Searchable.YES)
@@ -82,6 +82,11 @@ public class Experience implements Serializable {
     @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
     searchable = Searchable.YES)
     private List<String> bullets;
+
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "resume_id", referencedColumnName = "id")
+    @JsonIgnore
+    private ResumeVersion version;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")

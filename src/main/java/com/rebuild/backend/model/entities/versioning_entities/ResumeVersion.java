@@ -34,15 +34,15 @@ public class ResumeVersion {
     @Column(name = "versioned_name", nullable = false)
     private String versionedName;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "version")
     @JoinColumn(name = "header_id", referencedColumnName = "id")
     private Header versionedHeader;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "version")
     @JoinColumn(name = "education_id", referencedColumnName = "id")
     private Education versionedEducation;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "version")
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> versionedExperiences;
 

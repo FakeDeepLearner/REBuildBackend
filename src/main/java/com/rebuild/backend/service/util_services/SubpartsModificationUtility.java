@@ -11,7 +11,7 @@ import com.rebuild.backend.repository.resume_repositories.EducationRepository;
 import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
 import com.rebuild.backend.repository.resume_repositories.HeaderRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
-import com.rebuild.backend.utils.ResumeGetUtility;
+import com.rebuild.backend.utils.ResumeObtainer;
 import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.cache.RedisCacheManager;
@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -35,14 +36,14 @@ public class SubpartsModificationUtility {
 
     private final ExperienceRepository experienceRepository;
 
-    private final ResumeGetUtility getUtility;
+    private final ResumeObtainer getUtility;
 
     @Autowired
     public SubpartsModificationUtility(HeaderRepository headerRepository,
                                        RedisCacheManager cacheManager, ProfileRepository profileRepository,
                                        EducationRepository educationRepository,
                                        ExperienceRepository experienceRepository,
-                                       ResumeGetUtility getUtility) {
+                                       ResumeObtainer getUtility) {
         this.headerRepository = headerRepository;
         this.cacheManager = cacheManager;
         this.profileRepository = profileRepository;
@@ -52,13 +53,11 @@ public class SubpartsModificationUtility {
     }
 
     @Transactional
-    public Header modifyResumeHeader(HeaderForm headerForm, UUID headerId,
+    public Header modifyResumeHeader(HeaderForm headerForm,
                                     UUID resumeId, User changingUser)
     {
-        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
-        Header changingHeader = headerRepository.findByIdAndResume(headerId, changingResume).orElseThrow(
-                () -> new BelongingException("The header either does not exist or does not belong to this resume.")
-        );
+        Resume changingResume = getUtility.findByUserAndIdWithExtraInfo(changingUser, resumeId);
+        Header changingHeader = changingResume.getHeader();
 
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
                 headerForm.email());
@@ -71,24 +70,25 @@ public class SubpartsModificationUtility {
     public Experience modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
                                     UUID resumeId, User changingUser)
     {
-        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
-        Experience changingExperience = experienceRepository.findByIdAndResume(experienceId, changingResume).orElseThrow(
-                () -> new BelongingException("The experience either does not exist or does not belong to this resume.")
-        );
+        Resume changingResume = getUtility.findByUserAndIdWithExtraInfo(changingUser, resumeId);
+        Optional<Experience> changingExperience = changingResume.getExperiences().stream().
+                dropWhile(experience -> experience.getId() != experienceId).findFirst();
+        
+        if (changingExperience.isEmpty()) {
+            throw new BelongingException("Experience with this id either does not exist or does not belong to this resume");
+        }
 
-        Experience newExp = modifyExperience(changingExperience, experienceForm);
+        Experience newExp = modifyExperience(changingExperience.get(), experienceForm);
         evictResumeFromCache(changingUser.getId(), resumeId);
         return newExp;
     }
 
     @Transactional
-    public Education modifyResumeEducation(EducationForm educationForm, UUID educationId,
+    public Education modifyResumeEducation(EducationForm educationForm,
                                     UUID resumeId, User changingUser)
     {
-        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
-        Education changingEducation = educationRepository.findByIdAndResume(educationId, changingResume).orElseThrow(
-                () -> new BelongingException("The education either does not exist or does not belong to this resume.")
-        );
+        Resume changingResume = getUtility.findByUserAndIdWithExtraInfo(changingUser, resumeId);
+        Education changingEducation = changingResume.getEducation();
         Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
                 educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),
                 YearMonthStringOperations.getYearMonth(educationForm.endDate()));
@@ -99,15 +99,11 @@ public class SubpartsModificationUtility {
     }
 
     @Transactional
-    public Header modifyProfileHeader(HeaderForm headerForm, UUID headerId,
-                                     UUID profileId, User changingUser)
+    public Header modifyProfileHeader(HeaderForm headerForm, User changingUser)
     {
-        UserProfile changingProfile = profileRepository.findByIdAndUser(profileId, changingUser).orElseThrow(
-                () -> new BelongingException("The profile either does not exist or does not belong to you.")
-        );
-        Header changingHeader = headerRepository.findByIdAndProfile(headerId, changingProfile).orElseThrow(
-                () -> new BelongingException("The header either does not exist or does not belong to this profile.")
-        );
+
+        UserProfile changingProfile = profileRepository.findByUserWithAllData(changingUser);
+        Header changingHeader = changingProfile.getHeader();
 
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
                 headerForm.email());
@@ -117,16 +113,10 @@ public class SubpartsModificationUtility {
     }
 
     @Transactional
-    public Education modifyProfileEducation(EducationForm educationForm, UUID educationId,
-                                     UUID profileId, User changingUser)
+    public Education modifyProfileEducation(EducationForm educationForm, User changingUser)
     {
-        UserProfile changingProfile = profileRepository.findByIdAndUser(profileId, changingUser).orElseThrow(
-                () -> new BelongingException("The profile either does not exist or does not belong to you.")
-        );
-        Education changingEducation = educationRepository.findByIdAndProfile(educationId, changingProfile).orElseThrow(
-                () -> new BelongingException("The education either does not exist or does not belong to this profile.")
-        );
-
+        UserProfile changingProfile = profileRepository.findByUserWithAllData(changingUser);
+        Education changingEducation = changingProfile.getEducation();
         Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
                 educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),
                 YearMonthStringOperations.getYearMonth(educationForm.endDate()));
@@ -135,18 +125,20 @@ public class SubpartsModificationUtility {
         return educationRepository.save(changingEducation);
     }
 
-    @Transactional
-    public Experience modifyProfileExperience(ExperienceForm experienceForm, UUID experienceId,
-                                     UUID profileId, User changingUser)
-    {
-        UserProfile changingProfile = profileRepository.findByIdAndUser(profileId, changingUser).orElseThrow(
-                () -> new BelongingException("The profile either does not exist or does not belong to you.")
-        );
-        Experience changingExperience = experienceRepository.findByIdAndProfile(experienceId, changingProfile).orElseThrow(
-                () -> new BelongingException("The experience either does not exist or does not belong to this profile.")
-        );
 
-        return modifyExperience(changingExperience, experienceForm);
+    @Transactional
+    public Experience modifyProfileExperience(ExperienceForm experienceForm, UUID experienceId, User changingUser)
+    {
+        UserProfile changingProfile = profileRepository.findByUserWithAllData(changingUser);
+        Optional<Experience> changingExperience = changingProfile.getExperienceList().stream().
+                dropWhile(experience -> experience.getId() != experienceId).findFirst();
+
+        if (changingExperience.isEmpty()) {
+            throw new BelongingException("Experience with this id either does not exist " +
+                    "or does not belong to this profile");
+        }
+
+        return modifyExperience(changingExperience.get(), experienceForm);
     }
 
     private void evictResumeFromCache(UUID userId, UUID resumeId)

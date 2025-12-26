@@ -11,6 +11,7 @@ import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 
+import java.io.Externalizable;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
@@ -41,10 +42,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Indexed
-public class Resume implements Serializable {
+public class Resume implements Serializable{
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1;
 
     public static final int MAX_VERSION_COUNT = 10;
 

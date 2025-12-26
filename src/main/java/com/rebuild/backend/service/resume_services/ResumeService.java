@@ -11,7 +11,7 @@ import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
-import com.rebuild.backend.utils.ResumeGetUtility;
+import com.rebuild.backend.utils.ResumeObtainer;
 import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,7 +30,7 @@ public class ResumeService {
 
     private final SubpartsModificationUtility modificationUtility;
 
-    private final ResumeGetUtility getUtility;
+    private final ResumeObtainer getUtility;
 
     private final ResumeSearchRepository resumeSearchRepository;
     private final ProfileRepository profileRepository;
@@ -38,7 +38,7 @@ public class ResumeService {
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          SubpartsModificationUtility modificationUtility,
-                         ResumeGetUtility getUtility, ResumeSearchRepository resumeSearchRepository, ProfileRepository profileRepository) {
+                         ResumeObtainer getUtility, ResumeSearchRepository resumeSearchRepository, ProfileRepository profileRepository) {
         this.resumeRepository = resumeRepository;
         this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
@@ -67,8 +67,8 @@ public class ResumeService {
     }
 
     @Transactional
-    public Header changeHeaderInfo(HeaderForm headerForm, UUID headerID, UUID resumeId, User user){
-        return modificationUtility.modifyResumeHeader(headerForm, headerID, resumeId, user);
+    public Header changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
+        return modificationUtility.modifyResumeHeader(headerForm, resumeID, user);
     }
 
     @Transactional
@@ -92,8 +92,8 @@ public class ResumeService {
 
     @Transactional
     public Education changeEducationInfo(EducationForm educationForm,
-                                      UUID educationID, UUID resumeId, User user){
-       return modificationUtility.modifyResumeEducation(educationForm, educationID, resumeId, user);
+                                      UUID resumeID, User user){
+       return modificationUtility.modifyResumeEducation(educationForm, resumeID, user);
     }
 
     @Transactional
@@ -199,7 +199,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume fullUpdate(Resume resume, FullInformationForm resumeForm) {
+    public Resume fullUpdate(User updatingUser, UUID resumeID,
+                             FullInformationForm resumeForm) {
+        Resume resume = getUtility.findByUserAndIdWithExtraInfo(updatingUser, resumeID);
 
 
         //We can't modify the resume's fields directly here, as that would also modify the variables that
@@ -231,7 +233,7 @@ public class ResumeService {
 
     @Transactional
     public Resume copyResume(User user, UUID resumeId, ResumeCreationForm creationForm){
-        Resume copiedResume = getUtility.findByUserResumeId(user, resumeId);
+        Resume copiedResume = getUtility.findByUserAndIdWithExtraInfo(user, resumeId);
         if(creationForm.newName().equals(copiedResume.getName())){
             throw new RuntimeException("The new resume must have a different name than the original one.");
         }
@@ -243,10 +245,10 @@ public class ResumeService {
 
     public Resume prefillHeader(UUID resumeID, User authenticatedUser)
     {
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-
-        Header header = authenticatedUser.getUserProfile().getHeader();
-        if(header== null){
+        Resume associatedResume = getUtility.findByUserAndIdWithExtraInfo(authenticatedUser, resumeID);
+        UserProfile profile = profileRepository.findByUserWithHeader(authenticatedUser);
+        Header header = profile.getHeader();
+        if(header == null){
             throw new PrefillException("Your profile does not have a header set");
         }
         Header newHeader = Header.copy(header);
@@ -256,8 +258,9 @@ public class ResumeService {
 
     public Resume prefillEducation(UUID resumeID, User authenticatedUser)
     {
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-        Education education = authenticatedUser.getUserProfile().getEducation();
+        Resume associatedResume = getUtility.findByUserAndIdWithExtraInfo(authenticatedUser, resumeID);
+        UserProfile profile = profileRepository.findByUserWithEducation(authenticatedUser);
+        Education education = profile.getEducation();
         if(education == null){
             throw new PrefillException("Your profile does not have an education set");
         }
@@ -269,8 +272,9 @@ public class ResumeService {
 
     public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser){
 
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-        List<Experience> experienceList = authenticatedUser.getUserProfile().getExperienceList();
+        Resume associatedResume = getUtility.findByUserAndIdWithExtraInfo(authenticatedUser, resumeID);
+        UserProfile profile = profileRepository.findByUserWithExperiences(authenticatedUser);
+        List<Experience> experienceList = profile.getExperienceList();
         if(experienceList == null){
             throw new PrefillException("Your profile does not have experiences set");
         }

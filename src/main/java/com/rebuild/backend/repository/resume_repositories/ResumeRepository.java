@@ -16,8 +16,6 @@ import java.util.UUID;
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
-    void deleteById(@NonNull UUID ID);
-
     Optional<Resume> findByIdAndUser(UUID id, User user);
 
 

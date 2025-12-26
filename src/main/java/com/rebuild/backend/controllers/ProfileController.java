@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Education;
+import com.rebuild.backend.model.entities.resume_entities.Experience;
 import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
@@ -52,79 +53,84 @@ public class ProfileController {
         }
     }
 
-    @PatchMapping("/patch/page_size/{profile_id}")
+    @PatchMapping("/patch/page_size")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updatePageSize(@RequestBody int newPageSize,
-                                      @AuthenticationPrincipal User authenticatedUser, @PathVariable UUID profile_id) {
-        return profileService.changePageSize(authenticatedUser, profile_id, newPageSize);
+                                      @AuthenticationPrincipal User authenticatedUser) {
+        return profileService.changePageSize(authenticatedUser, newPageSize);
     }
 
-    @PatchMapping("/patch/header/{profile_id}/{header_id}")
+    @PatchMapping("/patch/header")
     @ResponseStatus(HttpStatus.OK)
     public Header updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
-                                      @AuthenticationPrincipal User authenticatedUser,
-                                      @PathVariable UUID header_id, @PathVariable UUID profile_id) {
-        return profileService.updateProfileHeader(headerForm, header_id, profile_id, authenticatedUser);
+                                      @AuthenticationPrincipal User authenticatedUser) {
+        return profileService.updateProfileHeader(headerForm, authenticatedUser);
     }
 
-    @PatchMapping("/patch/education/{profile_id}/{education_id}")
+    @PatchMapping("/patch/education/")
     @ResponseStatus(HttpStatus.OK)
     public Education updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
-                                            @AuthenticationPrincipal User authenticatedUser,
-                                            @PathVariable UUID education_id, @PathVariable UUID profile_id) {
-        return profileService.updateProfileEducation(educationForm, education_id, profile_id, authenticatedUser);
+                                            @AuthenticationPrincipal User authenticatedUser) {
+        return profileService.updateProfileEducation(educationForm, authenticatedUser);
     }
 
-    @PatchMapping("/patch/experiences/{profile_id}")
+    @PatchMapping("/patch/experience/{experience_id}")
+    public Experience updateProfileExperience(@PathVariable UUID experience_id,
+                                              @Valid @RequestBody ExperienceForm experienceForm,
+                                              @AuthenticationPrincipal User authenticatedUser)
+    {
+        return profileService.updateProfileExperience(experienceForm, authenticatedUser, experience_id);
+    }
+
+
+    @PatchMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileExperiences(@Valid @RequestBody List<ExperienceForm>
                                                                   experienceFormList,
-                                                   @AuthenticationPrincipal User authenticatedUser,
-                                                @PathVariable UUID profile_id) {
-        return profileService.updateProfileExperiences(profile_id, authenticatedUser, experienceFormList);
+                                                   @AuthenticationPrincipal User authenticatedUser) {
+        return profileService.updateProfileExperiences(authenticatedUser, experienceFormList);
     }
 
-    @DeleteMapping("/delete/{profile_id}")
+    @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfile(@AuthenticationPrincipal User deletingUser, @PathVariable UUID profile_id) {
-        profileService.deleteProfile(deletingUser, profile_id);
+    public void deleteProfile(@AuthenticationPrincipal User deletingUser) {
+        profileService.deleteProfile(deletingUser);
     }
 
-    @DeleteMapping("/delete/header/{profile_id}")
+    @DeleteMapping("/delete/header")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteProfileHeader(@AuthenticationPrincipal User deletingUser, @PathVariable UUID profile_id) {
-        return profileService.deleteProfileHeader(deletingUser, profile_id);
+    public UserProfile deleteProfileHeader(@AuthenticationPrincipal User deletingUser) {
+        return profileService.deleteProfileHeader(deletingUser);
     }
 
-    @DeleteMapping("/delete/education/{profile_id}")
+    @DeleteMapping("/delete/education/")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteProfileEducation(@AuthenticationPrincipal User deletingUser,  @PathVariable UUID profile_id) {
-        return profileService.deleteProfileEducation(deletingUser, profile_id);
+    public UserProfile deleteProfileEducation(@AuthenticationPrincipal User deletingUser) {
+        return profileService.deleteProfileEducation(deletingUser);
     }
 
-    @DeleteMapping("/delete/experiences/{profile_id}")
+    @DeleteMapping("/delete/experiences")
     @ResponseStatus(HttpStatus.OK)
-    public UserProfile deleteProfileExperiences(@AuthenticationPrincipal User deletingUser, @PathVariable UUID profile_id) {
+    public UserProfile deleteProfileExperiences(@AuthenticationPrincipal User deletingUser) {
 
-        return profileService.deleteProfileExperiences(deletingUser, profile_id);
+        return profileService.deleteProfileExperiences(deletingUser);
     }
 
-    @DeleteMapping("/delete/experiences/{profile_id}/{experience_id}")
+    @DeleteMapping("/delete/experiences/{experience_id}")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile deleteSpecificExperience(@AuthenticationPrincipal User deletingUser,
-                                                @PathVariable UUID experience_id, @PathVariable UUID profile_id) {
-        return profileService.deleteSpecificProfileExperience(deletingUser, profile_id,
+                                                @PathVariable UUID experience_id) {
+        return profileService.deleteSpecificProfileExperience(deletingUser,
                 experience_id);
     }
 
-    @PutMapping(value = "/update_image/{profile_id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeImage(@AuthenticationPrincipal User changingUser,
-                                   @RequestPart(name = "file") MultipartFile pictureFile,
-                                         @PathVariable UUID profile_id)
+                                   @RequestPart(name = "file") MultipartFile pictureFile)
     {
         try {
-            UserProfile profile = profileService.modifyProfilePictureOf(changingUser, profile_id, pictureFile);
+            UserProfile profile = profileService.modifyProfilePictureOf(changingUser, pictureFile);
             return ResponseEntity.ok().body(profile);
         }
 

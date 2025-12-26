@@ -1,6 +1,5 @@
 package com.rebuild.backend.service.resume_services;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.versioning_entities.*;
@@ -9,13 +8,11 @@ import com.rebuild.backend.model.forms.resume_forms.VersionCreationForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeVersionRepository;
-import com.rebuild.backend.utils.ResumeGetUtility;
+import com.rebuild.backend.utils.ResumeObtainer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -24,13 +21,13 @@ public class ResumeVersioningService {
 
     private final ResumeRepository resumeRepository;
 
-    private final ResumeGetUtility getUtility;
+    private final ResumeObtainer getUtility;
 
     private final ResumeVersionRepository versionRepository;
 
     private final ResumeService resumeService;
 
-    public ResumeVersioningService(ResumeRepository resumeRepository, ResumeGetUtility getUtility,
+    public ResumeVersioningService(ResumeRepository resumeRepository, ResumeObtainer getUtility,
                                    ResumeVersionRepository versionRepository,
                                    ResumeService resumeService) {
         this.resumeRepository = resumeRepository;

@@ -5,7 +5,6 @@ spring:
 ---
 
 spring:
-  datasource:
   session:
     redis:
       flush-mode: on_save

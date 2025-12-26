@@ -251,7 +251,7 @@ public class UserService{
         UserProfile newProfile = new UserProfile();
         newProfile.setUser(newUser);
 
-        return profileService.modifyProfilePictureOf(newUser, newProfile.getId(), pictureFile);
+        return profileService.modifyProfilePictureOf(newUser, pictureFile);
     }
 
     @Transactional
