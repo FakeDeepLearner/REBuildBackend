@@ -28,14 +28,14 @@ public class ResumePostController {
     }
 
     @PostMapping("/header/{resume_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Header createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
                                   @AuthenticationPrincipal User user){
         return resumeService.createNewHeader(user, resume_id, headerForm);
     }
 
     @PostMapping("/experience/{resume_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                  @PathVariable UUID resume_id,
                                                  @AuthenticationPrincipal User user){
@@ -46,7 +46,7 @@ public class ResumePostController {
     }
 
     @PostMapping("/education/{resume_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume createNewEducation(@Valid @RequestBody EducationForm educationForm,
                                      @PathVariable UUID resume_id,
                                      @AuthenticationPrincipal User user ){

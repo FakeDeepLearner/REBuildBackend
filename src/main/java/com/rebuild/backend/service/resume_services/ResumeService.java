@@ -67,7 +67,7 @@ public class ResumeService {
     }
 
     @Transactional
-    public Header changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
+    public Resume changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
         return modificationUtility.modifyResumeHeader(headerForm, resumeID, user);
     }
 
@@ -84,20 +84,21 @@ public class ResumeService {
     }
 
     @Transactional
-    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
+    public Resume changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
                                            User user){
         return modificationUtility.modifyResumeExperience(experienceForm, experienceID, resumeId, user);
 
     }
 
     @Transactional
-    public Education changeEducationInfo(EducationForm educationForm,
+    public Resume changeEducationInfo(EducationForm educationForm,
                                       UUID resumeID, User user){
        return modificationUtility.modifyResumeEducation(educationForm, resumeID, user);
     }
 
     @Transactional
     public Header createNewHeader(User changingUser, UUID resumeId, HeaderForm headerForm){
+
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
                 headerForm.lastName(), headerForm.email());
@@ -152,9 +153,9 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume deleteExperience(User changingUser, UUID resumeId, int experienceIndex){
+    public Resume deleteExperience(User changingUser, UUID resumeId, UUID experienceId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
-        resume.getExperiences().remove(experienceIndex);
+        resume.getExperiences().removeIf(experience -> experience.getId().equals(experienceId));
         return resumeRepository.save(resume);
     }
 
@@ -164,38 +165,6 @@ public class ResumeService {
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setHeader(null);
         return resumeRepository.save(resume);
-    }
-
-    @Transactional
-    public void setExperiences(Resume resume, List<Experience> newExperiences){
-        newExperiences.forEach(exp -> exp.setResume(resume));
-        resume.setExperiences(newExperiences);
-
-    }
-
-    @Transactional
-    public void setHeader(Resume resume, Header newHeader){
-        Header resumeHeader = resume.getHeader();
-        if (resumeHeader == null) {
-            resume.setHeader(newHeader);
-            newHeader.setResume(resume);
-            return;
-        }
-
-        modificationUtility.modifyHeaderData(newHeader, resumeHeader);
-
-    }
-
-    @Transactional
-    public void setEducation(Resume resume, Education newEducation){
-        Education resumeEducation =  resume.getEducation();
-        if (resumeEducation == null) {
-            resume.setEducation(newEducation);
-            newEducation.setResume(resume);
-            return;
-        }
-        modificationUtility.modifyEducationData(newEducation, resumeEducation);
-
     }
 
     @Transactional
@@ -209,16 +178,17 @@ public class ResumeService {
         Header newHeader = new Header(resumeForm.headerForm().number(),
                 resumeForm.headerForm().firstName(),
                 resumeForm.headerForm().lastName(), resumeForm.headerForm().email());
-        setHeader(resume, newHeader);
+        resume.setHeader(newHeader);
 
         Education newEducation = new Education(resumeForm.educationForm().schoolName(),
                 resumeForm.educationForm().relevantCoursework(),
                 resumeForm.educationForm().location(),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
-        setEducation(resume, newEducation);
+        resume.setEducation(newEducation);
 
-        setExperiences(resume, extractExperiences(resumeForm.experiences(), resume));
+        resume.setExperiences(extractExperiences(resumeForm.experiences(), resume));
+
         return resumeRepository.save(resume);
 
     }
@@ -252,7 +222,7 @@ public class ResumeService {
             throw new PrefillException("Your profile does not have a header set");
         }
         Header newHeader = Header.copy(header);
-        setHeader(associatedResume, newHeader);
+        associatedResume.setHeader(newHeader);
         return resumeRepository.save(associatedResume);
     }
 
@@ -265,7 +235,7 @@ public class ResumeService {
             throw new PrefillException("Your profile does not have an education set");
         }
         Education newEducation = Education.copy(education);
-        setEducation(associatedResume, newEducation);
+        associatedResume.setEducation(newEducation);
         return resumeRepository.save(associatedResume);
     }
 
@@ -283,7 +253,7 @@ public class ResumeService {
                     experience.setResume(associatedResume);
                 }).
                 toList();
-        setExperiences(associatedResume, newExperiences);
+        associatedResume.setExperiences(newExperiences);
         return resumeRepository.save(associatedResume);
 
     }

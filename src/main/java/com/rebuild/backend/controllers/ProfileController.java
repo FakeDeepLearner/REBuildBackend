@@ -62,20 +62,20 @@ public class ProfileController {
 
     @PatchMapping("/patch/header")
     @ResponseStatus(HttpStatus.OK)
-    public Header updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
+    public UserProfile updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
                                       @AuthenticationPrincipal User authenticatedUser) {
         return profileService.updateProfileHeader(headerForm, authenticatedUser);
     }
 
     @PatchMapping("/patch/education/")
     @ResponseStatus(HttpStatus.OK)
-    public Education updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
+    public UserProfile updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
                                             @AuthenticationPrincipal User authenticatedUser) {
         return profileService.updateProfileEducation(educationForm, authenticatedUser);
     }
 
     @PatchMapping("/patch/experience/{experience_id}")
-    public Experience updateProfileExperience(@PathVariable UUID experience_id,
+    public UserProfile updateProfileExperience(@PathVariable UUID experience_id,
                                               @Valid @RequestBody ExperienceForm experienceForm,
                                               @AuthenticationPrincipal User authenticatedUser)
     {

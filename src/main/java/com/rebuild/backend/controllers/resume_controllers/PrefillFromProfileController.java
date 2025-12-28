@@ -24,7 +24,7 @@ public class PrefillFromProfileController {
 
     @GetMapping("/header/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume prefillHeader(@PathVariable UUID resume_id,
                                 @AuthenticationPrincipal User user){
         return resumeService.prefillHeader(resume_id, user);
@@ -32,7 +32,7 @@ public class PrefillFromProfileController {
 
     @GetMapping("/education/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume prefillEducation(@PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user){
        return resumeService.prefillEducation(resume_id, user);
@@ -40,7 +40,7 @@ public class PrefillFromProfileController {
 
     @GetMapping("/experiences/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume prefillExperience(@PathVariable UUID resume_id,
                                                @AuthenticationPrincipal User user){
         return resumeService.prefillExperiencesList(resume_id, user);

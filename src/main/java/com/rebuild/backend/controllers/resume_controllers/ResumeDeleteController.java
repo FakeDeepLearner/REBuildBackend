@@ -24,27 +24,27 @@ public class ResumeDeleteController {
     }
 
     @DeleteMapping("/header/{resume_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume deleteHeader(@PathVariable UUID resume_id,
                                @AuthenticationPrincipal User user) {
         return resumeService.deleteHeader(user, resume_id);
     }
 
-    @DeleteMapping("/experience/{resume_id}/{experience_index}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
-    public Resume deleteExperience(@PathVariable int experience_index, @PathVariable UUID resume_id,
+    @DeleteMapping("/experience/{resume_id}/{experience_id}")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    public Resume deleteExperience(@PathVariable UUID experience_id, @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {
-        return resumeService.deleteExperience(user, resume_id, experience_index);
+        return resumeService.deleteExperience(user, resume_id, experience_id);
     }
 
     @DeleteMapping("/education/{resume_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume deleteEducation(@PathVariable UUID resume_id, @AuthenticationPrincipal User user) {
         return resumeService.deleteEducation(user, resume_id);
     }
 
     @DeleteMapping("/{resume_id}")
-    @CacheEvict(value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteResume(@PathVariable UUID resume_id, @AuthenticationPrincipal User user) {
         resumeService.deleteById(user, resume_id);

@@ -21,7 +21,7 @@ public class ResumeObtainer {
     }
 
     @Cacheable(cacheManager = "cacheManager", value = "resume_cache",
-            key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
+            keyGenerator = "resumeCacheKeyGenerator")
     public Resume findByUserResumeId(User searchingUser, UUID resumeId){
         return resumeRepository.findByIdAndUser(resumeId, searchingUser).orElseThrow(
                 () -> new BelongingException("Resume either does not exist or does not belong to you.")
@@ -29,7 +29,7 @@ public class ResumeObtainer {
     }
 
     @Cacheable(cacheManager = "cacheManager", value = "resume_cache",
-            key = "#searchingUser.id.toString() + ':' + #resumeId.toString()")
+            keyGenerator = "resumeCacheKeyGenerator")
     public Resume findByUserAndIdWithExtraInfo(User searchingUser, UUID resumeId){
         return resumeRepository.findByIdAndUserWithOtherData(resumeId, searchingUser).orElseThrow(
                 () -> new BelongingException("Resume either does not exist or does not belong to you.")

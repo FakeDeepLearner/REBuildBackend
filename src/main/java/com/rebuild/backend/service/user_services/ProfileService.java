@@ -84,29 +84,15 @@ public class ProfileService {
 
     public void modifyProfileHeader(UserProfile profile, Header newHeader)
     {
-        Header profileHeader = profile.getHeader();
-
-        if (profileHeader == null) {
-            profile.setHeader(newHeader);
-            newHeader.setProfile(profile);
-            return;
-        }
-
-        modificationUtility.modifyHeaderData(newHeader, profileHeader);
+        profile.setHeader(newHeader);
+        newHeader.setProfile(profile);
     }
 
 
     public void modifyProfileEducation(UserProfile profile, Education newEducation)
     {
-        Education profileEducation = profile.getEducation();
-
-        if (profileEducation == null) {
-            profile.setEducation(newEducation);
-            newEducation.setProfile(profile);
-            return;
-        }
-
-        modificationUtility.modifyEducationData(newEducation, profileEducation);
+        profile.setEducation(newEducation);
+        newEducation.setProfile(profile);
     }
 
 
@@ -143,16 +129,16 @@ public class ProfileService {
     }
 
     @Transactional
-    public Header updateProfileHeader(HeaderForm headerForm, User user) {
+    public UserProfile updateProfileHeader(HeaderForm headerForm, User user) {
         return modificationUtility.modifyProfileHeader(headerForm, user);
     }
 
     @Transactional
-    public Education updateProfileEducation(EducationForm educationForm, User user) {
+    public UserProfile updateProfileEducation(EducationForm educationForm, User user) {
         return modificationUtility.modifyProfileEducation(educationForm, user);
     }
 
-    public Experience updateProfileExperience(ExperienceForm experienceForm, User user,
+    public UserProfile updateProfileExperience(ExperienceForm experienceForm, User user,
                                               UUID experienceId) {
         return modificationUtility.modifyProfileExperience(experienceForm, experienceId, user);
     }

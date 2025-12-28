@@ -3,14 +3,17 @@ package com.rebuild.backend.controllers.forum_controllers;
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.forms.dtos.StatusAndError;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.model.responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
+import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.user_services.UserService;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
+import lombok.NonNull;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,12 +38,15 @@ public class ForumHomePageController {
 
     private final PostSearchRepository postSearchRepository;
 
+    private final FriendAndMessageService friendAndMessageService;
+
     @Autowired
     public ForumHomePageController(ForumPostAndCommentService postAndCommentService,
-                                   UserService userService, PostSearchRepository postSearchRepository) {
+                                   UserService userService, PostSearchRepository postSearchRepository, FriendAndMessageService friendAndMessageService) {
         this.postAndCommentService = postAndCommentService;
         this.userService = userService;
         this.postSearchRepository = postSearchRepository;
+        this.friendAndMessageService = friendAndMessageService;
     }
 
     @PostMapping( "/create_post_search_config")
@@ -127,5 +133,34 @@ public class ForumHomePageController {
 
         }
         return null;
+    }
+
+
+    @PostMapping("/accept_request/{request_id}")
+    public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
+                                                                   @AuthenticationPrincipal User acceptingUser) {
+        StatusAndError result = friendAndMessageService.acceptFriendshipRequest(acceptingUser, request_id);
+        return ResponseEntity.ok(result.message());
+
+    }
+
+    @PostMapping("/decline_request/{request_id}")
+    public ResponseEntity<@NonNull String> declineFriendshipRequest(@PathVariable UUID request_id,
+                                                                    @AuthenticationPrincipal User acceptingUser) {
+        StatusAndError result =
+                friendAndMessageService.declineFriendshipRequest(acceptingUser, request_id);
+
+        return ResponseEntity.status(result.status()).body(result.message());
+
+    }
+
+    @PostMapping("/send_friendship/{recipient_id}")
+    public ResponseEntity<@NonNull String> sendFriendshipRequest(@PathVariable UUID recipient_id,
+                                                                 @AuthenticationPrincipal User sendingUser)
+    {
+        StatusAndError requestResult =
+                friendAndMessageService.sendFriendRequest(sendingUser, recipient_id);
+
+        return ResponseEntity.status(requestResult.status()).body(requestResult.message());
     }
 }

@@ -7,6 +7,7 @@ import com.rebuild.backend.model.forms.resume_forms.VersionCreationForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;
 import com.rebuild.backend.service.resume_services.ResumeVersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +34,7 @@ public class VersioningController {
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> switchToVersion(@AuthenticationPrincipal User user,
                                              @PathVariable UUID resume_id, @PathVariable UUID version_id,
