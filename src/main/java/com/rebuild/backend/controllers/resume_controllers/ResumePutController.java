@@ -32,7 +32,7 @@ public class ResumePutController {
     }
 
     @PutMapping("/header/{resume_id}/")
-    @CacheEvict(value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
     public Resume modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                                @AuthenticationPrincipal User user,
                                                 @PathVariable UUID resume_id){
@@ -41,7 +41,7 @@ public class ResumePutController {
     }
 
     @PutMapping("/experience/{resume_id}/{experience_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
     public Resume modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                        @AuthenticationPrincipal User user,
                                                        @PathVariable UUID experience_id, @PathVariable UUID resume_id){

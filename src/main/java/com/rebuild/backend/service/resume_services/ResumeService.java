@@ -97,19 +97,6 @@ public class ResumeService {
     }
 
     @Transactional
-    public Header createNewHeader(User changingUser, UUID resumeId, HeaderForm headerForm){
-
-        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
-        Header newHeader = new Header(headerForm.number(), headerForm.firstName(),
-                headerForm.lastName(), headerForm.email());
-        resume.setHeader(newHeader);
-        newHeader.setResume(resume);
-        resumeRepository.save(resume);
-        return newHeader;
-
-    }
-
-    @Transactional
     public Resume createNewExperience(User changingUser, UUID resumeId,
                                       ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
@@ -124,19 +111,6 @@ public class ResumeService {
 
         return resumeRepository.save(resume);
 
-    }
-
-    @Transactional
-    public Resume createNewEducation(User changingUser, UUID resumeId, EducationForm educationForm){
-        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
-        YearMonth startDate = YearMonthStringOperations.getYearMonth(educationForm.startDate());
-        YearMonth endDate = YearMonthStringOperations.getYearMonth(educationForm.endDate());
-        Education education = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
-                educationForm.location(),
-                startDate, endDate);
-        resume.setEducation(education);
-        education.setResume(resume);
-        return resumeRepository.save(resume);
     }
 
     @Transactional

@@ -1,8 +1,5 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.entities.resume_entities.Education;
-import com.rebuild.backend.model.entities.resume_entities.Experience;
-import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.resume_forms.*;
@@ -60,21 +57,21 @@ public class ProfileController {
         return profileService.changePageSize(authenticatedUser, newPageSize);
     }
 
-    @PatchMapping("/patch/header")
+    @PutMapping("/patch/header")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileHeader(@Valid @RequestBody HeaderForm headerForm,
                                       @AuthenticationPrincipal User authenticatedUser) {
         return profileService.updateProfileHeader(headerForm, authenticatedUser);
     }
 
-    @PatchMapping("/patch/education/")
+    @PutMapping("/patch/education/")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileEducation(@Valid @RequestBody EducationForm educationForm,
                                             @AuthenticationPrincipal User authenticatedUser) {
         return profileService.updateProfileEducation(educationForm, authenticatedUser);
     }
 
-    @PatchMapping("/patch/experience/{experience_id}")
+    @PutMapping("/patch/experience/{experience_id}")
     public UserProfile updateProfileExperience(@PathVariable UUID experience_id,
                                               @Valid @RequestBody ExperienceForm experienceForm,
                                               @AuthenticationPrincipal User authenticatedUser)
@@ -83,7 +80,7 @@ public class ProfileController {
     }
 
 
-    @PatchMapping("/patch/experiences")
+    @PutMapping("/patch/experiences")
     @ResponseStatus(HttpStatus.OK)
     public UserProfile updateProfileExperiences(@Valid @RequestBody List<ExperienceForm>
                                                                   experienceFormList,

@@ -29,9 +29,9 @@ public class ResumePostController {
 
     @PostMapping("/header/{resume_id}")
     @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
-    public Header createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
+    public Resume createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
                                   @AuthenticationPrincipal User user){
-        return resumeService.createNewHeader(user, resume_id, headerForm);
+        return resumeService.changeHeaderInfo(headerForm, resume_id, user);
     }
 
     @PostMapping("/experience/{resume_id}")
@@ -39,7 +39,6 @@ public class ResumePostController {
     public Resume createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                  @PathVariable UUID resume_id,
                                                  @AuthenticationPrincipal User user){
-
 
         return resumeService.createNewExperience(user, resume_id, experienceForm);
 
@@ -50,6 +49,6 @@ public class ResumePostController {
     public Resume createNewEducation(@Valid @RequestBody EducationForm educationForm,
                                      @PathVariable UUID resume_id,
                                      @AuthenticationPrincipal User user ){
-        return resumeService.createNewEducation(user, resume_id, educationForm);
+        return resumeService.changeEducationInfo(educationForm, resume_id, user);
     }
 }

@@ -7,20 +7,15 @@ import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
-import com.rebuild.backend.repository.resume_repositories.EducationRepository;
-import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
-import com.rebuild.backend.repository.resume_repositories.HeaderRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.utils.ResumeObtainer;
 import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,18 +24,14 @@ public class SubpartsModificationUtility {
 
     private final ProfileRepository profileRepository;
 
-    private final ExperienceRepository experienceRepository;
-
     private final ResumeObtainer getUtility;
 
     private final ResumeRepository resumeRepository;
 
     @Autowired
     public SubpartsModificationUtility(ProfileRepository profileRepository,
-                                       ExperienceRepository experienceRepository,
                                        ResumeObtainer getUtility, ResumeRepository resumeRepository) {
         this.profileRepository = profileRepository;
-        this.experienceRepository = experienceRepository;
         this.getUtility = getUtility;
         this.resumeRepository = resumeRepository;
     }
@@ -49,7 +40,7 @@ public class SubpartsModificationUtility {
     public Resume modifyResumeHeader(HeaderForm headerForm,
                                     UUID resumeId, User changingUser)
     {
-        Resume changingResume = getUtility.findByUserAndIdWithExtraInfo(changingUser, resumeId);
+        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
                 headerForm.email());
@@ -79,7 +70,7 @@ public class SubpartsModificationUtility {
     public Resume modifyResumeEducation(EducationForm educationForm,
                                     UUID resumeId, User changingUser)
     {
-        Resume changingResume = getUtility.findByUserAndIdWithExtraInfo(changingUser, resumeId);
+        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
                 educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),

@@ -7,9 +7,7 @@ import com.rebuild.backend.service.resume_services.ResumeService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -73,25 +71,6 @@ public class ResumeUtilController {
             return ResponseEntity.status(BAD_REQUEST).body(e.getMessage());
         }
         return null;
-    }
-
-    @PostMapping("/download/{resume_id}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> downloadResumeAsText(@AuthenticationPrincipal User user,
-                                                       @PathVariable UUID resume_id,
-                                                       @RequestBody boolean includeMetadata) {
-        String resumeMetadata = "";
-
-        Resume downloadingResume = resumeService.findByUserAndResumeId(user, resume_id);
-        if (includeMetadata) {
-            resumeMetadata = "METADATA: \n" + "\tTime Created: " + downloadingResume.getCreationTime()
-                    + "\n\tLast Modified Time: " + downloadingResume.getLastModifiedTime();
-        }
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", downloadingResume.getName());
-        headers.setContentType(MediaType.TEXT_PLAIN);
-        return ResponseEntity.status(200).headers(headers).body(resumeMetadata + downloadingResume);
-
     }
 
     @GetMapping("/view_experience_values")
