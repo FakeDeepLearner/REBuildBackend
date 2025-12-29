@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -24,7 +26,10 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResumeVersion {
+public class ResumeVersion implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 7L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

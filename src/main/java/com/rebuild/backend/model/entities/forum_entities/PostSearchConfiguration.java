@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -16,7 +18,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PostSearchConfiguration {
+public class PostSearchConfiguration implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 10L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

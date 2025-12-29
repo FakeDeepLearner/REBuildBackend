@@ -42,12 +42,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Indexed
-public class Resume implements Serializable{
+public class Resume implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1;
-
-    public static final int MAX_VERSION_COUNT = 10;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

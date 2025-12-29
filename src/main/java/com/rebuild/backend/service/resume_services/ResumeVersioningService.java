@@ -43,10 +43,6 @@ public class ResumeVersioningService {
     @Transactional
     public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionCreationForm inclusionForm){
         Resume copiedResume = getUtility.findByUserAndIdWithExtraInfo(user, resumeId);
-        if (copiedResume.getVersionCount() >= Resume.MAX_VERSION_COUNT)
-        {
-            return null;
-        }
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
         return versionRepository.save(newVersion);

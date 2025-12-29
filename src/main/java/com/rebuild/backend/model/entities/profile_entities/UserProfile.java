@@ -7,6 +7,8 @@ import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +28,10 @@ import static jakarta.persistence.CascadeType.*;
         @Index(columnList = "user_id"),
         @Index(columnList = "picture_id")
 })
-public class UserProfile {
+public class UserProfile implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 5L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

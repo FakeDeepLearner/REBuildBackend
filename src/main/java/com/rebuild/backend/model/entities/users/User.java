@@ -18,6 +18,8 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -37,7 +39,10 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Indexed
-public class User implements UserDetails, OidcUser {
+public class User implements UserDetails, OidcUser, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 8L;
 
     private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
 
@@ -96,22 +101,22 @@ public class User implements UserDetails, OidcUser {
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             fetch = FetchType.LAZY, mappedBy = "creatingUser")
-    private List<ForumPost> madePosts = new ArrayList<>();
+    private transient List<ForumPost> madePosts = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "author", fetch = FetchType.LAZY)
-    private List<Comment> madeComments = new ArrayList<>();
+    private transient List<Comment> madeComments = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
     mappedBy = "initiatingUser")
-    private List<Chat> initiatedChats = new ArrayList<>();
+    private transient List<Chat> initiatedChats = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
             mappedBy = "receivingUser")
-    private List<Chat> receivedChats = new ArrayList<>();
+    private transient List<Chat> receivedChats = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;

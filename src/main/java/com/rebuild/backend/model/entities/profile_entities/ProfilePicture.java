@@ -3,6 +3,8 @@ package com.rebuild.backend.model.entities.profile_entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
@@ -13,7 +15,10 @@ import java.util.UUID;
 @Table(name = "profile_pictures", indexes = {
         @Index(columnList = "asset_id")
 })
-public class ProfilePicture {
+public class ProfilePicture implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 6L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -6,6 +6,8 @@ import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,7 +16,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ResumeSearchConfiguration {
+public class ResumeSearchConfiguration implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 9L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

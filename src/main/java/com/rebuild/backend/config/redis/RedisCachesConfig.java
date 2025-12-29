@@ -3,6 +3,7 @@ package com.rebuild.backend.config.redis;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.cache.autoconfigure.CacheProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -26,9 +27,13 @@ public class RedisCachesConfig {
 
     private final RedisResumeSerializer resumeSerializer;
 
+    private final RedisProfileSerializer profileSerializer;
+
     @Autowired
-    public RedisCachesConfig(RedisResumeSerializer resumeSerializer) {
+    public RedisCachesConfig(RedisResumeSerializer resumeSerializer,
+                             RedisProfileSerializer profileSerializer) {
         this.resumeSerializer = resumeSerializer;
+        this.profileSerializer = profileSerializer;
     }
 
     @Bean
@@ -47,6 +52,11 @@ public class RedisCachesConfig {
                         SerializationPair.
                         fromSerializer(resumeSerializer));
 
+        RedisCacheConfiguration profilesCacheConfig = RedisCacheConfiguration.defaultCacheConfig().
+                entryTtl(Duration.ofMinutes(1)).
+                serializeValuesWith(RedisSerializationContext.
+                        SerializationPair.fromSerializer(profileSerializer));
+
         RedisCacheConfiguration idempotencyConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofSeconds(30));
 
@@ -54,6 +64,8 @@ public class RedisCachesConfig {
         return RedisCacheManager.builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
                 .withCacheConfiguration("idempotency_cache", idempotencyConfig)
                 .withCacheConfiguration("resume_cache", resumeCacheConfig)
-                .withCacheConfiguration("search_cache", searchResultsCacheConfig).build();
+                .withCacheConfiguration("search_cache", searchResultsCacheConfig)
+                .withCacheConfiguration("profile_cache", profilesCacheConfig)
+                .build();
     }
 }
