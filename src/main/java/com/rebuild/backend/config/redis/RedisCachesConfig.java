@@ -36,7 +36,8 @@ public class RedisCachesConfig {
 
     @Autowired
     public RedisCachesConfig(RedisResumeSerializer resumeSerializer,
-                             RedisProfileSerializer profileSerializer) {
+                             RedisProfileSerializer profileSerializer,
+                             Dotenv dotenv) {
         this.resumeSerializer = resumeSerializer;
         this.profileSerializer = profileSerializer;
         this.dotenv = dotenv;
