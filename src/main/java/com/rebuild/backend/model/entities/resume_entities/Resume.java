@@ -76,6 +76,7 @@ public class Resume implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
     orphanRemoval = true, mappedBy = "associatedResume")
+    @OrderBy("createdDate DESC")
     private List<ResumeVersion> versions = new ArrayList<>();
 
 
@@ -152,15 +153,5 @@ public class Resume implements Serializable {
     }
 
 
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(header.toString() + education.toString());
-        sb.append("\nEXPERIENCES:\n");
-        experiences.forEach(experience -> sb.append(experience.toString())
-        );
-        sb.append("\nSECTIONS:\n");
-        return sb.toString();
-    }
 
 }

@@ -46,7 +46,7 @@ public class Experience implements Serializable {
     private String companyName;
 
     @ElementCollection
-    @CollectionTable(name = "technologies", joinColumns = @JoinColumn(name = "experience_id"))
+    @CollectionTable(name = "experience_technologies", joinColumns = @JoinColumn(name = "experience_id"))
     @NonNull
     @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
     searchable = Searchable.YES)
@@ -76,7 +76,7 @@ public class Experience implements Serializable {
     private YearMonth endDate;
 
     @ElementCollection
-    @CollectionTable(name = "bullets", joinColumns = @JoinColumn(name = "experience_id"))
+    @CollectionTable(name = "experience_bullets", joinColumns = @JoinColumn(name = "experience_id"))
     @Column(name = "bullets", nullable = false)
     @NonNull
     @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
@@ -97,17 +97,6 @@ public class Experience implements Serializable {
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
     @JsonIgnore
     private UserProfile profile;
-
-    public String toString() {
-        return "\tEXPERIENCE:\n" +
-                "\t\tCompany Name: " + companyName + "\n" +
-                "\t\tTechnologies: " + technologyList + "\n" +
-                "\t\tLocation: " + location + "\n" +
-                "\t\tType: " + experienceType + "\n" +
-                "\t\tBullets: " + bullets + "\n" +
-                "\t\tStart Date: " + startDate + "\n" +
-                "\t\tEnd Date: " + endDate + "\n";
-    }
 
     public Experience(String companyName, List<String> technologyList, String location,
                       String experienceType, YearMonth startDate, YearMonth endDate,

@@ -88,15 +88,6 @@ public class Education implements Serializable {
     @JsonIgnore
     private UserProfile profile;
 
-
-    public String toString() {
-        return "EDUCATION:\n" +
-                "\tSchool Name: " + schoolName + "\n" +
-                "\tCoursework: " + relevantCoursework + "\n" +
-                "\tLocation: " + location +
-                "\n\n\n";
-    }
-
     public Education(String schoolName, List<String> relevantCoursework, String location,
                      YearMonth startDate, YearMonth endDate) {
         this.schoolName = schoolName;

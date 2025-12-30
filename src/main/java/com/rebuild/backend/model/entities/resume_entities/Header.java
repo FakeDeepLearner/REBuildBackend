@@ -71,14 +71,6 @@ public class Header implements Serializable {
     @JsonIgnore
     private UserProfile profile;
 
-    @Override
-    public String toString() {
-        return "HEADER:\n" +
-                "\tPhone Number: " + number + "\n" +
-                "\tName: " + firstName + " " + lastName + "\n" +
-                "\tEmail: " + email + "\n\n\n";
-    }
-
     public static Header copy(Header other)
     {
         return new Header(other.getNumber(), other.getFirstName(), other.getLastName(), other.getEmail());

@@ -56,14 +56,10 @@ public class UserService{
 
     private final PasswordEncoder encoder;
 
-    private final SessionRegistry sessionRegistry;
-
     private final ResumeRepository resumeRepository;
 
     private final ProxyManager<String> proxyManager;
     private final BucketConfiguration bucketConfiguration;
-
-    private final FriendRelationshipRepository friendRelationshipRepository;
 
     private final CaptchaVerificationRepository verificationRepository;
 
@@ -78,11 +74,9 @@ public class UserService{
 
     @Autowired
     public UserService(UserRepository repository,
-                       SessionRegistry sessionRegistry,
                        ResumeRepository resumeRepository,
                        ProxyManager<String> proxyManager,
                        BucketConfiguration bucketConfiguration,
-                       FriendRelationshipRepository friendRelationshipRepository,
                        CaptchaVerificationRepository verificationRepository,
                        OTPService otpService, ProfileService profileService,
                        Dotenv dotenv, ElasticSearchService elasticSearchService) {
@@ -93,11 +87,9 @@ public class UserService{
         this.dotenv = dotenv;
         this.elasticSearchService = elasticSearchService;
         this.encoder = new BCryptPasswordEncoder();
-        this.sessionRegistry = sessionRegistry;
         this.resumeRepository = resumeRepository;
         this.proxyManager = proxyManager;
         this.bucketConfiguration = bucketConfiguration;
-        this.friendRelationshipRepository = friendRelationshipRepository;
     }
 
     public Optional<User> findByEmailOrPhone(String emailOrPhone)
