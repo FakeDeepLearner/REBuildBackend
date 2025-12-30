@@ -12,6 +12,7 @@ import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(value = "/api/resume/put", method = RequestMethod.PUT)
 @ResponseStatus(HttpStatus.OK)
+@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
 public class ResumePutController {
     private final ResumeService resumeService;
 
@@ -32,7 +34,7 @@ public class ResumePutController {
     }
 
     @PutMapping("/header/{resume_id}/")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict
     public Resume modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                                @AuthenticationPrincipal User user,
                                                 @PathVariable UUID resume_id){
@@ -41,7 +43,7 @@ public class ResumePutController {
     }
 
     @PutMapping("/experience/{resume_id}/{experience_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
     public Resume modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                        @AuthenticationPrincipal User user,
                                                        @PathVariable UUID experience_id, @PathVariable UUID resume_id){
@@ -51,7 +53,7 @@ public class ResumePutController {
     }
 
     @PutMapping("/education/{resume_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict
     @ResponseStatus(HttpStatus.OK)
     public Resume modifyEducation(@Valid @RequestBody EducationForm educationForm,
                                                      @AuthenticationPrincipal User user,
@@ -63,7 +65,7 @@ public class ResumePutController {
 
     @PutMapping("/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict
     public Resume updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
                                    @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {

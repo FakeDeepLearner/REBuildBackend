@@ -1,6 +1,5 @@
-package com.rebuild.backend.config.redis;
+package com.rebuild.backend.config.redis.redis_serializers;
 
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import lombok.NonNull;
 import lombok.SneakyThrows;

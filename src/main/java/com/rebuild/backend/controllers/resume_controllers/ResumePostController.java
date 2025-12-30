@@ -9,6 +9,7 @@ import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(value = "/api/resume/post", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.CREATED)
+@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
 public class ResumePostController {
     private final ResumeService resumeService;
 
@@ -28,14 +30,14 @@ public class ResumePostController {
     }
 
     @PostMapping("/header/{resume_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict
     public Resume createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
                                   @AuthenticationPrincipal User user){
         return resumeService.changeHeaderInfo(headerForm, resume_id, user);
     }
 
     @PostMapping("/experience/{resume_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict
     public Resume createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                  @PathVariable UUID resume_id,
                                                  @AuthenticationPrincipal User user){
@@ -45,7 +47,7 @@ public class ResumePostController {
     }
 
     @PostMapping("/education/{resume_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict
     public Resume createNewEducation(@Valid @RequestBody EducationForm educationForm,
                                      @PathVariable UUID resume_id,
                                      @AuthenticationPrincipal User user ){

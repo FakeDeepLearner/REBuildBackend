@@ -27,7 +27,8 @@ public class ResumeUtilController {
     }
 
     @PutMapping("/change_name/{resume_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+    @CacheEvict(cacheManager = "cacheManager", cacheNames = "resume_cache",
+            keyGenerator = "resumeCacheKeyGenerator")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> changeResumeName(@RequestBody String newName,
                                               @PathVariable UUID resume_id,

@@ -9,6 +9,8 @@ import com.rebuild.backend.utils.elastic_utils.NullSafeQuerySearchBuilder;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +49,8 @@ public class ElasticSearchService {
     @SuppressWarnings("unchecked")
     public SearchResultDTO getFromCache(String searchToken)
     {
-        List<UUID> cacheResult = (List<UUID>) cacheManager.getCache("search_cache");
+        List<UUID> cacheResult = (List<UUID>) Objects.requireNonNull(cacheManager.getCache("search_cache")).
+                retrieve(searchToken);
 
         if (cacheResult != null)
         {
@@ -61,8 +64,9 @@ public class ElasticSearchService {
     }
 
 
-
-    private SearchResultDTO executeResumeSearch(ResumeSpecsForm specsForm)
+    @CachePut(cacheManager = "cacheManager", cacheNames = "search_cache",
+    key = "#result.searchToken()")
+    public SearchResultDTO executeResumeSearch(ResumeSpecsForm specsForm)
     {
         String newSearchToken = UUID.randomUUID().toString();
         SearchSession searchSession = Search.session(entityManager);
@@ -88,14 +92,14 @@ public class ElasticSearchService {
                         }
                         ))
                 .fetchAllHits();
-            Objects.requireNonNull(cacheManager.getCache("search_cache")).
-                    put(newSearchToken, matchedIds);
             return new SearchResultDTO(matchedIds, newSearchToken);
 
 
     }
 
-    private SearchResultDTO executePostSearch(ForumSpecsForm forumSpecsForm){
+    @CachePut(cacheManager = "cacheManager", cacheNames = "search_cache",
+            key = "#result.searchToken()")
+    public SearchResultDTO executePostSearch(ForumSpecsForm forumSpecsForm){
         SearchSession searchSession = Search.session(entityManager);
         List<UUID> matchedIds = searchSession.search(ForumPost.class)
                 .select(f -> f.id(UUID.class))
@@ -115,8 +119,6 @@ public class ElasticSearchService {
                             ))
                 .fetchAllHits();
             String searchResultToken = UUID.randomUUID().toString();
-            Objects.requireNonNull(cacheManager.getCache("search_cache")).
-                    put(searchResultToken, matchedIds);
             return new SearchResultDTO(matchedIds, searchResultToken);
 
     }

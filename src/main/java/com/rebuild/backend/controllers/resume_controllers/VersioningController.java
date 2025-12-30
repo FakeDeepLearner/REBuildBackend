@@ -34,7 +34,8 @@ public class VersioningController {
     }
 
     @GetMapping("/switch_version/{resume_id}/{version_id}")
-    @CacheEvict(cacheManager = "cacheManager", value = "resume_cache", key = "#user.id.toString() + ':' + #resume_id")
+    @CacheEvict(cacheManager = "cacheManager", cacheNames = "resume_cache",
+            key = "#user.id.toString() + ':' + #resume_id")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> switchToVersion(@AuthenticationPrincipal User user,
                                              @PathVariable UUID resume_id, @PathVariable UUID version_id,

@@ -1,7 +1,7 @@
-package com.rebuild.backend.config.redis;
+package com.rebuild.backend.config.redis.redis_serializers;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.jspecify.annotations.Nullable;
@@ -15,11 +15,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 @Component
-public class RedisProfileSerializer implements RedisSerializer<UserProfile> {
+public class RedisSearchSerializer implements RedisSerializer<SearchResultDTO> {
+
 
     @SneakyThrows
     @Override
-    public byte @NonNull [] serialize(UserProfile value) throws SerializationException {
+    public byte @NonNull [] serialize(SearchResultDTO value) throws SerializationException {
         if(value == null) {
             return new byte[0];
         }
@@ -37,7 +38,7 @@ public class RedisProfileSerializer implements RedisSerializer<UserProfile> {
 
     @SneakyThrows
     @Override
-    public UserProfile deserialize(byte @NonNull [] bytes) throws SerializationException {
+    public SearchResultDTO deserialize(byte @NonNull [] bytes) throws SerializationException {
         if(bytes.length == 0) {
             return null;
         }
@@ -45,10 +46,10 @@ public class RedisProfileSerializer implements RedisSerializer<UserProfile> {
         try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
             Object result =  objectInputStream.readObject();
-            if (result instanceof UserProfile u) {
-                return u;
+            if (result instanceof SearchResultDTO searchResultDTO) {
+                return searchResultDTO;
             }
-            throw new SerializationException("The result is type " +  result.getClass() + " instead of UserProfile");
+            throw new SerializationException("The result is type " +  result.getClass() + " instead of SearchResultDTO");
 
         }
 
