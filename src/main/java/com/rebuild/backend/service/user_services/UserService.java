@@ -42,9 +42,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @Transactional(readOnly = true)
@@ -208,6 +216,47 @@ public class UserService{
         deletingUser.setPhoneNumber(null);
         repository.save(deletingUser);
     }
+
+
+    private String bytesToString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b)); // UPPERCASE hex
+        }
+        return sb.toString();
+    }
+
+    private String encryptWithSHA1(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            return bytesToString(digest.digest(password.getBytes(StandardCharsets.UTF_8)));
+        }
+        catch (NoSuchAlgorithmException e) {
+            return e.getMessage();
+        }
+
+    }
+
+
+    public boolean passwordFoundInDataBreach(String password) throws IOException, InterruptedException {
+        String sha1Hash = encryptWithSHA1(password);
+
+        String first5chars = sha1Hash.substring(0, 5);
+
+        String otherChars = sha1Hash.substring(5);
+
+        HttpRequest request = HttpRequest.newBuilder().
+            uri(URI.create("https://api.pwnedpasswords.com/range/" + first5chars)).
+                header("User-Agent", "rerebuild.ca").GET().build();
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
+
+        return response.body().
+                anyMatch(line -> line.split(":")[0].equals(otherChars));
+    }
+
 
     private String generateSaltValue(){
         SecureRandom random = new SecureRandom();

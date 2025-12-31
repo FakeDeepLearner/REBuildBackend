@@ -206,7 +206,7 @@ public class AuthenticationController {
     @PostMapping("/signup/initialize")
     public ResponseEntity<String> initializeSignup(@Valid @RequestBody SignupForm signupForm,
                                                    @RequestParam(name = "g-recaptcha-response") String userResponse,
-                                                   HttpServletRequest request){
+                                                   HttpServletRequest request) throws IOException, InterruptedException {
         
         if (userService.captchaFailed(userResponse, request.getRemoteAddr())) {
             return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
@@ -215,6 +215,18 @@ public class AuthenticationController {
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupForm.password().equals(signupForm.repeatedPassword())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Passwords do not match");
+        }
+
+        if (signupForm.password().length() < 10)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).
+                    body("Password is too short, please ensure it has a length of at least 10");
+        }
+
+        if (!signupForm.forcePassword() && userService.passwordFoundInDataBreach(signupForm.password()))
+        {
+            return ResponseEntity.badRequest().body("The password you entered was found in a data breach." +
+                    "We strongly recommend that you choose a different one.");
         }
 
 
