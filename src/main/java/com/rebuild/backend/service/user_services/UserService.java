@@ -1,6 +1,9 @@
 package com.rebuild.backend.service.user_services;
 
 
+import com.nulabinc.zxcvbn.Feedback;
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
@@ -12,11 +15,13 @@ import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.token_services.OTPService;
+import com.rebuild.backend.service.util_services.CustomPasswordService;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
@@ -28,6 +33,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AccountExpiredException;
@@ -79,6 +85,8 @@ public class UserService{
 
     private final ElasticSearchService elasticSearchService;
 
+    private final CustomPasswordService passwordService;
+
 
     @Autowired
     public UserService(UserRepository repository,
@@ -87,13 +95,14 @@ public class UserService{
                        BucketConfiguration bucketConfiguration,
                        CaptchaVerificationRepository verificationRepository,
                        OTPService otpService, ProfileService profileService,
-                       Dotenv dotenv, ElasticSearchService elasticSearchService) {
+                       Dotenv dotenv, ElasticSearchService elasticSearchService, CustomPasswordService passwordService) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
         this.profileService = profileService;
         this.dotenv = dotenv;
         this.elasticSearchService = elasticSearchService;
+        this.passwordService = passwordService;
         this.encoder = new BCryptPasswordEncoder();
         this.resumeRepository = resumeRepository;
         this.proxyManager = proxyManager;
@@ -217,44 +226,43 @@ public class UserService{
         repository.save(deletingUser);
     }
 
-
-    private String bytesToString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            sb.append(String.format("%02X", b)); // UPPERCASE hex
-        }
-        return sb.toString();
-    }
-
-    private String encryptWithSHA1(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            return bytesToString(digest.digest(password.getBytes(StandardCharsets.UTF_8)));
-        }
-        catch (NoSuchAlgorithmException e) {
-            return e.getMessage();
+    public ResponseEntity<String> doPreliminaryPasswordChecks(SignupForm signupForm) throws IOException, InterruptedException {
+        //Do preliminary checks. If any of them fail, abort the signup immediately
+        if (!signupForm.password().equals(signupForm.repeatedPassword())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Passwords do not match");
         }
 
-    }
+        if (signupForm.password().length() < 10)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).
+                    body("Password is too short, please ensure it has a length of at least 10");
+        }
 
+        if (!signupForm.forcePassword() && passwordService.passwordFoundInDataBreach(signupForm.password()))
+        {
+            return ResponseEntity.badRequest().body("The password you entered was found in a data breach." +
+                    "We strongly recommend that you choose a different one.");
+        }
 
-    public boolean passwordFoundInDataBreach(String password) throws IOException, InterruptedException {
-        String sha1Hash = encryptWithSHA1(password);
+        PasswordFeedbackResponse feedbackResponse = passwordService.evaluateUserPassword(signupForm);
+        int score = feedbackResponse.score();
 
-        String first5chars = sha1Hash.substring(0, 5);
+        if (!signupForm.forcePassword() && score <= 2)
+        {
 
-        String otherChars = sha1Hash.substring(5);
+            StringBuilder builder = new StringBuilder();
+            for (String suggestion : feedbackResponse.suggestions())
+            {
+                builder.append(suggestion);
+                builder.append("\n");
+            }
 
-        HttpRequest request = HttpRequest.newBuilder().
-            uri(URI.create("https://api.pwnedpasswords.com/range/" + first5chars)).
-                header("User-Agent", "rerebuild.ca").GET().build();
+            return ResponseEntity.badRequest().body("This password is not recommended due to " +
+                    "the following reason:\n " + feedbackResponse.warning() + "\n" +
+                    "We recommend the following:\n" + builder);
+        }
 
-        HttpClient client = HttpClient.newHttpClient();
-
-        HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
-
-        return response.body().
-                anyMatch(line -> line.split(":")[0].equals(otherChars));
+        return null;
     }
 
 

@@ -2,10 +2,12 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
+import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
 import com.rebuild.backend.service.token_services.OTPService;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.service.user_services.UserService;
+import com.sendgrid.Response;
 import com.twilio.rest.verify.v2.service.VerificationCheck;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -212,21 +214,11 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
         }
 
-        //Do preliminary checks. If any of them fail, abort the signup immediately
-        if (!signupForm.password().equals(signupForm.repeatedPassword())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Passwords do not match");
-        }
+        ResponseEntity<String> passwordCheckResponse = userService.doPreliminaryPasswordChecks(signupForm);
 
-        if (signupForm.password().length() < 10)
+        if (passwordCheckResponse != null)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).
-                    body("Password is too short, please ensure it has a length of at least 10");
-        }
-
-        if (!signupForm.forcePassword() && userService.passwordFoundInDataBreach(signupForm.password()))
-        {
-            return ResponseEntity.badRequest().body("The password you entered was found in a data breach." +
-                    "We strongly recommend that you choose a different one.");
+            return passwordCheckResponse;
         }
 
 
