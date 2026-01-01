@@ -32,9 +32,9 @@ public class ResumeVersioningService {
         this.versionRepository = versionRepository;
     }
 
-    private ResumeVersion findByResumeAndVersionId(UUID versionId, Resume resume)
+    private ResumeVersion findVersionByParameters(User user, UUID resumeId, UUID versionId)
     {
-        return versionRepository.findByIdAndAssociatedResume(versionId, resume).orElseThrow(
+        return versionRepository.findByResumeIdUserAndVersionId(user, resumeId, versionId).orElseThrow(
                 () -> new BelongingException("This version either does not exist or does not belong to this resume")
         );
     }
@@ -52,10 +52,10 @@ public class ResumeVersioningService {
     public Resume switchToAnotherVersion(User user,
                                          UUID resumeId, UUID versionId,
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
+        ResumeVersion versionToSwitch = findVersionByParameters(user, resumeId, versionId);
         Resume switchingResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
 
-        ResumeVersion versionToSwitch = findByResumeAndVersionId(versionId, switchingResume);
-        handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
+        handleVersionSwitch(versionToSwitch.getAssociatedResume(), versionToSwitch, versionSwitchPreferencesForm);
         versionRepository.save(versionToSwitch);
         return resumeRepository.save(switchingResume);
 
@@ -275,8 +275,8 @@ public class ResumeVersioningService {
 
     @Transactional
     public void deleteVersion(User user, UUID resumeId, UUID versionId){
-        Resume deletingResume = getUtility.findByUserResumeId(user, resumeId);
-        ResumeVersion versionToDelete = findByResumeAndVersionId(versionId, deletingResume);
+        ResumeVersion versionToDelete = findVersionByParameters(user, resumeId, versionId);
+        Resume deletingResume = versionToDelete.getAssociatedResume();
         versionRepository.delete(versionToDelete);
         deletingResume.setVersionCount(deletingResume.getVersionCount() - 1);
         resumeRepository.save(deletingResume);
