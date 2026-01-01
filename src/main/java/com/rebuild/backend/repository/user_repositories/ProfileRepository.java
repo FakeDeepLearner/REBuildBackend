@@ -20,7 +20,7 @@ public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
     @Query(
     """
     SELECT p FROM UserProfile p
-    JOIN FETCH p.header JOIN FETCH p.education JOIN FETCH p.experienceList
+    JOIN FETCH p.header JOIN FETCH p.education JOIN FETCH p.experienceList JOIN FETCH p.projectList
     WHERE p.user=?1
 """
     )
@@ -57,6 +57,18 @@ public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
     )
     @Cacheable
     UserProfile findByUserWithExperiences(User user);
+
+    @Query(
+            """
+            SELECT p FROM UserProfile p
+            JOIN FETCH p.projectList
+            WHERE p.user=?1
+        """
+    )
+    @Cacheable
+    UserProfile findByUserWithProjects(User user);
+
+
 
 
     @Cacheable

@@ -46,6 +46,13 @@ public class ResumeDeleteController {
         return resumeService.deleteEducation(user, resume_id);
     }
 
+    @DeleteMapping("/project/{resume_id}/{project_id}")
+    @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
+    public Resume deleteProject(@PathVariable UUID project_id, @PathVariable UUID resume_id,
+                                @AuthenticationPrincipal User user) {
+        return resumeService.deleteProject(user, project_id, resume_id);
+    }
+
     @DeleteMapping("/{resume_id}")
     @CacheEvict
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -61,7 +61,9 @@ public class ProfileService {
 
         UserProfile updatedProfile = updateHeaderAndEducation(profile, profileForm, startDate, endDate);
         List<Experience> experiences = extractProfileExperiences(profileForm.experiences(), updatedProfile);
+        List<Project> projects = extractProfileProjects(profileForm.projects(), updatedProfile);
         updatedProfile.setExperienceList(experiences);
+        updatedProfile.setProjectList(projects);
         updatedProfile.setMessagesFromFriendsOnly(messagesFromFriends);
 
         modifyProfilePictureOf(updatedProfile.getUser(), pictureFile);
@@ -143,6 +145,11 @@ public class ProfileService {
         return modificationUtility.modifyProfileExperience(experienceForm, experienceId, user);
     }
 
+
+    public UserProfile updateProfileProject(ProjectForm projectForm, User user, UUID projectId) {
+        return modificationUtility.modifyProfileProject(projectForm, projectId, user);
+    }
+
     @Transactional
     public UserProfile updateProfileExperiences(User updatingUser,
                                                 List<ExperienceForm> newExperiences){
@@ -176,6 +183,13 @@ public class ProfileService {
     }
 
     @Transactional
+    public UserProfile deleteProfileProjects(User deletingUser){
+        UserProfile profile = profileRepository.findByUser(deletingUser);
+        profile.setExperienceList(null);
+        return profileRepository.save(profile);
+    }
+
+    @Transactional
     public UserProfile deleteProfileEducation(User deletingUser){
         UserProfile profile = profileRepository.findByUser(deletingUser);
         profile.setEducation(null);
@@ -191,12 +205,21 @@ public class ProfileService {
 
     @Transactional
     public UserProfile deleteSpecificProfileExperience(User deletingUser, UUID experience_id){
-        UserProfile profile = profileRepository.findByUser(deletingUser);
+        UserProfile profile = profileRepository.findByUserWithExperiences(deletingUser);
         profile.getExperienceList().
                 removeIf(profileExperience ->
                 profileExperience.getId().equals(experience_id)
         );
         return profileRepository.save(profile);
+    }
+
+    @Transactional
+    public UserProfile deleteSpecificProfileProject(User deletingUser, UUID project_id){
+        UserProfile profile = profileRepository.findByUserWithProjects(deletingUser);
+        profile.getProjectList().
+                removeIf(profileProject -> profileProject.getId().equals(project_id));
+        return profileRepository.save(profile);
+
     }
 
 
@@ -212,6 +235,18 @@ public class ProfileService {
                 }
         ).toList();
 
+    }
+
+    private List<Project> extractProfileProjects(List<ProjectForm> projectForms, UserProfile profile){
+        return projectForms.stream().map(rawForm -> {
+            Project newProject = new Project(rawForm.projectName(), rawForm.technologyList(),
+                    YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                    YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                    rawForm.bullets());
+            newProject.setProfile(profile);
+            return newProject;
+            }
+        ).toList();
     }
 
 }

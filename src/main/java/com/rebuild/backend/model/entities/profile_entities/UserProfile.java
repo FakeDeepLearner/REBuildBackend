@@ -50,6 +50,12 @@ public class UserProfile implements Serializable {
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
     private List<Experience> experienceList;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.ALL
+    }, orphanRemoval = true, mappedBy = "resume")
+    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
+    private List<Project> projectList;
+
     @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
 

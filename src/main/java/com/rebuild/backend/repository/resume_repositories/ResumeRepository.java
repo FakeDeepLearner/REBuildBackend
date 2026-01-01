@@ -19,14 +19,14 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     Optional<Resume> findByIdAndUser(UUID id, User user);
 
 
-    @EntityGraph(attributePaths = {
-            "header",
-            "education",
-            "experiences"}
-    )
     @Query("""
-        SELECT r FROM Resume r WHERE r.id IN ?1
-        """)
+        SELECT r FROM Resume r
+        LEFT JOIN FETCH r.header
+        LEFT JOIN FETCH r.education
+        LEFT JOIN FETCH r.projects
+        LEFT JOIN FETCH r.experiences
+                WHERE r.id IN ?1
+       """)
     List<Resume> findAllByIdWithOtherData(Iterable<UUID> ids);
 
 
@@ -35,7 +35,36 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
         LEFT JOIN FETCH r.header
         LEFT JOIN FETCH r.education
         LEFT JOIN FETCH r.experiences
+        LEFT JOIN FETCH r.projects
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithOtherData(UUID id, User user);
+
+    @Query(value = """
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.header
+        WHERE r.id=?1 AND r.user=?2
+       """)
+    Optional<Resume> findByIdAndUserWithHeader(UUID id, User user);
+
+    @Query(value = """
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.education
+        WHERE r.id=?1 AND r.user=?2
+       """)
+    Optional<Resume> findByIdAndUserWithEducation(UUID id, User user);
+
+    @Query(value = """
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.experiences
+        WHERE r.id=?1 AND r.user=?2
+       """)
+    Optional<Resume> findByIdAndUserWithExperiences(UUID id, User user);
+
+    @Query(value = """
+        SELECT DISTINCT r FROM Resume r
+        LEFT JOIN FETCH r.projects
+        WHERE r.id=?1 AND r.user=?2
+       """)
+    Optional<Resume> findByIdAndUserWithProjects(UUID id, User user);
 }

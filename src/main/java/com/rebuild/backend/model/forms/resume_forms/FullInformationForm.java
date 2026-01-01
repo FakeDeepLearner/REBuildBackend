@@ -9,5 +9,7 @@ public record FullInformationForm(HeaderForm headerForm,
                              EducationForm educationForm,
 
                              @NotEmpty(message = "The experience list may not be empty")
-                             List<ExperienceForm> experiences) {
+                             List<ExperienceForm> experiences,
+
+                             List<ProjectForm> projects) {
 }

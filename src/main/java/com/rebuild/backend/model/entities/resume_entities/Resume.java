@@ -74,6 +74,14 @@ public class Resume implements Serializable {
     @IndexedEmbedded
     private List<Experience> experiences = new ArrayList<>();
 
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.ALL
+    }, orphanRemoval = true, mappedBy = "resume")
+    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
+    @IndexedEmbedded
+    private List<Project> projects = new ArrayList<>();
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
     orphanRemoval = true, mappedBy = "associatedResume")
     @OrderBy("createdDate DESC")
@@ -147,11 +155,5 @@ public class Resume implements Serializable {
         }
 
     }
-
-    public void addExperience(Experience experience){
-        experiences.add(experience);
-    }
-
-
 
 }

@@ -44,6 +44,13 @@ public class PostResume {
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> experiences;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.ALL
+    }, orphanRemoval = true)
+    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
+    @JoinColumn(name = "project_id", referencedColumnName = "id")
+    private List<Project> projects;
+
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
             CascadeType.PERSIST,
@@ -61,12 +68,15 @@ public class PostResume {
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
+        List<Project> originalProjects = originalResume.getProjects();
         // We are creating new objects here,
         // because we do not want them to be a reference to the original ones.
         this.education = Education.copy(originalEducation);
         this.header = Header.copy(originalHeader);
         this.experiences = originalExperiences.stream().map(
                 Experience::copy).toList();
+        this.projects = originalProjects.stream().map(Project::copy).toList();
+
         this.creationTime = Instant.now();
 
     }

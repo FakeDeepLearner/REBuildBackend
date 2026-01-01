@@ -5,10 +5,7 @@ import com.rebuild.backend.model.entities.resume_entities.Experience;
 import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.forms.resume_forms.EducationForm;
-import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
-import com.rebuild.backend.model.forms.resume_forms.FullInformationForm;
-import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
+import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,5 +68,14 @@ public class ResumePutController {
                                    @AuthenticationPrincipal User user) {
         return resumeService.fullUpdate(user, resume_id, fullInformationForm);
 
+    }
+
+    @PutMapping("/experience/{resume_id}/{project_id}")
+    @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
+    public Resume modifyProject(@Valid @RequestBody ProjectForm projectForm,
+                                   @AuthenticationPrincipal User user,
+                                   @PathVariable UUID project_id, @PathVariable UUID resume_id){
+        return resumeService.changeProjectInfo(projectForm, project_id,
+                resume_id, user);
     }
 }

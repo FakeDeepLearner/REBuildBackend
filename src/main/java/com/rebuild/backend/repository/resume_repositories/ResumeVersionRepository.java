@@ -15,12 +15,12 @@ public interface ResumeVersionRepository extends JpaRepository<ResumeVersion, UU
 
 
     @Query(value = """
-        SELECT DISTINCT rv FROM ResumeVersion rv
+        SELECT rv FROM ResumeVersion rv
         LEFT JOIN FETCH rv.versionedHeader
         LEFT JOIN FETCH rv.versionedEducation
         LEFT JOIN FETCH rv.versionedExperiences
         WHERE rv.id=?1 AND rv.associatedResume=?2
         """)
-    Optional<ResumeVersion> findByIdAndAssociatedResume(UUID id, Resume associatedResume);
+    Optional<ResumeVersion> findByIdAndAssociatedResume(UUID versionID, Resume associatedResume);
 
 }

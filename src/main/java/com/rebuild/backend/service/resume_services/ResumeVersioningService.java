@@ -42,7 +42,7 @@ public class ResumeVersioningService {
 
     @Transactional
     public ResumeVersion snapshotCurrentData(User user, UUID resumeId, VersionCreationForm inclusionForm){
-        Resume copiedResume = getUtility.findByUserAndIdWithExtraInfo(user, resumeId);
+        Resume copiedResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
         ResumeVersion newVersion = createSnapshot(copiedResume, inclusionForm);
         copiedResume.setVersionCount(copiedResume.getVersionCount() + 1);
         return versionRepository.save(newVersion);
@@ -52,7 +52,7 @@ public class ResumeVersioningService {
     public Resume switchToAnotherVersion(User user,
                                          UUID resumeId, UUID versionId,
                                          VersionSwitchPreferencesForm versionSwitchPreferencesForm){
-        Resume switchingResume = getUtility.findByUserAndIdWithExtraInfo(user, resumeId);
+        Resume switchingResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
 
         ResumeVersion versionToSwitch = findByResumeAndVersionId(versionId, switchingResume);
         handleVersionSwitch(switchingResume, versionToSwitch, versionSwitchPreferencesForm);
@@ -85,6 +85,43 @@ public class ResumeVersioningService {
             resume.setExperiences(newExperiences);
         }
 
+        if(versionToSwitch.getVersionedEducation() != null && !preferencesForm.projectIds().isEmpty()){
+            List<Project> newProjects = getProjects(resume, versionToSwitch,
+                    preferencesForm.makeProjectCopies(), preferencesForm.projectIds());
+            resume.setProjects(newProjects);
+        }
+
+    }
+
+
+    private List<Project> getProjects(Resume resume, ResumeVersion versionToSwitch,
+                                      boolean makeCopies, List<UUID> identifiersToSelect){
+        if (!makeCopies) {
+            List<Project> oldResumeProjects = resume.getProjects().stream()
+                    .peek(project -> {
+                        project.setResume(null);
+                        project.setVersion(versionToSwitch);
+                    }).toList();
+
+            List<Project> versionedProjects = versionToSwitch.getVersionedProjects().stream().
+                    filter(project -> identifiersToSelect.contains(project.getId())).
+                    peek(project -> {
+                        project.setVersion(null);
+                        project.setResume(resume);
+                    }).toList();
+
+            versionToSwitch.setVersionedProjects(oldResumeProjects);
+            return versionedProjects;
+        }
+        else
+        {
+            List<Project> versionedProjects = versionToSwitch.getVersionedProjects();
+
+            return versionedProjects.stream().
+                    filter(project -> identifiersToSelect.contains(project.getId())).
+                    map(Project::copy)
+                    .toList();
+        }
     }
 
     private List<Experience> getExperiences(Resume resume, ResumeVersion versionToSwitch,
@@ -175,11 +212,10 @@ public class ResumeVersioningService {
         createVersionedHeader(resume.getHeader(),
                 inclusionForm.includeHeader(), newVersion);
         createVersionedEducation(
-                resume.getEducation(), inclusionForm.includeEducation(), newVersion
-        );
+                resume.getEducation(), inclusionForm.includeEducation(), newVersion);
         createVersionedExperiences(
-                resume.getExperiences(), inclusionForm.includeExperience(), newVersion
-        );
+                resume.getExperiences(), inclusionForm.includeExperience(), newVersion);
+        createVersionedProjects(resume.getProjects(), inclusionForm.includeProjects(), newVersion);
         String versionedName = inclusionForm.includeName() ? resume.getName() : null;
         newVersion.setVersionedName(versionedName);
         newVersion.setAssociatedResume(resume);
@@ -222,6 +258,18 @@ public class ResumeVersioningService {
                 .toList();
 
         resumeVersion.setVersionedExperiences(newExperiences);
+    }
+
+    private void createVersionedProjects(List<Project> originalProjects, boolean shouldBeNull,
+                                         ResumeVersion resumeVersion){
+        if(shouldBeNull){
+            return;
+        }
+
+        List<Project> newProjects = originalProjects.stream().map(
+                Project::copy).peek(project -> project.setVersion(resumeVersion))
+                .toList();
+        resumeVersion.setVersionedProjects(newProjects);
     }
 
 

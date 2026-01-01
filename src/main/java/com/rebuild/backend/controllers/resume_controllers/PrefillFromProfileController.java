@@ -25,7 +25,7 @@ public class PrefillFromProfileController {
         this.resumeService = resumeService;
     }
 
-    @GetMapping("/header/{resume_id}")
+    @PostMapping("/header/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict
     public Resume prefillHeader(@PathVariable UUID resume_id,
@@ -33,7 +33,7 @@ public class PrefillFromProfileController {
         return resumeService.prefillHeader(resume_id, user);
     }
 
-    @GetMapping("/education/{resume_id}")
+    @PostMapping("/education/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict
     public Resume prefillEducation(@PathVariable UUID resume_id,
@@ -41,11 +41,19 @@ public class PrefillFromProfileController {
        return resumeService.prefillEducation(resume_id, user);
     }
 
-    @GetMapping("/experiences/{resume_id}")
+    @PostMapping("/experiences/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict
     public Resume prefillExperience(@PathVariable UUID resume_id,
                                                @AuthenticationPrincipal User user){
         return resumeService.prefillExperiencesList(resume_id, user);
+    }
+
+    @PostMapping("/projects/{resume_id}")
+    @ResponseStatus(HttpStatus.OK)
+    @CacheEvict
+    public Resume prefillProjects(@PathVariable UUID resume_id,
+                                    @AuthenticationPrincipal User user){
+        return resumeService.prefillProjectsList(resume_id, user);
     }
 }

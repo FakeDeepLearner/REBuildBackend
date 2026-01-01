@@ -1,5 +1,8 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -59,6 +62,28 @@ public class Project implements Serializable {
     @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
             searchable = Searchable.YES)
     private List<String> bullets;
+
+
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "resume_id", referencedColumnName = "id")
+    @JsonIgnore
+    private ResumeVersion version;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "resume_id", referencedColumnName = "id")
+    @JsonIgnore
+    private Resume resume;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    @JsonIgnore
+    private UserProfile profile;
+
+    public static Project copy(Project other)
+    {
+        return new Project(other.projectName, other.technologyList,
+                other.startDate, other.endDate, other.bullets);
+    }
 
 
 }

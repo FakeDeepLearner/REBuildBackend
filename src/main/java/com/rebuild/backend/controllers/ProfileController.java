@@ -128,6 +128,13 @@ public class ProfileController {
         return profileService.deleteProfileExperiences(deletingUser);
     }
 
+    @DeleteMapping("/delete/projects")
+    @CacheEvict
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile deleteProfileProjects(@AuthenticationPrincipal User deletingUser) {
+        return profileService.deleteProfileProjects(deletingUser);
+    }
+
     @DeleteMapping("/delete/experiences/{experience_id}")
     @CacheEvict
     @ResponseStatus(HttpStatus.OK)
@@ -135,6 +142,15 @@ public class ProfileController {
                                                 @PathVariable UUID experience_id) {
         return profileService.deleteSpecificProfileExperience(deletingUser,
                 experience_id);
+    }
+
+    @DeleteMapping("/delete/experiences/{project_id}")
+    @CacheEvict
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfile deleteSpecificProject(@AuthenticationPrincipal User deletingUser,
+                                                @PathVariable UUID project_id) {
+        return profileService.deleteSpecificProfileProject(deletingUser,
+                project_id);
     }
 
     @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})

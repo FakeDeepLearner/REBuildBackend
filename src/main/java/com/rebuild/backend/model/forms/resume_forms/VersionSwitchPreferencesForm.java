@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record VersionSwitchPreferencesForm(boolean includeName,
                                            boolean includeHeader, boolean includeEducation,
-                                           List<UUID> experienceIds,
+                                           List<UUID> experienceIds, List<UUID> projectIds,
                                            boolean makeHeaderCopy, boolean makeEducationCopy,
-                                           boolean makeExperienceCopies){
+                                           boolean makeExperienceCopies, boolean makeProjectCopies){
 }

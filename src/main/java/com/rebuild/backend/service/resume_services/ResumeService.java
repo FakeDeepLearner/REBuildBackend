@@ -90,6 +90,10 @@ public class ResumeService {
 
     }
 
+    public Resume changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
+        return modificationUtility.modifyResumeProject(projectForm, projectID, resumeID, user);
+    }
+
     @Transactional
     public Resume changeEducationInfo(EducationForm educationForm,
                                       UUID resumeID, User user){
@@ -99,7 +103,7 @@ public class ResumeService {
     @Transactional
     public Resume createNewExperience(User changingUser, UUID resumeId,
                                       ExperienceForm experienceForm){
-        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
+        Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         Experience newExperience = new Experience(experienceForm.companyName(),
@@ -107,7 +111,21 @@ public class ResumeService {
                 start, end, experienceForm.bullets());
         newExperience.setResume(resume);
 
-        resume.addExperience(newExperience);
+        resume.getExperiences().add(newExperience);
+
+        return resumeRepository.save(resume);
+
+    }
+
+    public Resume createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
+
+        Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
+        YearMonth start = YearMonthStringOperations.getYearMonth(projectForm.startDate());
+        YearMonth end = YearMonthStringOperations.getYearMonth(projectForm.endDate());
+        Project newProject = new Project(projectForm.projectName(), projectForm.technologyList(),
+                start, end, projectForm.bullets());
+        newProject.setResume(resume);
+        resume.getProjects().add(newProject);
 
         return resumeRepository.save(resume);
 
@@ -128,8 +146,16 @@ public class ResumeService {
 
     @Transactional
     public Resume deleteExperience(User changingUser, UUID resumeId, UUID experienceId){
-        Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
+        Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         resume.getExperiences().removeIf(experience -> experience.getId().equals(experienceId));
+        return resumeRepository.save(resume);
+    }
+
+
+    @Transactional
+    public Resume deleteProject(User changingUser, UUID resumeId, UUID projectId){
+        Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
+        resume.getProjects().removeIf(project -> project.getId().equals(projectId));
         return resumeRepository.save(resume);
     }
 
@@ -144,7 +170,7 @@ public class ResumeService {
     @Transactional
     public Resume fullUpdate(User updatingUser, UUID resumeID,
                              FullInformationForm resumeForm) {
-        Resume resume = getUtility.findByUserAndIdWithExtraInfo(updatingUser, resumeID);
+        Resume resume = getUtility.findByUserResumeId(updatingUser, resumeID);
 
 
         //We can't modify the resume's fields directly here, as that would also modify the variables that
@@ -160,6 +186,8 @@ public class ResumeService {
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
                 YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
         resume.setEducation(newEducation);
+
+        resume.setProjects(extractProjects(resumeForm.projects(), resume));
 
         resume.setExperiences(extractExperiences(resumeForm.experiences(), resume));
 
@@ -177,7 +205,7 @@ public class ResumeService {
 
     @Transactional
     public Resume copyResume(User user, UUID resumeId, ResumeCreationForm creationForm){
-        Resume copiedResume = getUtility.findByUserAndIdWithExtraInfo(user, resumeId);
+        Resume copiedResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
         if(creationForm.newName().equals(copiedResume.getName())){
             throw new RuntimeException("The new resume must have a different name than the original one.");
         }
@@ -189,7 +217,7 @@ public class ResumeService {
 
     public Resume prefillHeader(UUID resumeID, User authenticatedUser)
     {
-        Resume associatedResume = getUtility.findByUserAndIdWithExtraInfo(authenticatedUser, resumeID);
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
         UserProfile profile = profileRepository.findByUserWithHeader(authenticatedUser);
         Header header = profile.getHeader();
         if(header == null){
@@ -202,7 +230,7 @@ public class ResumeService {
 
     public Resume prefillEducation(UUID resumeID, User authenticatedUser)
     {
-        Resume associatedResume = getUtility.findByUserAndIdWithExtraInfo(authenticatedUser, resumeID);
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
         UserProfile profile = profileRepository.findByUserWithEducation(authenticatedUser);
         Education education = profile.getEducation();
         if(education == null){
@@ -214,12 +242,12 @@ public class ResumeService {
     }
 
 
-    public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser){
+    public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser) {
 
-        Resume associatedResume = getUtility.findByUserAndIdWithExtraInfo(authenticatedUser, resumeID);
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
         UserProfile profile = profileRepository.findByUserWithExperiences(authenticatedUser);
         List<Experience> experienceList = profile.getExperienceList();
-        if(experienceList == null){
+        if (experienceList == null) {
             throw new PrefillException("Your profile does not have experiences set");
         }
         List<Experience> newExperiences = experienceList.
@@ -229,7 +257,23 @@ public class ResumeService {
                 toList();
         associatedResume.setExperiences(newExperiences);
         return resumeRepository.save(associatedResume);
+    }
 
+    public Resume prefillProjectsList(UUID resumeID, User authenticatedUser) {
+
+        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
+        UserProfile profile = profileRepository.findByUserWithProjects(authenticatedUser);
+        List<Project> projectList = profile.getProjectList();
+        if (projectList == null) {
+            throw new PrefillException("Your profile does not have projects set");
+        }
+        List<Project> newProjects = projectList.
+                stream().map(Project::copy).peek(project -> {
+                    project.setResume(associatedResume);
+                }).
+                toList();
+        associatedResume.setProjects(newProjects);
+        return resumeRepository.save(associatedResume);
     }
 
 
@@ -247,5 +291,17 @@ public class ResumeService {
 
     }
 
+
+    private List<Project> extractProjects(List<ProjectForm> projectForms, Resume resume){
+        return projectForms.stream().map(rawForm -> {
+                    Project newProject = new Project(rawForm.projectName(), rawForm.technologyList(),
+                            YearMonthStringOperations.getYearMonth(rawForm.startDate()),
+                            YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                            rawForm.bullets());
+                    newProject.setResume(resume);
+                    return newProject;
+                }
+        ).toList();
+    }
 
 }

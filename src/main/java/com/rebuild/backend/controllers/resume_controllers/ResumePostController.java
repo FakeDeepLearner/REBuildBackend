@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
+import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,13 @@ public class ResumePostController {
                                      @PathVariable UUID resume_id,
                                      @AuthenticationPrincipal User user ){
         return resumeService.changeEducationInfo(educationForm, resume_id, user);
+    }
+
+    @PostMapping("/project/{resume_id}")
+    @CacheEvict
+    public Resume createNewProject(@Valid @RequestBody ProjectForm projectForm,
+                                   @PathVariable UUID resume_id,
+                                   @AuthenticationPrincipal User user){
+        return resumeService.createNewProject(user, resume_id, projectForm);
     }
 }

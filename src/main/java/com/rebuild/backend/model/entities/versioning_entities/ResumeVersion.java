@@ -51,6 +51,10 @@ public class ResumeVersion implements Serializable {
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> versionedExperiences;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "version")
+    @JoinColumn(name = "experience_id", referencedColumnName = "id")
+    private List<Project> versionedProjects;
+
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate
     private Instant createdDate = Instant.now();
@@ -74,6 +78,8 @@ public class ResumeVersion implements Serializable {
         this.versionedEducation = Education.copy(other.versionedEducation);
         this.versionedExperiences = other.versionedExperiences.stream()
                 .map(Experience::copy).toList();
+        this.versionedProjects = other.versionedProjects.stream()
+                .map(Project::copy).toList();
         this.versionedName = other.versionedName;
         this.createdDate = Instant.now();
     }
