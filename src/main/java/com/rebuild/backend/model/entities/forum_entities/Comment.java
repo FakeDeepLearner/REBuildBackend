@@ -16,12 +16,6 @@ import java.util.*;
         @Index(columnList = "post_id"),
         @Index(columnList = "parent_comment_id, creation_date")
 })
-@NamedQueries(
-        value = {
-                @NamedQuery(name = "Comment.countByIdAndUserId",
-                query = "SELECT COUNT(*) FROM Comment c WHERE c.id=?1 and c.author.id=?2")
-        }
-)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

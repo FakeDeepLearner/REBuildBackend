@@ -18,6 +18,14 @@ import java.util.UUID;
 @Repository
 public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
+    @Override
+    @NonNull
+    @Query(value = """
+            SELECT fp FROM ForumPost fp\s
+                        LEFT JOIN FETCH fp.resumes\s
+                        JOIN fp.creatingUser u WHERE fp.id=?1
+           \s""")
+    Optional<ForumPost> findById(UUID uuid);
 
     @Query(value = """
             SELECT fp FROM ForumPost fp
@@ -38,7 +46,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             SELECT NEW com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO(
             c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.author u
-            WHERE p.id=:id ORDER BY c.creationDate ASC
+            WHERE p.id=?1 ORDER BY c.creationDate ASC
             """)
     List<CommentDisplayDTO> loadCommentsById(UUID id);
 

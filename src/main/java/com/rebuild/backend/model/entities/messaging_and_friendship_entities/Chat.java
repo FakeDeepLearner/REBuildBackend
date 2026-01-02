@@ -10,7 +10,8 @@ import java.util.*;
 
 @Entity
 @Table(name = "chats", indexes = {
-        @Index(columnList = "initiating_user_id")
+        @Index(columnList = "initiating_user_id"),
+        @Index(columnList = "initiating_user_id, receiving_user_id")
 })
 @Data
 @NoArgsConstructor

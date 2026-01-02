@@ -34,7 +34,7 @@ public class ResumeVersioningService {
 
     private ResumeVersion findVersionByParameters(User user, UUID resumeId, UUID versionId)
     {
-        return versionRepository.findByResumeIdUserAndVersionId(user, resumeId, versionId).orElseThrow(
+        return versionRepository.findByIdAndAssociatedResume_IdAndAssociatedResume_User(versionId, resumeId, user).orElseThrow(
                 () -> new BelongingException("This version either does not exist or does not belong to this resume")
         );
     }
