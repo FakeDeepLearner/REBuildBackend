@@ -22,6 +22,7 @@ import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
+import org.hibernate.search.backend.lucene.types.codec.impl.Storage;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
@@ -89,7 +90,7 @@ public class ForumPostAndCommentService {
     public ForumPost createNewPost(NewPostForm postForm,
                                    User creatingUser, List<MultipartFile> resumeFiles){
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
-        List<PostResume> resumes = resumeRepository.findAllByIdWithOtherData(postForm.resumeIDs()).stream()
+        List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
                         .map(PostResume::new).
                         peek(postResume -> postResume.setAssociatedPost(newPost)).
                 toList();

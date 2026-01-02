@@ -35,6 +35,15 @@ import java.util.UUID;
                 query = "SELECT COUNT(*) FROM Resume r WHERE r.id=?1 and r.user.id=?2")
         }
 )
+
+@NamedEntityGraph(name = Resume.GRAPH_NAME,
+    attributeNodes = {
+        @NamedAttributeNode(value = "header"),
+        @NamedAttributeNode(value = "education"),
+        @NamedAttributeNode(value = "experiences"),
+        @NamedAttributeNode(value = "projects"),
+        @NamedAttributeNode(value = "user")
+    })
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -43,6 +52,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Indexed
 public class Resume implements Serializable {
+
+    public static final String GRAPH_NAME = "Resume.fullData";
 
     @Serial
     private static final long serialVersionUID = 1;

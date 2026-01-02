@@ -8,27 +8,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     Optional<Resume> findByIdAndUser(UUID id, User user);
 
-
-    @Query("""
-        SELECT r FROM Resume r
-        LEFT JOIN FETCH r.header
-        LEFT JOIN FETCH r.education
-        LEFT JOIN FETCH r.projects
-        LEFT JOIN FETCH r.experiences
-                WHERE r.id IN ?1
-       """)
-    List<Resume> findAllByIdWithOtherData(Iterable<UUID> ids);
-
+    @EntityGraph(value = Resume.GRAPH_NAME, type =  EntityGraph.EntityGraphType.LOAD)
+    List<Resume> findByUserAndIdIn(User user, Collection<UUID> ids);
 
     @Query(value = """
         SELECT DISTINCT r FROM Resume r
