@@ -16,6 +16,7 @@ import java.util.UUID;
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
+
     Optional<Resume> findByIdAndUser(UUID id, User user);
 
 
@@ -29,9 +30,8 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
        """)
     List<Resume> findAllByIdWithOtherData(Iterable<UUID> ids);
 
-
     @Query(value = """
-        SELECT DISTINCT r FROM Resume r
+        SELECT r FROM Resume r
         LEFT JOIN FETCH r.header
         LEFT JOIN FETCH r.education
         LEFT JOIN FETCH r.experiences
@@ -41,14 +41,14 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     Optional<Resume> findByIdAndUserWithOtherData(UUID id, User user);
 
     @Query(value = """
-        SELECT DISTINCT r FROM Resume r
+        SELECT r FROM Resume r
         LEFT JOIN FETCH r.header
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithHeader(UUID id, User user);
 
     @Query(value = """
-        SELECT DISTINCT r FROM Resume r
+        SELECT r FROM Resume r
         LEFT JOIN FETCH r.education
         WHERE r.id=?1 AND r.user=?2
        """)

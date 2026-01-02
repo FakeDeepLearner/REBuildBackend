@@ -23,15 +23,15 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(value = """
             SELECT fp FROM ForumPost fp\s
                         LEFT JOIN FETCH fp.resumes\s
-                        JOIN fp.creatingUser u WHERE fp.id=:uuid
+                        JOIN fp.creatingUser u WHERE fp.id=?1
            \s""")
-    Optional<ForumPost> findById(@Param("uuid") UUID uuid);
+    Optional<ForumPost> findById(UUID uuid);
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO(
             c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.author u
-            WHERE p.id=:id ORDER BY c.creationDate ASC
+            WHERE p.id=?1 ORDER BY c.creationDate ASC
             """)
     List<CommentDisplayDTO> loadCommentsById(UUID id);
 

@@ -7,6 +7,8 @@ import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
@@ -29,12 +31,13 @@ import java.util.UUID;
         @Index(columnList = "user_id"),
         @Index(columnList = "user_id, id")
 })
-@NamedQueries(
-        value = {
-                @NamedQuery(name = "Resume.countByIdAndUserId",
-                query = "SELECT COUNT(*) FROM Resume r WHERE r.id=?1 and r.user.id=?2")
-        }
-)
+@NamedEntityGraph(name = Resume.GRAPH_NAME,
+    attributeNodes = {
+        @NamedAttributeNode(value = "header"),
+        @NamedAttributeNode(value = "education"),
+        @NamedAttributeNode(value = "experiences"),
+        @NamedAttributeNode(value = "projects")
+    })
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -43,6 +46,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Indexed
 public class Resume implements Serializable {
+
+    public static final String GRAPH_NAME = "Resume.fullData";
 
     @Serial
     private static final long serialVersionUID = 1;

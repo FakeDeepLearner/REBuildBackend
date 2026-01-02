@@ -13,7 +13,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Table(name = "profile_pictures", indexes = {
-        @Index(columnList = "asset_id")
+        @Index(columnList = "asset_id"),
+        @Index(columnList = "profile_id")
 })
 public class ProfilePicture implements Serializable {
 

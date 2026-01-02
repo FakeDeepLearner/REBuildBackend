@@ -12,10 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-@NamedQuery(
-        name = "ResumeVersion.findAllByResumeIdWithLimit",
-        query = "SELECT v FROM ResumeVersion v WHERE v.associatedResume.id=:resumeId"
-)
+
 @Entity
 @Table(name = "versions", indexes = {
         @Index(columnList = "id, created_date"),
@@ -26,7 +23,25 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@NamedEntityGraph(name = ResumeVersion.GRAPH_NAME,
+        attributeNodes = {
+            @NamedAttributeNode(value = "versionedHeader"),
+            @NamedAttributeNode(value = "versionedEducation"),
+            @NamedAttributeNode(value = "versionedExperiences"),
+            @NamedAttributeNode(value = "versionedProjects"),
+            @NamedAttributeNode(value = "associatedResume", subgraph = "resumeAttributeGraph")
+        },
+        subgraphs = {
+            @NamedSubgraph(name = "resumeAttributeGraph",
+                    attributeNodes = {
+                    @NamedAttributeNode(value = "user")}
+            )
+        }
+
+)
 public class ResumeVersion implements Serializable {
+
+    public static final String GRAPH_NAME = "ResumeVersion.fullData";
 
     @Serial
     private static final long serialVersionUID = 7L;
