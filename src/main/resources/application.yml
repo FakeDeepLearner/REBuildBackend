@@ -42,10 +42,6 @@ spring:
       start:
         command: up
       lifecycle-management: start-and-stop
-  cloud:
-    aws:
-      s3:
-        region: us-east-1
   batch:
     job:
       enabled: true
