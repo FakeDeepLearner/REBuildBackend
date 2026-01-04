@@ -103,7 +103,7 @@ public class Resume implements Serializable {
             CascadeType.REFRESH,
             CascadeType.PERSIST,
             CascadeType.MERGE
-    })
+    }, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_user_id"))
     @JsonIgnore

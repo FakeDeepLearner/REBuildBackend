@@ -29,11 +29,11 @@ public class PostResume {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "header_id", referencedColumnName = "id")
     private Header header;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "education_id", referencedColumnName = "id")
     private Education education;
 
@@ -55,7 +55,7 @@ public class PostResume {
             CascadeType.REFRESH,
             CascadeType.PERSIST,
             CascadeType.MERGE
-    })
+    }, fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false, referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_post_id"))
     @JsonIgnore

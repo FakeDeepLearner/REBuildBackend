@@ -62,11 +62,11 @@ public class ResumeVersion implements Serializable {
     @JoinColumn(name = "education_id", referencedColumnName = "id")
     private Education versionedEducation;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "version")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "version")
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Experience> versionedExperiences;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "version")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "version")
     @JoinColumn(name = "experience_id", referencedColumnName = "id")
     private List<Project> versionedProjects;
 
@@ -77,7 +77,7 @@ public class ResumeVersion implements Serializable {
     @ManyToOne(cascade = {
             CascadeType.PERSIST,
             CascadeType.MERGE
-    })
+    }, fetch = FetchType.LAZY)
     @JoinColumn(name = "associated_resume_id", nullable = false, referencedColumnName = "id",
     foreignKey = @ForeignKey(name = "fk_version_resume_id"))
     private Resume associatedResume;

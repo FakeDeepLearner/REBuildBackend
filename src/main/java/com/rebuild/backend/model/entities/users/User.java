@@ -90,7 +90,7 @@ public class User implements UserDetails, OidcUser, Serializable {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
-    @OrderColumn(name = "insertion_order")
+    @OrderBy("creationTime ASC")
     private List<Resume> resumes = new ArrayList<>();
 
 
