@@ -58,7 +58,7 @@ public class ResumeSearchConfiguration implements Serializable {
 
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
-    })
+    }, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
     @JsonIgnore
     private UserProfile associatedProfile;

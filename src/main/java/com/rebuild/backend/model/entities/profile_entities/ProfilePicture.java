@@ -38,7 +38,7 @@ public class ProfilePicture implements Serializable {
     @NonNull
     private String secure_url;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
     private UserProfile associatedProfile;
 }

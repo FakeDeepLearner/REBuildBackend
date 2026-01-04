@@ -59,10 +59,10 @@ public class UserProfile implements Serializable {
     @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
 
-    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ResumeSearchConfiguration> resumeSearchConfigurations = new ArrayList<>();
 
-    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.LAZY)
     private List<PostSearchConfiguration> postSearchConfigurations = new ArrayList<>();
 
     @Column(name = "page_size")

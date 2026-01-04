@@ -27,14 +27,14 @@ public class FriendRelationship {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", referencedColumnName = "id")
     @NonNull
     private User sender;
 
     @NonNull
     @JoinColumn(name = "recipient_id", referencedColumnName = "id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User recipient;
 
     @Column(name = "creation_time", nullable = false)
