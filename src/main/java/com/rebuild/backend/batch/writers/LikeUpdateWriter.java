@@ -29,7 +29,7 @@ public class LikeUpdateWriter implements ItemWriter<LikesUpdateDTO> {
     }
 
     @Override
-    public void write(@NonNull Chunk<? extends LikesUpdateDTO> chunk) throws Exception {
+    public void write(@NonNull Chunk<? extends LikesUpdateDTO> chunk) {
         for (LikesUpdateDTO likesUpdateDTO : chunk.getItems()) {
             switch (likesUpdateDTO.typeOfTarget()){
                 case COMMENT -> {

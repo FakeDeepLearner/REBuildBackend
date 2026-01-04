@@ -1,12 +1,10 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.entities.forum_entities.PostResume;
-import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
+import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
-import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.exceptions.FileUploadException;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
@@ -22,6 +20,7 @@ import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
@@ -40,9 +39,23 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.SubmissionPublisher;
 
 @Service
 @Transactional(readOnly = true)
@@ -63,12 +76,18 @@ public class ForumPostAndCommentService {
 
     private final UserRepository userRepository;
 
+    private final Dotenv dotenv;
+
+    private final S3AsyncClient s3AsyncClient;
+
 
     @Autowired
     public ForumPostAndCommentService(ResumeRepository resumeRepository,
                                       CommentRepository commentRepository, ForumPostRepository postRepository,
                                       JobOperator jobOperator,
-                                      ElasticSearchService searchService, PostSearchRepository postSearchRepository, UserRepository userRepository) {
+                                      ElasticSearchService searchService,
+                                      PostSearchRepository postSearchRepository,
+                                      UserRepository userRepository, Dotenv dotenv, S3AsyncClient s3AsyncClient) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
@@ -76,6 +95,8 @@ public class ForumPostAndCommentService {
         this.searchService = searchService;
         this.postSearchRepository = postSearchRepository;
         this.userRepository = userRepository;
+        this.dotenv = dotenv;
+        this.s3AsyncClient = s3AsyncClient;
     }
 
     public ForumSpecsForm buildSpecsFrom(PostSearchConfiguration configuration)
@@ -95,9 +116,48 @@ public class ForumPostAndCommentService {
                 toList();
         newPost.setResumes(resumes);
 
+        //Calling the upload function in a loop already kickstarts everything for the upload process.
+        //This variable is here because we might want to do something with it later just in case.
+        List<CompletableFuture<Void>> uploadResults = resumeFiles.stream()
+                        .map(file -> uploadFileToS3(file, creatingUser, newPost)).toList();
+        CompletableFuture.allOf(uploadResults.toArray(new CompletableFuture[0])).join();
+
+
         newPost.setCreatingUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);
         return postRepository.save(newPost);
+    }
+
+    private String determineFileKey(User user, UUID randomId, MultipartFile file) {
+        return user.getId().toString() + "/" + randomId.toString() + "/" + file.getOriginalFilename();
+    }
+
+    private CompletableFuture<Void> uploadFileToS3(MultipartFile file, User uploadingUser, ForumPost post) {
+        String objectKey = determineFileKey(uploadingUser, UUID.randomUUID(), file);
+        String bucketName = dotenv.get("AWS_S3_BUCKET_NAME");
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder().
+                bucket(bucketName).
+                key(objectKey).build();
+        try {
+
+            AsyncRequestBody requestBody = AsyncRequestBody.fromBytes(file.getBytes());
+
+
+            return s3AsyncClient.putObject(putObjectRequest, requestBody).
+                    thenAccept(putObjectResponse -> {
+                        ResumeFileUploadRecord newUploadRecord = new ResumeFileUploadRecord(bucketName, objectKey,
+                                putObjectResponse.expiration(), putObjectResponse.eTag());
+                        newUploadRecord.setAssociatedPost(post);
+
+                    }).exceptionally(throwable -> {
+                        throw new FileUploadException(throwable.getMessage(), throwable);
+                    });
+        }
+        catch(IOException e)
+        {
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     @Transactional
@@ -117,7 +177,7 @@ public class ForumPostAndCommentService {
 
     @Transactional
     public Comment makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
-        ForumPost post = postRepository.findById(post_id).orElseThrow(RuntimeException::new);
+        ForumPost post = postRepository.findByIdWithComments(post_id).orElseThrow(RuntimeException::new);
         post.setCommentCount(post.getCommentCount() + 1);
         Comment newComment = new Comment(commentForm.content());
         newComment.setAssociatedPost(post);
@@ -215,15 +275,43 @@ public class ForumPostAndCommentService {
     }
 
     public PostDisplayDTO loadPost(UUID postID){
-        ForumPost forumPost = postRepository.findById(postID).orElseThrow(RuntimeException::new);
+        ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(RuntimeException::new);
 
         List<CommentDisplayDTO> displayedComments = postRepository.loadCommentsById(postID);
+
+        List<ResumeFileUploadRecord> uploadRecords = forumPost.getUploadedFiles();
+
+        List<String> presignedUrls = uploadRecords.stream().map(resumeFileUploadRecord ->
+                createPresignedGetUrl(resumeFileUploadRecord.getBucketName(),
+                        resumeFileUploadRecord.getObjectKey())).toList();
 
         return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(),
                 forumPost.getCreatingUser().getForumUsername(),
                 forumPost.getResumes(),
-                displayedComments);
+                displayedComments, presignedUrls);
 
+    }
+
+
+    /* Create a pre-signed URL to download an object in a subsequent GET request.
+    * This is copied from the following link */
+    private String createPresignedGetUrl(String bucketName, String objectKey) {
+        try (S3Presigner presigner = S3Presigner.create()) {
+
+            GetObjectRequest objectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(20))
+                    .getObjectRequest(objectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
+
+            return presignedRequest.url().toExternalForm();
+        }
     }
 
 

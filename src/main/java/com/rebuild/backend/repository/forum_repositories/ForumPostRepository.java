@@ -18,14 +18,21 @@ import java.util.UUID;
 @Repository
 public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
-    @Override
-    @NonNull
+
     @Query(value = """
-            SELECT fp FROM ForumPost fp\s
-                        LEFT JOIN FETCH fp.resumes\s
-                        JOIN fp.creatingUser u WHERE fp.id=:uuid
-           \s""")
-    Optional<ForumPost> findById(@Param("uuid") UUID uuid);
+            SELECT fp FROM ForumPost fp
+            LEFT JOIN FETCH fp.resumes
+            LEFT JOIN FETCH fp.uploadedFiles
+                        JOIN fp.creatingUser u WHERE fp.id=?1
+           """)
+    Optional<ForumPost> findByIdWithMoreInfo(UUID id);
+
+    @Query(value = """
+            SELECT fp FROM ForumPost fp
+            LEFT JOIN FETCH fp.comments
+            WHERE fp.id=?1
+           """)
+    Optional<ForumPost> findByIdWithComments(UUID id);
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO(

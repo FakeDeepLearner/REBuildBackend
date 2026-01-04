@@ -13,10 +13,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("api/forum/posts")
@@ -34,8 +37,8 @@ public class PostController {
     }
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ForumPost createNewPost(@Valid @RequestPart(name = "metadata") NewPostForm postForm,
-                                   @RequestPart(name = "file") List<MultipartFile> resumeFiles,
+    public ForumPost createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
+                                   @RequestPart(name = "files") List<MultipartFile> resumeFiles,
                                    @AuthenticationPrincipal User creatingUser) {
         return forumPostAndCommentService.createNewPost(postForm,
                 creatingUser, resumeFiles);

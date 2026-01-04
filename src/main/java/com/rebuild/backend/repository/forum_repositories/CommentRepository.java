@@ -15,7 +15,6 @@ import java.util.UUID;
 @Repository
 public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonNull UUID> {
 
-
     @Query(
         """
         SELECT new com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO(
