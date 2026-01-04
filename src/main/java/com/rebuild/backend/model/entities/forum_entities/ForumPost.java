@@ -1,8 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.resume_entities.PostResume;
 import com.rebuild.backend.model.entities.users.User;
 import jakarta.persistence.*;
 import lombok.*;

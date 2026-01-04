@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.forms.dtos.forum_dtos;
 
-import com.rebuild.backend.model.entities.resume_entities.PostResume;
+import com.rebuild.backend.model.entities.forum_entities.PostResume;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.entities.resume_entities.PostResume;
+import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.users.User;
@@ -22,7 +22,6 @@ import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
-import org.hibernate.search.backend.lucene.types.codec.impl.Storage;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
