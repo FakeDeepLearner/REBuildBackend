@@ -12,6 +12,9 @@ public record ResumeSpecsForm(String resumeNameContains, String firstNameContain
                               String schoolNameContains,
                               String courseWorkContains,
                               String companyContains,
-                              String bulletsContains,
-                              String technologyListContains) {
+                              String experienceBulletsContains,
+                              String experienceTechnologyListContains,
+                              String projectNameContains,
+                              String projectTechnologyListContains,
+                              String projectBulletsContains) {
 }

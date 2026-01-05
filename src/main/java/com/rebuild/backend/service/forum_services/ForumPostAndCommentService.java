@@ -294,7 +294,7 @@ public class ForumPostAndCommentService {
 
 
     /* Create a pre-signed URL to download an object in a subsequent GET request.
-    * This is copied from the following link */
+    * This is pretty much straight up copied from the AWS code samples */
     private String createPresignedGetUrl(String bucketName, String objectKey) {
         try (S3Presigner presigner = S3Presigner.create()) {
 

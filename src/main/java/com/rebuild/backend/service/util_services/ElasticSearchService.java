@@ -79,8 +79,11 @@ public class ElasticSearchService {
                         nullSafeMatch("education.schoolName", specsForm.schoolNameContains()).
                         nullSafeMatch("education.relevantCoursework", specsForm.courseWorkContains()).
                         nullSafeMatch("experiences.companyName", specsForm.companyContains()).
-                        nullSafeMatch("experiences.technologyList", specsForm.technologyListContains()).
-                        nullSafeMatch("experiences.bullets", specsForm.bulletsContains()).
+                        nullSafeMatch("experiences.technologyList", specsForm.experienceTechnologyListContains()).
+                        nullSafeMatch("experiences.bullets", specsForm.experienceBulletsContains()).
+                        nullSafeMatch("projects.projectName", specsForm.projectNameContains()).
+                        nullSafeMatch("projects.bullets", specsForm.projectBulletsContains()).
+                        nullSafeMatch("projects.technologyList", specsForm.projectTechnologyListContains()).
                         atLeast("creationTime", Instant.parse(specsForm.creationAfterCutoff())).
                         atMost("creationTime", Instant.parse(specsForm.creationBeforeCutoff())).
                         getResult()
