@@ -45,10 +45,19 @@ public class ResumeSearchConfiguration implements Serializable {
     private String companySearch;
 
     @Column(name = "bullets_search")
-    private String bulletsSearch;
+    private String experienceBulletsSearch;
 
     @Column(name = "technologies_search")
-    private String technologiesSearch;
+    private String experienceTechnologiesSearch;
+
+    @Column(name = "project_name_search")
+    private String projectNameSearch;
+
+    @Column(name = "project_technologies_search")
+    private String projectTechnologyListSearch;
+
+    @Column(name = "project_bullets_search")
+    private String projectBulletsSearch;
 
     @Column(name = "creation_after")
     private Instant creationAfterCutoff;
@@ -66,14 +75,17 @@ public class ResumeSearchConfiguration implements Serializable {
 
     public ResumeSearchConfiguration(ResumeSpecsForm baseForm)
     {
-        this.bulletsSearch = baseForm.bulletsContains();
+        this.experienceBulletsSearch = baseForm.experienceBulletsContains();
         this.resumeNameSearch = baseForm.resumeNameContains();
         this.firstNameSearch = baseForm.firstNameContains();
         this.lastNameSearch = baseForm.lastNameContains();
         this.schoolNameSearch = baseForm.schoolNameContains();
         this.courseworkSearch = baseForm.courseWorkContains();
         this.companySearch = baseForm.companyContains();
-        this.technologiesSearch = baseForm.technologyListContains();
+        this.experienceTechnologiesSearch = baseForm.experienceTechnologyListContains();
+        this.projectNameSearch = baseForm.projectNameContains();
+        this.projectTechnologyListSearch = baseForm.projectTechnologyListContains();
+        this.projectBulletsSearch = baseForm.projectBulletsContains();
         this.creationAfterCutoff = Instant.parse(baseForm.creationAfterCutoff());
         this.creationBeforeCutoff = Instant.parse(baseForm.creationBeforeCutoff());
     }

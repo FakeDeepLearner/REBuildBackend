@@ -53,7 +53,9 @@ public class ResumeService {
                 searchConfiguration.getCreationBeforeCutoff().toString(),
                 searchConfiguration.getSchoolNameSearch(), searchConfiguration.getCourseworkSearch(),
                 searchConfiguration.getCompanySearch(),
-                searchConfiguration.getBulletsSearch(), searchConfiguration.getTechnologiesSearch());
+                searchConfiguration.getExperienceBulletsSearch(),
+                searchConfiguration.getExperienceTechnologiesSearch(), searchConfiguration.getProjectNameSearch(),
+                searchConfiguration.getProjectBulletsSearch(), searchConfiguration.getProjectTechnologyListSearch());
     }
 
     public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,

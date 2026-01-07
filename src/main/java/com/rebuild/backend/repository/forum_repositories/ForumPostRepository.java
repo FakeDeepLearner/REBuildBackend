@@ -45,5 +45,12 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @NonNull
     Page<ForumPost> findAll(@NonNull Pageable pageable);
 
+    @Query(value = """
+            SELECT fp FROM ForumPost fp
+            LEFT JOIN FETCH fp.uploadedFiles
+            JOIN fp.creatingUser u WHERE fp.id=?1 AND u=?2
+           """)
+    Optional<ForumPost> findByIdWithFiles(UUID id, User creatingUser);
+
     Optional<ForumPost> findByIdAndCreatingUser(UUID id, User creatingUser);
 }

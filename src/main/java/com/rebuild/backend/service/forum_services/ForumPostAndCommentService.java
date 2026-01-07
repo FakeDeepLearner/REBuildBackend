@@ -41,9 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -108,7 +106,7 @@ public class ForumPostAndCommentService {
 
     @Transactional
     public ForumPost createNewPost(NewPostForm postForm,
-                                   User creatingUser, List<MultipartFile> resumeFiles){
+                                   User creatingUser, List<MultipartFile> resumeFiles) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
         List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
                         .map(PostResume::new).
@@ -116,54 +114,86 @@ public class ForumPostAndCommentService {
                 toList();
         newPost.setResumes(resumes);
 
-        //Calling the upload function in a loop already kickstarts everything for the upload process.
+        //Calling the upload function in a loop already kick-starts everything for the upload process.
         //This variable is here because we might want to do something with it later just in case.
-        List<CompletableFuture<Void>> uploadResults = resumeFiles.stream()
-                        .map(file -> uploadFileToS3(file, creatingUser, newPost)).toList();
-        CompletableFuture.allOf(uploadResults.toArray(new CompletableFuture[0])).join();
+        List<CompletableFuture<?>> uploadResults = resumeFiles.stream()
+                        .map(file -> {
+                            byte[] fileBytes;
+                            try{
+                                fileBytes = file.getBytes();
+                            }
+                            catch (IOException e) {
+                                return CompletableFuture.completedFuture(null);
+                            }
+                            return uploadFileToS3(file.getOriginalFilename(),
+                                    creatingUser, newPost, fileBytes);
+                        }).toList();
 
+        //Wait here until all the uploads have been processed.
+        uploadResults.forEach(CompletableFuture::join);
 
         newPost.setCreatingUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);
         return postRepository.save(newPost);
     }
 
-    private String determineFileKey(User user, UUID randomId, MultipartFile file) {
-        return user.getId().toString() + "/" + randomId.toString() + "/" + file.getOriginalFilename();
+    private String determineFileKey(User user, UUID randomId, String originalFileName) {
+        return user.getId().toString() + "/" + randomId.toString() + "/" + originalFileName;
     }
 
-    private CompletableFuture<Void> uploadFileToS3(MultipartFile file, User uploadingUser, ForumPost post) {
-        String objectKey = determineFileKey(uploadingUser, UUID.randomUUID(), file);
+    private CompletableFuture<Void> uploadFileToS3(String originalFileName,
+                                                   User uploadingUser, ForumPost post,
+                                                   byte[] fileBytes) {
+        String objectKey = determineFileKey(uploadingUser, UUID.randomUUID(), originalFileName);
         String bucketName = dotenv.get("AWS_S3_BUCKET_NAME");
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder().
                 bucket(bucketName).
                 key(objectKey).build();
-        try {
 
-            AsyncRequestBody requestBody = AsyncRequestBody.fromBytes(file.getBytes());
+        AsyncRequestBody requestBody = AsyncRequestBody.fromBytes(fileBytes);
 
 
-            return s3AsyncClient.putObject(putObjectRequest, requestBody).
-                    thenAccept(putObjectResponse -> {
-                        ResumeFileUploadRecord newUploadRecord = new ResumeFileUploadRecord(bucketName, objectKey,
-                                putObjectResponse.expiration(), putObjectResponse.eTag());
-                        newUploadRecord.setAssociatedPost(post);
+        return s3AsyncClient.putObject(putObjectRequest, requestBody).
+                thenAccept(putObjectResponse -> {
+                    ResumeFileUploadRecord newUploadRecord = new ResumeFileUploadRecord(bucketName, objectKey,
+                            putObjectResponse.expiration(), putObjectResponse.eTag());
+                    newUploadRecord.setAssociatedPost(post);
 
-                    }).exceptionally(throwable -> {
-                        throw new FileUploadException(throwable.getMessage(), throwable);
-                    });
-        }
-        catch(IOException e)
-        {
-            return CompletableFuture.completedFuture(null);
-        }
+                }).exceptionally(throwable -> {
+                    throw new FileUploadException(throwable.getMessage(), throwable);
+                });
+    }
+
+    private CompletableFuture<Void> deleteFileFromS3(String bucketName, String objectKey)
+    {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
+
+        return s3AsyncClient.deleteObject(deleteObjectRequest).
+                exceptionally(throwable ->  {
+                    throw new FileUploadException(throwable.getMessage(), throwable);
+                }).thenApply(_ -> null);
     }
 
     @Transactional
     public void deletePost(UUID postID, User deletingUser){
-        ForumPost postToDelete = postRepository.findByIdAndCreatingUser(postID, deletingUser).
+        ForumPost postToDelete = postRepository.findByIdWithFiles(postID, deletingUser).
                 orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
+
+
+        List<ResumeFileUploadRecord> fileUploadRecords = postToDelete.getUploadedFiles();
+
+        List<CompletableFuture<Void>> allDeleteResults = fileUploadRecords.stream()
+                        .map(record ->
+                                deleteFileFromS3(record.getBucketName(), record.getObjectKey())).toList();
+
+        allDeleteResults.forEach(CompletableFuture::join);
+
+
+
         postRepository.delete(postToDelete);
     }
 
