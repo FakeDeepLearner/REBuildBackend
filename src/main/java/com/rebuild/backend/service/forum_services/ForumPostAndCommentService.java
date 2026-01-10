@@ -130,7 +130,7 @@ public class ForumPostAndCommentService {
                         }).toList();
 
         //Wait here until all the uploads have been processed.
-        uploadResults.forEach(CompletableFuture::join);
+        CompletableFuture.allOf(uploadResults.toArray(new CompletableFuture[0])).join();
 
         newPost.setCreatingUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);
@@ -165,11 +165,12 @@ public class ForumPostAndCommentService {
                 });
     }
 
-    private CompletableFuture<Void> deleteFileFromS3(String bucketName, String objectKey)
+    private CompletableFuture<Void> deleteFileFromS3(ResumeFileUploadRecord uploadRecord)
     {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(objectKey)
+                .bucket(uploadRecord.getBucketName())
+                .key(uploadRecord.getObjectKey())
+                .ifMatch(uploadRecord.getETag())
                 .build();
 
         return s3AsyncClient.deleteObject(deleteObjectRequest).
@@ -187,11 +188,10 @@ public class ForumPostAndCommentService {
         List<ResumeFileUploadRecord> fileUploadRecords = postToDelete.getUploadedFiles();
 
         List<CompletableFuture<Void>> allDeleteResults = fileUploadRecords.stream()
-                        .map(record ->
-                                deleteFileFromS3(record.getBucketName(), record.getObjectKey())).toList();
+                        .map(this::deleteFileFromS3).toList();
 
-        allDeleteResults.forEach(CompletableFuture::join);
-
+        //Unlike a create post operation, we do not need to wait for all the uploads to be removed in order
+        // to return from the function. When the deletes actually happen is irrelevant in terms of UX.
 
 
         postRepository.delete(postToDelete);

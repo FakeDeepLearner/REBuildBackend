@@ -1,6 +1,8 @@
 package com.rebuild.backend.config.other;
 
 import com.cloudinary.Cloudinary;
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.v2.DbxClientV2;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.sendgrid.SendGrid;
@@ -23,6 +25,12 @@ public class SingularBeansConfig {
     public Dotenv dotenv()
     {
         return Dotenv.load();
+    }
+
+    @Bean
+    public DbxRequestConfig requestConfig()
+    {
+        return DbxRequestConfig.newBuilder("rerebuild").build();
     }
 
     @Bean
