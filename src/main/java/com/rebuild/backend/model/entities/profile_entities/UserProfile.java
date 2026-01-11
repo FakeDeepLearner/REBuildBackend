@@ -68,6 +68,12 @@ public class UserProfile implements Serializable {
     @Column(name = "page_size")
     private int forumPageSize = 20;
 
+    @Column(name = "public_post_history")
+    private boolean publicPostHistory = false;
+
+    @Column(name = "public_comment_history")
+    private boolean publicCommentHistory = false;
+
     @Column(name = "exclusive_friend_messages")
     private boolean messagesFromFriendsOnly = false;
     
