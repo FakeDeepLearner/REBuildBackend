@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.forms.profile_forms.FullProfileForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
@@ -43,25 +44,18 @@ public class ProfileController {
     @PostMapping(value = "/update_profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict
-    public ResponseEntity<?> updateProfile(@Valid @RequestPart(name = "meta") FullInformationForm fullProfileForm,
+    public ResponseEntity<?> updateProfile(@Valid @RequestPart(name = "meta")FullProfileForm profileForm,
                                            @RequestPart(name = "file") MultipartFile pictureFile,
                                            @AuthenticationPrincipal User authenticatedUser) {
         try {
             UserProfile updatedProfile = profileService.createFullProfileFor
-                    (fullProfileForm, authenticatedUser, pictureFile, false);
+                    (profileForm.fullInformationForm(), profileForm.preferencesForm(),
+                            authenticatedUser, pictureFile);
             return ResponseEntity.ok(updatedProfile);
         }
         catch (IOException ioException) {
             return ResponseEntity.internalServerError().body("An unexpected error occurred:\n " + ioException.getMessage());
         }
-    }
-
-    @PatchMapping("/patch/page_size")
-    @ResponseStatus(HttpStatus.OK)
-    @CacheEvict
-    public UserProfile updatePageSize(@RequestBody int newPageSize,
-                                      @AuthenticationPrincipal User authenticatedUser) {
-        return profileService.changePageSize(authenticatedUser, newPageSize);
     }
 
     @PutMapping("/patch/header")

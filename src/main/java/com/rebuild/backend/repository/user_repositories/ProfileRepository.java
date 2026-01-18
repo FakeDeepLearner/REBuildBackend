@@ -74,4 +74,8 @@ public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
     @Cacheable
     UserProfile findByUser(User user);
 
+
+    @Cacheable
+    UserProfile findByUserId(UUID id);
+
 }

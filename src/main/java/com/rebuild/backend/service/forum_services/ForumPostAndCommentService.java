@@ -179,22 +179,34 @@ public class ForumPostAndCommentService {
                 }).thenApply(_ -> null);
     }
 
+
+    private void deletePostFiles(ForumPost postToDelete)
+    {
+        List<ResumeFileUploadRecord> fileUploadRecords = postToDelete.getUploadedFiles();
+
+        List<CompletableFuture<Void>> allDeleteResults = fileUploadRecords.stream()
+                .map(this::deleteFileFromS3).toList();
+    }
+
     @Transactional
     public void deletePost(UUID postID, User deletingUser){
         ForumPost postToDelete = postRepository.findByIdWithFiles(postID, deletingUser).
                 orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
 
-
-        List<ResumeFileUploadRecord> fileUploadRecords = postToDelete.getUploadedFiles();
-
-        List<CompletableFuture<Void>> allDeleteResults = fileUploadRecords.stream()
-                        .map(this::deleteFileFromS3).toList();
-
+        deletePostFiles(postToDelete);
         //Unlike a create post operation, we do not need to wait for all the uploads to be removed in order
         // to return from the function. When the deletes actually happen is irrelevant in terms of UX.
 
 
         postRepository.delete(postToDelete);
+    }
+
+    @Transactional
+    public void deleteAllPostFiles(User deletingUser){
+        List<ForumPost> allUserPosts = postRepository.findByUserWithFiles(deletingUser);
+
+        allUserPosts.forEach(this::deletePostFiles);
+
     }
 
     @Transactional

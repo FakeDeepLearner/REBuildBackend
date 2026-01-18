@@ -66,7 +66,9 @@ public class ForumHomePageController {
     @GetMapping("/get_posts/configuration/{config_id}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getPosts(@AuthenticationPrincipal User user,
-                                           @PathVariable UUID config_id) {
+                                           @PathVariable UUID config_id,
+                                      @RequestParam(defaultValue = "20", required = false,
+                                      name = "pageSize") int pageSize) {
         try {
 
             PostSearchConfiguration foundConfig =
@@ -77,7 +79,7 @@ public class ForumHomePageController {
             ForumSpecsForm craftedBody = postAndCommentService.buildSpecsFrom(foundConfig);
 
             ForumPostPageResponse response =
-                    postAndCommentService.getPagedResult(0, 20,
+                    postAndCommentService.getPagedResult(0, pageSize,
                              craftedBody, user);
 
             return ResponseEntity.ok(response);
@@ -89,10 +91,10 @@ public class ForumHomePageController {
 
     @PostMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
-    public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page")
+    public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page", required = false)
                                           int pageNumber,
 
-                                          @RequestParam(defaultValue = "20", name = "size")
+                                          @RequestParam(defaultValue = "20", name = "size", required = false)
                                           int pageSize,
 
                                           @RequestBody ForumSpecsForm forumSpecsForm,
@@ -103,8 +105,8 @@ public class ForumHomePageController {
 
     @GetMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
-    public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page") int pageNumber,
-                                          @RequestParam(defaultValue = "20", name = "size") int pageSize,
+    public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page", required = false) int pageNumber,
+                                          @RequestParam(defaultValue = "20", name = "size", required = false) int pageSize,
                                           @RequestParam(name = "token", required = false)  String searchToken,
                                           @AuthenticationPrincipal User user) {
         return postAndCommentService.serveGetRequest(pageNumber, pageSize, searchToken, user);

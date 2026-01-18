@@ -65,17 +65,8 @@ public class UserProfile implements Serializable {
     @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<PostSearchConfiguration> postSearchConfigurations = new ArrayList<>();
 
-    @Column(name = "page_size")
-    private int forumPageSize = 20;
-
-    @Column(name = "public_post_history")
-    private boolean publicPostHistory = false;
-
-    @Column(name = "public_comment_history")
-    private boolean publicCommentHistory = false;
-
-    @Column(name = "exclusive_friend_messages")
-    private boolean messagesFromFriendsOnly = false;
+    @OneToOne(mappedBy = "associatedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProfileSettings settings;
     
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,

@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.forms.profile_forms.ProfilePreferencesForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
@@ -45,17 +46,16 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserProfile createFullProfileFor(FullInformationForm profileForm, User updatingUser,
-                                            MultipartFile pictureFile, boolean messagesFromFriends) throws IOException {
+    public UserProfile createFullProfileFor(FullInformationForm profileForm, ProfilePreferencesForm preferencesForm,
+                                            User updatingUser, MultipartFile pictureFile) throws IOException {
         UserProfile profile = profileRepository.findByUserWithAllData(updatingUser);
-        UserProfile updatedProfile = getUserProfile(profile, profileForm, pictureFile,
-                messagesFromFriends);
+        UserProfile updatedProfile = getUserProfile(profile, profileForm, preferencesForm, pictureFile);
         return profileRepository.save(updatedProfile);
     }
 
     private UserProfile getUserProfile(UserProfile profile,
-                                       FullInformationForm profileForm, MultipartFile pictureFile,
-                                       boolean messagesFromFriends) throws IOException {
+                                       FullInformationForm profileForm, ProfilePreferencesForm preferencesForm,
+                                       MultipartFile pictureFile) throws IOException {
         YearMonth startDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().startDate());
         YearMonth endDate  = YearMonthStringOperations.getYearMonth(profileForm.educationForm().endDate());
 
@@ -64,7 +64,12 @@ public class ProfileService {
         List<Project> projects = extractProfileProjects(profileForm.projects(), updatedProfile);
         updatedProfile.setExperienceList(experiences);
         updatedProfile.setProjectList(projects);
-        updatedProfile.setMessagesFromFriendsOnly(messagesFromFriends);
+
+        ProfileSettings newSettings = new ProfileSettings(preferencesForm.publicPostHistory(),
+                preferencesForm.publicCommentHistory(), preferencesForm.messagesFromFriendsOnly());
+        newSettings.setAssociatedProfile(updatedProfile);
+        updatedProfile.setSettings(newSettings);
+
 
         modifyProfilePictureOf(updatedProfile.getUser(), pictureFile);
         return profileRepository.save(updatedProfile);
@@ -121,13 +126,6 @@ public class ProfileService {
             profilePicture.setAssociatedProfile(profile);
         }
         return profile;
-    }
-
-    @Transactional
-    public UserProfile changePageSize(User changingUser, int newPageSize){
-        UserProfile profile = profileRepository.findByUser(changingUser);
-        profile.setForumPageSize(newPageSize);
-        return profileRepository.save(profile);
     }
 
     @Transactional

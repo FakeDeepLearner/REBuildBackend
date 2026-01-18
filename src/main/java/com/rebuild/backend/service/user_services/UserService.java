@@ -5,6 +5,7 @@ import com.nulabinc.zxcvbn.Feedback;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
+import com.rebuild.backend.model.entities.profile_entities.ProfileSettings;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
@@ -19,6 +20,7 @@ import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
+import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.token_services.OTPService;
 import com.rebuild.backend.service.util_services.CustomPasswordService;
@@ -87,6 +89,8 @@ public class UserService{
 
     private final CustomPasswordService passwordService;
 
+    private final ProfileRepository profileRepository;
+
 
     @Autowired
     public UserService(UserRepository repository,
@@ -95,7 +99,7 @@ public class UserService{
                        BucketConfiguration bucketConfiguration,
                        CaptchaVerificationRepository verificationRepository,
                        OTPService otpService, ProfileService profileService,
-                       Dotenv dotenv, ElasticSearchService elasticSearchService, CustomPasswordService passwordService) {
+                       Dotenv dotenv, ElasticSearchService elasticSearchService, CustomPasswordService passwordService, ProfileRepository profileRepository) {
         this.repository = repository;
         this.verificationRepository = verificationRepository;
         this.otpService = otpService;
@@ -103,6 +107,7 @@ public class UserService{
         this.dotenv = dotenv;
         this.elasticSearchService = elasticSearchService;
         this.passwordService = passwordService;
+        this.profileRepository = profileRepository;
         this.encoder = new BCryptPasswordEncoder();
         this.resumeRepository = resumeRepository;
         this.proxyManager = proxyManager;
@@ -298,9 +303,20 @@ public class UserService{
     private UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
 
         UserProfile newProfile = new UserProfile();
+        ProfileSettings settings = new ProfileSettings(false,
+                false, false);
+        settings.setAssociatedProfile(newProfile);
+        newProfile.setSettings(settings);
+
+        newUser.setUserProfile(newProfile);
         newProfile.setUser(newUser);
 
         return profileService.modifyProfilePictureOf(newUser, pictureFile);
+    }
+
+    public UserProfile loadProfileFromForum(UUID clickedUserId)
+    {
+        return null;
     }
 
     @Transactional
@@ -308,6 +324,7 @@ public class UserService{
     {
         User userToUnlock = findByEmailOrPhone(emailOrPhone).orElse(null);
         assert userToUnlock != null;
+        userToUnlock.setAccountNonLocked(true);
 
         userToUnlock.setLastLoginTime(Instant.now());
         repository.save(userToUnlock);
