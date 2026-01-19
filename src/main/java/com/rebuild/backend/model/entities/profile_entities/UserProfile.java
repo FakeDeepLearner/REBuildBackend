@@ -59,11 +59,7 @@ public class UserProfile implements Serializable {
     @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
 
-    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<ResumeSearchConfiguration> resumeSearchConfigurations = new ArrayList<>();
 
-    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<PostSearchConfiguration> postSearchConfigurations = new ArrayList<>();
 
     @OneToOne(mappedBy = "associatedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private ProfileSettings settings;
@@ -84,7 +80,6 @@ public class UserProfile implements Serializable {
         this.education = newEducation;
         this.experienceList = experiences;
     }
-
 
     public static UserProfile deepCopy(UserProfile originalProfile){
         Header oldHeader = originalProfile.getHeader();
@@ -107,14 +102,4 @@ public class UserProfile implements Serializable {
         return new UserProfile(newHeader, newEducation, newExperiences);
     }
 
-
-    public void addPostSearchConfig(PostSearchConfiguration configuration)
-    {
-        this.postSearchConfigurations.add(configuration);
-    }
-
-    public void addResumeSearchConfig(ResumeSearchConfiguration configuration)
-    {
-        this.resumeSearchConfigurations.add(configuration);
-    }
 }

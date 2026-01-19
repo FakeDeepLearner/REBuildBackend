@@ -33,10 +33,6 @@ public class ProfilePicture implements Serializable {
     @NonNull
     private String asset_id;
 
-    @Column(name = "secure_url", nullable = false)
-    @NonNull
-    private String secure_url;
-
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
     private UserProfile associatedProfile;

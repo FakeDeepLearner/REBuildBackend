@@ -1,11 +1,13 @@
 package com.rebuild.backend.model.entities.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +25,8 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -117,6 +121,14 @@ public class User implements UserDetails, OidcUser, Serializable {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
             mappedBy = "receivingUser")
     private transient List<Chat> receivedChats = new ArrayList<>();
+
+    @OneToMany(cascade = ALL, mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private transient List<ResumeSearchConfiguration> resumeSearchConfigurations = new ArrayList<>();
+
+    @OneToMany(cascade = ALL, mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private transient List<PostSearchConfiguration> postSearchConfigurations = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;

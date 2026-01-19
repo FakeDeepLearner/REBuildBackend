@@ -2,6 +2,7 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
@@ -38,6 +39,10 @@ public class ElasticSearchService {
         if (searchForm instanceof ResumeSpecsForm resumeSpecsForm)
         {
             return executeResumeSearch(resumeSpecsForm);
+        }
+        if(searchForm instanceof ResumeSearchConfiguration searchConfiguration)
+        {
+            return executeResumeSearch(searchConfiguration);
         }
         else if (searchForm instanceof ForumSpecsForm forumSpecsForm){
             return executePostSearch(forumSpecsForm);
@@ -96,6 +101,42 @@ public class ElasticSearchService {
                         ))
                 .fetchAllHits();
             return new SearchResultDTO(matchedIds, newSearchToken);
+
+
+    }
+
+    @CachePut(cacheManager = "cacheManager", cacheNames = "search_cache",
+            key = "#result.searchToken()")
+    public SearchResultDTO executeResumeSearch(ResumeSearchConfiguration searchConfiguration)
+    {
+        String newSearchToken = UUID.randomUUID().toString();
+        SearchSession searchSession = Search.session(entityManager);
+        List<UUID> matchedIds = searchSession.search(Resume.class)
+                .select(f -> f.id(UUID.class))
+                .where(f -> new NullSafeQuerySearchBuilder(f).
+                        nullSafeMatch("header.firstName", searchConfiguration.getHeaderSearchProperties().getFirstNameSearch()).
+                        nullSafeMatch("header.lastName", searchConfiguration.getHeaderSearchProperties().getLastNameSearch()).
+                        nullSafeMatch("name", searchConfiguration.getResumeNameSearch()).
+                        nullSafeMatch("education.schoolName", searchConfiguration.getEducationSearchProperties().getSchoolNameSearch()).
+                        nullSafeMatch("education.relevantCoursework", searchConfiguration.getEducationSearchProperties().getCourseworkSearch()).
+                        nullSafeMatch("experiences.companyName", searchConfiguration.getExperienceSearchProperties().getCompanySearch()).
+                        nullSafeMatch("experiences.technologyList", searchConfiguration.getExperienceSearchProperties().getExperienceTechnologiesSearch()).
+                        nullSafeMatch("experiences.bullets", searchConfiguration.getExperienceSearchProperties().getExperienceBulletsSearch()).
+                        nullSafeMatch("projects.projectName", searchConfiguration.getProjectSearchProperties().getProjectNameSearch()).
+                        nullSafeMatch("projects.bullets", searchConfiguration.getProjectSearchProperties().getProjectBulletsSearch()).
+                        nullSafeMatch("projects.technologyList", searchConfiguration.getProjectSearchProperties().getProjectTechnologyListSearch()).
+                        atLeast("creationTime", searchConfiguration.getCreationAfterCutoff()).
+                        atMost("creationTime", searchConfiguration.getCreationBeforeCutoff()).
+                        getResult()
+                )
+                .sort(f -> f.composite(
+                        composite -> {
+                            composite.add(f.field("creationTime").desc());
+                            composite.add(f.field("lastModifiedTime").desc());
+                        }
+                ))
+                .fetchAllHits();
+        return new SearchResultDTO(matchedIds, newSearchToken);
 
 
     }

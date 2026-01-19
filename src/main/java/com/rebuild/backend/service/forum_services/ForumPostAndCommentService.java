@@ -233,10 +233,9 @@ public class ForumPostAndCommentService {
 
     @Transactional
     public PostSearchConfiguration createSearchConfig(User creatingUser, ForumSpecsForm forumSpecsForm){
-        UserProfile profile = creatingUser.getUserProfile();
         PostSearchConfiguration searchConfig = new PostSearchConfiguration(forumSpecsForm);
-        searchConfig.setAssociatedProfile(profile);
-        profile.addPostSearchConfig(searchConfig);
+        searchConfig.setUser(creatingUser);
+        creatingUser.getPostSearchConfigurations().add(searchConfig);
         return postSearchRepository.save(searchConfig);
 
     }
@@ -265,7 +264,7 @@ public class ForumPostAndCommentService {
         Page<ForumPost> foundPage = postRepository.findAll(request);
 
         return new ForumPostPageResponse(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize(), null, profile.getPostSearchConfigurations());
+                foundPage.getTotalPages(), foundPage.getSize(), null);
     }
 
     public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, String searchToken, User user)
@@ -285,8 +284,7 @@ public class ForumPostAndCommentService {
                 List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
 
                 return new ForumPostPageResponse(foundPosts, pageNumber,
-                        matchedResults.size(), numPages, pageSize, searchResult.searchToken(),
-                        profile.getPostSearchConfigurations());
+                        matchedResults.size(), numPages, pageSize, searchResult.searchToken());
             }
             //Otherwise, we simply return the whole forum post information, paginated.
             else{
@@ -312,8 +310,7 @@ public class ForumPostAndCommentService {
         List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
 
         return new ForumPostPageResponse(foundPosts, pageNumber,
-                matchedResults.size(), numPages, pageSize, resultDTO.searchToken(),
-                profile.getPostSearchConfigurations());
+                matchedResults.size(), numPages, pageSize, resultDTO.searchToken());
     }
 
     public PostDisplayDTO loadPost(UUID postID){

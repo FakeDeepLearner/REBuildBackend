@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Frie
 import com.rebuild.backend.model.entities.profile_entities.ProfileSettings;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.CaptchaVerificationRecord;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
@@ -17,6 +18,7 @@ import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
+import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
@@ -314,7 +316,7 @@ public class UserService{
         return profileService.modifyProfilePictureOf(newUser, pictureFile);
     }
 
-    public UserProfile loadProfileFromForum(UUID clickedUserId)
+    public UserProfileResponse loadProfileFromForum(UUID clickedUserId)
     {
         return null;
     }
@@ -342,11 +344,10 @@ public class UserService{
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
-        UserProfile profile = user.getUserProfile();
         Page<Resume> foundPage = resumeRepository.findAll(request);
 
         return new HomePageData(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize(), profile,null, profile.getResumeSearchConfigurations());
+                foundPage.getTotalPages(), foundPage.getSize(),null);
     }
 
     public HomePageData getHomePageData(User user, int pageNumber, int pageSize,
@@ -356,7 +357,6 @@ public class UserService{
             SearchResultDTO searchResult = elasticSearchService.getFromCache(searchToken);
             if (searchResult != null)
             {
-                UserProfile profile = user.getUserProfile();
                 List<UUID> matchedResults = searchResult.results();
 
                 int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
@@ -366,8 +366,7 @@ public class UserService{
                 List<Resume> foundResumes = resumeRepository.findAllById(matchedList);
 
                 return new HomePageData(foundResumes, pageNumber,
-                        matchedResults.size(), numPages, pageSize, profile, searchResult.searchToken(),
-                        profile.getResumeSearchConfigurations());
+                        matchedResults.size(), numPages, pageSize, searchResult.searchToken());
             }
             //Otherwise, we simply return the whole forum post information, paginated.
             else{
@@ -377,9 +376,24 @@ public class UserService{
         return getPaginatedResumes(pageNumber, pageSize, user);
     }
 
+    public HomePageData getSearchResult(ResumeSearchConfiguration searchConfiguration, User user,
+                                        int pageNumber, int pageSize)
+    {
+        SearchResultDTO resultDTO = elasticSearchService.executeSearch(searchConfiguration);
+
+        List<UUID> matchedResults = resultDTO.results();
+
+        int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
+
+        List<UUID> matchedList = elasticSearchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
+
+        List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
+        return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),
+                numPages, pageSize, resultDTO.searchToken());
+    }
+
     public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm,
                                                 User user, int pageNumber, int pageSize){
-        UserProfile profile = user.getUserProfile();
         SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm);
 
         List<UUID> matchedResults = resultDTO.results();
@@ -390,7 +404,7 @@ public class UserService{
 
         List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
         return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),
-                numPages, pageSize, profile, resultDTO.searchToken(), profile.getResumeSearchConfigurations());
+                numPages, pageSize, resultDTO.searchToken());
     }
 
     public Bucket returnUserBucket(String loginEmail){

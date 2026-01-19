@@ -1,9 +1,12 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.exceptions.FileUploadException;
 import com.rebuild.backend.model.forms.dtos.StatusAndError;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.MessageDisplayDTO;
@@ -31,7 +34,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,12 +60,15 @@ public class FriendAndMessageService {
 
     private final RabbitProducingService rabbitProducingService;
 
+    private final Cloudinary cloudinary;
+
     @Autowired
     public FriendAndMessageService(JobOperator jobOperator, UserRepository userRepository,
                                    FriendRelationshipRepository friendRelationshipRepository,
                                    ChatRepository chatRepository, MessageRepository messageRepository,
                                    ProfilePictureRepository profilePictureRepository,
-                                   FriendRequestRepository friendRequestRepository, RabbitProducingService rabbitProducingService) {
+                                   FriendRequestRepository friendRequestRepository,
+                                   RabbitProducingService rabbitProducingService, Cloudinary cloudinary) {
         this.jobOperator = jobOperator;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
@@ -68,6 +77,7 @@ public class FriendAndMessageService {
         this.profilePictureRepository = profilePictureRepository;
         this.friendRequestRepository = friendRequestRepository;
         this.rabbitProducingService = rabbitProducingService;
+        this.cloudinary = cloudinary;
     }
 
     @Transactional
@@ -193,6 +203,18 @@ public class FriendAndMessageService {
 
     }
 
+    public String generateTimedUrlForPicture(ProfilePicture profilePicture){
+        try {
+            long expiryTimestamp = Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond();
+            return cloudinary.privateDownload(profilePicture.getPublic_id(), "png",
+                    ObjectUtils.asMap("expires_at", expiryTimestamp));
+        }
+        catch (Exception e) {
+            throw new FileUploadException(e.getMessage(), e.getCause());
+        }
+    }
+
+
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
         List<Chat> allChats = chatRepository.findByUser(displayingUser);
@@ -206,13 +228,15 @@ public class FriendAndMessageService {
                     User otherChatUser = chatInitiator.equals(displayingUser) ? chatReceiver : chatInitiator;
 
                     String picture_url = profilePictureRepository.findByUserId(otherChatUser.getId()).
-                            map(ProfilePicture::getSecure_url).orElse(null);
+                            map(this::generateTimedUrlForPicture).orElse(null);
                     UUID chatId = chat.getId();
                     String username = otherChatUser.getForumUsername();
 
                     return new DisplayChatResponse(chatId, username, picture_url);
                 }).toList();
     }
+
+
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
     {
@@ -232,7 +256,7 @@ public class FriendAndMessageService {
                 }).toList();
 
 
-        String pictureUrl = foundPicture.map(ProfilePicture::getSecure_url).orElse(null);
+        String pictureUrl = foundPicture.map(this::generateTimedUrlForPicture).orElse(null);
         return new LoadChatResponse(userName, userID, messages, pictureUrl);
     }
 

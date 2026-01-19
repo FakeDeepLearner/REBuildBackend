@@ -113,15 +113,16 @@ public class ProfileService {
             {
                 profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
                 cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
-                        ObjectUtils.emptyMap());
+                        ObjectUtils.asMap("type", "private"));
             }
+
 
             @SuppressWarnings("JvmTaintAnalysis")
             Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
                             copyToByteArray(pictureFile.getInputStream()),
-                    ObjectUtils.emptyMap());
+                    ObjectUtils.asMap("type", "private"));
             ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
-                    (String) uploadResult.get("asset_id"), (String) uploadResult.get("secure_url"));
+                    (String) uploadResult.get("asset_id"));
             profile.setProfilePicture(profilePicture);
             profilePicture.setAssociatedProfile(profile);
         }

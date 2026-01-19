@@ -2,7 +2,7 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
+import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
@@ -63,9 +63,7 @@ public class HomePageController {
             ResumeSearchConfiguration foundConfig = searchRepository.findByIdAndAssociatedProfileUser(config_id, user).
                     orElseThrow(() -> new BelongingException("This configuration does not belong to you"));
 
-            ResumeSpecsForm craftedBody = resumeService.createSpecsForm(foundConfig);
-
-            HomePageData response = userService.getSearchResult(craftedBody, user,
+            HomePageData response = userService.getSearchResult(foundConfig, user,
                             0, 20);
 
             return ResponseEntity.ok(response);

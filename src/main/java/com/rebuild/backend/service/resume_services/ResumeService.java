@@ -2,6 +2,7 @@ package com.rebuild.backend.service.resume_services;
 
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.exceptions.PrefillException;
@@ -46,25 +47,11 @@ public class ResumeService {
         this.profileRepository = profileRepository;
     }
 
-    public ResumeSpecsForm createSpecsForm(ResumeSearchConfiguration searchConfiguration)
-    {
-        return new ResumeSpecsForm(searchConfiguration.getResumeNameSearch(), searchConfiguration.getFirstNameSearch(),
-                searchConfiguration.getLastNameSearch(), searchConfiguration.getCreationAfterCutoff().toString(),
-                searchConfiguration.getCreationBeforeCutoff().toString(),
-                searchConfiguration.getSchoolNameSearch(), searchConfiguration.getCourseworkSearch(),
-                searchConfiguration.getCompanySearch(),
-                searchConfiguration.getExperienceBulletsSearch(),
-                searchConfiguration.getExperienceTechnologiesSearch(), searchConfiguration.getProjectNameSearch(),
-                searchConfiguration.getProjectBulletsSearch(), searchConfiguration.getProjectTechnologyListSearch());
-    }
-
     public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,
                                                         ResumeSpecsForm specsForm){
-        UserProfile getProfile = authenticatedUser.getUserProfile();
-
         ResumeSearchConfiguration newConfiguration = new ResumeSearchConfiguration(specsForm);
-        newConfiguration.setAssociatedProfile(getProfile);
-        getProfile.addResumeSearchConfig(newConfiguration);
+        newConfiguration.setUser(authenticatedUser);
+        authenticatedUser.getResumeSearchConfigurations().add(newConfiguration);
         return resumeSearchRepository.save(newConfiguration);
     }
 

@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,9 +44,9 @@ public class PostSearchConfiguration implements Serializable {
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
     })
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore
-    private UserProfile associatedProfile;
+    private User user;
 
     public PostSearchConfiguration(ForumSpecsForm specsForm)
     {
