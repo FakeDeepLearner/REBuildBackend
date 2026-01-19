@@ -12,7 +12,10 @@ import java.util.UUID;
 @Repository
 public interface PostSearchRepository extends JpaRepository<PostSearchConfiguration, UUID> {
 
-    Optional<PostSearchConfiguration> findByIdAndAssociatedProfileUser(UUID id, User associatedProfileUser);
+    Optional<PostSearchConfiguration> findByIdAndUser(UUID id, User user);
+
+
+    List<PostSearchConfiguration> findAllByUser(User user);
 
 
 }

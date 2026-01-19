@@ -6,11 +6,16 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Embeddable
 @RequiredArgsConstructor
 @NoArgsConstructor
 @Data
-public class HeaderSearchProperties {
+public class HeaderSearchProperties implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 26L;
 
     @NonNull
     private String firstNameSearch;

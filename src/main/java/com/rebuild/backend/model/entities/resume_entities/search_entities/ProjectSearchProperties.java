@@ -7,11 +7,17 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Embeddable
 @RequiredArgsConstructor
 @NoArgsConstructor
 @Data
-public class ProjectSearchProperties {
+public class ProjectSearchProperties implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 28L;
 
     @NonNull
     private String projectNameSearch;

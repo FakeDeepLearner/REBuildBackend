@@ -28,7 +28,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/home")
@@ -60,7 +59,7 @@ public class HomePageController {
                                       @PathVariable UUID config_id) {
         try {
 
-            ResumeSearchConfiguration foundConfig = searchRepository.findByIdAndAssociatedProfileUser(config_id, user).
+            ResumeSearchConfiguration foundConfig = searchRepository.findByIdAndUser(config_id, user).
                     orElseThrow(() -> new BelongingException("This configuration does not belong to you"));
 
             HomePageData response = userService.getSearchResult(foundConfig, user,
@@ -79,6 +78,13 @@ public class HomePageController {
                                                         @RequestBody ResumeSpecsForm specsForm)
     {
         return resumeService.createSearchConfig(authenticatedUser, specsForm);
+    }
+
+    @GetMapping("/get_resume_configs")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ResumeSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
+    {
+        return searchRepository.findAllByUser(user);
     }
 
     @GetMapping("/resume/{resume_id}")
@@ -118,7 +124,7 @@ public class HomePageController {
         Message createdMessage = friendAndMessageService.
                 createMessage(authenticatedUser, recipient_id, messageContent);
         if (createdMessage == null){
-            return ResponseEntity.status(UNAUTHORIZED).
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
                     body("You cannot start a chat with this user unless you are friends with them");
         }
         simpMessagingTemplate.convertAndSendToUser(recipient_id.toString(),
@@ -144,17 +150,17 @@ public class HomePageController {
         try{
             Resume createdResume = resumeService.createNewResumeFor(name, authenticatedUser);
 
-            return ResponseEntity.status(CREATED).body(createdResume);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdResume);
         }
         catch (DataIntegrityViolationException e){
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException &&
                     Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")) {
-                return ResponseEntity.status(CONFLICT).body("You already have a resume with this name");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("You already have a resume with this name");
             }
         }
         catch (RuntimeException e) {
-            return ResponseEntity.status(PAYMENT_REQUIRED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(e.getMessage());
         }
 
         //Should never get here.
@@ -162,7 +168,7 @@ public class HomePageController {
     }
 
     @GetMapping("/friends")
-    @ResponseStatus(OK)
+    @ResponseStatus(HttpStatus.OK)
     public List<UsernameSearchResultDTO> loadFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
         return friendAndMessageService.loadUserFriendRequests(authenticatedUser);
     }

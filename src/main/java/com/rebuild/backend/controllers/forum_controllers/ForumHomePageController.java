@@ -22,11 +22,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 @RequestMapping("/api/forum")
@@ -57,6 +57,13 @@ public class ForumHomePageController {
         return postAndCommentService.createSearchConfig(authenticatedUser, specsForm);
     }
 
+    @GetMapping("/get_configs")
+    @ResponseStatus(HttpStatus.OK)
+    public List<PostSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
+    {
+        return postSearchRepository.findAllByUser(user);
+    }
+
     @PostMapping("/username_search")
     public UsernameSearchResponse searchUsernames(@RequestBody String username)
     {
@@ -72,7 +79,7 @@ public class ForumHomePageController {
         try {
 
             PostSearchConfiguration foundConfig =
-                    postSearchRepository.findByIdAndAssociatedProfileUser(config_id, user).orElseThrow(
+                    postSearchRepository.findByIdAndUser(config_id, user).orElseThrow(
                             () -> new BelongingException("This configuration does not belong to you")
                     );
 
@@ -129,7 +136,7 @@ public class ForumHomePageController {
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException violationException) {
                 if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")) {
-                    return ResponseEntity.status(CONFLICT).body("This username is taken");
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body("This username is taken");
                 }
             }
 

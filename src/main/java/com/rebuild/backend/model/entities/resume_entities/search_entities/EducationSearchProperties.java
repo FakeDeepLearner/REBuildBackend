@@ -7,11 +7,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class EducationSearchProperties {
+public class EducationSearchProperties implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 27L;
 
     @NonNull
     private String schoolNameSearch;
