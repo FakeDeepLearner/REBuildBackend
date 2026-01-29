@@ -18,8 +18,6 @@ public record SignupForm(
                          String forumUsername,
 
                          String phoneNumber,
-
-                         String otpChannel,
                          boolean forcePassword,
                          boolean remember) {
 }

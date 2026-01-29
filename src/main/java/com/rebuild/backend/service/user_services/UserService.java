@@ -190,32 +190,7 @@ public class UserService{
         User foundUser = findByEmailOrPhone(formField).orElse(null);
 
         if (foundUser == null) {
-            return new CredentialValidationDTO(false, "whatever", "whatever", false);
-        }
-
-
-        String userChannel;
-        if(formField.contains("@"))
-        {
-            userChannel = "email";
-        }
-
-        else {
-            if (form.callMe()) {
-                userChannel = "call";
-            } else {
-                userChannel = "sms";
-            }
-        }
-
-        try {
-            new AccountStatusUserDetailsChecker().check(foundUser);
-        }
-        catch (AccountExpiredException expiredException)
-        {
-            otpService.generateOTPCode(formField, userChannel);
-            return new CredentialValidationDTO(false,
-                    "whatever", "whatever", true);
+            return new CredentialValidationDTO(false, "whatever");
         }
 
 
@@ -223,7 +198,7 @@ public class UserService{
         String pepper = dotenv.get("PEPPER_VALUE");
 
         return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
-                foundUser.getPassword()), foundUser.getEmail(), userChannel, false);
+                foundUser.getPassword()), foundUser.getEmail());
 
     }
 

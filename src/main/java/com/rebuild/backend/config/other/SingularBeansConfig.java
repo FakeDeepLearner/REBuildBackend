@@ -67,14 +67,4 @@ public class SingularBeansConfig {
         return new MethodValidationPostProcessor();
     }
 
-
-    @PostConstruct
-    public void twilioInit(Dotenv dotenv){
-        Twilio.init(dotenv.get("TWILIO_ACCOUNT_SID"), dotenv.get("TWILIO_AUTH_TOKEN"));
-    }
-
-    @Bean
-    public SendGrid sendGrid(Dotenv dotenv){
-        return new SendGrid(dotenv.get("TWILIO_SENDGRID_KEY"));
-    }
 }

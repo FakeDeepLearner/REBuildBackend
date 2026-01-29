@@ -93,6 +93,9 @@ public class User implements UserDetails, OidcUser, Serializable {
     @OrderBy("creationTime ASC")
     private List<Resume> resumes = new ArrayList<>();
 
+    @Column(name = "is_mfa_user")
+    private boolean enrolledInMFA = false;
+
 
     @Column(name = "forum_username")
     @FullTextField

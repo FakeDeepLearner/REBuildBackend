@@ -56,12 +56,6 @@ public class AuthenticationController {
 
         CredentialValidationDTO credentialValidationDTO = userService.validateLoginCredentials(loginForm);
 
-        if (credentialValidationDTO.resentOtp())
-        {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Your account has been " +
-                    "locked due to prolonged inactivity. A code has been sent to your email or your phone number. " +
-                    "Please enter it to unlock your account");
-        }
         Bucket userBucket = userService.returnUserBucket(credentialValidationDTO.userEmail());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
@@ -71,9 +65,6 @@ public class AuthenticationController {
             if (!userCanLogin){
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid username or password");
             }
-
-            //If we have consumed the probe, we send a code to the user's preferred channel
-            otpService.generateOTPCode(loginForm.emailOrPhone(), credentialValidationDTO.userChannel());
 
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("A code has been sent to the email or " +
                     "phone number that you entered. Please enter that code to finalize your login");
@@ -110,77 +101,11 @@ public class AuthenticationController {
                                                @RequestParam(name = "remember-me") boolean remember,
     @RequestParam(name = "code") String enteredOtpCode,
     HttpServletRequest request){
-        VerificationCheck verificationCheck = verifyEnteredCode(form, enteredOtpCode);
 
-        String status = verificationCheck.getStatus();
-
-        switch (status){
-            case "approved" -> {
-                loginHelper(form, request);
-                return ResponseEntity.ok().body("Login successful, redirecting you to your home page");
-            }
-
-            case "failed" -> {
-                return ResponseEntity.badRequest().body("You have entered the wrong code");
-            }
-
-            case "expired" -> {
-                //We send the notification again via the same channel that the user used to originally obtain it.
-                String oldChannel = verificationCheck.getChannel().toString();
-                otpService.generateOTPCode(form.emailOrPhone(), oldChannel);
-                return ResponseEntity.status(HttpStatus.GONE).
-                        body("The passcode that you requested has expired, " +
-                                "we have sent you a new one, please enter it");
-            }
-
-            case "max_attempts_reached" -> {
-
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).
-                        body("You have reached the maximum number of attempts.");
-            }
-
-        }
-        return ResponseEntity.internalServerError().body("An unexpected error has occurred");
+        loginHelper(form, request);
+        return ResponseEntity.ok().body("Login successful, redirecting you to your home page");
 
     }
-
-    @PostMapping("/unlock_account")
-    public ResponseEntity<?> unlockAccount(@Valid @RequestBody LoginForm form,
-                                           @RequestParam String enteredOTPCode, HttpServletRequest request)
-    {
-        VerificationCheck verificationCheck = verifyEnteredCode(form, enteredOTPCode);
-        String status = verificationCheck.getStatus();
-
-        switch (status){
-            case "approved" -> {
-                userService.unlockUser(form.emailOrPhone());
-                loginHelper(form, request);
-                return ResponseEntity.ok().body("Account unlocked successfully, logging you in");
-            }
-
-            case "failed" -> {
-                return ResponseEntity.badRequest().body("You have entered the wrong code");
-            }
-
-            case "expired" -> {
-                //We send the notification again via the same channel that the user used to originally obtain it.
-                String oldChannel = verificationCheck.getChannel().toString();
-                otpService.generateOTPCode(form.emailOrPhone(), oldChannel);
-                return ResponseEntity.status(HttpStatus.GONE).
-                        body("The passcode that you requested has expired, " +
-                                "we have sent you a new one, please enter it");
-            }
-
-            case "max_attempts_reached" -> {
-
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).
-                        body("You have reached the maximum number of attempts.");
-            }
-
-        }
-        return ResponseEntity.internalServerError().body("An unexpected error has occurred");
-    }
-
 
     private void loginHelper(LoginForm form, HttpServletRequest request){
         Authentication auth = authManager.authenticate(
@@ -191,19 +116,6 @@ public class AuthenticationController {
         request.getSession(true);
     }
 
-
-    private VerificationCheck verifyEnteredCode(SignupForm signupForm, String enteredOTP){
-        if(signupForm.otpChannel().equals("sms")){
-            return otpService.validateEnteredOTP(signupForm.phoneNumber(), enteredOTP);
-        }
-        else {
-            return otpService.validateEnteredOTP(signupForm.email(), enteredOTP);
-        }
-    }
-
-    private VerificationCheck verifyEnteredCode(LoginForm signupForm, String enteredOTP){
-        return otpService.validateEnteredOTP(signupForm.emailOrPhone(), enteredOTP);
-    }
 
     @PostMapping("/signup/initialize")
     public ResponseEntity<String> initializeSignup(@Valid @RequestBody SignupForm signupForm,
@@ -221,23 +133,6 @@ public class AuthenticationController {
             return passwordCheckResponse;
         }
 
-
-        if((signupForm.otpChannel().equals("sms") || signupForm.otpChannel().equals("call")) && signupForm.phoneNumber() == null)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You have selected for a code to be sent to " +
-                    "your phone, but you haven't entered a phone number");
-        }
-
-        switch(signupForm.otpChannel())
-        {
-            case "sms", "call":
-                otpService.generateOTPCode(signupForm.phoneNumber(), signupForm.otpChannel());
-                break;
-            case "email":
-                otpService.generateOTPCode(signupForm.email(), "email");
-                break;
-
-        }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("A one-time code has been sent to your " +
                 "desired channel, please enter it to finalize the signup process");
@@ -296,45 +191,9 @@ public class AuthenticationController {
     public ResponseEntity<?> finalizeSignup(@Valid @RequestPart(name = "meta") SignupForm signupForm,
                                             HttpServletRequest request,
                                             @RequestPart(name = "file") MultipartFile profilePicture,
-                                            @RequestParam String enteredOtpCode){
+                                            @RequestParam String enteredOtpCode) {
 
-        VerificationCheck verificationCheck = verifyEnteredCode(signupForm, enteredOtpCode);
-
-        String status = verificationCheck.getStatus();
-
-        switch (status){
-            case "approved" -> {
-                return signUpNewUser(signupForm, request, profilePicture);
-            }
-
-            case "failed" -> {
-                return ResponseEntity.badRequest().body("You have entered the wrong code");
-            }
-
-            case "expired" -> {
-                //We send the notification again via the same channel that the user used to originally obtain it.
-                String oldChannel = verificationCheck.getChannel().toString();
-                if (oldChannel.equals("sms"))
-                {
-                    otpService.generateOTPCode(signupForm.phoneNumber(), "sms");
-                }
-                else if(oldChannel.equals("email"))
-                {
-                    otpService.generateOTPCode(signupForm.email(), "email");
-                }
-                return ResponseEntity.status(HttpStatus.GONE).
-                        body("The passcode that you requested has expired, " +
-                        "we have sent you a new one, please enter it");
-            }
-
-            case "max_attempts_reached" -> {
-
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).
-                        body("You have reached the maximum number of attempts.");
-            }
-
-        }
-        return ResponseEntity.internalServerError().body("An unexpected error has occurred");
+        return signUpNewUser(signupForm, request, profilePicture);
 
     }
 

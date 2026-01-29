@@ -26,28 +26,5 @@ public class OTPService {
         this.dotenv = dotenv;
     }
 
-    private void recordSentVerification(Verification sentVerification)
-    {
-        String channel = sentVerification.getChannel().toString();
-
-        String to = sentVerification.getTo();
-
-        SentVerificationRecord newVerificationRecord = new SentVerificationRecord(channel, to, Instant.now());
-
-        recordRepository.save(newVerificationRecord);
-    }
-
-    public void generateOTPCode(String phoneOrEmail, String channel){
-
-        Verification newVerification = Verification.creator(dotenv.get("TWILIO_VERIFY_SERVICE_SID"),
-                phoneOrEmail, channel).create();
-
-        recordSentVerification(newVerification);
-    }
-
-    public VerificationCheck validateEnteredOTP(String phoneOrEmail, String enteredOTP){
-        return VerificationCheck.creator(dotenv.get("TWILIO_VERIFY_SERVICE_SID")).
-                setTo(phoneOrEmail).setCode(enteredOTP).create();
-    }
 
 }
