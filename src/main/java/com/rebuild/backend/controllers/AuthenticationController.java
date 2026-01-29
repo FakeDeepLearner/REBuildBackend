@@ -2,13 +2,10 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.users.User;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
-import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
-import com.rebuild.backend.service.token_services.OTPService;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
+import com.rebuild.backend.service.user_services.UserAuthenticationHelperService;
 import com.rebuild.backend.service.user_services.UserService;
-import com.sendgrid.Response;
-import com.twilio.rest.verify.v2.service.VerificationCheck;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,28 +32,28 @@ public class AuthenticationController {
 
     private final UserService userService;
 
-    private final OTPService otpService;
+
+    private final UserAuthenticationHelperService authenticationHelperService;
 
     @Autowired
     public AuthenticationController(AuthenticationManager authManager,
-                                    UserService userService,
-                                    OTPService otpService) {
+                                    UserService userService, UserAuthenticationHelperService authenticationHelperService) {
         this.authManager = authManager;
         this.userService = userService;
-        this.otpService = otpService;
+        this.authenticationHelperService = authenticationHelperService;
     }
 
     @PostMapping("/login/initialize")
     public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm,
                                              @RequestParam(name = "g-recaptcha-response") String userResponse,
                                              HttpServletRequest request) {
-        if (userService.captchaFailed(userResponse, request.getRemoteAddr())) {
+        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
         }
 
-        CredentialValidationDTO credentialValidationDTO = userService.validateLoginCredentials(loginForm);
+        CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginForm);
 
-        Bucket userBucket = userService.returnUserBucket(credentialValidationDTO.userEmail());
+        Bucket userBucket = authenticationHelperService.returnUserBucket(credentialValidationDTO.userEmail());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
 
@@ -122,11 +119,11 @@ public class AuthenticationController {
                                                    @RequestParam(name = "g-recaptcha-response") String userResponse,
                                                    HttpServletRequest request) throws IOException, InterruptedException {
         
-        if (userService.captchaFailed(userResponse, request.getRemoteAddr())) {
+        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
         }
 
-        ResponseEntity<String> passwordCheckResponse = userService.doPreliminaryPasswordChecks(signupForm);
+        ResponseEntity<String> passwordCheckResponse = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
 
         if (passwordCheckResponse != null)
         {

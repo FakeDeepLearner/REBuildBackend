@@ -8,6 +8,8 @@ import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.user_services.UserService;
+import jakarta.validation.constraints.Null;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
@@ -40,8 +42,8 @@ public class CustomPasswordService implements UserDetailsPasswordService {
 
     @Override
     @Transactional
-    public UserDetails updatePassword(UserDetails oldDetails, String newPassword) {
-        User updatingUser = userRepository.findByEmail(oldDetails.getUsername()).orElseThrow(
+    public UserDetails updatePassword(UserDetails user, String newPassword) {
+        User updatingUser = userRepository.findByEmailOrPhoneNumber(user.getUsername()).orElseThrow(
                 () -> new UsernameNotFoundException("User not found")
         );
 

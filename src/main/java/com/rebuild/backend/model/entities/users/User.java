@@ -35,7 +35,9 @@ import static jakarta.persistence.CascadeType.ALL;
         @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"}),
         @UniqueConstraint(name = "uk_forum_username", columnNames = {"forum_username"})
 }, indexes = {
-        @Index(columnList = "lastLoginTime")
+        @Index(columnList = "lastLoginTime"),
+        @Index(columnList = "email"),
+        @Index(columnList = "phone_number")
 })
 @RequiredArgsConstructor
 @Getter
