@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.users;
+package com.rebuild.backend.model.entities.user_entities;
 
 import jakarta.persistence.*;
 import lombok.*;

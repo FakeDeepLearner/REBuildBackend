@@ -1,8 +1,7 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

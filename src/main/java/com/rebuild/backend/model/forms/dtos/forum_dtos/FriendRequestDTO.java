@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.forms.dtos.forum_dtos;
 
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 
 import java.util.UUID;
 

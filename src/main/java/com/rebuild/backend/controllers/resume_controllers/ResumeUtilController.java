@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import org.hibernate.exception.ConstraintViolationException;

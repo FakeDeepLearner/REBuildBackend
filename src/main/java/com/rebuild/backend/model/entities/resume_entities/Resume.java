@@ -1,7 +1,7 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.utils.converters.DatabaseEncryptor;
@@ -11,7 +11,6 @@ import org.hibernate.search.engine.backend.types.Searchable;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 
-import java.io.Externalizable;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;

@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.users;
+package com.rebuild.backend.model.entities.user_entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,8 +7,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Table(name = "captcha_verifications")

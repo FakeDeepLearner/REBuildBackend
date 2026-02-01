@@ -1,7 +1,7 @@
 package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

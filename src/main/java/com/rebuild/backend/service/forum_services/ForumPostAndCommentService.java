@@ -2,7 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.FileUploadException;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
@@ -47,13 +47,10 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.SubmissionPublisher;
 
 @Service
 @Transactional(readOnly = true)

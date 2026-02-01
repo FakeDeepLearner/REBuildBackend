@@ -1,9 +1,7 @@
 package com.rebuild.backend.service.util_services;
 
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.service.user_services.UserAuthenticationHelperService;
-import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

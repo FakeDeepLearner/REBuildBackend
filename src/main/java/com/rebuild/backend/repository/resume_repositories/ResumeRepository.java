@@ -1,8 +1,7 @@
 package com.rebuild.backend.repository.resume_repositories;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.entities.users.User;
-import lombok.NonNull;
+import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

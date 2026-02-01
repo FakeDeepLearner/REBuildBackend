@@ -1,7 +1,7 @@
 package com.rebuild.backend.batch.processors;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.batch.item.ItemProcessor;

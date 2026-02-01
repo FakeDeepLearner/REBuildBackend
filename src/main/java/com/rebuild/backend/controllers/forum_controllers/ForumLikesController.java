@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
 import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.service.util_services.RabbitProducingService;

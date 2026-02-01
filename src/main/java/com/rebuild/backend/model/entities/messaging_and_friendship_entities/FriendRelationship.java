@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

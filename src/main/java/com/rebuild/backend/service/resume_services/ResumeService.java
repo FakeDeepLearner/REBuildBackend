@@ -3,7 +3,7 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.exceptions.PrefillException;
 import com.rebuild.backend.model.forms.resume_forms.*;

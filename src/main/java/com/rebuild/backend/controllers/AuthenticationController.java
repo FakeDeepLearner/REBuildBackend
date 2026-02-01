@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
@@ -52,19 +52,29 @@ public class AuthenticationController {
         }
 
         CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginForm);
-
+        if (credentialValidationDTO == null)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user with this email or phone number exists");
+        }
         Bucket userBucket = authenticationHelperService.returnUserBucket(credentialValidationDTO.userEmail());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
 
         if (probe.isConsumed()){
+
             boolean userCanLogin = credentialValidationDTO.canLogin();
             if (!userCanLogin){
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid username or password");
             }
 
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body("A code has been sent to the email or " +
-                    "phone number that you entered. Please enter that code to finalize your login");
+            if (!credentialValidationDTO.enrolledInMFA())
+            {
+                loginHelper(loginForm, request);
+                return ResponseEntity.ok("Login successful");
+            }
+
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("Please open your " +
+                    "authenticator app and enter the code there");
         }
 
 

@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.users;
+package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
@@ -97,6 +97,10 @@ public class User implements UserDetails, OidcUser, Serializable {
 
     @Column(name = "is_mfa_user")
     private boolean enrolledInMFA = false;
+
+    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = {ALL})
+    @JsonIgnore
+    private TOTPSecret totpSecret;
 
 
     @Column(name = "forum_username")

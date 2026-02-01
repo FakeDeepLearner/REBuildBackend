@@ -1,10 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
-import com.rebuild.backend.model.entities.resume_entities.Education;
-import com.rebuild.backend.model.entities.resume_entities.Experience;
-import com.rebuild.backend.model.entities.resume_entities.Header;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
@@ -12,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 

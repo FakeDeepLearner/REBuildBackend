@@ -1,11 +1,10 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity

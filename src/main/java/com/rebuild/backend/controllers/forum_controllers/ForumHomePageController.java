@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
-import com.rebuild.backend.model.entities.users.User;
+import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.dtos.StatusAndError;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
@@ -12,7 +12,6 @@ import com.rebuild.backend.repository.forum_repositories.PostSearchRepository;
 import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
 import com.rebuild.backend.service.forum_services.FriendAndMessageService;
 import com.rebuild.backend.service.user_services.UserService;
-import com.rebuild.backend.service.util_services.ElasticSearchService;
 import lombok.NonNull;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
