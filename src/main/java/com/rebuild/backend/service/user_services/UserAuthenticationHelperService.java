@@ -226,8 +226,8 @@ public class UserAuthenticationHelperService {
         totpSecretRepository.save(newSecret);
 
 
-        String generatedURL = String.format("otpauth://totp/%s?secret=%s&issuer=%s&digits=%s",
-                requestingUser.getEmail(), rawSecret, "rerebuild.ca", 6);
+        String generatedURL = String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%s",
+                requestingUser.getEmail(), "rerebuild.ca", rawSecret, "rerebuild.ca", 6);
 
         return new MFAEnrolmentResponse(generatedURL, codes);
 
