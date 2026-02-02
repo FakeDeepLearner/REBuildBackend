@@ -18,7 +18,12 @@
 		<blaze-persistence.version>1.6.17</blaze-persistence.version>
 	</properties>
 	<dependencies>
-
+		<dependency>
+			<groupId>com.warrenstrange</groupId>
+			<artifactId>googleauth</artifactId>
+			<version>1.5.0</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.blazebit</groupId>
 			<artifactId>blaze-persistence-entity-view-api</artifactId>

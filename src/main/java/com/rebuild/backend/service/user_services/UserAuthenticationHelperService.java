@@ -1,18 +1,19 @@
 package com.rebuild.backend.service.user_services;
 
-import com.rebuild.backend.model.entities.user_entities.CaptchaVerificationRecord;
-import com.rebuild.backend.model.entities.user_entities.SecretStatus;
-import com.rebuild.backend.model.entities.user_entities.TOTPSecret;
-import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.user_entities.*;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
 import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
 import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
+import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.TOTPSecretRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CustomPasswordService;
+import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
@@ -29,21 +30,12 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Service
 public class UserAuthenticationHelperService {
-
-    private static final char[] ALPHABET =
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
-
-    private static final int NUM_CODES_GENERATED = 8;
-
-    private static final int RECOVERY_CODE_LENGTH = 16;
 
     private final UserRepository userRepository;
 
@@ -59,20 +51,16 @@ public class UserAuthenticationHelperService {
 
     private final BucketConfiguration bucketConfiguration;
 
-    private final TOTPSecretRepository totpSecretRepository;
-
 
     public UserAuthenticationHelperService(UserRepository userRepository,
                                            Dotenv dotenv,
                                            CaptchaVerificationRepository verificationRepository,
                                            CustomPasswordService passwordService,
                                            ProxyManager<String> proxyManager,
-                                           BucketConfiguration bucketConfiguration,
-                                           TOTPSecretRepository totpSecretRepository) {
+                                           BucketConfiguration bucketConfiguration) {
         this.userRepository = userRepository;
         this.dotenv = dotenv;
         this.verificationRepository = verificationRepository;
-        this.totpSecretRepository = totpSecretRepository;
         this.encoder = new BCryptPasswordEncoder();
         this.passwordService = passwordService;
         this.proxyManager = proxyManager;
@@ -172,65 +160,6 @@ public class UserAuthenticationHelperService {
         //The lambda is to get around the fact that building
         // with supplying a bucket configuration directly is deprecated, thank god for lambdas
         return proxyManager.builder().build(loginEmail, () -> bucketConfiguration);
-    }
-
-
-    public String generateRandomRecoveryCode()
-    {
-        SecureRandom random = new SecureRandom();
-
-        char[] characters = new char[RECOVERY_CODE_LENGTH];
-
-        for (int i = 0; i < RECOVERY_CODE_LENGTH; i++)
-        {
-            characters[i] = ALPHABET[random.nextInt(ALPHABET.length)];
-        }
-
-        return String.format(
-                "%s-%s-%s-%s",
-                new String(characters, 0, 4),
-                new String(characters, 4, 4),
-                new String(characters, 8, 4),
-                new String(characters, 12, 4)
-        );
-
-    }
-
-    public String generateRandomSecret()
-    {
-        SecureRandom random = new SecureRandom();
-
-        byte[] bytes = new byte[16];
-
-        random.nextBytes(bytes);
-
-        return new Base32().encodeToString(bytes);
-    }
-
-    public MFAEnrolmentResponse startMFAEnrolment(User requestingUser, String enteredPassword)
-    {
-        if (!encoder.matches(enteredPassword, requestingUser.getPassword()))
-        {
-            return null;
-        }
-
-        List<String> codes = Stream.generate(this::generateRandomRecoveryCode).
-                limit(NUM_CODES_GENERATED).toList();
-
-        String rawSecret = generateRandomSecret();
-
-        TOTPSecret newSecret = new TOTPSecret(SecretStatus.PENDING, rawSecret);
-        newSecret.setUser(requestingUser);
-        requestingUser.setTotpSecret(newSecret);
-
-        totpSecretRepository.save(newSecret);
-
-
-        String generatedURL = String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%s",
-                requestingUser.getEmail(), "rerebuild.ca", rawSecret, "rerebuild.ca", 6);
-
-        return new MFAEnrolmentResponse(generatedURL, codes);
-
     }
 
 }

@@ -1,9 +1,12 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
+import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
+import com.rebuild.backend.service.user_services.TOTPCodeService;
 import com.rebuild.backend.service.user_services.UserAuthenticationHelperService;
 import com.rebuild.backend.service.user_services.UserService;
 import io.github.bucket4j.Bucket;
@@ -17,11 +20,13 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @RestController
@@ -32,15 +37,17 @@ public class AuthenticationController {
 
     private final UserService userService;
 
-
     private final UserAuthenticationHelperService authenticationHelperService;
+
+    private final TOTPCodeService totpCodeService;
 
     @Autowired
     public AuthenticationController(AuthenticationManager authManager,
-                                    UserService userService, UserAuthenticationHelperService authenticationHelperService) {
+                                    UserService userService, UserAuthenticationHelperService authenticationHelperService, TOTPCodeService totpCodeService) {
         this.authManager = authManager;
         this.userService = userService;
         this.authenticationHelperService = authenticationHelperService;
+        this.totpCodeService = totpCodeService;
     }
 
     @PostMapping("/login/initialize")
@@ -109,9 +116,29 @@ public class AuthenticationController {
     @RequestParam(name = "code") String enteredOtpCode,
     HttpServletRequest request){
 
-        loginHelper(form, request);
-        return ResponseEntity.ok().body("Login successful, redirecting you to your home page");
+        if (totpCodeService.otpMatches(form, enteredOtpCode))
+        {
+            loginHelper(form, request);
+            return ResponseEntity.ok().body("Login successful, redirecting you to your home page.");
+        }
+        else {
+            return ResponseEntity.badRequest().body("You have entered the incorrect code.");
+        }
+    }
 
+    @PostMapping("/login/recovery_code")
+    public ResponseEntity<String> loginWithRecoveryCode(@Valid @RequestBody LoginForm form,
+                                                        @RequestParam(name = "code") String enteredCode,
+                                                        HttpServletRequest request)
+    {
+        boolean verificationResult = totpCodeService.verifyRecoveryCode(form.emailOrPhone(), enteredCode);
+
+        if (verificationResult)
+        {
+            loginHelper(form, request);
+            return ResponseEntity.ok("Emergency code used successfully, redirecting you to home page");
+        }
+        return ResponseEntity.badRequest().body("The code you have entered does not correspond to any of your codes");
     }
 
     private void loginHelper(LoginForm form, HttpServletRequest request){
@@ -203,5 +230,34 @@ public class AuthenticationController {
         return signUpNewUser(signupForm, request, profilePicture);
 
     }
+
+
+    @PostMapping("/mfa/initialize")
+    public ResponseEntity<?> startMFAEnrolment(@AuthenticationPrincipal User startingUser,
+                                               @RequestBody String enteredPassword)
+    {
+        MFAEnrolmentResponse enrolmentResponse = totpCodeService.startMFAEnrolment(startingUser, enteredPassword);
+
+        if (enrolmentResponse == null)
+        {
+            return ResponseEntity.badRequest().body("Incorrect password");
+        }
+        return ResponseEntity.ok(enrolmentResponse);
+    }
+
+    @PostMapping("/mfa/finalize")
+    public ResponseEntity<String> finalizeMFAEnrolment(@AuthenticationPrincipal User user,
+                                                       @RequestBody MFAEnrolmentForm enrolmentForm)
+    {
+        return totpCodeService.enrolUserInMFA(user, enrolmentForm);
+    }
+
+
+    @GetMapping("/mfa/regenerate_codes")
+    public List<String> regenerateRecoveryCodes(@AuthenticationPrincipal User user)
+    {
+        return totpCodeService.regenerateRecoveryCodesFor(user);
+    }
+
 
 }

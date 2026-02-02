@@ -17,6 +17,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
        """)
     Optional<User> findByEmailOrPhoneNumber(String emailOrPhone);
 
+    @Query(value = """
+        SELECT u FROM User u JOIN FETCH u.recoveryCodes
+        WHERE u.email=?1 OR u.phoneNumber=?1
+       """)
+    Optional<User> findByEmailOrPhoneWithRecoveryCodes(String emailOrPhone);
+
 
 
 
