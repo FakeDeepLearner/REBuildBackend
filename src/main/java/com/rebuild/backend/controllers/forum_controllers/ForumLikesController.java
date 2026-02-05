@@ -1,8 +1,8 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
+import com.rebuild.backend.model.dtos.forum_dtos.CommentLikeRequest;
+import com.rebuild.backend.model.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.service.util_services.RabbitProducingService;
 import org.springframework.amqp.AmqpException;
 import org.springframework.beans.factory.annotation.Autowired;

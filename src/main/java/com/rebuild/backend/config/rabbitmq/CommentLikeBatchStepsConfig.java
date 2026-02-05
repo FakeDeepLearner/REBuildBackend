@@ -2,7 +2,7 @@ package com.rebuild.backend.config.rabbitmq;
 
 import com.google.common.base.Throwables;
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentLikeRequest;
+import com.rebuild.backend.model.dtos.forum_dtos.CommentLikeRequest;
 import com.rebuild.backend.batch.processors.CommentLikeProcessor;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.exception.ConstraintViolationException;
@@ -15,7 +15,6 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.amqp.AmqpItemReader;
-import org.springframework.batch.item.amqp.AmqpItemWriter;
 import org.springframework.batch.item.amqp.builder.AmqpItemReaderBuilder;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;

@@ -2,7 +2,7 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
-import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
+import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
@@ -63,7 +63,7 @@ public class AuthenticationController {
         {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user with this email or phone number exists");
         }
-        Bucket userBucket = authenticationHelperService.returnUserBucket(credentialValidationDTO.userEmail());
+        Bucket userBucket = authenticationHelperService.returnUserBucket(credentialValidationDTO.foundUser());
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
 
@@ -150,29 +150,6 @@ public class AuthenticationController {
         request.getSession(true);
     }
 
-
-    @PostMapping("/signup/initialize")
-    public ResponseEntity<String> initializeSignup(@Valid @RequestBody SignupForm signupForm,
-                                                   @RequestParam(name = "g-recaptcha-response") String userResponse,
-                                                   HttpServletRequest request) throws IOException, InterruptedException {
-        
-        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
-            return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
-        }
-
-        ResponseEntity<String> passwordCheckResponse = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
-
-        if (passwordCheckResponse != null)
-        {
-            return passwordCheckResponse;
-        }
-
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("A one-time code has been sent to your " +
-                "desired channel, please enter it to finalize the signup process");
-    }
-
-
     private ResponseEntity<?> signUpNewUser(SignupForm signupForm, HttpServletRequest request,
                                             MultipartFile pictureFile)
     {
@@ -221,11 +198,22 @@ public class AuthenticationController {
         return null;
     }
 
-    @PostMapping(value = "/signup/finalize", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> finalizeSignup(@Valid @RequestPart(name = "meta") SignupForm signupForm,
+    @PostMapping(value = "/signup", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<?> signUpUser(@Valid @RequestPart(name = "meta") SignupForm signupForm,
                                             HttpServletRequest request,
                                             @RequestPart(name = "file") MultipartFile profilePicture,
-                                            @RequestParam String enteredOtpCode) {
+                                            @RequestParam(name = "g-recaptcha-response") String userResponse)
+            throws IOException, InterruptedException {
+        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
+            return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
+        }
+
+        ResponseEntity<String> passwordCheckResponse = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
+
+        if (passwordCheckResponse != null)
+        {
+            return passwordCheckResponse;
+        }
 
         return signUpNewUser(signupForm, request, profilePicture);
 

@@ -5,7 +5,7 @@ import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
-import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
+import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -89,6 +89,7 @@ public class CustomPasswordService implements UserDetailsPasswordService {
                 header("User-Agent", "rerebuild.ca").GET().build();
 
         HttpClient client = HttpClient.newHttpClient();
+        Thread.currentThread().interrupt();
 
         HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
 
@@ -97,7 +98,7 @@ public class CustomPasswordService implements UserDetailsPasswordService {
     }
 
 
-    public PasswordFeedbackResponse evaluateUserPassword(SignupForm signupForm)
+    public PasswordFeedbackDTO evaluateUserPassword(SignupForm signupForm)
     {
         List<String> penalizedWords = new ArrayList<>();
         penalizedWords.add(signupForm.email());
@@ -119,7 +120,7 @@ public class CustomPasswordService implements UserDetailsPasswordService {
 
         Feedback passwordFeedback = strength.getFeedback();
 
-        return new PasswordFeedbackResponse(score,
+        return new PasswordFeedbackDTO(score,
                 passwordFeedback.getSuggestions(), passwordFeedback.getWarning());
 
 

@@ -1,10 +1,8 @@
 package com.rebuild.backend.config.redis.redis_serializers;
 
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.SearchResultDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.SearchResultDTO;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Component;

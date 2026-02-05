@@ -2,23 +2,16 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.user_entities.*;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
-import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
-import com.rebuild.backend.model.forms.dtos.CredentialValidationDTO;
-import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
-import com.rebuild.backend.model.responses.PasswordFeedbackResponse;
+import com.rebuild.backend.model.dtos.CredentialValidationDTO;
+import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
 import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
-import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
-import com.rebuild.backend.repository.user_repositories.TOTPSecretRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CustomPasswordService;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
-import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.cdimascio.dotenv.Dotenv;
-import org.apache.commons.codec.binary.Base32;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @Service
 public class UserAuthenticationHelperService {
@@ -112,7 +102,7 @@ public class UserAuthenticationHelperService {
         String pepper = dotenv.get("PEPPER_VALUE");
 
         return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
-                foundUser.getPassword()), foundUser.getEmail(), foundUser.isEnrolledInMFA());
+                foundUser.getPassword()), foundUser, foundUser.isEnrolledInMFA());
 
     }
 
@@ -135,7 +125,7 @@ public class UserAuthenticationHelperService {
                     "We strongly recommend that you choose a different one.");
         }
 
-        PasswordFeedbackResponse feedbackResponse = passwordService.evaluateUserPassword(signupForm);
+        PasswordFeedbackDTO feedbackResponse = passwordService.evaluateUserPassword(signupForm);
         int score = feedbackResponse.score();
 
         if (!signupForm.forcePassword() && score <= 2)
@@ -156,10 +146,10 @@ public class UserAuthenticationHelperService {
         return null;
     }
 
-    public Bucket returnUserBucket(String loginEmail){
+    public Bucket returnUserBucket(User user){
         //The lambda is to get around the fact that building
         // with supplying a bucket configuration directly is deprecated, thank god for lambdas
-        return proxyManager.builder().build(loginEmail, () -> bucketConfiguration);
+        return proxyManager.builder().build(user.getEmail(), () -> bucketConfiguration);
     }
 
 }

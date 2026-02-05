@@ -2,7 +2,7 @@ package com.rebuild.backend.batch.writers;
 
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.LikesUpdateDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.LikesUpdateDTO;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import lombok.NonNull;
@@ -10,9 +10,6 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class LikeUpdateWriter implements ItemWriter<LikesUpdateDTO> {

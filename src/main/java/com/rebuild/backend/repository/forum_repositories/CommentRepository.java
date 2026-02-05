@@ -2,7 +2,7 @@ package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

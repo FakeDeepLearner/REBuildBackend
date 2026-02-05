@@ -5,7 +5,7 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;

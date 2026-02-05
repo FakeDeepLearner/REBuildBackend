@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.forms.dtos;
+package com.rebuild.backend.model.dtos;
 
 import org.springframework.http.HttpStatus;
 

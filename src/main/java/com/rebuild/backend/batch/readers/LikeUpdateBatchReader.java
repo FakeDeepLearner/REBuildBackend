@@ -1,12 +1,10 @@
 package com.rebuild.backend.batch.readers;
 
-import com.rebuild.backend.model.forms.dtos.forum_dtos.LikesUpdateDTO;
-import jakarta.persistence.EntityManager;
+import com.rebuild.backend.model.dtos.forum_dtos.LikesUpdateDTO;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 public class LikeUpdateBatchReader extends JpaPagingItemReader<LikesUpdateDTO> {

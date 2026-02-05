@@ -2,7 +2,7 @@ package com.rebuild.backend.config.rabbitmq;
 
 import com.google.common.base.Throwables;
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
+import com.rebuild.backend.model.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.batch.processors.PostLikeProcessor;
 
 import jakarta.persistence.EntityManagerFactory;

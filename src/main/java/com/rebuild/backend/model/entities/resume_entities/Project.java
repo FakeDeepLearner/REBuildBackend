@@ -1,8 +1,11 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
+import com.rebuild.backend.utils.converters.YearMonthDatabaseConverter;
+import com.rebuild.backend.utils.serializers.YearMonthSerializer;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.engine.backend.types.Searchable;
@@ -47,11 +50,14 @@ public class Project implements Serializable {
 
     @NonNull
     @Column(name = "start_date")
+    @JsonSerialize(using = YearMonthSerializer.class)
+    @Convert(converter = YearMonthDatabaseConverter.class)
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private YearMonth startDate;
 
-    @NonNull
     @Column(name = "end_date")
+    @JsonSerialize(using = YearMonthSerializer.class)
+    @Convert(converter = YearMonthDatabaseConverter.class)
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private YearMonth endDate;
 
@@ -78,6 +84,17 @@ public class Project implements Serializable {
     @JoinColumn(name = "profile_id", referencedColumnName = "id")
     @JsonIgnore
     private UserProfile profile;
+
+
+    public Project(String projectName, List<String> technologyList,
+                   YearMonth startDate, YearMonth endDate, List<String> bullets)
+    {
+        this.projectName = projectName;
+        this.technologyList = technologyList;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.bullets = bullets;
+    }
 
     public static Project copy(Project other)
     {

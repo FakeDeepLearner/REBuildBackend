@@ -2,13 +2,12 @@ package com.rebuild.backend.batch.processors;
 
 import com.rebuild.backend.model.entities.forum_entities.LikeType;
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.PostLikeRequest;
+import com.rebuild.backend.model.dtos.forum_dtos.PostLikeRequest;
 import lombok.NonNull;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Component
 public class PostLikeProcessor implements ItemProcessor<PostLikeRequest, Like> {

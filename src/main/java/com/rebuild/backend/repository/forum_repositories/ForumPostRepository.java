@@ -2,7 +2,7 @@ package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

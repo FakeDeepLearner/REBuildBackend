@@ -1,8 +1,7 @@
 package com.rebuild.backend.config.rabbitmq;
 
-import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
-import com.rebuild.backend.model.forms.dtos.forum_dtos.FriendRequestDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.batch.processors.FriendsProcessor;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
