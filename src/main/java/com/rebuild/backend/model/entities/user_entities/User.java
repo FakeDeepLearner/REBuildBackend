@@ -104,7 +104,7 @@ public class User implements UserDetails, OidcUser, Serializable {
 
     @OneToMany(orphanRemoval = true, mappedBy = "user", cascade = ALL)
     @JsonIgnore
-    private List<MFARecoveryCode> recoveryCodes;
+    private List<MFARecoveryCodeEntity> recoveryCodes;
 
 
     @Column(name = "forum_username")

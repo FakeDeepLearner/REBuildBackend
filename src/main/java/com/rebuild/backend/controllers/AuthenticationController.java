@@ -6,8 +6,9 @@ import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
-import com.rebuild.backend.service.user_services.TOTPCodeService;
-import com.rebuild.backend.service.user_services.UserAuthenticationHelperService;
+import com.rebuild.backend.service.auth_services.RecoveryCodeHelperService;
+import com.rebuild.backend.service.auth_services.TOTPCodeService;
+import com.rebuild.backend.service.auth_services.UserAuthenticationHelperService;
 import com.rebuild.backend.service.user_services.UserService;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -41,13 +42,17 @@ public class AuthenticationController {
 
     private final TOTPCodeService totpCodeService;
 
+    private final RecoveryCodeHelperService recoveryCodeHelperService;
+
     @Autowired
     public AuthenticationController(AuthenticationManager authManager,
-                                    UserService userService, UserAuthenticationHelperService authenticationHelperService, TOTPCodeService totpCodeService) {
+                                    UserService userService,
+                                    UserAuthenticationHelperService authenticationHelperService, TOTPCodeService totpCodeService, RecoveryCodeHelperService recoveryCodeHelperService) {
         this.authManager = authManager;
         this.userService = userService;
         this.authenticationHelperService = authenticationHelperService;
         this.totpCodeService = totpCodeService;
+        this.recoveryCodeHelperService = recoveryCodeHelperService;
     }
 
     @PostMapping("/login/initialize")
@@ -131,7 +136,7 @@ public class AuthenticationController {
                                                         @RequestParam(name = "code") String enteredCode,
                                                         HttpServletRequest request)
     {
-        boolean verificationResult = totpCodeService.verifyRecoveryCode(form.emailOrPhone(), enteredCode);
+        boolean verificationResult = recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), enteredCode);
 
         if (verificationResult)
         {
@@ -244,7 +249,7 @@ public class AuthenticationController {
     @GetMapping("/mfa/regenerate_codes")
     public List<String> regenerateRecoveryCodes(@AuthenticationPrincipal User user)
     {
-        return totpCodeService.regenerateRecoveryCodesFor(user);
+        return recoveryCodeHelperService.regenerateRecoveryCodesFor(user);
     }
 
 

@@ -1,6 +1,6 @@
-package com.rebuild.backend.service.user_services;
+package com.rebuild.backend.service.auth_services;
 
-import com.rebuild.backend.model.entities.user_entities.MFARecoveryCode;
+import com.rebuild.backend.model.entities.user_entities.MFARecoveryCodeEntity;
 import com.rebuild.backend.model.entities.user_entities.SecretStatus;
 import com.rebuild.backend.model.entities.user_entities.TOTPSecret;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -10,6 +10,7 @@ import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
 import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.TOTPSecretRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
+import com.rebuild.backend.utils.util_entities.RecoveryCode;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import org.apache.commons.codec.binary.Base32;
@@ -21,18 +22,17 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Service
 public class TOTPCodeService {
 
-    private static final char[] ALPHABET =
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
 
-    private static final int NUM_CODES_GENERATED = 8;
+    private static final int NUM_RECOVERY_CODES_GENERATED = 8;
 
-    private static final int RECOVERY_CODE_LENGTH = 16;
+    private static final int TOTP_CODE_NUM_DIGITS = 6;
+
+    private static final String ISSUER_NAME = "rerebuild.ca";
 
     private final PasswordEncoder encoder;
 
@@ -40,30 +40,15 @@ public class TOTPCodeService {
 
     private final UserRepository userRepository;
 
-    private final RecoveryCodeRepository recoveryCodeRepository;
+    private final RecoveryCodeHelperService recoveryCodeHelperService;
 
     public TOTPCodeService(TOTPSecretRepository totpSecretRepository,
                            UserRepository userRepository,
-                           RecoveryCodeRepository recoveryCodeRepository) {
+                           RecoveryCodeHelperService recoveryCodeHelperService) {
         this.totpSecretRepository = totpSecretRepository;
         this.userRepository = userRepository;
-        this.recoveryCodeRepository = recoveryCodeRepository;
+        this.recoveryCodeHelperService = recoveryCodeHelperService;
         this.encoder = new BCryptPasswordEncoder();
-    }
-
-    private String generateRandomRecoveryCode()
-    {
-        SecureRandom random = new SecureRandom();
-
-        char[] characters = new char[RECOVERY_CODE_LENGTH];
-
-        for (int i = 0; i < RECOVERY_CODE_LENGTH; i++)
-        {
-            characters[i] = ALPHABET[random.nextInt(ALPHABET.length)];
-        }
-
-        return new String(characters);
-
     }
 
     private String generateRandomSecret()
@@ -77,32 +62,6 @@ public class TOTPCodeService {
         return new Base32().encodeToString(bytes);
     }
 
-    private List<String> generateCodesForDisplay()
-    {
-        return Stream.generate(this::generateRandomRecoveryCode).
-                map(generatedCode -> String.format(
-                        "%s-%s-%s-%s",
-                        generatedCode.substring(0, 4),
-                        generatedCode.substring(4, 8),
-                        generatedCode.substring(8, 12),
-                        generatedCode.substring(12, 16)
-                )).
-                limit(NUM_CODES_GENERATED).toList();
-    }
-
-    private void associateCodesWithUser(User user, List<String> codes)
-    {
-        List<MFARecoveryCode> derivedCodes = codes.stream()
-                .map(code -> {
-                    MFARecoveryCode newCode =
-                            new MFARecoveryCode(Objects.
-                                    requireNonNull(encoder.encode(code.replace("-", ""))));
-                    newCode.setUser(user);
-                    return newCode;
-                }).toList();
-
-        user.setRecoveryCodes(derivedCodes);
-    }
 
     public MFAEnrolmentResponse startMFAEnrolment(User requestingUser, String enteredPassword)
     {
@@ -111,7 +70,7 @@ public class TOTPCodeService {
             return null;
         }
 
-        List<String> codes = generateCodesForDisplay();
+        List<String> codes = recoveryCodeHelperService.generateCodesForDisplay();
 
         String rawSecret = generateRandomSecret();
 
@@ -122,7 +81,7 @@ public class TOTPCodeService {
         totpSecretRepository.save(newSecret);
 
         String generatedURL = String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%s",
-                "rerebuild.ca", requestingUser.getEmail(), rawSecret, "rerebuild.ca", 6);
+                ISSUER_NAME, requestingUser.getEmail(), rawSecret, ISSUER_NAME, TOTP_CODE_NUM_DIGITS);
 
         return new MFAEnrolmentResponse(generatedURL, codes);
 
@@ -167,7 +126,7 @@ public class TOTPCodeService {
         enrollingUser.getTotpSecret().setStatus(SecretStatus.CONFIRMED);
 
 
-        associateCodesWithUser(enrollingUser, enrolmentForm.recoveryCodes());
+        recoveryCodeHelperService.associateCodesWithUser(enrollingUser, enrolmentForm.recoveryCodes());
 
         userRepository.save(enrollingUser);
 
@@ -175,48 +134,4 @@ public class TOTPCodeService {
 
     }
 
-
-    public boolean verifyRecoveryCode(String emailOrPhone, String enteredCode)
-    {
-        User foundUser = userRepository.findByEmailOrPhoneWithRecoveryCodes(emailOrPhone).orElse(null);
-
-        assert foundUser != null;
-
-        String recoveryCodeRegex = "^[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}$";
-
-        Pattern regexPattern = Pattern.compile(recoveryCodeRegex);
-
-        if(!regexPattern.matcher(enteredCode).matches())
-        {
-            return false;
-        }
-
-        String normalizedCode = enteredCode.replace("-", "").toUpperCase();
-
-        List<MFARecoveryCode> validCodes = foundUser.getRecoveryCodes().
-                stream().filter(code -> !code.isUsed()).toList();
-
-
-        for (MFARecoveryCode recoveryCode : validCodes)
-        {
-            if (encoder.matches(normalizedCode, recoveryCode.getHashedCode()))
-            {
-                recoveryCode.setUsed(true);
-                recoveryCodeRepository.save(recoveryCode);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    public List<String> regenerateRecoveryCodesFor(User user)
-    {
-        List<String> newCodes = generateCodesForDisplay();
-
-        associateCodesWithUser(user, newCodes);
-
-        return newCodes;
-    }
 }

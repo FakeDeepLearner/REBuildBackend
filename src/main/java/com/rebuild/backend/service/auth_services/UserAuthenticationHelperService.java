@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.user_services;
+package com.rebuild.backend.service.auth_services;
 
 import com.rebuild.backend.model.entities.user_entities.*;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;

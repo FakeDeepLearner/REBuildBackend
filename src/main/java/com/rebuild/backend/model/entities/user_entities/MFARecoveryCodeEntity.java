@@ -3,7 +3,6 @@ package com.rebuild.backend.model.entities.user_entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -14,7 +13,7 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class MFARecoveryCode {
+public class MFARecoveryCodeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
