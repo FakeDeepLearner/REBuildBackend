@@ -2,11 +2,13 @@ package com.rebuild.backend.service.auth_services;
 
 import com.rebuild.backend.model.entities.user_entities.MFARecoveryCodeEntity;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
 import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.utils.util_entities.RecoveryCode;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -61,7 +63,7 @@ public class RecoveryCodeHelperService {
     }
 
 
-    public boolean verifyRecoveryCode(String emailOrPhone, String enteredCode)
+    public RecoveryCodeVerificationResponse verifyRecoveryCode(String emailOrPhone, String enteredCode)
     {
         User foundUser = userRepository.findByEmailOrPhoneWithRecoveryCodes(emailOrPhone).orElse(null);
         RecoveryCode inputCodeRepresentation = RecoveryCode.fromInput(enteredCode);
@@ -72,6 +74,13 @@ public class RecoveryCodeHelperService {
         List<MFARecoveryCodeEntity> validCodes = foundUser.getRecoveryCodes().
                 stream().filter(code -> !code.isUsed()).toList();
 
+        if (validCodes.isEmpty())
+        {
+            List<String> newlyGeneratedCodes = regenerateRecoveryCodesFor(foundUser);
+            return new RecoveryCodeVerificationResponse(false, true,
+                    newlyGeneratedCodes);
+        }
+
 
         for (MFARecoveryCodeEntity recoveryCode : validCodes)
         {
@@ -79,10 +88,10 @@ public class RecoveryCodeHelperService {
             {
                 recoveryCode.setUsed(true);
                 recoveryCodeRepository.save(recoveryCode);
-                return true;
+                return new RecoveryCodeVerificationResponse(true, false, Collections.emptyList());
             }
         }
 
-        return false;
+        return new RecoveryCodeVerificationResponse(false, false, Collections.emptyList());
     }
 }

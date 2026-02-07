@@ -13,7 +13,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -146,10 +148,6 @@ public class User implements UserDetails, OidcUser, Serializable {
     @JsonIgnore
     private int numberOfResumes = 0;
 
-    @Enumerated(EnumType.STRING)
-    @JsonIgnore
-    private Authority authority = Authority.USER_FREE;
-
     @JsonIgnore
     private boolean accountNonLocked = false;
 
@@ -182,14 +180,7 @@ public class User implements UserDetails, OidcUser, Serializable {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority freeAuthority = new SimpleGrantedAuthority(Authority.USER_FREE.name());
-        SimpleGrantedAuthority paidAuthority = new SimpleGrantedAuthority(Authority.USER_PAID.name());
-        if (authority == Authority.USER_FREE){
-            return List.of(freeAuthority);
-        }
-        else{
-            return List.of(freeAuthority, paidAuthority);
-        }
+        return AuthorityUtils.NO_AUTHORITIES;
     }
 
     @Override

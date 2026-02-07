@@ -6,6 +6,7 @@ import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
+import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
 import com.rebuild.backend.service.auth_services.RecoveryCodeHelperService;
 import com.rebuild.backend.service.auth_services.TOTPCodeService;
 import com.rebuild.backend.service.auth_services.UserAuthenticationHelperService;
@@ -136,14 +137,26 @@ public class AuthenticationController {
                                                         @RequestParam(name = "code") String enteredCode,
                                                         HttpServletRequest request)
     {
-        boolean verificationResult = recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), enteredCode);
+        RecoveryCodeVerificationResponse verificationResponse =
+                recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), enteredCode);
 
-        if (verificationResult)
+        if (verificationResponse.userOutOfCodes())
+        {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The request cannot be completed because you" +
+                    "have no valid codes left to use. We have generated new codes for you, displayed below. You do not need to " +
+                    "restart the authentication process.\n\n" + verificationResponse.newCodes());
+        }
+
+
+        if (verificationResponse.codeIsCorrect())
         {
             loginHelper(form, request);
             return ResponseEntity.ok("Emergency code used successfully, redirecting you to home page");
         }
-        return ResponseEntity.badRequest().body("The code you have entered does not correspond to any of your codes");
+        else {
+            return ResponseEntity.badRequest().body("The code you have entered does not " +
+                    "correspond to any of your codes, please retry");
+        }
     }
 
     private void loginHelper(LoginForm form, HttpServletRequest request){
