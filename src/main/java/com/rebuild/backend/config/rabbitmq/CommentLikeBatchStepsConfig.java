@@ -1,12 +1,16 @@
 package com.rebuild.backend.config.rabbitmq;
 
 import com.google.common.base.Throwables;
+import com.rebuild.backend.batch.BatchJobRegisterer;
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentLikeRequest;
 import com.rebuild.backend.batch.processors.CommentLikeProcessor;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.batch.core.configuration.DuplicateJobException;
+import org.springframework.batch.core.configuration.JobLocator;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -20,6 +24,7 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,14 +38,17 @@ public class CommentLikeBatchStepsConfig {
 
     private final CommentLikeProcessor likeProcessor;
 
+    private final BatchJobRegisterer jobRegisterer;
+
 
     @Autowired
     public CommentLikeBatchStepsConfig(RabbitTemplate rabbitTemplate,
                                        EntityManagerFactory entityManagerFactory,
-                                       CommentLikeProcessor likeProcessor) {
+                                       CommentLikeProcessor likeProcessor, BatchJobRegisterer jobRegisterer) {
         this.rabbitTemplate = rabbitTemplate;
         this.entityManagerFactory = entityManagerFactory;
         this.likeProcessor = likeProcessor;
+        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "likeReader")
@@ -73,8 +81,11 @@ public class CommentLikeBatchStepsConfig {
 
     @Bean
     public Job commentLikeJob(JobRepository jobRepository, @Qualifier("commentLikeStep") Step postLikeStep) {
-        return new JobBuilder("commentLikeJob", jobRepository).start(postLikeStep).
+        Job newJob =  new JobBuilder("commentLikeJob", jobRepository).start(postLikeStep).
                 incrementer(new RunIdIncrementer()).
                 build();
+
+        jobRegisterer.registerJob(newJob);
+        return newJob;
     }
 }

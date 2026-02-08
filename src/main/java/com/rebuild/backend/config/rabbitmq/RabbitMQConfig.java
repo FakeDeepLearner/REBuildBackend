@@ -6,6 +6,8 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.support.MapJobRegistry;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.TaskExecutorJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
@@ -91,6 +93,13 @@ public class RabbitMQConfig {
         operator.setJobRepository(repository);
         return operator;
     }
+
+    @Bean
+    public JobRegistry jobRegistry()
+    {
+        return new MapJobRegistry();
+    }
+
 
 
 

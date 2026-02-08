@@ -1,5 +1,6 @@
 package com.rebuild.backend.config.rabbitmq;
 
+import com.rebuild.backend.batch.BatchJobRegisterer;
 import com.rebuild.backend.batch.writers.FriendStatusUpgradeWriter;
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
@@ -33,9 +34,12 @@ public class FriendStatusProcessingBatchStepsConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
+    private final BatchJobRegisterer jobRegisterer;
+
     @Autowired
-    public FriendStatusProcessingBatchStepsConfig(EntityManagerFactory entityManagerFactory) {
+    public FriendStatusProcessingBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobRegisterer jobRegisterer) {
         this.entityManagerFactory = entityManagerFactory;
+        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "requestsReader")
@@ -62,8 +66,12 @@ public class FriendStatusProcessingBatchStepsConfig {
 
     @Bean
     public Job friendStatusJob(JobRepository jobRepository, @Qualifier("friendStatusStep") Step statusStep) {
-        return new JobBuilder("friendStatusJob", jobRepository).start(statusStep).
+        Job newJob =  new JobBuilder("friendStatusJob", jobRepository).start(statusStep).
                 incrementer(new RunIdIncrementer()).
                 build();
+
+        jobRegisterer.registerJob(newJob);
+
+        return newJob;
     }
 }

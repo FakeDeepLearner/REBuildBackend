@@ -2,6 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.rebuild.backend.batch.BatchJobRegisterer;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -20,6 +21,7 @@ import com.rebuild.backend.repository.forum_repositories.MessageRepository;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.RabbitProducingService;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.job.parameters.JobParametersInvalidException;
@@ -27,6 +29,7 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,6 +63,7 @@ public class FriendAndMessageService {
     private final RabbitProducingService rabbitProducingService;
 
     private final Cloudinary cloudinary;
+    private final BatchJobRegisterer jobRegisterer;
 
     @Autowired
     public FriendAndMessageService(JobOperator jobOperator, UserRepository userRepository,
@@ -67,7 +71,8 @@ public class FriendAndMessageService {
                                    ChatRepository chatRepository, MessageRepository messageRepository,
                                    ProfilePictureRepository profilePictureRepository,
                                    FriendRequestRepository friendRequestRepository,
-                                   RabbitProducingService rabbitProducingService, Cloudinary cloudinary) {
+                                   RabbitProducingService rabbitProducingService, Cloudinary cloudinary,
+                                   BatchJobRegisterer jobRegisterer) {
         this.jobOperator = jobOperator;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
@@ -77,6 +82,7 @@ public class FriendAndMessageService {
         this.friendRequestRepository = friendRequestRepository;
         this.rabbitProducingService = rabbitProducingService;
         this.cloudinary = cloudinary;
+        this.jobRegisterer = jobRegisterer;
     }
 
     @Transactional
@@ -139,7 +145,7 @@ public class FriendAndMessageService {
         FriendRequestDTO friendRequestDTO = new FriendRequestDTO(sender, recipientId);
 
         rabbitProducingService.sendFriendshipRequest(friendRequestDTO);
-        return new StatusAndError(HttpStatus.ACCEPTED, "The request has been sent");
+        return new StatusAndError(HttpStatus.OK, "The request has been sent");
     }
 
     private Chat createChatBetween(User sender, User recipient)
@@ -202,7 +208,7 @@ public class FriendAndMessageService {
 
     }
 
-    public String generateTimedUrlForPicture(ProfilePicture profilePicture){
+    private String generateTimedUrlForPicture(ProfilePicture profilePicture){
         try {
             long expiryTimestamp = Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond();
             return cloudinary.privateDownload(profilePicture.getPublic_id(), "png",
@@ -277,22 +283,33 @@ public class FriendAndMessageService {
 
     //Every 10 seconds
     @Scheduled(fixedRate = 10 * 1000)
-    public void runLikesUpdatingJob(@Qualifier(value = "friendLikeJob") Job friendLikeJob)
+    public void runLikesUpdatingJob()
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
-        jobOperator.start(friendLikeJob, createParameters(friendLikeJob).toJobParameters());
+        Job friendsLikeJob = jobRegisterer.getJob("friendLikeJob");
+
+        if (friendsLikeJob != null)
+        {
+            jobOperator.start(friendsLikeJob, createParameters(friendsLikeJob).toJobParameters());
+        }
     }
 
     @Scheduled(cron = "@midnight")
-    public void runFriendRequestsJob(@Qualifier(value = "friendRequestJob") Job friendRequestJob)
+    public void runFriendRequestsJob()
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException
     {
-        jobOperator.start(friendRequestJob, createParameters(friendRequestJob)
-                .toJobParameters());
+        Job friendStatusJob = jobRegisterer.getJob("friendStatusJob");
+
+        if (friendStatusJob != null)
+        {
+            jobOperator.start(friendStatusJob, createParameters(friendStatusJob)
+                    .toJobParameters());
+        }
+
     }
 
 

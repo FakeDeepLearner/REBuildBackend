@@ -1,5 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.rebuild.backend.batch.BatchJobRegisterer;
 import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -75,6 +76,8 @@ public class ForumPostAndCommentService {
 
     private final S3AsyncClient s3AsyncClient;
 
+    private final BatchJobRegisterer jobRegisterer;
+
 
     @Autowired
     public ForumPostAndCommentService(ResumeRepository resumeRepository,
@@ -82,7 +85,8 @@ public class ForumPostAndCommentService {
                                       JobOperator jobOperator,
                                       ElasticSearchService searchService,
                                       PostSearchRepository postSearchRepository,
-                                      UserRepository userRepository, Dotenv dotenv, S3AsyncClient s3AsyncClient) {
+                                      UserRepository userRepository, Dotenv dotenv,
+                                      S3AsyncClient s3AsyncClient, BatchJobRegisterer jobRegisterer) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
@@ -92,6 +96,7 @@ public class ForumPostAndCommentService {
         this.userRepository = userRepository;
         this.dotenv = dotenv;
         this.s3AsyncClient = s3AsyncClient;
+        this.jobRegisterer = jobRegisterer;
     }
 
     public ForumSpecsForm buildSpecsFrom(PostSearchConfiguration configuration)
@@ -381,31 +386,43 @@ public class ForumPostAndCommentService {
 
     //Every minute
     @Scheduled(fixedRate = 60 * 1000)
-    public void runLikesUpdatingJob(@Qualifier(value = "updateLikesJob") Job updateLikesJob)
+    public void runLikesUpdatingJob()
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
 
-        JobParameters parameters = createParameters(updateLikesJob)
-                .toJobParameters();
+        Job foundJob = jobRegisterer.getJob("updateLikesJob");
 
-        jobOperator.start(updateLikesJob, parameters);
+        if (foundJob != null) {
+            JobParameters parameters = createParameters(foundJob)
+                    .toJobParameters();
+
+            jobOperator.start(foundJob, parameters);
+        }
     }
 
 
 
     //Every 15 seconds
     @Scheduled(fixedRate = 15 * 1000)
-    public void runLikesProcessingJobs(@Qualifier(value = "commentLikeJob") Job commentLikeJob,
-                                       @Qualifier(value = "postLikeJob") Job postLikeJob)
+    public void runLikesProcessingJobs()
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
+        Job postLikeJob = jobRegisterer.getJob("postLikeJob");
+        Job commentLikeJob = jobRegisterer.getJob("commentLikeJob");
 
-        jobOperator.start(commentLikeJob, createParameters(commentLikeJob).toJobParameters());
-        jobOperator.start(postLikeJob, createParameters(postLikeJob).toJobParameters());
+        if (postLikeJob!= null)
+        {
+            jobOperator.start(postLikeJob, createParameters(postLikeJob).toJobParameters());
+        }
+
+        if (commentLikeJob != null)
+        {
+            jobOperator.start(commentLikeJob, createParameters(commentLikeJob).toJobParameters());
+        }
     }
 
 }
