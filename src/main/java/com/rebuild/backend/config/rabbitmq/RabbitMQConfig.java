@@ -11,6 +11,7 @@ import org.springframework.batch.core.configuration.support.MapJobRegistry;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.TaskExecutorJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.batch.autoconfigure.JobLauncherApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -88,16 +89,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public JobOperator jobOperator(JobRepository repository) {
-        TaskExecutorJobOperator operator = new TaskExecutorJobOperator();
-        operator.setJobRepository(repository);
-        return operator;
-    }
-
-    @Bean
     public JobRegistry jobRegistry()
     {
         return new MapJobRegistry();
+    }
+
+    @Bean
+    public JobOperator jobOperator(JobRepository repository,
+                                   @Qualifier("jobRegistry") JobRegistry jobRegistry) {
+        TaskExecutorJobOperator operator = new TaskExecutorJobOperator();
+        operator.setJobRepository(repository);
+        operator.setJobRegistry(jobRegistry);
+        return operator;
     }
 
 

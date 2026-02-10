@@ -1,8 +1,7 @@
 package com.rebuild.backend.config.rabbitmq;
 
-import com.rebuild.backend.batch.BatchJobRegisterer;
+import com.rebuild.backend.batch.BatchJobExecutor;
 import com.rebuild.backend.batch.writers.FriendStatusUpgradeWriter;
-import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.batch.readers.FriendRequestsReader;
 import jakarta.persistence.EntityManagerFactory;
@@ -14,17 +13,12 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.NoSuchElementException;
 
@@ -34,10 +28,10 @@ public class FriendStatusProcessingBatchStepsConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final BatchJobRegisterer jobRegisterer;
+    private final BatchJobExecutor jobRegisterer;
 
     @Autowired
-    public FriendStatusProcessingBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobRegisterer jobRegisterer) {
+    public FriendStatusProcessingBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobExecutor jobRegisterer) {
         this.entityManagerFactory = entityManagerFactory;
         this.jobRegisterer = jobRegisterer;
     }
@@ -66,12 +60,8 @@ public class FriendStatusProcessingBatchStepsConfig {
 
     @Bean
     public Job friendStatusJob(JobRepository jobRepository, @Qualifier("friendStatusStep") Step statusStep) {
-        Job newJob =  new JobBuilder("friendStatusJob", jobRepository).start(statusStep).
+        return new JobBuilder("friendStatusJob", jobRepository).start(statusStep).
                 incrementer(new RunIdIncrementer()).
                 build();
-
-        jobRegisterer.registerJob(newJob);
-
-        return newJob;
     }
 }

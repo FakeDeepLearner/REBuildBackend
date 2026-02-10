@@ -1,6 +1,6 @@
 package com.rebuild.backend.config.rabbitmq;
 
-import com.rebuild.backend.batch.BatchJobRegisterer;
+import com.rebuild.backend.batch.BatchJobExecutor;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;
 import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.batch.processors.FriendsProcessor;
@@ -31,12 +31,12 @@ public class FriendshipsBatchStepsConfig {
 
     private final FriendsProcessor friendsProcessor;
 
-    private final BatchJobRegisterer jobRegisterer;
+    private final BatchJobExecutor jobRegisterer;
 
     @Autowired
     public FriendshipsBatchStepsConfig(EntityManagerFactory entityManagerFactory,
                                        RabbitTemplate rabbitTemplate,
-                                       FriendsProcessor friendsProcessor, BatchJobRegisterer jobRegisterer) {
+                                       FriendsProcessor friendsProcessor, BatchJobExecutor jobRegisterer) {
         this.entityManagerFactory = entityManagerFactory;
         this.rabbitTemplate = rabbitTemplate;
         this.friendsProcessor = friendsProcessor;
@@ -75,11 +75,8 @@ public class FriendshipsBatchStepsConfig {
 
     @Bean
     public Job friendLikeJob(JobRepository jobRepository, @Qualifier("friendLikeStep") Step friendLikeStep) {
-        Job newJob =  new JobBuilder("friendLikeJob", jobRepository).start(friendLikeStep).
+        return new JobBuilder("friendLikeJob", jobRepository).start(friendLikeStep).
                 incrementer(new RunIdIncrementer()).
                 build();
-
-        jobRegisterer.registerJob(newJob);
-        return newJob;
     }
 }

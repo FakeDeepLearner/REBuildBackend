@@ -2,7 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.rebuild.backend.batch.BatchJobRegisterer;
+import com.rebuild.backend.batch.BatchJobExecutor;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -21,7 +21,6 @@ import com.rebuild.backend.repository.forum_repositories.MessageRepository;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.RabbitProducingService;
-import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.job.parameters.JobParametersInvalidException;
@@ -29,10 +28,8 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -63,7 +60,7 @@ public class FriendAndMessageService {
     private final RabbitProducingService rabbitProducingService;
 
     private final Cloudinary cloudinary;
-    private final BatchJobRegisterer jobRegisterer;
+    private final BatchJobExecutor jobRegisterer;
 
     @Autowired
     public FriendAndMessageService(JobOperator jobOperator, UserRepository userRepository,
@@ -72,7 +69,7 @@ public class FriendAndMessageService {
                                    ProfilePictureRepository profilePictureRepository,
                                    FriendRequestRepository friendRequestRepository,
                                    RabbitProducingService rabbitProducingService, Cloudinary cloudinary,
-                                   BatchJobRegisterer jobRegisterer) {
+                                   BatchJobExecutor jobRegisterer) {
         this.jobOperator = jobOperator;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
@@ -288,12 +285,7 @@ public class FriendAndMessageService {
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException {
 
-        Job friendsLikeJob = jobRegisterer.getJob("friendLikeJob");
-
-        if (friendsLikeJob != null)
-        {
-            jobOperator.start(friendsLikeJob, createParameters(friendsLikeJob).toJobParameters());
-        }
+        jobRegisterer.executeJob("friendLikeJob");
     }
 
     @Scheduled(cron = "@midnight")
@@ -302,13 +294,7 @@ public class FriendAndMessageService {
             JobExecutionAlreadyRunningException,
             JobParametersInvalidException, JobRestartException, NoSuchJobException
     {
-        Job friendStatusJob = jobRegisterer.getJob("friendStatusJob");
-
-        if (friendStatusJob != null)
-        {
-            jobOperator.start(friendStatusJob, createParameters(friendStatusJob)
-                    .toJobParameters());
-        }
+       jobRegisterer.executeJob("friendStatusJob");
 
     }
 

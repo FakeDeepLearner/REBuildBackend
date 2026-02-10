@@ -1,7 +1,7 @@
 package com.rebuild.backend.config.rabbitmq;
 
 import com.google.common.base.Throwables;
-import com.rebuild.backend.batch.BatchJobRegisterer;
+import com.rebuild.backend.batch.BatchJobExecutor;
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.dtos.forum_dtos.PostLikeRequest;
 import com.rebuild.backend.batch.processors.PostLikeProcessor;
@@ -36,12 +36,12 @@ public class PostLikeBatchStepsConfig {
 
     private final PostLikeProcessor postLikeProcessor;
 
-    private final BatchJobRegisterer jobRegisterer;
+    private final BatchJobExecutor jobRegisterer;
 
     @Autowired
     public PostLikeBatchStepsConfig(EntityManagerFactory entityManagerFactory,
                                     RabbitTemplate rabbitTemplate,
-                                    PostLikeProcessor postLikeProcessor, BatchJobRegisterer jobRegisterer) {
+                                    PostLikeProcessor postLikeProcessor, BatchJobExecutor jobRegisterer) {
         this.entityManagerFactory = entityManagerFactory;
         this.rabbitTemplate = rabbitTemplate;
         this.postLikeProcessor = postLikeProcessor;
@@ -78,12 +78,9 @@ public class PostLikeBatchStepsConfig {
 
     @Bean
     public Job postLikeJob(JobRepository jobRepository, @Qualifier("postLikeStep") Step postLikeStep) {
-        Job newJob = new JobBuilder("postLikeJob", jobRepository).start(postLikeStep).
+        return new JobBuilder("postLikeJob", jobRepository).start(postLikeStep).
                 incrementer(new RunIdIncrementer()).
                 build();
-        jobRegisterer.registerJob(newJob);
-
-        return newJob;
 
     }
 

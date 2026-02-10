@@ -1,7 +1,7 @@
 package com.rebuild.backend.config.rabbitmq;
 
 
-import com.rebuild.backend.batch.BatchJobRegisterer;
+import com.rebuild.backend.batch.BatchJobExecutor;
 import com.rebuild.backend.batch.writers.LikeUpdateWriter;
 import com.rebuild.backend.model.dtos.forum_dtos.LikesUpdateDTO;
 import com.rebuild.backend.batch.readers.LikeUpdateBatchReader;
@@ -28,10 +28,10 @@ public class ProcessLikesBatchStepsConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final BatchJobRegisterer jobRegisterer;
+    private final BatchJobExecutor jobRegisterer;
 
     @Autowired
-    public ProcessLikesBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobRegisterer jobRegisterer) {
+    public ProcessLikesBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobExecutor jobRegisterer) {
         this.entityManagerFactory = entityManagerFactory;
         this.jobRegisterer = jobRegisterer;
     }
@@ -60,13 +60,9 @@ public class ProcessLikesBatchStepsConfig {
 
     @Bean
     public Job updateLikesJob(JobRepository jobRepository, @Qualifier("likesUpdatingStep") Step likesStep) {
-        Job newJob = new JobBuilder("updateLikesJob", jobRepository).start(likesStep).
+        return new JobBuilder("updateLikesJob", jobRepository).start(likesStep).
                 incrementer(new RunIdIncrementer()).
                 build();
-
-        jobRegisterer.registerJob(newJob);
-
-        return newJob;
     }
 
 
