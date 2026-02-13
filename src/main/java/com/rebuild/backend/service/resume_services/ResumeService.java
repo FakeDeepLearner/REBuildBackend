@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
 public class ResumeService {
 
     private final ResumeRepository resumeRepository;
@@ -109,6 +108,7 @@ public class ResumeService {
 
     }
 
+    @Transactional
     public Resume findByUserAndResumeId(User user, UUID resumeID){
         return getUtility.findByUserResumeId(user, resumeID);
     }
@@ -120,6 +120,7 @@ public class ResumeService {
 
     }
 
+    @Transactional
     public Resume changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
         return modificationUtility.modifyResumeProject(projectForm, projectID, resumeID, user);
     }
@@ -147,6 +148,7 @@ public class ResumeService {
 
     }
 
+    @Transactional
     public Resume createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
 
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
@@ -244,7 +246,7 @@ public class ResumeService {
 
     }
 
-
+    @Transactional
     public Resume prefillHeader(UUID resumeID, User authenticatedUser)
     {
         Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
@@ -258,6 +260,7 @@ public class ResumeService {
         return resumeRepository.save(associatedResume);
     }
 
+    @Transactional
     public Resume prefillEducation(UUID resumeID, User authenticatedUser)
     {
         Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
@@ -272,6 +275,7 @@ public class ResumeService {
     }
 
 
+    @Transactional
     public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser) {
 
         Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
@@ -289,6 +293,7 @@ public class ResumeService {
         return resumeRepository.save(associatedResume);
     }
 
+    @Transactional
     public Resume prefillProjectsList(UUID resumeID, User authenticatedUser) {
 
         Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);

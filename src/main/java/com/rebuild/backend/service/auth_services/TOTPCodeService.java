@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -63,6 +64,7 @@ public class TOTPCodeService {
     }
 
 
+    @Transactional
     public MFAEnrolmentResponse startMFAEnrolment(User requestingUser, String enteredPassword)
     {
         if (!encoder.matches(enteredPassword, requestingUser.getPassword()))
@@ -98,6 +100,7 @@ public class TOTPCodeService {
         return authenticator.authorize(userSecret, Integer.parseInt(enteredOtp));
     }
 
+    @Transactional
     public boolean otpMatches(LoginForm loginForm, String enteredOtp)
     {
         User foundUser = userRepository.findByEmailOrPhoneNumber(loginForm.emailOrPhone()).orElse(null);
@@ -107,6 +110,7 @@ public class TOTPCodeService {
         return userOtpMatches(foundUser, enteredOtp);
     }
 
+    @Transactional
     public ResponseEntity<String> enrolUserInMFA(User enrollingUser, MFAEnrolmentForm enrolmentForm)
     {
 

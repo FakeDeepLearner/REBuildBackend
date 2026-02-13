@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -58,6 +59,7 @@ public class UserAuthenticationHelperService {
     }
 
 
+    @Transactional
     public boolean captchaFailed(String userResponse, String userIp)
     {
         String urlToPost = "https://www.google.com/recaptcha/api/siteverify";
@@ -88,6 +90,7 @@ public class UserAuthenticationHelperService {
     }
 
 
+    @Transactional
     public CredentialValidationDTO validateLoginCredentials(LoginForm form) {
         String formField = form.emailOrPhone();
 

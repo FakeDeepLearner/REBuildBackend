@@ -32,7 +32,6 @@ import java.security.SecureRandom;
 import java.util.*;
 
 @Service
-@Transactional(readOnly = true)
 public class UserService{
 
     private final int SALT_BYTE_LENGTH = 16;

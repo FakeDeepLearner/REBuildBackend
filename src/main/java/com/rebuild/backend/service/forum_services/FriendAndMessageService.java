@@ -145,6 +145,7 @@ public class FriendAndMessageService {
         return new StatusAndError(HttpStatus.OK, "The request has been sent");
     }
 
+
     private Chat createChatBetween(User sender, User recipient)
     {
         Chat newChat = new Chat(sender, recipient);
@@ -176,6 +177,7 @@ public class FriendAndMessageService {
     }
 
 
+    @Transactional
     public Message createMessage(User sender, UUID recipientId, String messageContent)
     {
         User recipient = userRepository.findById(recipientId).orElse(null);
@@ -217,6 +219,7 @@ public class FriendAndMessageService {
     }
 
 
+    @Transactional
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
         List<Chat> allChats = chatRepository.findByUser(displayingUser);

@@ -49,7 +49,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class ForumPostAndCommentService {
 
 
@@ -199,14 +199,6 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public void deleteAllPostFiles(User deletingUser){
-        List<ForumPost> allUserPosts = postRepository.findByUserWithFiles(deletingUser);
-
-        allUserPosts.forEach(this::deletePostFiles);
-
-    }
-
-    @Transactional
     public void deleteComment(UUID commentID, User deletingUser){
         Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
                 () -> new BelongingException("This comment does not belong to you")
@@ -300,6 +292,7 @@ public class ForumPostAndCommentService {
                 foundPage.getTotalPages(), foundPage.getSize());
     }
 
+    @Transactional
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
                                                 PostSearchConfiguration postSearchConfiguration)
     {
@@ -369,6 +362,7 @@ public class ForumPostAndCommentService {
     }
 
 
+    @Transactional
     public UsernameSearchResponse getUsernameSearchResults(String username)
     {
         List<UUID> foundIds = searchService.executeUserSearch(username);

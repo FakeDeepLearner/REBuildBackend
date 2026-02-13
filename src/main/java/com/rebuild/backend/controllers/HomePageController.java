@@ -63,7 +63,7 @@ public class HomePageController {
             ResumeSearchConfiguration foundConfig = searchRepository.findByIdAndUser(config_id, user).
                     orElseThrow(() -> new BelongingException("This configuration does not belong to you"));
 
-            HomePageData response = userService.getSearchResult(foundConfig, user,
+            HomePageData response = userService.getSearchResult(foundConfig,
                             0, 20);
 
             return ResponseEntity.ok(response);
@@ -123,8 +123,7 @@ public class HomePageController {
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize,
                                      @RequestBody ResumeSpecsForm specsForm) {
-        return userService.getSearchResult(specsForm,
-                authenticatedUser, pageNumber, pageSize);
+        return userService.getSearchResult(specsForm, pageNumber, pageSize);
     }
 
 

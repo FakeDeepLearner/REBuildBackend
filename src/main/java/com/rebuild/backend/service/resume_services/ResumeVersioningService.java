@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
 public class ResumeVersioningService {
 
     private final ResumeRepository resumeRepository;

@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
@@ -103,6 +102,7 @@ public class ProfileService {
 
 
 
+    @Transactional
     public UserProfile modifyProfilePictureOf(User chngingUser, MultipartFile pictureFile) throws IOException
     {
         UserProfile profile = profileRepository.findByUser(chngingUser);
@@ -138,12 +138,14 @@ public class ProfileService {
         return modificationUtility.modifyProfileEducation(educationForm, user);
     }
 
+    @Transactional
     public UserProfile updateProfileExperience(ExperienceForm experienceForm, User user,
                                               UUID experienceId) {
         return modificationUtility.modifyProfileExperience(experienceForm, experienceId, user);
     }
 
 
+    @Transactional
     public UserProfile updateProfileProject(ProjectForm projectForm, User user, UUID projectId) {
         return modificationUtility.modifyProfileProject(projectForm, projectId, user);
     }
