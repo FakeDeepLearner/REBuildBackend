@@ -7,6 +7,7 @@ import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.model.entities.user_entities.RecoveryCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,7 @@ public class RecoveryCodeHelperService {
     }
 
 
+    @Transactional
     void associateCodesWithUser(User user, List<String> codes)
     {
         List<MFARecoveryCodeEntity> derivedCodes = codes.stream()
@@ -52,6 +54,7 @@ public class RecoveryCodeHelperService {
     }
 
 
+    @Transactional
     public List<String> regenerateRecoveryCodesFor(User user)
     {
         List<String> newCodes = generateCodesForDisplay();
@@ -63,6 +66,7 @@ public class RecoveryCodeHelperService {
     }
 
 
+    @Transactional
     public RecoveryCodeVerificationResponse verifyRecoveryCode(String emailOrPhone, String enteredCode)
     {
         User foundUser = userRepository.findByEmailOrPhoneWithRecoveryCodes(emailOrPhone).orElse(null);
