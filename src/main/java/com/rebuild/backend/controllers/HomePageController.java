@@ -53,9 +53,9 @@ public class HomePageController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @PostMapping("/get_posts/configuration/{config_id}")
+    @GetMapping("/get_posts/configuration/{config_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getPosts(@AuthenticationPrincipal User user,
+    public ResponseEntity<?> getHomePageWithConfig(@AuthenticationPrincipal User user,
                                       @PathVariable UUID config_id) {
         try {
 
@@ -96,7 +96,7 @@ public class HomePageController {
 
     @PostMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
+    public HomePageData getHomePageWithForm(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize,
                                      @RequestBody ResumeSpecsForm specsForm) {
@@ -136,11 +136,10 @@ public class HomePageController {
 
     @GetMapping("/")
     @ResponseStatus(HttpStatus.OK)
-    public HomePageData loadHomePage(@AuthenticationPrincipal User authenticatedUser,
+    public HomePageData getDefaultHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
-                                     @RequestParam(defaultValue = "10", name = "size") int pageSize,
-                                     @RequestParam(name = "token", required = false) String searchToken) {
-        return userService.getHomePageData(authenticatedUser, pageNumber, pageSize, searchToken);
+                                     @RequestParam(defaultValue = "10", name = "size") int pageSize) {
+        return userService.getHomePageData(authenticatedUser, pageNumber, pageSize);
     }
 
     @PostMapping("/create")

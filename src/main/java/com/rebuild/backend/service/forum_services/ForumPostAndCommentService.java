@@ -2,7 +2,6 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.batch.BatchJobExecutor;
 import com.rebuild.backend.model.entities.forum_entities.*;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.FileUploadException;
@@ -10,7 +9,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
@@ -256,7 +254,7 @@ public class ForumPostAndCommentService {
         return commentRepository.save(newComment);
     }
 
-    private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize, UserProfile profile)
+    private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize)
     {
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
@@ -264,53 +262,26 @@ public class ForumPostAndCommentService {
         Page<ForumPost> foundPage = postRepository.findAll(request);
 
         return new ForumPostPageResponse(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize(), null);
+                foundPage.getTotalPages(), foundPage.getSize());
     }
 
-    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, String searchToken, User user)
+    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize)
     {
-        UserProfile profile = user.getUserProfile();
-        if (searchToken != null)
-        {
-            SearchResultDTO searchResult = searchService.getFromCache(searchToken);
-            if (searchResult != null)
-            {
-                List<UUID> matchedResults = searchResult.results();
-
-                int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
-
-                List<UUID> matchedList = searchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
-
-                List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
-
-                return new ForumPostPageResponse(foundPosts, pageNumber,
-                        matchedResults.size(), numPages, pageSize, searchResult.searchToken());
-            }
-            //Otherwise, we simply return the whole forum post information, paginated.
-            else{
-                return getPaginatedResponse(pageNumber, pageSize, profile);
-            }
-        }
-        return getPaginatedResponse(pageNumber, pageSize, profile);
+        return getPaginatedResponse(pageNumber, pageSize);
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                ForumSpecsForm forumSpecsForm,
-                                                User user)
+                                                ForumSpecsForm forumSpecsForm)
     {
-        UserProfile profile = user.getUserProfile();
-        SearchResultDTO resultDTO = searchService.executeSearch(forumSpecsForm);
 
-        List<UUID> matchedResults = resultDTO.results();
+        List<UUID> matchedResults = searchService.executePostSearch(forumSpecsForm);
+        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
-        int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
 
-        List<UUID> matchedList = searchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
+        Page<ForumPost> foundPosts = postRepository.findByIdIn(matchedResults, request);
 
-        List<ForumPost> foundPosts = postRepository.findAllById(matchedList);
-
-        return new ForumPostPageResponse(foundPosts, pageNumber,
-                matchedResults.size(), numPages, pageSize, resultDTO.searchToken());
+        return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(),
+                foundPosts.getTotalElements(), foundPosts.getTotalPages(), foundPosts.getSize());
     }
 
     public PostDisplayDTO loadPost(UUID postID){
@@ -371,17 +342,6 @@ public class ForumPostAndCommentService {
         return new UsernameSearchResponse(searchResultDTOS);
     }
 
-
-    /*
-     * We use this method to create parameters for each job
-     * separately, because we can't use the same timestamp value for the 3 different jobs we want to run.
-     * */
-    private JobParametersBuilder createParameters(Job runningJob)
-    {
-        return new JobParametersBuilder().
-                addString("name", runningJob.getName());
-    }
-
     //Every minute
     @Scheduled(fixedRate = 60 * 1000)
     public void runLikesUpdatingJob() throws JobInstanceAlreadyCompleteException, NoSuchJobException,
@@ -390,8 +350,6 @@ public class ForumPostAndCommentService {
         jobRegisterer.executeJob("updateLikesJob");
 
     }
-
-
 
     //Every 15 seconds
     @Scheduled(fixedRate = 15 * 1000)

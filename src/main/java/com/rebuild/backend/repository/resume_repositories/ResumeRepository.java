@@ -2,6 +2,8 @@ package com.rebuild.backend.repository.resume_repositories;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -66,4 +68,8 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithProjects(UUID id, User user);
+
+    Page<Resume> findByUser(User user, Pageable pageable);
+
+    Page<Resume> findByIdIn(Collection<UUID> ids, Pageable pageable);
 }

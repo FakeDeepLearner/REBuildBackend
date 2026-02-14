@@ -7,7 +7,6 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
-import com.rebuild.backend.model.dtos.forum_dtos.SearchResultDTO;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.model.responses.UserProfileResponse;
@@ -157,67 +156,46 @@ public class UserService{
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
 
-        Page<Resume> foundPage = resumeRepository.findAll(request);
+        Page<Resume> foundPage = resumeRepository.findByUser(user, request);
 
         return new HomePageData(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize(),null);
+                foundPage.getTotalPages(), foundPage.getSize());
     }
 
-    public HomePageData getHomePageData(User user, int pageNumber, int pageSize,
-                                        String searchToken){
-        if (searchToken != null)
-        {
-            SearchResultDTO searchResult = elasticSearchService.getFromCache(searchToken);
-            if (searchResult != null)
-            {
-                List<UUID> matchedResults = searchResult.results();
-
-                int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
-
-                List<UUID> matchedList = elasticSearchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
-
-                List<Resume> foundResumes = resumeRepository.findAllById(matchedList);
-
-                return new HomePageData(foundResumes, pageNumber,
-                        matchedResults.size(), numPages, pageSize, searchResult.searchToken());
-            }
-            //Otherwise, we simply return the whole forum post information, paginated.
-            else{
-                return getPaginatedResumes(pageNumber, pageSize, user);
-            }
-        }
+    public HomePageData getHomePageData(User user, int pageNumber, int pageSize){
         return getPaginatedResumes(pageNumber, pageSize, user);
     }
 
     public HomePageData getSearchResult(ResumeSearchConfiguration searchConfiguration, User user,
                                         int pageNumber, int pageSize)
     {
-        SearchResultDTO resultDTO = elasticSearchService.executeSearch(searchConfiguration);
 
-        List<UUID> matchedResults = resultDTO.results();
+        List<UUID> matchedResults = elasticSearchService.searchForResumes(searchConfiguration, user);
+        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,
+                "lastModifiedTime", "creationTime"));
 
-        int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
 
-        List<UUID> matchedList = elasticSearchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
 
-        List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
-        return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),
-                numPages, pageSize, resultDTO.searchToken());
+        Page<Resume> matchedResumes = resumeRepository.findByIdIn(matchedResults, request);
+        return new HomePageData(matchedResumes.getContent(), matchedResumes.getNumber(),
+                matchedResumes.getTotalElements(),
+                matchedResumes.getTotalPages(), matchedResumes.getSize());
     }
 
     public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm,
                                                 User user, int pageNumber, int pageSize){
-        SearchResultDTO resultDTO = elasticSearchService.executeSearch(forumSpecsForm);
 
-        List<UUID> matchedResults = resultDTO.results();
+        List<UUID> matchedResults = elasticSearchService.searchForResumes(forumSpecsForm, user);
 
-        int numPages = Math.max(1, Math.ceilDiv(matchedResults.size(), pageSize));
+        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,
+                "lastModifiedTime", "creationTime"));
 
-        List<UUID> matchedList = elasticSearchService.getNecessaryResults(matchedResults, pageNumber, pageSize);
 
-        List<Resume> matchedResumes = resumeRepository.findAllById(matchedList);
-        return new HomePageData(matchedResumes, pageNumber, matchedResults.size(),
-                numPages, pageSize, resultDTO.searchToken());
+
+        Page<Resume> matchedResumes = resumeRepository.findByIdIn(matchedResults, request);
+        return new HomePageData(matchedResumes.getContent(), matchedResumes.getNumber(),
+                matchedResumes.getTotalElements(),
+                matchedResumes.getTotalPages(), matchedResumes.getSize());
     }
 
 }

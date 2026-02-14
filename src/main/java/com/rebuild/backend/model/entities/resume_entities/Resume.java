@@ -163,7 +163,13 @@ public class Resume implements Serializable {
             }
 
         }
-
     }
+
+    @GenericField(name = "userId", searchable = Searchable.YES)
+    public UUID derivedId()
+    {
+        return this.user.getId();
+    }
+
 
 }

@@ -7,5 +7,5 @@ import java.util.List;
 
 public record ForumPostPageResponse(List<ForumPost> displayedPosts, int currentPage,
                                     long totalItems, int totalPages,
-                                    int pageSize, String searchToken) {
+                                    int pageSize) {
 }

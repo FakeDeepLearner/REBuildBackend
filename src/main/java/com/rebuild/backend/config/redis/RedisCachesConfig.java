@@ -59,9 +59,6 @@ public class RedisCachesConfig {
 
     @Bean
     public RedisCacheManager cacheManager(LettuceConnectionFactory connectionFactory) {
-        RedisCacheConfiguration searchResultsCacheConfig = RedisCacheConfiguration.defaultCacheConfig().
-                entryTtl(Duration.ofMinutes(5)).enableTimeToIdle();
-
         RedisCacheConfiguration resumeCacheConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofSeconds(30)).
                 serializeValuesWith(RedisSerializationContext.
@@ -80,7 +77,6 @@ public class RedisCachesConfig {
         return RedisCacheManager.builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
                 .withCacheConfiguration("idempotency_cache", idempotencyConfig)
                 .withCacheConfiguration("resume_cache", resumeCacheConfig)
-                .withCacheConfiguration("search_cache", searchResultsCacheConfig)
                 .withCacheConfiguration("profile_cache", profilesCacheConfig)
                 .build();
     }
