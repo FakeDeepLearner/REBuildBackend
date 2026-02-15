@@ -2,9 +2,11 @@ package com.rebuild.backend.service.resume_services;
 
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.entities.resume_entities.search_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.PrefillException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
@@ -47,12 +50,44 @@ public class ResumeService {
         this.profileRepository = profileRepository;
     }
 
+    @Transactional
     public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,
                                                         ResumeSpecsForm specsForm){
         ResumeSearchConfiguration newConfiguration = new ResumeSearchConfiguration(specsForm);
         newConfiguration.setUser(authenticatedUser);
         authenticatedUser.getResumeSearchConfigurations().add(newConfiguration);
         return resumeSearchRepository.save(newConfiguration);
+    }
+
+
+    public ResumeSearchConfiguration updateSearchConfig(User user,
+                                                        UUID config_id, ResumeSpecsForm baseForm)
+    {
+        ResumeSearchConfiguration foundConfig = resumeSearchRepository.findByIdAndUser(config_id, user).
+                orElseThrow(() -> new BelongingException("This configuration does not belong to you," +
+                        "you cannot update it"));
+
+        foundConfig.setLastUpdatedTime(Instant.now());
+        foundConfig.setHeaderSearchProperties(new HeaderSearchProperties(baseForm.firstNameContains(),
+                baseForm.lastNameContains()));
+        foundConfig.setEducationSearchProperties(new EducationSearchProperties(baseForm.schoolNameContains(),
+                baseForm.courseWorkContains()));
+        foundConfig.setExperienceSearchProperties(new ExperienceSearchProperties(baseForm.companyContains(), baseForm.experienceBulletsContains(),
+                baseForm.experienceTechnologyListContains()));
+        foundConfig.setProjectSearchProperties(new ProjectSearchProperties(baseForm.projectNameContains(),
+                baseForm.projectTechnologyListContains(), baseForm.projectBulletsContains()));
+        foundConfig.setCreationAfterCutoff(Instant.parse(baseForm.creationAfterCutoff()));
+        foundConfig.setCreationBeforeCutoff(Instant.parse(baseForm.creationBeforeCutoff()));
+        return resumeSearchRepository.save(foundConfig);
+
+    }
+
+    public void deleteSearchConfig(User user, UUID config_id)
+    {
+        ResumeSearchConfiguration foundConfig = resumeSearchRepository.findByIdAndUser(config_id, user).
+                orElseThrow(() -> new BelongingException("This configuration does not belong to you," +
+                        "you cannot delete it"));
+        resumeSearchRepository.delete(foundConfig);
     }
 
     @Transactional

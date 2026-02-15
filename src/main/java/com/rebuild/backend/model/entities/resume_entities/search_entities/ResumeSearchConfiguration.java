@@ -52,6 +52,9 @@ public class ResumeSearchConfiguration implements Serializable {
     @Column(name = "creation_before")
     private Instant creationBeforeCutoff;
 
+    @Column(name = "last_updated_at")
+    private Instant lastUpdatedTime;
+
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
     })
@@ -73,6 +76,7 @@ public class ResumeSearchConfiguration implements Serializable {
         this.resumeNameSearch = baseForm.resumeNameContains();
         this.creationAfterCutoff = Instant.parse(baseForm.creationAfterCutoff());
         this.creationBeforeCutoff = Instant.parse(baseForm.creationBeforeCutoff());
+        this.lastUpdatedTime = Instant.now();
     }
 
 

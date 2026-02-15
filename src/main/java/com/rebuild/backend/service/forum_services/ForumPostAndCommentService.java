@@ -45,6 +45,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -239,6 +240,35 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
+    public void deleteSearchConfig(User user, UUID configId)
+    {
+        PostSearchConfiguration foundConfig =
+                postSearchRepository.findByIdAndUser(configId, user).orElseThrow(
+                        () -> new BelongingException("This configuration does not " +
+                                "belong to you, so you cannot delete it")
+                );
+        postSearchRepository.delete(foundConfig);
+    }
+
+    @Transactional
+    public PostSearchConfiguration updateSearchConfig(User user, UUID config_id, ForumSpecsForm forumSpecsForm)
+    {
+        PostSearchConfiguration foundConfig =
+                postSearchRepository.findByIdAndUser(config_id, user).orElseThrow(
+                        () -> new BelongingException("This configuration does not " +
+                                "belong to you, so you cannot update it")
+                );
+        foundConfig.setBodySearch(forumSpecsForm.bodyContains());
+        foundConfig.setTitleSearch(forumSpecsForm.titleContains());
+        foundConfig.setCreationAfterCutoff(Instant.parse(forumSpecsForm.postAfterCutoff()));
+        foundConfig.setCreationBeforeCutoff(Instant.parse(forumSpecsForm.postBeforeCutoff()));
+        foundConfig.setLastUpdatedTime(Instant.now());
+
+        return postSearchRepository.save(foundConfig);
+    }
+
+
+    @Transactional
     public Comment createReplyTo(UUID parent_comment_id, User creatingUser,
                                       CommentForm commentForm){
         Comment parentComment = commentRepository.findById(parent_comment_id).
@@ -254,7 +284,7 @@ public class ForumPostAndCommentService {
         return commentRepository.save(newComment);
     }
 
-    private ForumPostPageResponse getPaginatedResponse(int pageNumber, int pageSize)
+    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize)
     {
         PageRequest request =
                 PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
@@ -263,11 +293,6 @@ public class ForumPostAndCommentService {
 
         return new ForumPostPageResponse(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
                 foundPage.getTotalPages(), foundPage.getSize());
-    }
-
-    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize)
-    {
-        return getPaginatedResponse(pageNumber, pageSize);
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,

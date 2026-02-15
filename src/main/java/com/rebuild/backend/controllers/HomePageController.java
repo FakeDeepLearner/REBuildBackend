@@ -17,6 +17,7 @@ import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -80,11 +81,31 @@ public class HomePageController {
         return resumeService.createSearchConfig(authenticatedUser, specsForm);
     }
 
+
+    @PutMapping("/update_search_config/{config_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResumeSearchConfiguration updateSearchConfig(@AuthenticationPrincipal User user,
+                                                        @PathVariable UUID config_id,
+                                                        @RequestBody ResumeSpecsForm specsForm)
+    {
+        return resumeService.updateSearchConfig(user, config_id, specsForm);
+    }
+
+
+    @DeleteMapping("/delete_config/{config_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSearchConfig(@AuthenticationPrincipal User user,
+                                    @PathVariable UUID config_id)
+    {
+        resumeService.deleteSearchConfig(user, config_id);
+    }
+
+
     @GetMapping("/get_resume_configs")
     @ResponseStatus(HttpStatus.OK)
     public List<ResumeSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
     {
-        return searchRepository.findAllByUser(user);
+        return searchRepository.findAllByUser(user, Sort.by(Sort.Direction.DESC, "lastUpdatedTime"));
     }
 
     @GetMapping("/resume/{resume_id}")

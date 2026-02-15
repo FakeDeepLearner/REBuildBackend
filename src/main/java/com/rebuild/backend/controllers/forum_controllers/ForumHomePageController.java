@@ -16,6 +16,7 @@ import lombok.NonNull;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -56,11 +57,28 @@ public class ForumHomePageController {
         return postAndCommentService.createSearchConfig(authenticatedUser, specsForm);
     }
 
+
+    @DeleteMapping("/delete_config/{config_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteConfiguration(@AuthenticationPrincipal User user,
+                                    @PathVariable UUID config_id)
+    {
+        postAndCommentService.deleteSearchConfig(user, config_id);
+    }
+
+    @PutMapping("/update_config/{config_id}")
+    public PostSearchConfiguration updateSearchConfig(@AuthenticationPrincipal User user,
+                                                      @PathVariable UUID config_id,
+                                                      @RequestBody ForumSpecsForm specsForm)
+    {
+        return postAndCommentService.updateSearchConfig(user, config_id, specsForm);
+    }
+
     @GetMapping("/get_configs")
     @ResponseStatus(HttpStatus.OK)
     public List<PostSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
     {
-        return postSearchRepository.findAllByUser(user);
+        return postSearchRepository.findAllByUser(user, Sort.by(Sort.Direction.DESC, "lastUpdatedTime"));
     }
 
     @PostMapping("/username_search")
@@ -95,16 +113,15 @@ public class ForumHomePageController {
         }
     }
 
-    @GetMapping("/get_posts")
+    @PostMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
-    public ForumPostPageResponse loadDefaultForum(@RequestParam(defaultValue = "0", name = "page", required = false)
+    public ForumPostPageResponse loadForumWithSpecsForm(@RequestParam(defaultValue = "0", name = "page", required = false)
                                           int pageNumber,
 
                                           @RequestParam(defaultValue = "20", name = "size", required = false)
                                           int pageSize,
 
-                                          @RequestBody ForumSpecsForm forumSpecsForm,
-                                          @AuthenticationPrincipal User user) {
+                                          @RequestBody ForumSpecsForm forumSpecsForm) {
 
         return postAndCommentService.getPagedResult(pageNumber, pageSize, forumSpecsForm);
     }
