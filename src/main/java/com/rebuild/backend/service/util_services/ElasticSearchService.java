@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -25,55 +26,7 @@ public class ElasticSearchService {
         this.entityManager = entityManager;
     }
 
-    public List<UUID> searchForResumes(Object searchForm, User user)
-    {
-
-        if (searchForm instanceof ResumeSpecsForm resumeSpecsForm)
-        {
-            return executeResumeSearch(resumeSpecsForm, user);
-        }
-        if(searchForm instanceof ResumeSearchConfiguration searchConfiguration)
-        {
-            return executeResumeSearch(searchConfiguration, user);
-        }
-        return null;
-    }
-
-    private List<UUID> executeResumeSearch(ResumeSpecsForm specsForm, User user)
-    {
-        SearchSession searchSession = Search.session(entityManager);
-        List<UUID> matchedIds = searchSession.search(Resume.class)
-                .select(f -> f.id(UUID.class))
-                .where(f -> new NullSafeQuerySearchBuilder(f).
-                        nullSafeMatch("userId", user.getId()).
-                        nullSafeMatch("header.firstName", specsForm.firstNameContains()).
-                        nullSafeMatch("header.lastName", specsForm.lastNameContains()).
-                        nullSafeMatch("name", specsForm.resumeNameContains()).
-                        nullSafeMatch("education.schoolName", specsForm.schoolNameContains()).
-                        nullSafeMatch("education.relevantCoursework", specsForm.courseWorkContains()).
-                        nullSafeMatch("experiences.companyName", specsForm.companyContains()).
-                        nullSafeMatch("experiences.technologyList", specsForm.experienceTechnologyListContains()).
-                        nullSafeMatch("experiences.bullets", specsForm.experienceBulletsContains()).
-                        nullSafeMatch("projects.projectName", specsForm.projectNameContains()).
-                        nullSafeMatch("projects.bullets", specsForm.projectBulletsContains()).
-                        nullSafeMatch("projects.technologyList", specsForm.projectTechnologyListContains()).
-                        atLeast("creationTime", Instant.parse(specsForm.creationAfterCutoff())).
-                        atMost("creationTime", Instant.parse(specsForm.creationBeforeCutoff())).
-                        getResult()
-                )
-                .sort(f -> f.composite(
-                        composite -> {
-                        composite.add(f.field("creationTime").desc());
-                        composite.add(f.field("lastModifiedTime").desc());
-                        }
-                        ))
-                .fetchAllHits();
-            return matchedIds;
-
-
-    }
-
-    private List<UUID> executeResumeSearch(ResumeSearchConfiguration searchConfiguration, User user)
+    public List<UUID> executeResumeSearch(ResumeSearchConfiguration searchConfiguration, User user)
     {
         SearchSession searchSession = Search.session(entityManager);
         List<UUID> matchedIds = searchSession.search(Resume.class)
@@ -107,15 +60,15 @@ public class ElasticSearchService {
 
     }
 
-    public List<UUID> executePostSearch(ForumSpecsForm forumSpecsForm){
+    public List<UUID> executePostSearch(PostSearchConfiguration postSearchConfiguration){
         SearchSession searchSession = Search.session(entityManager);
         List<UUID> matchedIds = searchSession.search(ForumPost.class)
                 .select(f -> f.id(UUID.class))
                 .where(f -> new NullSafeQuerySearchBuilder(f).
-                        nullSafeMatch("title", forumSpecsForm.titleContains()).
-                        nullSafeMatch("content", forumSpecsForm.bodyContains()).
-                        atLeast("creationDate", Instant.parse(forumSpecsForm.postAfterCutoff())).
-                        atMost("creationDate", Instant.parse(forumSpecsForm.postBeforeCutoff())).
+                        nullSafeMatch("title", postSearchConfiguration.getTitleSearch()).
+                        nullSafeMatch("content", postSearchConfiguration.getBodySearch()).
+                        atLeast("creationDate", postSearchConfiguration.getCreationAfterCutoff()).
+                        atMost("creationDate", postSearchConfiguration.getCreationBeforeCutoff()).
                         getResult()
 
                 )

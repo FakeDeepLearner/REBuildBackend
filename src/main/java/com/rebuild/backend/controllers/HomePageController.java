@@ -78,7 +78,7 @@ public class HomePageController {
     public ResumeSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
                                                         @RequestBody ResumeSpecsForm specsForm)
     {
-        return resumeService.createSearchConfig(authenticatedUser, specsForm);
+        return resumeService.createSearchConfig(authenticatedUser, specsForm, false);
     }
 
 
@@ -105,7 +105,9 @@ public class HomePageController {
     @ResponseStatus(HttpStatus.OK)
     public List<ResumeSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
     {
-        return searchRepository.findAllByUser(user, Sort.by(Sort.Direction.DESC, "lastUpdatedTime"));
+        return searchRepository.findAllByUser(user,
+                Sort.by(Sort.Order.desc("lastUsedTime").nullsLast(),
+                        Sort.Order.desc("lastUpdatedTime")));
     }
 
     @GetMapping("/resume/{resume_id}")

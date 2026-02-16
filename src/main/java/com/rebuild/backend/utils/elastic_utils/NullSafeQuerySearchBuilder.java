@@ -7,7 +7,7 @@ public class NullSafeQuerySearchBuilder {
 
     private final SearchPredicateFactory searchPredicateFactory;
 
-    private final BooleanPredicateClausesStep<?, ?> booleanPredicateClausesStep;
+    private BooleanPredicateClausesStep<?, ?> booleanPredicateClausesStep;
 
 
     public NullSafeQuerySearchBuilder(SearchPredicateFactory searchPredicateFactory) {
@@ -20,7 +20,7 @@ public class NullSafeQuerySearchBuilder {
     {
         if (filterValue != null)
         {
-            booleanPredicateClausesStep.filter(searchPredicateFactory.match().
+            booleanPredicateClausesStep = booleanPredicateClausesStep.filter(searchPredicateFactory.match().
                     field(attribute).matching(filterValue));
         }
         return this;
@@ -30,7 +30,7 @@ public class NullSafeQuerySearchBuilder {
     {
         if (filterValue != null)
         {
-            booleanPredicateClausesStep.filter(searchPredicateFactory.range().
+            booleanPredicateClausesStep = booleanPredicateClausesStep.filter(searchPredicateFactory.range().
             field(attribute).atLeast(filterValue));
         }
         return this;
@@ -40,7 +40,7 @@ public class NullSafeQuerySearchBuilder {
     {
         if (filterValue != null)
         {
-            booleanPredicateClausesStep.filter(searchPredicateFactory.range().
+            booleanPredicateClausesStep = booleanPredicateClausesStep.filter(searchPredicateFactory.range().
                     field(attribute).atMost(filterValue));
         }
         return this;

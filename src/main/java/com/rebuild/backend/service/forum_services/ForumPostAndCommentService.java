@@ -20,8 +20,6 @@ import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
 import io.github.cdimascio.dotenv.Dotenv;
-import org.springframework.batch.core.job.Job;
-import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.job.parameters.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
@@ -231,8 +229,13 @@ public class ForumPostAndCommentService {
     }
 
     @Transactional
-    public PostSearchConfiguration createSearchConfig(User creatingUser, ForumSpecsForm forumSpecsForm){
+    public PostSearchConfiguration createSearchConfig(User creatingUser, ForumSpecsForm forumSpecsForm,
+                                                      boolean isUsedImmediately){
         PostSearchConfiguration searchConfig = new PostSearchConfiguration(forumSpecsForm);
+        if (isUsedImmediately)
+        {
+            searchConfig.setLastUsedTime(Instant.now());
+        }
         searchConfig.setUser(creatingUser);
         creatingUser.getPostSearchConfigurations().add(searchConfig);
         return postSearchRepository.save(searchConfig);
@@ -247,6 +250,8 @@ public class ForumPostAndCommentService {
                         () -> new BelongingException("This configuration does not " +
                                 "belong to you, so you cannot delete it")
                 );
+        user.getPostSearchConfigurations().removeIf(
+                config -> config.getId().equals(configId));
         postSearchRepository.delete(foundConfig);
     }
 
@@ -296,17 +301,25 @@ public class ForumPostAndCommentService {
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                ForumSpecsForm forumSpecsForm)
+                                                PostSearchConfiguration postSearchConfiguration)
     {
-
-        List<UUID> matchedResults = searchService.executePostSearch(forumSpecsForm);
-        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
+        List<UUID> matchedResults = searchService.executePostSearch(postSearchConfiguration);
+        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,
+                "creationDate"));
 
 
         Page<ForumPost> foundPosts = postRepository.findByIdIn(matchedResults, request);
 
         return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(),
                 foundPosts.getTotalElements(), foundPosts.getTotalPages(), foundPosts.getSize());
+    }
+
+    public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
+                                                ForumSpecsForm forumSpecsForm, User user)
+    {
+
+        PostSearchConfiguration createdConfiguration = createSearchConfig(user, forumSpecsForm, true);
+        return getPagedResult(pageNumber, pageSize, createdConfiguration);
     }
 
     public PostDisplayDTO loadPost(UUID postID){

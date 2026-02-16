@@ -52,8 +52,12 @@ public class ResumeService {
 
     @Transactional
     public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,
-                                                        ResumeSpecsForm specsForm){
+                                                        ResumeSpecsForm specsForm, boolean isUsedImmediately){
         ResumeSearchConfiguration newConfiguration = new ResumeSearchConfiguration(specsForm);
+        if (isUsedImmediately)
+        {
+            newConfiguration.setLastUsedTime(Instant.now());
+        }
         newConfiguration.setUser(authenticatedUser);
         authenticatedUser.getResumeSearchConfigurations().add(newConfiguration);
         return resumeSearchRepository.save(newConfiguration);
@@ -87,6 +91,8 @@ public class ResumeService {
         ResumeSearchConfiguration foundConfig = resumeSearchRepository.findByIdAndUser(config_id, user).
                 orElseThrow(() -> new BelongingException("This configuration does not belong to you," +
                         "you cannot delete it"));
+        user.getResumeSearchConfigurations().
+                removeIf(config -> config.getId().equals(config_id));
         resumeSearchRepository.delete(foundConfig);
     }
 

@@ -54,7 +54,7 @@ public class ForumHomePageController {
     public PostSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
                                                       @RequestBody ForumSpecsForm specsForm)
     {
-        return postAndCommentService.createSearchConfig(authenticatedUser, specsForm);
+        return postAndCommentService.createSearchConfig(authenticatedUser, specsForm, false);
     }
 
 
@@ -78,7 +78,9 @@ public class ForumHomePageController {
     @ResponseStatus(HttpStatus.OK)
     public List<PostSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
     {
-        return postSearchRepository.findAllByUser(user, Sort.by(Sort.Direction.DESC, "lastUpdatedTime"));
+        return postSearchRepository.findAllByUser(user,
+                Sort.by(Sort.Order.desc("lastUsedTime").nullsLast(),
+                        Sort.Order.desc("lastUpdatedTime")));
     }
 
     @PostMapping("/username_search")
@@ -100,11 +102,9 @@ public class ForumHomePageController {
                             () -> new BelongingException("This configuration does not belong to you")
                     );
 
-            ForumSpecsForm craftedBody = postAndCommentService.buildSpecsFrom(foundConfig);
-
             ForumPostPageResponse response =
                     postAndCommentService.getPagedResult(0, pageSize,
-                             craftedBody);
+                             foundConfig);
 
             return ResponseEntity.ok(response);
         }
@@ -121,9 +121,10 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "20", name = "size", required = false)
                                           int pageSize,
 
-                                          @RequestBody ForumSpecsForm forumSpecsForm) {
+                                          @RequestBody ForumSpecsForm forumSpecsForm,
+                                                        @AuthenticationPrincipal User user) {
 
-        return postAndCommentService.getPagedResult(pageNumber, pageSize, forumSpecsForm);
+        return postAndCommentService.getPagedResult(pageNumber, pageSize, forumSpecsForm, user);
     }
 
     @GetMapping("/get_posts")

@@ -55,6 +55,9 @@ public class ResumeSearchConfiguration implements Serializable {
     @Column(name = "last_updated_at")
     private Instant lastUpdatedTime;
 
+    @Column(name = "last_used_at")
+    private Instant lastUsedTime;
+
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
     })
@@ -77,6 +80,7 @@ public class ResumeSearchConfiguration implements Serializable {
         this.creationAfterCutoff = Instant.parse(baseForm.creationAfterCutoff());
         this.creationBeforeCutoff = Instant.parse(baseForm.creationBeforeCutoff());
         this.lastUpdatedTime = Instant.now();
+        this.lastUsedTime = null;
     }
 
 

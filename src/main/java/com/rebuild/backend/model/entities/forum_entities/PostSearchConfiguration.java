@@ -40,8 +40,11 @@ public class PostSearchConfiguration implements Serializable {
     @Column(name = "creation_before")
     private Instant creationBeforeCutoff;
 
-    @Column(name = "last_update")
+    @Column(name = "last_updated_at")
     private Instant lastUpdatedTime;
+
+    @Column(name = "last_used_at")
+    private Instant lastUsedTime;
 
     @ManyToOne(cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
@@ -57,5 +60,6 @@ public class PostSearchConfiguration implements Serializable {
         this.creationAfterCutoff = Instant.parse(specsForm.postAfterCutoff());
         this.creationBeforeCutoff = Instant.parse(specsForm.postBeforeCutoff());
         this.lastUpdatedTime = Instant.now();
+        this.lastUsedTime = null;
     }
 }
