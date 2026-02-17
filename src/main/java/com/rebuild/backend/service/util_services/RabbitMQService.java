@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RabbitProducingService {
+public class RabbitMQService {
 
     private final RabbitTemplate rabbitTemplate;
 
 
     @Autowired
-    public RabbitProducingService(RabbitTemplate rabbitTemplate) {
+    public RabbitMQService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 

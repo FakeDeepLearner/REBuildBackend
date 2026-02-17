@@ -9,7 +9,8 @@ import com.rebuild.backend.model.forms.profile_forms.ProfilePreferencesForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
-import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
+import com.rebuild.backend.service.util_services.CloudinaryService;
+import com.rebuild.backend.service.util_services.SubpartsModificationService;
 import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,19 +30,16 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
-    private final SubpartsModificationUtility modificationUtility;
+    private final SubpartsModificationService modificationUtility;
 
-    private final ProfilePictureRepository profilePictureRepository;
-
-    private final Cloudinary cloudinary;
+    private final CloudinaryService cloudinaryService;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository, SubpartsModificationUtility modificationUtility,
-                          ProfilePictureRepository profilePictureRepository, Cloudinary cloudinary) {
+    public ProfileService(ProfileRepository profileRepository, SubpartsModificationService modificationUtility,
+                          CloudinaryService cloudinaryService) {
         this.profileRepository = profileRepository;
         this.modificationUtility = modificationUtility;
-        this.profilePictureRepository = profilePictureRepository;
-        this.cloudinary = cloudinary;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -70,7 +68,7 @@ public class ProfileService {
         updatedProfile.setSettings(newSettings);
 
 
-        modifyProfilePictureOf(updatedProfile.getUser(), pictureFile);
+        cloudinaryService.modifyProfilePictureOf(updatedProfile.getUser(), pictureFile);
         return profileRepository.save(updatedProfile);
     }
 
@@ -99,33 +97,6 @@ public class ProfileService {
     {
         profile.setEducation(newEducation);
         newEducation.setProfile(profile);
-    }
-
-
-
-    public UserProfile modifyProfilePictureOf(User chngingUser, MultipartFile pictureFile) throws IOException
-    {
-        UserProfile profile = profileRepository.findByUser(chngingUser);
-        if (!pictureFile.isEmpty())
-        {
-            if(profile.getProfilePicture() != null)
-            {
-                profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
-                cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
-                        ObjectUtils.asMap("type", "private"));
-            }
-
-
-            @SuppressWarnings("JvmTaintAnalysis")
-            Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
-                            copyToByteArray(pictureFile.getInputStream()),
-                    ObjectUtils.asMap("type", "private"));
-            ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
-                    (String) uploadResult.get("asset_id"));
-            profile.setProfilePicture(profilePicture);
-            profilePicture.setAssociatedProfile(profile);
-        }
-        return profile;
     }
 
     @Transactional

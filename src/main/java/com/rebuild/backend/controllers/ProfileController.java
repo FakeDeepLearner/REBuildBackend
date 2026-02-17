@@ -6,6 +6,7 @@ import com.rebuild.backend.model.forms.profile_forms.FullProfileForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
+import com.rebuild.backend.service.util_services.CloudinaryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -33,10 +34,14 @@ public class ProfileController {
 
     private final UserService userService;
 
+    private final CloudinaryService cloudinaryService;
+
     @Autowired
-    public ProfileController(ProfileService profileService, UserService userService) {
+    public ProfileController(ProfileService profileService, UserService userService,
+                             CloudinaryService cloudinaryService) {
         this.profileService = profileService;
         this.userService = userService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @PostMapping(value = "/update_profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -152,7 +157,7 @@ public class ProfileController {
                                    @RequestPart(name = "file") MultipartFile pictureFile)
     {
         try {
-            UserProfile profile = profileService.modifyProfilePictureOf(changingUser, pictureFile);
+            UserProfile profile = cloudinaryService.modifyProfilePictureOf(changingUser, pictureFile);
             return ResponseEntity.ok().body(profile);
         }
 

@@ -4,7 +4,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
-import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
+import com.rebuild.backend.service.forum_services.CommentsService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,18 +18,18 @@ import java.util.UUID;
 @RequestMapping("/api/forum/comments")
 public class CommentController {
 
-    private final ForumPostAndCommentService forumPostAndCommentService;
+    private final CommentsService commentsService;
 
     @Autowired
-    public CommentController(ForumPostAndCommentService forumPostAndCommentService) {
-        this.forumPostAndCommentService = forumPostAndCommentService;
+    public CommentController(CommentsService commentsService) {
+        this.commentsService = commentsService;
     }
 
     @PostMapping("/create/{post_id}")
     @ResponseStatus(HttpStatus.CREATED)
     public Comment createTopLevelComment(@PathVariable UUID post_id, @RequestBody @Valid CommentForm commentForm,
                                          @AuthenticationPrincipal User creatingUser){
-        return forumPostAndCommentService.makeTopLevelComment(commentForm, post_id, creatingUser);
+        return commentsService.makeTopLevelComment(commentForm, post_id, creatingUser);
     }
 
     @PostMapping("/reply/{top_level_comment_id}")
@@ -37,14 +37,14 @@ public class CommentController {
     public Comment createReply(@PathVariable UUID top_level_comment_id,
                                     @RequestBody @Valid CommentForm commentForm,
                                     @AuthenticationPrincipal User creatingUser){
-        return forumPostAndCommentService.createReplyTo(top_level_comment_id, creatingUser, commentForm);
+        return commentsService.createReplyTo(top_level_comment_id, creatingUser, commentForm);
     }
 
 
     @GetMapping("/{parent_comment_id}/replies")
     @ResponseStatus(HttpStatus.OK)
     public List<CommentDisplayDTO> getReplies(@PathVariable UUID parent_comment_id){
-        return forumPostAndCommentService.getCommentExpansionInfo(parent_comment_id);
+        return commentsService.getCommentExpansionInfo(parent_comment_id);
     }
 
 
@@ -52,7 +52,7 @@ public class CommentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable UUID comment_id,
                               @AuthenticationPrincipal User deletingUser){
-        forumPostAndCommentService.deleteComment(comment_id, deletingUser);
+        commentsService.deleteComment(comment_id, deletingUser);
     }
 
 }

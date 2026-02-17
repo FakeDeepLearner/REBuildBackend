@@ -11,8 +11,10 @@ import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
-import com.rebuild.backend.service.forum_services.FriendAndMessageService;
+import com.rebuild.backend.service.forum_services.ChatAndMessageService;
+import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;
+import com.rebuild.backend.service.user_services.UserHomePageService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,18 +42,25 @@ public class HomePageController {
 
     private final ResumeSearchRepository searchRepository;
 
-    private final FriendAndMessageService friendAndMessageService;
+    private final FriendshipService friendshipService;
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
+    private final ChatAndMessageService chatAndMessageService;
+
+    private final UserHomePageService homePageService;
+
     @Autowired
     public HomePageController(UserService userService, ResumeService resumeService,
-                              ResumeSearchRepository searchRepository, FriendAndMessageService friendAndMessageService, SimpMessagingTemplate simpMessagingTemplate) {
+                              ResumeSearchRepository searchRepository, FriendshipService friendshipService,
+                              SimpMessagingTemplate simpMessagingTemplate, ChatAndMessageService chatAndMessageService, UserHomePageService homePageService) {
         this.userService = userService;
         this.resumeService = resumeService;
         this.searchRepository = searchRepository;
-        this.friendAndMessageService = friendAndMessageService;
+        this.friendshipService = friendshipService;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.chatAndMessageService = chatAndMessageService;
+        this.homePageService = homePageService;
     }
 
     @GetMapping("/get_posts/configuration/{config_id}")
@@ -63,7 +72,7 @@ public class HomePageController {
             ResumeSearchConfiguration foundConfig = searchRepository.findByIdAndUser(config_id, user).
                     orElseThrow(() -> new BelongingException("This configuration does not belong to you"));
 
-            HomePageData response = userService.getSearchResult(foundConfig, user,
+            HomePageData response = homePageService.getSearchResult(foundConfig, user,
                             0, 20);
 
             return ResponseEntity.ok(response);
@@ -123,28 +132,28 @@ public class HomePageController {
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize,
                                      @RequestBody ResumeSpecsForm specsForm) {
-        return userService.getSearchResult(specsForm,
+        return homePageService.getSearchResult(specsForm,
                 authenticatedUser, pageNumber, pageSize);
     }
 
 
     @GetMapping("/chats/all_chats")
     public List<DisplayChatResponse> showAllChats(@AuthenticationPrincipal User authenticatedUser) {
-        return friendAndMessageService.displayAllChats(authenticatedUser);
+        return chatAndMessageService.displayAllChats(authenticatedUser);
     }
 
     @GetMapping("/chats/load/{chat_id}")
     @ResponseStatus(HttpStatus.OK)
     public LoadChatResponse loadChat(@PathVariable UUID chat_id,
                                      @AuthenticationPrincipal User authenticatedUser) {
-        return friendAndMessageService.loadChat(chat_id, authenticatedUser);
+        return chatAndMessageService.loadChat(chat_id, authenticatedUser);
     }
 
     @PostMapping("/chats/send_message/{recipient_id}")
     public ResponseEntity<?> sendMessage(@PathVariable UUID recipient_id,
                                               @RequestBody String messageContent,
                                               @AuthenticationPrincipal User authenticatedUser) {
-        Message createdMessage = friendAndMessageService.
+        Message createdMessage = chatAndMessageService.
                 createMessage(authenticatedUser, recipient_id, messageContent);
         if (createdMessage == null){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
@@ -162,7 +171,7 @@ public class HomePageController {
     public HomePageData getDefaultHomePage(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize) {
-        return userService.getHomePageData(authenticatedUser, pageNumber, pageSize);
+        return homePageService.getHomePageData(authenticatedUser, pageNumber, pageSize);
     }
 
     @PostMapping("/create")
@@ -192,7 +201,7 @@ public class HomePageController {
     @GetMapping("/friends")
     @ResponseStatus(HttpStatus.OK)
     public List<UsernameSearchResultDTO> loadFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
-        return friendAndMessageService.loadUserFriendRequests(authenticatedUser);
+        return friendshipService.loadUserFriendRequests(authenticatedUser);
     }
 
 }

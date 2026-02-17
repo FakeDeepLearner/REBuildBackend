@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class SubpartsModificationUtility {
+public class SubpartsModificationService {
 
     private final ProfileRepository profileRepository;
 
@@ -30,7 +30,7 @@ public class SubpartsModificationUtility {
     private final ResumeRepository resumeRepository;
 
     @Autowired
-    public SubpartsModificationUtility(ProfileRepository profileRepository,
+    public SubpartsModificationService(ProfileRepository profileRepository,
                                        ResumeObtainer getUtility, ResumeRepository resumeRepository) {
         this.profileRepository = profileRepository;
         this.getUtility = getUtility;

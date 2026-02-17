@@ -3,7 +3,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
-import com.rebuild.backend.service.forum_services.ForumPostAndCommentService;
+import com.rebuild.backend.service.forum_services.PostsService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,19 +24,19 @@ public class PostController {
 
     private final ResumeService resumeService;
 
-    private final ForumPostAndCommentService forumPostAndCommentService;
+    private final PostsService postsService;
 
     @Autowired
-    public PostController(ResumeService resumeService, ForumPostAndCommentService forumPostAndCommentService) {
+    public PostController(ResumeService resumeService, PostsService postsService) {
         this.resumeService = resumeService;
-        this.forumPostAndCommentService = forumPostAndCommentService;
+        this.postsService = postsService;
     }
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ForumPost createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
                                    @RequestPart(name = "files") List<MultipartFile> resumeFiles,
                                    @AuthenticationPrincipal User creatingUser) {
-        return forumPostAndCommentService.createNewPost(postForm,
+        return postsService.createNewPost(postForm,
                 creatingUser, resumeFiles);
     }
 
@@ -44,6 +44,6 @@ public class PostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable UUID post_id,
                            @AuthenticationPrincipal User creatingUser) {
-        forumPostAndCommentService.deletePost(post_id, creatingUser);
+        postsService.deletePost(post_id, creatingUser);
     }
 }

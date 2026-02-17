@@ -13,7 +13,7 @@ import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
-import com.rebuild.backend.service.util_services.SubpartsModificationUtility;
+import com.rebuild.backend.service.util_services.SubpartsModificationService;
 import com.rebuild.backend.utils.ResumeObtainer;
 import com.rebuild.backend.utils.converters.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
 
-    private final SubpartsModificationUtility modificationUtility;
+    private final SubpartsModificationService modificationUtility;
 
     private final ResumeObtainer getUtility;
 
@@ -41,7 +41,7 @@ public class ResumeService {
 
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
-                         SubpartsModificationUtility modificationUtility,
+                         SubpartsModificationService modificationUtility,
                          ResumeObtainer getUtility, ResumeSearchRepository resumeSearchRepository, ProfileRepository profileRepository) {
         this.resumeRepository = resumeRepository;
         this.modificationUtility = modificationUtility;

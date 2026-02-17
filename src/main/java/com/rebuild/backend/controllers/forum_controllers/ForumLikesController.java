@@ -3,7 +3,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentLikeRequest;
 import com.rebuild.backend.model.dtos.forum_dtos.PostLikeRequest;
-import com.rebuild.backend.service.util_services.RabbitProducingService;
+import com.rebuild.backend.service.util_services.RabbitMQService;
 import org.springframework.amqp.AmqpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +16,10 @@ import java.util.UUID;
 @RequestMapping("/api/forum/batch")
 public class ForumLikesController {
 
-    private final RabbitProducingService producingService;
+    private final RabbitMQService producingService;
 
     @Autowired
-    public ForumLikesController(RabbitProducingService producingService) {
+    public ForumLikesController(RabbitMQService producingService) {
         this.producingService = producingService;
     }
 
