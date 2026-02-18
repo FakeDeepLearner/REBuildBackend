@@ -14,10 +14,15 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class CloudinaryService {
@@ -68,14 +73,50 @@ public class CloudinaryService {
         }
     }
 
+    @SuppressWarnings("DataFlowIssue")
+    private String decideEncodedType(MultipartFile file)
+    {
+        if (file.getContentType().equals("image/jpeg"))
+        {
+            return "jpeg";
+        }
+
+        else
+        {
+            return "png";
+        }
+    }
+
+    private byte[] reEncodeFile(MultipartFile pictureFile) throws IOException {
+
+        BufferedImage image = ImageIO.read(pictureFile.getInputStream());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+
+        ImageIO.write(image, decideEncodedType(pictureFile), baos);
+
+        return baos.toByteArray();
+    }
+
+    @SuppressWarnings("rawtypes")
     public UserProfile modifyProfilePictureOf(User changingUser, MultipartFile pictureFile) throws IOException
     {
+        List<String> allowedTypes = List.of("image/jpeg", "image/png");
+
+        String fileContent = pictureFile.getContentType();
+
+        if (fileContent == null || !allowedTypes.contains(fileContent)){
+            return null;
+        }
+
         if (!pictureFile.isEmpty())
         {
             UserProfile pictureRemovedProfile = removeProfilePicture(changingUser, false);
-            @SuppressWarnings("JvmTaintAnalysis")
-            Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
-                            copyToByteArray(pictureFile.getInputStream()),
+
+            byte[] reEncodedBytes = reEncodeFile(pictureFile);
+
+            Map uploadResult = cloudinary.uploader().upload(reEncodedBytes,
                     ObjectUtils.asMap("type", "private"));
             ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
                     (String) uploadResult.get("asset_id"));
