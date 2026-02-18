@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -46,28 +47,42 @@ public class CloudinaryService {
         }
     }
 
-    public UserProfile modifyProfilePictureOf(User chngingUser, MultipartFile pictureFile) throws IOException
+
+    public UserProfile removeProfilePicture(User removingUser, boolean saveAndReturn) throws IOException {
+        UserProfile profile = profileRepository.findByUser(removingUser);
+
+        if (profile.getProfilePicture() != null)
+        {
+            profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
+            profile.setProfilePicture(null);
+            cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
+                    ObjectUtils.asMap("type", "private"));
+        }
+        if (saveAndReturn)
+        {
+            return profileRepository.save(profile);
+        }
+        else
+        {
+            return profile;
+        }
+    }
+
+    public UserProfile modifyProfilePictureOf(User changingUser, MultipartFile pictureFile) throws IOException
     {
-        UserProfile profile = profileRepository.findByUser(chngingUser);
         if (!pictureFile.isEmpty())
         {
-            if(profile.getProfilePicture() != null)
-            {
-                profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
-                cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
-                        ObjectUtils.asMap("type", "private"));
-            }
-
-
+            UserProfile pictureRemovedProfile = removeProfilePicture(changingUser, false);
             @SuppressWarnings("JvmTaintAnalysis")
             Map uploadResult = cloudinary.uploader().upload(FileCopyUtils.
                             copyToByteArray(pictureFile.getInputStream()),
                     ObjectUtils.asMap("type", "private"));
             ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
                     (String) uploadResult.get("asset_id"));
-            profile.setProfilePicture(profilePicture);
-            profilePicture.setAssociatedProfile(profile);
+            pictureRemovedProfile.setProfilePicture(profilePicture);
+            profilePicture.setAssociatedProfile(pictureRemovedProfile);
+            return profileRepository.save(pictureRemovedProfile);
         }
-        return profile;
+        return changingUser.getUserProfile();
     }
 }

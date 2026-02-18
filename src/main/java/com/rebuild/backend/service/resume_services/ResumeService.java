@@ -37,17 +37,15 @@ public class ResumeService {
     private final ResumeObtainer getUtility;
 
     private final ResumeSearchRepository resumeSearchRepository;
-    private final ProfileRepository profileRepository;
 
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          SubpartsModificationService modificationUtility,
-                         ResumeObtainer getUtility, ResumeSearchRepository resumeSearchRepository, ProfileRepository profileRepository) {
+                         ResumeObtainer getUtility, ResumeSearchRepository resumeSearchRepository) {
         this.resumeRepository = resumeRepository;
         this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
         this.resumeSearchRepository = resumeSearchRepository;
-        this.profileRepository = profileRepository;
     }
 
     @Transactional
@@ -243,70 +241,6 @@ public class ResumeService {
         return resumeRepository.save(newResume);
 
     }
-
-
-    public Resume prefillHeader(UUID resumeID, User authenticatedUser)
-    {
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-        UserProfile profile = profileRepository.findByUserWithHeader(authenticatedUser);
-        Header header = profile.getHeader();
-        if(header == null){
-            throw new PrefillException("Your profile does not have a header set");
-        }
-        Header newHeader = Header.copy(header);
-        associatedResume.setHeader(newHeader);
-        return resumeRepository.save(associatedResume);
-    }
-
-    public Resume prefillEducation(UUID resumeID, User authenticatedUser)
-    {
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-        UserProfile profile = profileRepository.findByUserWithEducation(authenticatedUser);
-        Education education = profile.getEducation();
-        if(education == null){
-            throw new PrefillException("Your profile does not have an education set");
-        }
-        Education newEducation = Education.copy(education);
-        associatedResume.setEducation(newEducation);
-        return resumeRepository.save(associatedResume);
-    }
-
-
-    public Resume prefillExperiencesList(UUID resumeID, User authenticatedUser) {
-
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-        UserProfile profile = profileRepository.findByUserWithExperiences(authenticatedUser);
-        List<Experience> experienceList = profile.getExperienceList();
-        if (experienceList == null) {
-            throw new PrefillException("Your profile does not have experiences set");
-        }
-        List<Experience> newExperiences = experienceList.
-                stream().map(Experience::copy).peek(experience -> {
-                    experience.setResume(associatedResume);
-                }).
-                toList();
-        associatedResume.setExperiences(newExperiences);
-        return resumeRepository.save(associatedResume);
-    }
-
-    public Resume prefillProjectsList(UUID resumeID, User authenticatedUser) {
-
-        Resume associatedResume = getUtility.findByUserResumeId(authenticatedUser, resumeID);
-        UserProfile profile = profileRepository.findByUserWithProjects(authenticatedUser);
-        List<Project> projectList = profile.getProjectList();
-        if (projectList == null) {
-            throw new PrefillException("Your profile does not have projects set");
-        }
-        List<Project> newProjects = projectList.
-                stream().map(Project::copy).peek(project -> {
-                    project.setResume(associatedResume);
-                }).
-                toList();
-        associatedResume.setProjects(newProjects);
-        return resumeRepository.save(associatedResume);
-    }
-
-
     private List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
         return experienceForms.stream().map( rawForm -> {
                     Experience newExperience = new Experience(rawForm.companyName(),

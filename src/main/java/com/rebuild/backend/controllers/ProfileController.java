@@ -167,6 +167,19 @@ public class ProfileController {
         }
     }
 
+    @DeleteMapping("/remove_image")
+    @ResponseStatus(HttpStatus.OK)
+    @CacheEvict
+    public ResponseEntity<?> removeProfileImage(@AuthenticationPrincipal User user){
+        try {
+            return ResponseEntity.ok(cloudinaryService.removeProfilePicture(user, true));
+        }
+        catch (IOException e)
+        {
+            return ResponseEntity.internalServerError().body("An unexpected error occurred, please try again");
+        }
+    }
+
     @DeleteMapping("/delete_phone")
     @ResponseStatus(NO_CONTENT)
     public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {

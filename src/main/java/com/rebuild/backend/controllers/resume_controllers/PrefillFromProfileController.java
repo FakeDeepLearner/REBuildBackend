@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.service.resume_services.ResumePrefillService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -17,12 +18,11 @@ import java.util.UUID;
 @CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache",
         keyGenerator = "resumeCacheKeyGenerator")
 public class PrefillFromProfileController {
-
-    private final ResumeService resumeService;
+    private final ResumePrefillService prefillService;
 
     @Autowired
-    public PrefillFromProfileController(ResumeService resumeService) {
-        this.resumeService = resumeService;
+    public PrefillFromProfileController(ResumePrefillService prefillService) {
+        this.prefillService = prefillService;
     }
 
     @PostMapping("/header/{resume_id}")
@@ -30,7 +30,7 @@ public class PrefillFromProfileController {
     @CacheEvict
     public Resume prefillHeader(@PathVariable UUID resume_id,
                                 @AuthenticationPrincipal User user){
-        return resumeService.prefillHeader(resume_id, user);
+        return prefillService.prefillHeader(resume_id, user);
     }
 
     @PostMapping("/education/{resume_id}")
@@ -38,7 +38,7 @@ public class PrefillFromProfileController {
     @CacheEvict
     public Resume prefillEducation(@PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user){
-       return resumeService.prefillEducation(resume_id, user);
+       return prefillService.prefillEducation(resume_id, user);
     }
 
     @PostMapping("/experiences/{resume_id}")
@@ -46,7 +46,7 @@ public class PrefillFromProfileController {
     @CacheEvict
     public Resume prefillExperience(@PathVariable UUID resume_id,
                                                @AuthenticationPrincipal User user){
-        return resumeService.prefillExperiencesList(resume_id, user);
+        return prefillService.prefillExperiencesList(resume_id, user);
     }
 
     @PostMapping("/projects/{resume_id}")
@@ -54,6 +54,6 @@ public class PrefillFromProfileController {
     @CacheEvict
     public Resume prefillProjects(@PathVariable UUID resume_id,
                                     @AuthenticationPrincipal User user){
-        return resumeService.prefillProjectsList(resume_id, user);
+        return prefillService.prefillProjectsList(resume_id, user);
     }
 }
