@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -33,6 +34,10 @@ public class ProfilePicture implements Serializable {
     @Column(name = "asset_id", nullable = false)
     @NonNull
     private String asset_id;
+
+    @Column(name = "upload_time", nullable = false)
+    @NonNull
+    private Instant uploadedTime;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_id", referencedColumnName = "id")

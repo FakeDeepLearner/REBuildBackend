@@ -1,6 +1,8 @@
 package com.rebuild.backend.service.util_services;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.EagerTransformation;
+import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
@@ -23,9 +25,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Service
 public class CloudinaryService {
+
+    private static final Executor taskExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
     private final Cloudinary cloudinary;
 
@@ -41,10 +48,11 @@ public class CloudinaryService {
         this.profileRepository = profileRepository;
     }
 
+
     public String generateTimedUrlForPicture(ProfilePicture profilePicture){
         try {
             long expiryTimestamp = Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond();
-            return cloudinary.privateDownload(profilePicture.getPublic_id(), "png",
+            return cloudinary.privateDownload(profilePicture.getPublic_id(), "jpg",
                     ObjectUtils.asMap("expires_at", expiryTimestamp));
         }
         catch (Exception e) {
@@ -52,54 +60,51 @@ public class CloudinaryService {
         }
     }
 
+    private CompletableFuture<Void> scheduleDeletion(String public_id)
+    {
+        return CompletableFuture.runAsync(() ->
+        {
+            try {
+                cloudinary.uploader().destroy(public_id,
+                        ObjectUtils.asMap("type", "private"));
+            }
+            catch (IOException _)
+            {
 
-    public UserProfile removeProfilePicture(User removingUser, boolean saveAndReturn) throws IOException {
+            }
+        }, taskExecutor);
+
+    }
+
+
+    public UserProfile removeProfilePicture(User removingUser, boolean saveAndReturn){
         UserProfile profile = profileRepository.findByUser(removingUser);
 
-        if (profile.getProfilePicture() != null)
-        {
+        if (profile.getProfilePicture() != null) {
+            scheduleDeletion(profile.getProfilePicture().getPublic_id());
             profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
             profile.setProfilePicture(null);
-            cloudinary.uploader().destroy(profile.getProfilePicture().getPublic_id(),
-                    ObjectUtils.asMap("type", "private"));
         }
-        if (saveAndReturn)
-        {
+        if (saveAndReturn) {
             return profileRepository.save(profile);
-        }
-        else
-        {
+        } else {
             return profile;
         }
     }
 
-    @SuppressWarnings("DataFlowIssue")
-    private String decideEncodedType(MultipartFile file)
-    {
-        if (file.getContentType().equals("image/jpeg"))
-        {
-            return "jpeg";
-        }
+    private ProfilePicture createNewPicture(MultipartFile pictureFile) throws IOException {
 
-        else
-        {
-            return "png";
-        }
+        Transformation transformation = new Transformation<>().
+                flags("force_strip").fetchFormat("jpg");
+        Map uploadResult = cloudinary.uploader().upload(pictureFile.getInputStream(),
+                ObjectUtils.asMap("type", "private",
+                        "transformation", transformation));
+
+        return new ProfilePicture((String) uploadResult.get("public_id"),
+                (String) uploadResult.get("asset_id"), Instant.now());
     }
 
-    private byte[] reEncodeFile(MultipartFile pictureFile) throws IOException {
 
-        BufferedImage image = ImageIO.read(pictureFile.getInputStream());
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-
-        ImageIO.write(image, decideEncodedType(pictureFile), baos);
-
-        return baos.toByteArray();
-    }
-
-    @SuppressWarnings("rawtypes")
     public UserProfile modifyProfilePictureOf(User changingUser, MultipartFile pictureFile) throws IOException
     {
         List<String> allowedTypes = List.of("image/jpeg", "image/png");
@@ -114,12 +119,7 @@ public class CloudinaryService {
         {
             UserProfile pictureRemovedProfile = removeProfilePicture(changingUser, false);
 
-            byte[] reEncodedBytes = reEncodeFile(pictureFile);
-
-            Map uploadResult = cloudinary.uploader().upload(reEncodedBytes,
-                    ObjectUtils.asMap("type", "private"));
-            ProfilePicture profilePicture = new ProfilePicture((String) uploadResult.get("public_id"),
-                    (String) uploadResult.get("asset_id"));
+            ProfilePicture profilePicture = createNewPicture(pictureFile);
             pictureRemovedProfile.setProfilePicture(profilePicture);
             profilePicture.setAssociatedProfile(pictureRemovedProfile);
             return profileRepository.save(pictureRemovedProfile);

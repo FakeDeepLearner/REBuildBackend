@@ -140,7 +140,8 @@ public class ProfileService {
 
     @Transactional
     public void deleteProfile(User deletingUser){
-        UserProfile profile = profileRepository.findByUser(deletingUser);
+        UserProfile profile = cloudinaryService.removeProfilePicture(deletingUser, true);
+
         profileRepository.delete(profile);
     }
 
