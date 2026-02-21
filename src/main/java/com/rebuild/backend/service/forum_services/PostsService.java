@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration
 import com.rebuild.backend.model.entities.forum_entities.ResumeFileUploadRecord;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.exceptions.FileUploadException;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
@@ -18,6 +19,8 @@ import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.AWSService;
 import com.rebuild.backend.service.util_services.ElasticSearchService;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -68,21 +72,54 @@ public class PostsService {
 
         //Calling the upload function in a loop already kick-starts everything for the upload process.
         //This variable is here because we might want to do something with it later just in case.
+
+        List<CompletableFuture<?>> fileUploadResults = new ArrayList<>();
+        for (int i = 0; i < resumeFiles.size(); i++)
+        {
+            MultipartFile file = resumeFiles.get(i);
+            try{
+                String detectedFileType = new Tika().detect(file.getInputStream());
+
+                if (!"application/pdf".equals(detectedFileType))
+                {
+                    fileUploadResults.add(CompletableFuture.failedFuture(new FileUploadException(i + 1,
+                            "File type is not a pdf", new IllegalArgumentException())));
+                }
+                else {
+                    fileUploadResults.add(awsService.uploadFileToS3(newPost, file.getBytes()));
+                }
+            }
+            catch (IOException e) {
+                fileUploadResults.add(CompletableFuture.
+                        failedFuture(new FileUploadException(i + 1, e.getMessage(), e.getCause())));
+            }
+        }
+        /*
         List<CompletableFuture<?>> uploadResults = resumeFiles.stream()
                         .map(file -> {
-                            byte[] fileBytes;
+
                             try{
-                                fileBytes = file.getBytes();
+                                String detectedFileType = new Tika().detect(file.getInputStream());
+
+                                if (!"application/pdf".equals(detectedFileType))
+                                {
+                                    return CompletableFuture.failedFuture(new FileUploadException(resumeFiles.indexOf(file),
+                                            ))
+                                }
+                                return awsService.uploadFileToS3(file.getOriginalFilename(),
+                                        creatingUser, newPost, file.getBytes());
                             }
                             catch (IOException e) {
-                                return CompletableFuture.completedFuture(null);
+                                return CompletableFuture.failedFuture(new FileUploadException(resumeFiles.indexOf(file), e.getMessage(),
+                                        e.getCause()));
                             }
-                            return awsService.uploadFileToS3(file.getOriginalFilename(),
-                                    creatingUser, newPost, fileBytes);
+
                         }).toList();
 
+         */
+
         //Wait here until all the uploads have been processed.
-        CompletableFuture.allOf(uploadResults.toArray(new CompletableFuture[0])).join();
+        CompletableFuture.allOf(fileUploadResults.toArray(new CompletableFuture[0])).join();
 
         newPost.setCreatingUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);

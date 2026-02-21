@@ -55,8 +55,8 @@ public class CloudinaryService {
             return cloudinary.privateDownload(profilePicture.getPublic_id(), "jpg",
                     ObjectUtils.asMap("expires_at", expiryTimestamp));
         }
-        catch (Exception e) {
-            throw new FileUploadException(e.getMessage(), e.getCause());
+        catch (Exception _) {
+           return null;
         }
     }
 

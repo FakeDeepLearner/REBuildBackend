@@ -1,5 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
+import com.rebuild.backend.utils.converters.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,10 +19,12 @@ public class ResumeFileUploadRecord {
     private UUID id;
 
     @Column(name = "bucket_name")
+    @Convert(converter = DatabaseEncryptor.class)
     @NonNull
     private String bucketName;
 
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     @Column(name = "object_key")
     private String objectKey;
 

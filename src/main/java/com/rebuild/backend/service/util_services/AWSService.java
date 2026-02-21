@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.FileUploadException;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -19,6 +20,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 public class AWSService {
@@ -27,37 +29,39 @@ public class AWSService {
 
     private final S3AsyncClient s3AsyncClient;
 
+    private final Executor executor;
+
     @Autowired
-    public AWSService(Dotenv dotenv, S3AsyncClient s3AsyncClient) {
+    public AWSService(Dotenv dotenv, S3AsyncClient s3AsyncClient,
+                      @Qualifier(value = "executor") Executor executor) {
         this.dotenv = dotenv;
         this.s3AsyncClient = s3AsyncClient;
+        this.executor = executor;
     }
 
-    private String determineFileKey(User user, UUID randomId, String originalFileName) {
-        return user.getId().toString() + "/" + randomId.toString() + "/" + originalFileName;
-    }
 
-    public CompletableFuture<Void> uploadFileToS3(String originalFileName,
-                                                   User uploadingUser, ForumPost post,
-                                                   byte[] fileBytes) {
-        String objectKey = determineFileKey(uploadingUser, UUID.randomUUID(), originalFileName);
+    public CompletableFuture<Void> uploadFileToS3(ForumPost post,
+                                                  byte[] fileBytes) {
+        String objectKey = UUID.randomUUID().toString();
         String bucketName = dotenv.get("AWS_S3_BUCKET_NAME");
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder().
                 bucket(bucketName).
-                key(objectKey).build();
+                key(objectKey).
+                build();
 
         AsyncRequestBody requestBody = AsyncRequestBody.fromBytes(fileBytes);
 
 
         return s3AsyncClient.putObject(putObjectRequest, requestBody).
-                thenAccept(putObjectResponse -> {
+                thenAcceptAsync(putObjectResponse -> {
                     ResumeFileUploadRecord newUploadRecord = new ResumeFileUploadRecord(bucketName, objectKey,
                             putObjectResponse.expiration(), putObjectResponse.eTag());
                     newUploadRecord.setAssociatedPost(post);
+                    post.getUploadedFiles().add(newUploadRecord);
 
-                }).exceptionally(throwable -> {
-                    throw new FileUploadException(throwable.getMessage(), throwable);
+                }, executor).exceptionally(throwable -> {
+                    throw new FileUploadException(-1, throwable.getMessage(), throwable);
                 });
     }
 
@@ -71,7 +75,7 @@ public class AWSService {
 
         return s3AsyncClient.deleteObject(deleteObjectRequest).
                 exceptionally(throwable ->  {
-                    throw new FileUploadException(throwable.getMessage(), throwable);
+                    throw new FileUploadException(-1, throwable.getMessage(), throwable);
                 }).thenApply(_ -> null);
     }
 

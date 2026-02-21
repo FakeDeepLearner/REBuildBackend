@@ -9,6 +9,7 @@ import com.sendgrid.SendGrid;
 import com.twilio.Twilio;
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.annotation.PostConstruct;
+import org.apache.tika.Tika;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -17,6 +18,8 @@ import org.springframework.validation.beanvalidation.MethodValidationPostProcess
 import org.springframework.web.filter.UrlHandlerFilter;
 
 import java.nio.charset.Charset;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Configuration
 public class SingularBeansConfig {
@@ -65,6 +68,12 @@ public class SingularBeansConfig {
     @Bean(name = "processor")
     public MethodValidationPostProcessor processor(){
         return new MethodValidationPostProcessor();
+    }
+
+    @Bean(name = "executor")
+    public Executor virtualThreadExecutor()
+    {
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 
 }
