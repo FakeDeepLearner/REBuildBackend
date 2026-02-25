@@ -36,38 +36,25 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class UserService{
 
-    private final int SALT_BYTE_LENGTH = 16;
-
     private final UserRepository repository;
 
     private final PasswordEncoder encoder;
 
-    private final ResumeRepository resumeRepository;
-
-    private final ProfileService profileService;
-
     private final Dotenv dotenv;
 
-    private final ElasticSearchService elasticSearchService;
-
-    private final ResumeService resumeService;
-
     private final CloudinaryService cloudinaryService;
+
+    private final UserRepository userRepository;
 
 
     @Autowired
     public UserService(UserRepository repository,
-                       ResumeRepository resumeRepository,
-                       ProfileService profileService,
-                       Dotenv dotenv, ElasticSearchService elasticSearchService, ResumeService resumeService, CloudinaryService cloudinaryService) {
+                       Dotenv dotenv, CloudinaryService cloudinaryService, UserRepository userRepository) {
         this.repository = repository;
-        this.profileService = profileService;
         this.dotenv = dotenv;
-        this.elasticSearchService = elasticSearchService;
-        this.resumeService = resumeService;
         this.cloudinaryService = cloudinaryService;
+        this.userRepository = userRepository;
         this.encoder = new BCryptPasswordEncoder();
-        this.resumeRepository = resumeRepository;
     }
 
 
@@ -106,7 +93,9 @@ public class UserService{
 
     private String generateSaltValue(){
         SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[SALT_BYTE_LENGTH];
+        //16 bytes = 128 bit salt, which is what is recommended
+        int saltByteLength = 16;
+        byte[] salt = new byte[saltByteLength];
         random.nextBytes(salt);
         return Base64.getEncoder().encodeToString(salt);
     }
