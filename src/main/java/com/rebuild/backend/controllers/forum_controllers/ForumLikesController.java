@@ -16,11 +16,11 @@ import java.util.UUID;
 @RequestMapping("/api/forum/batch")
 public class ForumLikesController {
 
-    private final RabbitMQService producingService;
+    private final RabbitMQService rabbitMQService;
 
     @Autowired
-    public ForumLikesController(RabbitMQService producingService) {
-        this.producingService = producingService;
+    public ForumLikesController(RabbitMQService rabbitMQService) {
+        this.rabbitMQService = rabbitMQService;
     }
 
     @PostMapping("/like_comment/{comment_id}")
@@ -28,7 +28,7 @@ public class ForumLikesController {
                                               @PathVariable UUID comment_id){
         try{
             CommentLikeRequest newRequest = new CommentLikeRequest(likingUser.getForumUsername(), comment_id);
-            producingService.sendCommentLike(newRequest);
+            rabbitMQService.sendCommentLike(newRequest);
             return ResponseEntity.ok("Comment liked");
         }
         catch (AmqpException amqpException){
@@ -41,7 +41,7 @@ public class ForumLikesController {
                                            @PathVariable UUID post_id){
         try{
             PostLikeRequest newRequest = new PostLikeRequest(likingUser.getForumUsername(), post_id);
-            producingService.sendPostLike(newRequest);
+            rabbitMQService.sendPostLike(newRequest);
             return ResponseEntity.ok("Comment liked");
         }
         catch (AmqpException amqpException){
