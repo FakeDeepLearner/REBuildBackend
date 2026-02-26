@@ -7,7 +7,7 @@ import java.security.SecureRandom;
 
 public class RecoveryCode {
 
-    private static final char[] ALPHABET =
+    private static final char[] DOMAIN =
             "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
 
     private static final int CODE_GROUP_SIZE = 4;
@@ -36,7 +36,7 @@ public class RecoveryCode {
 
         for (int i = 0; i < CODE_TOTAL_LENGTH; i++)
         {
-            characters[i] = ALPHABET[random.nextInt(ALPHABET.length)];
+            characters[i] = DOMAIN[random.nextInt(DOMAIN.length)];
         }
 
         return new RecoveryCode(new String(characters));

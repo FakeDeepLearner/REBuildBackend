@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.filter.UrlHandlerFilter;
 
@@ -74,6 +76,12 @@ public class SingularBeansConfig {
     public Executor virtualThreadExecutor()
     {
         return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean
+    public PasswordEncoder encoder()
+    {
+        return new BCryptPasswordEncoder();
     }
 
 }

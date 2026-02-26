@@ -44,43 +44,14 @@ public class UserService{
 
     private final CloudinaryService cloudinaryService;
 
-    private final UserRepository userRepository;
-
 
     @Autowired
-    public UserService(UserRepository repository,
-                       Dotenv dotenv, CloudinaryService cloudinaryService, UserRepository userRepository) {
+    public UserService(UserRepository repository, PasswordEncoder encoder,
+                       Dotenv dotenv, CloudinaryService cloudinaryService) {
         this.repository = repository;
         this.dotenv = dotenv;
         this.cloudinaryService = cloudinaryService;
-        this.userRepository = userRepository;
-        this.encoder = new BCryptPasswordEncoder();
-    }
-
-
-    @Transactional
-    public void changePassword(User changingUser, String newRawPassword){
-        String userSalt = changingUser.getSaltValue();
-        String pepper = dotenv.get("PEPPER_VALUE");
-        String newHashedPassword = encoder.encode(newRawPassword + userSalt + pepper);
-
-        changingUser.setPassword(newHashedPassword);
-        repository.save(changingUser);
-    }
-
-    @Transactional
-    public void changeEmail(User changingUser, String newEmail){
-        try {
-            changingUser.setEmail(newEmail);
-        }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException violationException){
-                if (Objects.equals(violationException.getConstraintName(), "uk_email")){
-                    throw new RuntimeException("This email address already exists");
-                }
-            }
-        }
+        this.encoder = encoder;
     }
 
     @Transactional

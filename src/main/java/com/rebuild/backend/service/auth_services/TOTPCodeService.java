@@ -27,9 +27,6 @@ import java.util.stream.Stream;
 @Service
 public class TOTPCodeService {
 
-
-    private static final int NUM_RECOVERY_CODES_GENERATED = 8;
-
     private static final int TOTP_CODE_NUM_DIGITS = 6;
 
     private static final String ISSUER_NAME = "rerebuild.ca";
@@ -44,11 +41,12 @@ public class TOTPCodeService {
 
     public TOTPCodeService(TOTPSecretRepository totpSecretRepository,
                            UserRepository userRepository,
-                           RecoveryCodeHelperService recoveryCodeHelperService) {
+                           RecoveryCodeHelperService recoveryCodeHelperService,
+                           PasswordEncoder encoder) {
         this.totpSecretRepository = totpSecretRepository;
         this.userRepository = userRepository;
         this.recoveryCodeHelperService = recoveryCodeHelperService;
-        this.encoder = new BCryptPasswordEncoder();
+        this.encoder = encoder;
     }
 
     private String generateRandomSecret()

@@ -45,13 +45,14 @@ public class UserAuthenticationHelperService {
     public UserAuthenticationHelperService(UserRepository userRepository,
                                            Dotenv dotenv,
                                            CaptchaVerificationRepository verificationRepository,
+                                           PasswordEncoder encoder,
                                            CustomPasswordService passwordService,
                                            ProxyManager<String> proxyManager,
                                            BucketConfiguration bucketConfiguration) {
         this.userRepository = userRepository;
         this.dotenv = dotenv;
         this.verificationRepository = verificationRepository;
-        this.encoder = new BCryptPasswordEncoder();
+        this.encoder = encoder;
         this.passwordService = passwordService;
         this.proxyManager = proxyManager;
         this.bucketConfiguration = bucketConfiguration;
