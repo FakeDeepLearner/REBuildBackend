@@ -33,6 +33,12 @@ public class SingularBeansConfig {
     }
 
     @Bean
+    public SendGrid sendGrid(Dotenv dotenv)
+    {
+        return new SendGrid(dotenv.get("TWILIO_SENDGRID_KEY"));
+    }
+
+    @Bean
     public DbxRequestConfig requestConfig()
     {
         return DbxRequestConfig.newBuilder("rerebuild").build();

@@ -4,15 +4,19 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.auth_forms.PasswordResetForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
 import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
 import com.rebuild.backend.service.auth_services.RecoveryCodeHelperService;
 import com.rebuild.backend.service.auth_services.TOTPCodeService;
 import com.rebuild.backend.service.auth_services.UserAuthenticationHelperService;
+import com.rebuild.backend.service.user_services.EmailAndPasswordChangeService;
 import com.rebuild.backend.service.user_services.UserService;
+import com.sendgrid.helpers.mail.Mail;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.hibernate.exception.ConstraintViolationException;
@@ -45,15 +49,20 @@ public class AuthenticationController {
 
     private final RecoveryCodeHelperService recoveryCodeHelperService;
 
+    private final EmailAndPasswordChangeService emailAndPasswordChangeService;
+
     @Autowired
     public AuthenticationController(AuthenticationManager authManager,
                                     UserService userService,
-                                    UserAuthenticationHelperService authenticationHelperService, TOTPCodeService totpCodeService, RecoveryCodeHelperService recoveryCodeHelperService) {
+                                    UserAuthenticationHelperService authenticationHelperService,
+                                    TOTPCodeService totpCodeService,
+                                    RecoveryCodeHelperService recoveryCodeHelperService, EmailAndPasswordChangeService emailAndPasswordChangeService) {
         this.authManager = authManager;
         this.userService = userService;
         this.authenticationHelperService = authenticationHelperService;
         this.totpCodeService = totpCodeService;
         this.recoveryCodeHelperService = recoveryCodeHelperService;
+        this.emailAndPasswordChangeService = emailAndPasswordChangeService;
     }
 
     @PostMapping("/login/initialize")
@@ -263,6 +272,20 @@ public class AuthenticationController {
     public List<String> regenerateRecoveryCodes(@AuthenticationPrincipal User user)
     {
         return recoveryCodeHelperService.regenerateRecoveryCodesFor(user);
+    }
+
+
+    @PostMapping("/password_reset")
+    public ResponseEntity<String> sendPasswordResetEmail(@RequestBody String enteredEmail)
+    {
+        return emailAndPasswordChangeService.sendPasswordChangeEmail(enteredEmail);
+    }
+
+    @PostMapping("/change_password")
+    public ResponseEntity<String> changePassword(@RequestParam(name = "token") String token,
+                                                 @RequestBody PasswordResetForm passwordResetForm)
+    {
+        return emailAndPasswordChangeService.processPasswordChange(token, passwordResetForm);
     }
 
 
