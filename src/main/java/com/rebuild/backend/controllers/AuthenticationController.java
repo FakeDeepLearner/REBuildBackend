@@ -1,11 +1,8 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
+import com.rebuild.backend.model.forms.auth_forms.*;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
-import com.rebuild.backend.model.forms.auth_forms.LoginForm;
-import com.rebuild.backend.model.forms.auth_forms.PasswordResetForm;
-import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
 import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
 import com.rebuild.backend.service.auth_services.RecoveryCodeHelperService;
@@ -275,17 +272,31 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("/password_reset")
+    @PostMapping("/initialize_password_reset")
     public ResponseEntity<String> sendPasswordResetEmail(@RequestBody String enteredEmail)
     {
         return emailAndPasswordChangeService.sendPasswordChangeEmail(enteredEmail);
     }
 
-    @PostMapping("/change_password")
+    @PostMapping("/finalize_password_reset")
     public ResponseEntity<String> changePassword(@RequestParam(name = "token") String token,
                                                  @RequestBody PasswordResetForm passwordResetForm)
     {
         return emailAndPasswordChangeService.processPasswordChange(token, passwordResetForm);
+    }
+
+
+    @PostMapping("initialize_email_change")
+    public ResponseEntity<String> sendEmailChangeEmail(@RequestBody EmailChangeInitialForm form)
+    {
+        return emailAndPasswordChangeService.sendEmailChange(form.oldEmail(), form.newEmail());
+    }
+
+    @PostMapping("/finalize_email_change")
+    public ResponseEntity<String> processEmailChange(@RequestParam(name = "token") String token,
+                                                     @RequestBody EmailChangeConfirmationForm confirmationForm)
+    {
+        return emailAndPasswordChangeService.processEmailChange(token, confirmationForm);
     }
 
 
