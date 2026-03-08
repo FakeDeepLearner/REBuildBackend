@@ -20,12 +20,6 @@ import java.time.Duration;
 @Configuration
 public class RedisCachesConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
-
-    @Value("${spring.data.redis.port}")
-    private int port;
-
     private final RedisResumeSerializer resumeSerializer;
 
     private final RedisProfileSerializer profileSerializer;

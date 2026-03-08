@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.elastic_utils;
+package com.rebuild.backend.service.util_services;
 
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;

@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.converters;
+package com.rebuild.backend.utils.database_utils;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.persistence.AttributeConverter;

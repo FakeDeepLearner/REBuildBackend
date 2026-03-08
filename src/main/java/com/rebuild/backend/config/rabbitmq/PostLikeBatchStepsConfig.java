@@ -36,16 +36,13 @@ public class PostLikeBatchStepsConfig {
 
     private final PostLikeProcessor postLikeProcessor;
 
-    private final BatchJobExecutor jobRegisterer;
-
     @Autowired
     public PostLikeBatchStepsConfig(EntityManagerFactory entityManagerFactory,
                                     RabbitTemplate rabbitTemplate,
-                                    PostLikeProcessor postLikeProcessor, BatchJobExecutor jobRegisterer) {
+                                    PostLikeProcessor postLikeProcessor) {
         this.entityManagerFactory = entityManagerFactory;
         this.rabbitTemplate = rabbitTemplate;
         this.postLikeProcessor = postLikeProcessor;
-        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "postsReader")

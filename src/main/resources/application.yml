@@ -6,13 +6,6 @@ spring:
 ---
 
 spring:
-  session:
-    redis:
-      flush-mode: on_save
-      namespace: spring:session
-    timeout: 30m
-  cache:
-    type: redis
   rabbitmq:
     host: localhost
     port: 5672
@@ -58,21 +51,13 @@ logging:
 server:
   servlet:
     session:
-      timeout: 10m
+      timeout: 20m
       cookie:
-        name: JSESSIONID
         http-only: true
         secure: true
         same-site: strict
+        name: JSESSIONID
   port: 443
-  ssl:
-    enabled: true
-    key-store: src/main/resources/sslkey.jks
-    key-alias: reformkey
-    key-store-type: JKS
-    key-store-password: 12Eren89
-
-
 ---
 
 spring:

@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
-import com.rebuild.backend.utils.converters.DatabaseEncryptor;
+import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 

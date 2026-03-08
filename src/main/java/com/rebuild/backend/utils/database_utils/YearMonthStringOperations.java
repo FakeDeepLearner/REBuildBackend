@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.converters;
+package com.rebuild.backend.utils.database_utils;
 
 
 import org.springframework.stereotype.Component;

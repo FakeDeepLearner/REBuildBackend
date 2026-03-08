@@ -5,7 +5,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
 import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.utils.util_entities.RecoveryCode;
+import com.rebuild.backend.model.entities.user_entities.RecoveryCode;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;

@@ -27,9 +27,8 @@ import java.lang.annotation.Annotation;
 public class CustomAuthPrincipalResolver implements HandlerMethodArgumentResolver {
 
     private final Class<AuthenticationPrincipal> annotationType = AuthenticationPrincipal.class;
-    private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
-    private final ExpressionParser parser = new SpelExpressionParser();
-    private final SecurityAnnotationScanner<@NonNull AuthenticationPrincipal> scanner = SecurityAnnotationScanners.requireUnique(AuthenticationPrincipal.class);
+    private final SecurityContextHolderStrategy securityContextHolderStrategy =
+            SecurityContextHolder.getContextHolderStrategy();
 
 
     @Override
@@ -41,7 +40,7 @@ public class CustomAuthPrincipalResolver implements HandlerMethodArgumentResolve
     public @Nullable Object resolveArgument(MethodParameter parameter,
                                             @Nullable ModelAndViewContainer mavContainer,
                                             NativeWebRequest webRequest,
-                                            @Nullable WebDataBinderFactory binderFactory) throws Exception {
+                                            @Nullable WebDataBinderFactory binderFactory){
         Authentication authentication = this.securityContextHolderStrategy.getContext().getAuthentication();
         if (authentication == null) {
             return null;
@@ -76,25 +75,20 @@ public class CustomAuthPrincipalResolver implements HandlerMethodArgumentResolve
     }
 
     private @Nullable AuthenticationPrincipal findMethodAnnotation(MethodParameter parameter) {
-        boolean useAnnotationTemplate = false;
-        if (useAnnotationTemplate) {
-            return this.scanner.scan(parameter.getParameter());
+        AuthenticationPrincipal annotation = parameter.getParameterAnnotation(this.annotationType);
+        if (annotation != null) {
+            return annotation;
         } else {
-            AuthenticationPrincipal annotation = parameter.getParameterAnnotation(this.annotationType);
-            if (annotation != null) {
-                return annotation;
-            } else {
-                Annotation[] annotationsToSearch = parameter.getParameterAnnotations();
+            Annotation[] annotationsToSearch = parameter.getParameterAnnotations();
 
-                for(Annotation toSearch : annotationsToSearch) {
-                    annotation = AnnotationUtils.findAnnotation(toSearch.annotationType(), this.annotationType);
-                    if (annotation != null) {
-                        return MergedAnnotations.from(new Annotation[]{toSearch}).get(this.annotationType).synthesize();
-                    }
+            for(Annotation toSearch : annotationsToSearch) {
+                annotation = AnnotationUtils.findAnnotation(toSearch.annotationType(), this.annotationType);
+                if (annotation != null) {
+                    return MergedAnnotations.from(new Annotation[]{toSearch}).get(this.annotationType).synthesize();
                 }
-
-                return null;
             }
+
+            return null;
         }
     }
 }

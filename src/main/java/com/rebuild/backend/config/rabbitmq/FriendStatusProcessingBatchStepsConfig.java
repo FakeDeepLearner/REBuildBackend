@@ -28,12 +28,9 @@ public class FriendStatusProcessingBatchStepsConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final BatchJobExecutor jobRegisterer;
-
     @Autowired
-    public FriendStatusProcessingBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobExecutor jobRegisterer) {
+    public FriendStatusProcessingBatchStepsConfig(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
-        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "requestsReader")

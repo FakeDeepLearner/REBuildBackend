@@ -70,7 +70,7 @@ public class SecureAuthConfig {
                                 loginPage("/login"))
                 .logout(config -> config.
                     logoutUrl("/logout").
-                    logoutSuccessUrl("/login?logout=true").
+                    logoutSuccessUrl("logged-out").
                     addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(COOKIES))).
                         permitAll())
                 .rememberMe(rememberMe ->
@@ -80,12 +80,12 @@ public class SecureAuthConfig {
                 .csrf(csrf ->
                         csrf.csrfTokenRepository(tokenRepository)).
                 sessionManagement(session ->
-                        session.invalidSessionUrl("/login?sessionInvalid=true").
-                                sessionFixation().changeSessionId().
-                        sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                        session.invalidSessionUrl("invalid-session").
+                                sessionFixation().migrateSession().
+                        sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                                 .maximumSessions(1).maxSessionsPreventsLogin(true).
                                 sessionRegistry(sessionRegistry()).
-                                expiredUrl("/login?sessionExpired=true"));
+                                expiredUrl("expired-session"));
 
         return security.build();
 

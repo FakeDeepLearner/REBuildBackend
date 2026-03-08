@@ -1,21 +1,17 @@
 package com.rebuild.backend.service.resume_services;
 
 
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.exceptions.BelongingException;
-import com.rebuild.backend.model.exceptions.PrefillException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
-import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationService;
-import com.rebuild.backend.utils.ResumeObtainer;
-import com.rebuild.backend.utils.converters.YearMonthStringOperations;
+import com.rebuild.backend.utils.database_utils.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;

@@ -34,17 +34,14 @@ public class CommentLikeBatchStepsConfig {
 
     private final CommentLikeProcessor likeProcessor;
 
-    private final BatchJobExecutor jobRegisterer;
-
 
     @Autowired
     public CommentLikeBatchStepsConfig(RabbitTemplate rabbitTemplate,
                                        EntityManagerFactory entityManagerFactory,
-                                       CommentLikeProcessor likeProcessor, BatchJobExecutor jobRegisterer) {
+                                       CommentLikeProcessor likeProcessor) {
         this.rabbitTemplate = rabbitTemplate;
         this.entityManagerFactory = entityManagerFactory;
         this.likeProcessor = likeProcessor;
-        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "likeReader")

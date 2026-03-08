@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.util_entities;
+package com.rebuild.backend.model.entities.user_entities;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

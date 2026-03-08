@@ -28,12 +28,9 @@ public class ProcessLikesBatchStepsConfig {
 
     private final EntityManagerFactory entityManagerFactory;
 
-    private final BatchJobExecutor jobRegisterer;
-
     @Autowired
-    public ProcessLikesBatchStepsConfig(EntityManagerFactory entityManagerFactory, BatchJobExecutor jobRegisterer) {
+    public ProcessLikesBatchStepsConfig(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
-        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "likesReader")

@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils.serializers;
+package com.rebuild.backend.utils.database_utils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

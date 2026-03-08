@@ -1,28 +1,22 @@
 package com.rebuild.backend.service.auth_services;
 
-import com.rebuild.backend.model.entities.user_entities.MFARecoveryCodeEntity;
 import com.rebuild.backend.model.entities.user_entities.SecretStatus;
 import com.rebuild.backend.model.entities.user_entities.TOTPSecret;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
-import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.TOTPSecretRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.utils.util_entities.RecoveryCode;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import org.apache.commons.codec.binary.Base32;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 @Service
 public class TOTPCodeService {

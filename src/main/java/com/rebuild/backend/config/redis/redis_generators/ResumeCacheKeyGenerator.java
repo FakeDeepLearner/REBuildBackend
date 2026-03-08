@@ -1,4 +1,4 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.config.redis.redis_generators;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import lombok.NonNull;

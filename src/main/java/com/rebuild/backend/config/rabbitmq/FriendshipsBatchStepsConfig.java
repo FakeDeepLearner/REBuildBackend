@@ -31,16 +31,13 @@ public class FriendshipsBatchStepsConfig {
 
     private final FriendsProcessor friendsProcessor;
 
-    private final BatchJobExecutor jobRegisterer;
-
     @Autowired
     public FriendshipsBatchStepsConfig(EntityManagerFactory entityManagerFactory,
                                        RabbitTemplate rabbitTemplate,
-                                       FriendsProcessor friendsProcessor, BatchJobExecutor jobRegisterer) {
+                                       FriendsProcessor friendsProcessor) {
         this.entityManagerFactory = entityManagerFactory;
         this.rabbitTemplate = rabbitTemplate;
         this.friendsProcessor = friendsProcessor;
-        this.jobRegisterer = jobRegisterer;
     }
 
     @Bean(name = "friendsReader")
