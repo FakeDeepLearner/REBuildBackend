@@ -5,16 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-public record ResumeSpecsForm(String resumeNameContains, String firstNameContains,
-                              String lastNameContains,
+public record ResumeSpecsForm(String resumeNameContains,
                               String creationAfterCutoff,
-                              String creationBeforeCutoff,
-                              String schoolNameContains,
-                              String courseWorkContains,
-                              String companyContains,
-                              String experienceBulletsContains,
-                              String experienceTechnologyListContains,
-                              String projectNameContains,
-                              String projectTechnologyListContains,
-                              String projectBulletsContains) {
+                              String creationBeforeCutoff) {
 }

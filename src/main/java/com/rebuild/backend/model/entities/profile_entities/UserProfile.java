@@ -3,7 +3,7 @@ package com.rebuild.backend.model.entities.profile_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;

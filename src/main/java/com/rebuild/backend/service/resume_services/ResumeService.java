@@ -1,8 +1,7 @@
 package com.rebuild.backend.service.resume_services;
 
 
-import com.rebuild.backend.model.entities.resume_entities.search_entities.*;
-import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.exceptions.BelongingException;
@@ -66,14 +65,6 @@ public class ResumeService {
                         "you cannot update it"));
 
         foundConfig.setLastUpdatedTime(Instant.now());
-        foundConfig.setHeaderSearchProperties(new HeaderSearchProperties(baseForm.firstNameContains(),
-                baseForm.lastNameContains()));
-        foundConfig.setEducationSearchProperties(new EducationSearchProperties(baseForm.schoolNameContains(),
-                baseForm.courseWorkContains()));
-        foundConfig.setExperienceSearchProperties(new ExperienceSearchProperties(baseForm.companyContains(), baseForm.experienceBulletsContains(),
-                baseForm.experienceTechnologyListContains()));
-        foundConfig.setProjectSearchProperties(new ProjectSearchProperties(baseForm.projectNameContains(),
-                baseForm.projectTechnologyListContains(), baseForm.projectBulletsContains()));
         foundConfig.setCreationAfterCutoff(Instant.parse(baseForm.creationAfterCutoff()));
         foundConfig.setCreationBeforeCutoff(Instant.parse(baseForm.creationBeforeCutoff()));
         return resumeSearchRepository.save(foundConfig);

@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository.resume_repositories;
 
-import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;

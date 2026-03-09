@@ -7,7 +7,7 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;

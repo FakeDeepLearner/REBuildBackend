@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.search_entities.ResumeSearchConfiguration;
+import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;

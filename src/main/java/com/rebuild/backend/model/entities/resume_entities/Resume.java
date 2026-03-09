@@ -14,6 +14,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -70,18 +71,15 @@ public class Resume implements Serializable {
     private String name;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
-    @IndexedEmbedded
     private Header header;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
-    @IndexedEmbedded
     private Education education;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "resume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    @IndexedEmbedded
     private List<Experience> experiences = new ArrayList<>();
 
 
@@ -89,7 +87,6 @@ public class Resume implements Serializable {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "resume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    @IndexedEmbedded
     private List<Project> projects = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
@@ -113,7 +110,6 @@ public class Resume implements Serializable {
 
     @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private Instant creationTime = Instant.now();
-
 
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant lastModifiedTime = Instant.now();
@@ -170,6 +166,5 @@ public class Resume implements Serializable {
     {
         return this.user.getId();
     }
-
 
 }
