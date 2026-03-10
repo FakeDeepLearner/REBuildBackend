@@ -57,8 +57,7 @@ public class ProfileService {
         updatedProfile.setExperienceList(experiences);
         updatedProfile.setProjectList(projects);
 
-        ProfileSettings newSettings = new ProfileSettings(preferencesForm.publicPostHistory(),
-                preferencesForm.publicCommentHistory(), preferencesForm.messagesFromFriendsOnly());
+        ProfileSettings newSettings = ProfileSettings.defaultSettings();
         newSettings.setAssociatedProfile(updatedProfile);
         updatedProfile.setSettings(newSettings);
 

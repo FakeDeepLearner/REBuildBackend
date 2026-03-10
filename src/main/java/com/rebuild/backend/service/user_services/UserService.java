@@ -2,6 +2,7 @@ package com.rebuild.backend.service.user_services;
 
 
 import com.rebuild.backend.model.entities.profile_entities.ProfileSettings;
+import com.rebuild.backend.model.entities.profile_entities.SensitiveInformationVisibility;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
@@ -83,8 +84,7 @@ public class UserService{
     private UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
 
         UserProfile newProfile = new UserProfile();
-        ProfileSettings settings = new ProfileSettings(false,
-                false, false);
+        ProfileSettings settings = ProfileSettings.defaultSettings();
         settings.setAssociatedProfile(newProfile);
         newProfile.setSettings(settings);
 

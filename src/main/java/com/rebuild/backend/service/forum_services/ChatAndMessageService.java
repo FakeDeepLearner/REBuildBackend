@@ -93,7 +93,7 @@ public class ChatAndMessageService {
 
         // If the recipient has not selected the setting, just send the message with the content,
         // creating a chat between the users first
-        if(!recipient.getUserProfile().getSettings().getMessagesFromFriendsOnly())
+        if(!recipient.getUserProfile().getSettings().isMessagesFromFriendsOnly())
         {
             return createNewMessage(sender, recipient, messageContent);
         }
