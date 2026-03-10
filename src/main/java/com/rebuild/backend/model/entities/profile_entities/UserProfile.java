@@ -36,30 +36,12 @@ public class UserProfile implements Serializable {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "profile")
-    private Header header;
-
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "profile")
-    private Education education;
-
-    @OneToMany(fetch = FetchType.LAZY, cascade = {
-            CascadeType.ALL
-    }, orphanRemoval = true, mappedBy = "resume")
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<Experience> experienceList;
-
-    @OneToMany(fetch = FetchType.LAZY, cascade = {
-            CascadeType.ALL
-    }, orphanRemoval = true, mappedBy = "resume")
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<Project> projectList;
-
     @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
 
     @OneToOne(mappedBy = "associatedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private ProfileSettings settings;
-    
+
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,
             MERGE,
@@ -68,34 +50,5 @@ public class UserProfile implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore
     private User user;
-
-    public UserProfile(Header profileHeader,
-                       Education newEducation,
-                       List<Experience> experiences) {
-        this.header = profileHeader;
-        this.education = newEducation;
-        this.experienceList = experiences;
-    }
-
-    public static UserProfile deepCopy(UserProfile originalProfile){
-        Header oldHeader = originalProfile.getHeader();
-        Header newHeader = new Header(oldHeader.getNumber(), oldHeader.getFirstName(), oldHeader.getLastName(),
-                oldHeader.getEmail());
-
-        Education oldEducation = originalProfile.getEducation();
-
-        Education newEducation = new Education(oldEducation.getSchoolName(),
-                oldEducation.getRelevantCoursework(), oldEducation.getLocation(), oldEducation.getStartDate(),
-                oldEducation.getEndDate());
-
-        List<Experience> newExperiences = originalProfile.getExperienceList().stream().map(
-                oldExperience -> new Experience(oldExperience.getCompanyName(),
-                        oldExperience.getTechnologyList(), oldExperience.getLocation(),
-                        oldExperience.getExperienceType(), oldExperience.getStartDate(),
-                        oldExperience.getEndDate(), oldExperience.getBullets())
-        ).toList();
-
-        return new UserProfile(newHeader, newEducation, newExperiences);
-    }
 
 }

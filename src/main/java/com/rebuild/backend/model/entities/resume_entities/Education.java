@@ -82,11 +82,6 @@ public class Education implements Serializable {
     @JsonIgnore
     private Resume resume;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
-    @JsonIgnore
-    private UserProfile profile;
-
     public Education(String schoolName, List<String> relevantCoursework, String location,
                      YearMonth startDate, YearMonth endDate) {
         this.schoolName = schoolName;

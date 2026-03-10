@@ -79,11 +79,6 @@ public class Project implements Serializable {
     @JsonIgnore
     private Resume resume;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
-    @JsonIgnore
-    private UserProfile profile;
-
 
     public Project(String projectName, List<String> technologyList,
                    YearMonth startDate, YearMonth endDate, List<String> bullets)

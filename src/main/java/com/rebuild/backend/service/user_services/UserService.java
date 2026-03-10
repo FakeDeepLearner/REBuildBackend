@@ -2,7 +2,6 @@ package com.rebuild.backend.service.user_services;
 
 
 import com.rebuild.backend.model.entities.profile_entities.ProfileSettings;
-import com.rebuild.backend.model.entities.profile_entities.SensitiveInformationVisibility;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;

@@ -17,22 +17,32 @@ public class ProfileSettings implements Serializable {
     @Serial
     private static final long serialVersionUID = 15L;
 
+    //By default, no one other than the user themselves can see comments, posts and sensitive information.
+    private static final InformationVisibility DEFAULT_COMMENTS_VISIBILITY = InformationVisibility.NO_ONE;
+
+    private static final InformationVisibility DEFAULT_POSTS_VISIBILITY = InformationVisibility.NO_ONE;
+
+    private static final InformationVisibility DEFAULT_SENSITIVE_INFO_VISIBILITY = InformationVisibility.NO_ONE;
+
     @GeneratedValue(strategy = GenerationType.UUID)
     @Id
     private UUID id;
 
-    @Column(name = "public_post_history")
-    private boolean publicPostHistory;
+    @Column(name = "post_history_setting")
+    @Enumerated(EnumType.STRING)
+    private InformationVisibility postsVisibility;
 
-    @Column(name = "public_comment_history")
-    private boolean publicCommentHistory;
+    @Column(name = "comment_history_setting")
+    @Enumerated(EnumType.STRING)
+    private InformationVisibility commentsVisibility;
 
     @Column(name = "exclusive_friend_messages")
     private boolean messagesFromFriendsOnly;
 
     @Column(name = "sensitive_information_setting")
     @Enumerated(EnumType.STRING)
-    private SensitiveInformationVisibility sensitiveInformationVisibility;
+    private InformationVisibility sensitiveInfoVisibility;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH
     })
@@ -41,18 +51,18 @@ public class ProfileSettings implements Serializable {
 
     public static ProfileSettings defaultSettings()
     {
-        return new ProfileSettings(false, false, false,
-                SensitiveInformationVisibility.NO_ONE);
+        return new ProfileSettings(DEFAULT_POSTS_VISIBILITY, DEFAULT_COMMENTS_VISIBILITY,
+                false, DEFAULT_SENSITIVE_INFO_VISIBILITY);
     }
 
-    public ProfileSettings(boolean publicPostHistory,
-                           boolean publicCommentHistory, boolean messagesFromFriendsOnly,
-                           SensitiveInformationVisibility sensitiveInformationVisibility)
+    private ProfileSettings(InformationVisibility postsVisibility,
+                           InformationVisibility commentsVisibility, boolean messagesFromFriendsOnly,
+                           InformationVisibility sensitiveInfoVisibility)
     {
         this.messagesFromFriendsOnly = messagesFromFriendsOnly;
-        this.publicCommentHistory = publicCommentHistory;
-        this.publicPostHistory = publicPostHistory;
-        this.sensitiveInformationVisibility = sensitiveInformationVisibility;
+        this.commentsVisibility = commentsVisibility;
+        this.postsVisibility = postsVisibility;
+        this.sensitiveInfoVisibility = sensitiveInfoVisibility;
     }
 
 }

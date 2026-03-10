@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
-public enum SensitiveInformationVisibility {
+public enum InformationVisibility {
 
     EVERYONE,
 

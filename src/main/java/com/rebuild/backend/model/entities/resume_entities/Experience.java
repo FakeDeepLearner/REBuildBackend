@@ -92,11 +92,6 @@ public class Experience implements Serializable {
     @JsonIgnore
     private Resume resume;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
-    @JsonIgnore
-    private UserProfile profile;
-
     public Experience(String companyName, List<String> technologyList, String location,
                       String experienceType, YearMonth startDate, YearMonth endDate,
                       List<String> bullets) {

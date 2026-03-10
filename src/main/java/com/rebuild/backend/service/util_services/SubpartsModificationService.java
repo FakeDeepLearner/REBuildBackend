@@ -23,24 +23,19 @@ import java.util.UUID;
 @Component
 public class SubpartsModificationService {
 
-    private final ProfileRepository profileRepository;
-
     private final ResumeObtainer getUtility;
 
     private final ResumeRepository resumeRepository;
 
     @Autowired
-    public SubpartsModificationService(ProfileRepository profileRepository,
-                                       ResumeObtainer getUtility, ResumeRepository resumeRepository) {
-        this.profileRepository = profileRepository;
+    public SubpartsModificationService(ResumeObtainer getUtility, ResumeRepository resumeRepository) {
         this.getUtility = getUtility;
         this.resumeRepository = resumeRepository;
     }
 
     @Transactional
     public Resume modifyResumeHeader(HeaderForm headerForm,
-                                    UUID resumeId, User changingUser)
-    {
+                                     UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
@@ -53,12 +48,11 @@ public class SubpartsModificationService {
 
     @Transactional
     public Resume modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
-                                    UUID resumeId, User changingUser)
-    {
+                                         UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         Optional<Experience> changingExperience = changingResume.getExperiences().stream().
                 filter(experience -> experience.getId().equals(experienceId)).findFirst();
-        
+
         if (changingExperience.isEmpty()) {
             throw new BelongingException("Experience with this id either does not exist or does not belong to this resume");
         }
@@ -69,14 +63,13 @@ public class SubpartsModificationService {
 
     @Transactional
     public Resume modifyResumeProject(ProjectForm projectForm, UUID projectId,
-                                      UUID resumeId, User changingUser)
-    {
+                                      UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
 
         Optional<Project> changingProject = changingResume.getProjects().stream().
                 filter(project -> project.getId().equals(projectId)).findFirst();
 
-        if  (changingProject.isEmpty()) {
+        if (changingProject.isEmpty()) {
             throw new BelongingException("Project with this id either does not exist or does not belong to this resume");
         }
 
@@ -86,8 +79,7 @@ public class SubpartsModificationService {
 
     @Transactional
     public Resume modifyResumeEducation(EducationForm educationForm,
-                                    UUID resumeId, User changingUser)
-    {
+                                        UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
@@ -99,70 +91,8 @@ public class SubpartsModificationService {
         return resumeRepository.save(changingResume);
     }
 
-    @Transactional
-    public UserProfile modifyProfileHeader(HeaderForm headerForm, User changingUser)
-    {
 
-        UserProfile changingProfile = profileRepository.findByUserWithAllData(changingUser);
-
-        Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
-                headerForm.email());
-        changingProfile.setHeader(newHeader);
-        return profileRepository.save(changingProfile);
-
-    }
-
-    @Transactional
-    public UserProfile modifyProfileEducation(EducationForm educationForm, User changingUser)
-    {
-        UserProfile changingProfile = profileRepository.findByUserWithAllData(changingUser);
-        Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
-                educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),
-                YearMonthStringOperations.getYearMonth(educationForm.endDate()));
-        changingProfile.setEducation(newEducation);
-
-
-        return profileRepository.save(changingProfile);
-    }
-
-
-    @Transactional
-    public UserProfile modifyProfileExperience(ExperienceForm experienceForm, UUID experienceId, User changingUser)
-    {
-        UserProfile changingProfile = profileRepository.findByUserWithExperiences(changingUser);
-        Optional<Experience> changingExperience = changingProfile.getExperienceList().stream().
-                filter(experience -> experience.getId().equals(experienceId)).findFirst();
-
-        if (changingExperience.isEmpty()) {
-            throw new BelongingException("Experience with this id either does not exist " +
-                    "or does not belong to this profile");
-        }
-
-        modifyExperience(changingExperience.get(), experienceForm);
-
-        return profileRepository.save(changingProfile);
-    }
-
-    @Transactional
-    public UserProfile modifyProfileProject(ProjectForm projectForm, UUID projectId, User changingUser)
-    {
-        UserProfile changingProfile = profileRepository.findByUserWithProjects(changingUser);
-        Optional<Project> changingProject = changingProfile.getProjectList().stream().
-                filter(experience -> experience.getId().equals(projectId)).findFirst();
-
-        if (changingProject.isEmpty()) {
-            throw new BelongingException("Project with this id either does not exist " +
-                    "or does not belong to this profile");
-        }
-
-        modifyProject(changingProject.get(), projectForm);
-
-        return profileRepository.save(changingProfile);
-
-    }
-
-    private void modifyExperience(Experience changingExperience, ExperienceForm experienceForm)
-    {
+    private void modifyExperience(Experience changingExperience, ExperienceForm experienceForm) {
         YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
         changingExperience.setLocation(experienceForm.location());
@@ -175,7 +105,7 @@ public class SubpartsModificationService {
     }
 
 
-    private void modifyProject(Project changingProject,  ProjectForm projectForm){
+    private void modifyProject(Project changingProject, ProjectForm projectForm) {
         YearMonth start = YearMonthStringOperations.getYearMonth(projectForm.startDate());
         YearMonth end = YearMonthStringOperations.getYearMonth(projectForm.endDate());
         changingProject.setStartDate(start);
@@ -185,9 +115,5 @@ public class SubpartsModificationService {
         changingProject.setProjectName(projectForm.projectName());
         changingProject.setTechnologyList(projectForm.technologyList());
     }
-
-
-
-
 
 }
