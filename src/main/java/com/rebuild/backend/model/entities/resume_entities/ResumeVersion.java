@@ -1,6 +1,5 @@
-package com.rebuild.backend.model.entities.versioning_entities;
+package com.rebuild.backend.model.entities.resume_entities;
 
-import com.rebuild.backend.model.entities.resume_entities.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

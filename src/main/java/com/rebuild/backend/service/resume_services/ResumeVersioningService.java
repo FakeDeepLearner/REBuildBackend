@@ -2,7 +2,6 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.versioning_entities.*;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.VersionCreationForm;
 import com.rebuild.backend.model.forms.resume_forms.VersionSwitchPreferencesForm;

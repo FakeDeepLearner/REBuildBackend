@@ -2,8 +2,6 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
-import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.responses.ForumPostPageResponse;
 import com.rebuild.backend.model.responses.UsernameSearchResponse;
@@ -51,9 +49,10 @@ public class ForumHomePageService {
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                PostSearchConfiguration postSearchConfiguration)
+                                                ForumSpecsForm forumSpecsForm)
     {
-        List<UUID> matchedResults = searchService.executePostSearch(postSearchConfiguration);
+
+        List<UUID> matchedResults = searchService.executePostSearch(forumSpecsForm);
         PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,
                 "creationDate"));
 
@@ -62,14 +61,6 @@ public class ForumHomePageService {
 
         return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(),
                 foundPosts.getTotalElements(), foundPosts.getTotalPages(), foundPosts.getSize());
-    }
-
-    public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                ForumSpecsForm forumSpecsForm, User user)
-    {
-
-        PostSearchConfiguration createdConfiguration = postsService.createSearchConfig(user, forumSpecsForm, true);
-        return getPagedResult(pageNumber, pageSize, createdConfiguration);
     }
 
     public UsernameSearchResponse getUsernameSearchResults(String username)

@@ -1,16 +1,13 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,12 +56,6 @@ public class UserProfile implements Serializable {
 
     @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
     private ProfilePicture profilePicture;
-
-    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ResumeSearchConfiguration> resumeSearchConfigurations = new ArrayList<>();
-
-    @OneToMany(cascade = ALL, mappedBy = "associatedProfile", orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<PostSearchConfiguration> postSearchConfigurations = new ArrayList<>();
 
     @OneToOne(mappedBy = "associatedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private ProfileSettings settings;

@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.responses;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 
 import java.util.List;
 

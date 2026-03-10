@@ -1,10 +1,8 @@
 package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.forum_entities.PostSearchConfiguration;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
-import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -22,16 +20,13 @@ public class ElasticSearchService {
         this.entityManager = entityManager;
     }
 
-    public List<UUID> executeResumeSearch(ResumeSearchConfiguration searchConfiguration, User user)
+    public List<UUID> executeResumeSearch(String nameToSearch)
     {
         SearchSession searchSession = Search.session(entityManager);
-        List<UUID> matchedIds = searchSession.search(Resume.class)
+        return searchSession.search(Resume.class)
                 .select(f -> f.id(UUID.class))
                 .where(f -> new NullSafeQuerySearchBuilder(f).
-                        nullSafeMatch("userId", user.getId()).
-                        nullSafeMatch("name", searchConfiguration.getResumeNameSearch()).
-                        atLeast("creationTime", searchConfiguration.getCreationAfterCutoff()).
-                        atMost("creationTime", searchConfiguration.getCreationBeforeCutoff()).
+                        nullSafeMatch("name", nameToSearch).
                         getResult()
                 )
                 .sort(f -> f.composite(
@@ -41,20 +36,17 @@ public class ElasticSearchService {
                         }
                 ))
                 .fetchAllHits();
-        return matchedIds;
 
 
     }
 
-    public List<UUID> executePostSearch(PostSearchConfiguration postSearchConfiguration){
+    public List<UUID> executePostSearch(ForumSpecsForm specsForm){
         SearchSession searchSession = Search.session(entityManager);
-        List<UUID> matchedIds = searchSession.search(ForumPost.class)
+        return searchSession.search(ForumPost.class)
                 .select(f -> f.id(UUID.class))
                 .where(f -> new NullSafeQuerySearchBuilder(f).
-                        nullSafeMatch("title", postSearchConfiguration.getTitleSearch()).
-                        nullSafeMatch("content", postSearchConfiguration.getBodySearch()).
-                        atLeast("creationDate", postSearchConfiguration.getCreationAfterCutoff()).
-                        atMost("creationDate", postSearchConfiguration.getCreationBeforeCutoff()).
+                        nullSafeMatch("title", specsForm.titleContains()).
+                        nullSafeMatch("content", specsForm.bodyContains()).
                         getResult()
 
                 )
@@ -65,7 +57,6 @@ public class ElasticSearchService {
                             }
                             ))
                 .fetchAllHits();
-            return matchedIds;
 
     }
 
@@ -77,6 +68,7 @@ public class ElasticSearchService {
         return searchSession.search(ForumPost.class)
                 .select(f -> f.id(UUID.class)).
                 where(f -> new NullSafeQuerySearchBuilder(f)
-                        .nullSafeMatch("forumUsername", exampleName).getResult()).fetchAllHits();
+                        .nullSafeMatch("forumUsername", exampleName).getResult()).
+                fetchAllHits();
     }
 }

@@ -2,24 +2,18 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
-import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.HomePageData;
-import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.service.forum_services.ChatAndMessageService;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserHomePageService;
-import com.rebuild.backend.service.user_services.UserService;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,7 +21,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -36,11 +29,7 @@ import java.util.UUID;
 @RequestMapping("/home")
 public class HomePageController {
 
-    private final UserService userService;
-
     private final ResumeService resumeService;
-
-    private final ResumeSearchRepository searchRepository;
 
     private final FriendshipService friendshipService;
 
@@ -51,72 +40,14 @@ public class HomePageController {
     private final UserHomePageService homePageService;
 
     @Autowired
-    public HomePageController(UserService userService, ResumeService resumeService,
-                              ResumeSearchRepository searchRepository, FriendshipService friendshipService,
-                              SimpMessagingTemplate simpMessagingTemplate, ChatAndMessageService chatAndMessageService, UserHomePageService homePageService) {
-        this.userService = userService;
+    public HomePageController(ResumeService resumeService, FriendshipService friendshipService,
+                              SimpMessagingTemplate simpMessagingTemplate,
+                              ChatAndMessageService chatAndMessageService, UserHomePageService homePageService) {
         this.resumeService = resumeService;
-        this.searchRepository = searchRepository;
         this.friendshipService = friendshipService;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.chatAndMessageService = chatAndMessageService;
         this.homePageService = homePageService;
-    }
-
-    @GetMapping("/get_posts/configuration/{config_id}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getHomePageWithConfig(@AuthenticationPrincipal User user,
-                                      @PathVariable UUID config_id) {
-        try {
-
-            ResumeSearchConfiguration foundConfig = searchRepository.findByIdAndUser(config_id, user).
-                    orElseThrow(() -> new BelongingException("This configuration does not belong to you"));
-
-            HomePageData response = homePageService.getSearchResult(foundConfig, user,
-                            0, 20);
-
-            return ResponseEntity.ok(response);
-        }
-        catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PostMapping( "/create_resume_search_config")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResumeSearchConfiguration createSearchConfig(@AuthenticationPrincipal User authenticatedUser,
-                                                        @RequestBody ResumeSpecsForm specsForm)
-    {
-        return resumeService.createSearchConfig(authenticatedUser, specsForm, false);
-    }
-
-
-    @PutMapping("/update_search_config/{config_id}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResumeSearchConfiguration updateSearchConfig(@AuthenticationPrincipal User user,
-                                                        @PathVariable UUID config_id,
-                                                        @RequestBody ResumeSpecsForm specsForm)
-    {
-        return resumeService.updateSearchConfig(user, config_id, specsForm);
-    }
-
-
-    @DeleteMapping("/delete_config/{config_id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteSearchConfig(@AuthenticationPrincipal User user,
-                                    @PathVariable UUID config_id)
-    {
-        resumeService.deleteSearchConfig(user, config_id);
-    }
-
-
-    @GetMapping("/get_resume_configs")
-    @ResponseStatus(HttpStatus.OK)
-    public List<ResumeSearchConfiguration> getAllSearchConfigs(@AuthenticationPrincipal User user)
-    {
-        return searchRepository.findAllByUser(user,
-                Sort.by(Sort.Order.desc("lastUsedTime").nullsLast(),
-                        Sort.Order.desc("lastUpdatedTime")));
     }
 
     @GetMapping("/resume/{resume_id}")
@@ -131,8 +62,8 @@ public class HomePageController {
     public HomePageData getHomePageWithForm(@AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(defaultValue = "0", name = "page") int pageNumber,
                                      @RequestParam(defaultValue = "10", name = "size") int pageSize,
-                                     @RequestBody ResumeSpecsForm specsForm) {
-        return homePageService.getSearchResult(specsForm,
+                                     @RequestBody String nameToSearch) {
+        return homePageService.getSearchResult(nameToSearch,
                 authenticatedUser, pageNumber, pageSize);
     }
 

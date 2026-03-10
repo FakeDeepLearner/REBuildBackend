@@ -71,5 +71,5 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     Page<Resume> findByUser(User user, Pageable pageable);
 
-    Page<Resume> findByIdIn(Collection<UUID> ids, Pageable pageable);
+    Page<Resume> findByUserAndIdIn(User user, Collection<UUID> ids, Pageable pageable);
 }

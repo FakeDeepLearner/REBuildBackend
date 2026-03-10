@@ -1,14 +1,11 @@
 package com.rebuild.backend.service.resume_services;
 
 
-import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
-import com.rebuild.backend.repository.resume_repositories.ResumeSearchRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationService;
 import com.rebuild.backend.utils.database_utils.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
@@ -31,54 +27,13 @@ public class ResumeService {
 
     private final ResumeObtainer getUtility;
 
-    private final ResumeSearchRepository resumeSearchRepository;
-
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          SubpartsModificationService modificationUtility,
-                         ResumeObtainer getUtility, ResumeSearchRepository resumeSearchRepository) {
+                         ResumeObtainer getUtility) {
         this.resumeRepository = resumeRepository;
         this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
-        this.resumeSearchRepository = resumeSearchRepository;
-    }
-
-    @Transactional
-    public ResumeSearchConfiguration createSearchConfig(User authenticatedUser,
-                                                        ResumeSpecsForm specsForm, boolean isUsedImmediately){
-        ResumeSearchConfiguration newConfiguration = new ResumeSearchConfiguration(specsForm);
-        if (isUsedImmediately)
-        {
-            newConfiguration.setLastUsedTime(Instant.now());
-        }
-        newConfiguration.setUser(authenticatedUser);
-        authenticatedUser.getResumeSearchConfigurations().add(newConfiguration);
-        return resumeSearchRepository.save(newConfiguration);
-    }
-
-
-    public ResumeSearchConfiguration updateSearchConfig(User user,
-                                                        UUID config_id, ResumeSpecsForm baseForm)
-    {
-        ResumeSearchConfiguration foundConfig = resumeSearchRepository.findByIdAndUser(config_id, user).
-                orElseThrow(() -> new BelongingException("This configuration does not belong to you," +
-                        "you cannot update it"));
-
-        foundConfig.setLastUpdatedTime(Instant.now());
-        foundConfig.setCreationAfterCutoff(Instant.parse(baseForm.creationAfterCutoff()));
-        foundConfig.setCreationBeforeCutoff(Instant.parse(baseForm.creationBeforeCutoff()));
-        return resumeSearchRepository.save(foundConfig);
-
-    }
-
-    public void deleteSearchConfig(User user, UUID config_id)
-    {
-        ResumeSearchConfiguration foundConfig = resumeSearchRepository.findByIdAndUser(config_id, user).
-                orElseThrow(() -> new BelongingException("This configuration does not belong to you," +
-                        "you cannot delete it"));
-        user.getResumeSearchConfigurations().
-                removeIf(config -> config.getId().equals(config_id));
-        resumeSearchRepository.delete(foundConfig);
     }
 
     @Transactional

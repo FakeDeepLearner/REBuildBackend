@@ -2,7 +2,6 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.model.forms.resume_forms.ResumeCreationForm;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
@@ -14,7 +13,6 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -159,12 +157,6 @@ public class Resume implements Serializable {
             }
 
         }
-    }
-
-    @GenericField(name = "userId", searchable = Searchable.YES)
-    public UUID derivedId()
-    {
-        return this.user.getId();
     }
 
 }

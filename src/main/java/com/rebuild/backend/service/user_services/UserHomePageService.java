@@ -1,9 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.ResumeSearchConfiguration;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.resume_forms.ResumeSpecsForm;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
@@ -47,29 +45,19 @@ public class UserHomePageService {
     }
 
     @Transactional
-    public HomePageData getSearchResult(ResumeSearchConfiguration searchConfiguration, User user,
-                                        int pageNumber, int pageSize)
-    {
-
-        List<UUID> matchedResults = elasticSearchService.executeResumeSearch(searchConfiguration, user);
+    public HomePageData getSearchResult(String name,
+                                        User user, int pageNumber, int pageSize){
+        List<UUID> matchedResults = elasticSearchService.executeResumeSearch(name);
 
         PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(
                 Sort.Order.desc("lastModifiedTime").nullsLast(),
                 Sort.Order.desc("creationTime")));
 
 
-        Page<Resume> matchedResumes = resumeRepository.findByIdIn(matchedResults, request);
+        Page<Resume> matchedResumes = resumeRepository.findByUserAndIdIn(user, matchedResults, request);
         return new HomePageData(matchedResumes.getContent(), matchedResumes.getNumber(),
                 matchedResumes.getTotalElements(),
                 matchedResumes.getTotalPages(), matchedResumes.getSize());
-    }
-
-    @Transactional
-    public HomePageData getSearchResult(ResumeSpecsForm forumSpecsForm,
-                                        User user, int pageNumber, int pageSize){
-        ResumeSearchConfiguration createdConfig = resumeService.createSearchConfig(user, forumSpecsForm, true);
-
-        return getSearchResult(createdConfig, user, pageNumber, pageSize);
 
     }
 }

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
-import com.rebuild.backend.model.entities.versioning_entities.ResumeVersion;
 import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import com.rebuild.backend.utils.database_utils.YearMonthSerializer;
