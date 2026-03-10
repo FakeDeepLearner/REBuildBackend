@@ -52,4 +52,12 @@ public class VersioningController {
         versioningService.deleteVersion(user, resume_id, version_id);
     }
 
+
+    @PostMapping("/copy_version/{version_id}")
+    public Resume createResumeFromVersion(@AuthenticationPrincipal User user,
+                                          @PathVariable UUID version_id, @RequestBody String resumeName)
+    {
+        return versioningService.createResumeFromVersion(user, version_id, resumeName);
+    }
+
 }

@@ -121,30 +121,24 @@ public class Resume implements Serializable {
     }
 
     public Resume(@NonNull Resume originalResume, @NonNull ResumeCreationForm creationForm){
-        Education originalEducation = originalResume.getEducation();
-        Header originalHeader = originalResume.getHeader();
-        List<Experience> originalExperiences = originalResume.getExperiences();
+
+
         this.name = creationForm.newName();
         this.user = originalResume.getUser();
         // We are creating new objects here,
         // because we do not want them to be a reference to the original ones.
-        this.education = new Education(originalEducation.getSchoolName(),
-                originalEducation.getRelevantCoursework(),
-                originalEducation.getLocation(),
-                originalEducation.getStartDate(), originalEducation.getEndDate());
-        this.header = new Header(originalHeader.getNumber(), originalHeader.getFirstName(),
-                originalHeader.getLastName(),
-                originalHeader.getEmail());
-        this.experiences = originalExperiences.stream().map(
-                experience -> new Experience(experience.getCompanyName(), experience.getTechnologyList(),
-                        experience.getLocation(), experience.getExperienceType(),
-                        experience.getStartDate(), experience.getEndDate(), experience.getBullets())
-        ).toList();
+        this.education = Education.copy(originalResume.getEducation());
+        this.header = Header.copy(originalResume.getHeader());
+        this.experiences = originalResume.getExperiences().stream().map(
+                Experience::copy
+        ).peek(experience -> experience.setResume(this)).toList();
+        this.projects = originalResume.getProjects().stream().map(
+                Project::copy
+        ).peek(project -> project.setResume(this)).toList();
         //Necessary in order for cascading to work properly
         this.user.getResumes().add(this);
         this.education.setResume(this);
         this.header.setResume(this);
-        this.experiences.forEach(experience -> experience.setResume(this));
         this.creationTime = Instant.now();
         // Technically, the LocalDataTime.now() call will be different from the one above,
         // and we want these dates to match initially
@@ -157,6 +151,29 @@ public class Resume implements Serializable {
             }
 
         }
+    }
+
+    public Resume(ResumeVersion version, String newName, User user)
+    {
+        this.user = user;
+        this.name = newName;
+        this.education = Education.copy(version.getVersionedEducation());
+        this.header = Header.copy(version.getVersionedHeader());
+        this.experiences = version.getVersionedExperiences().stream().map(
+                Experience::copy
+        ).peek(experience -> experience.setResume(this)).toList();
+        this.projects = version.getVersionedProjects().stream().map(
+                Project::copy
+        ).peek(project -> project.setResume(this)).toList();
+
+        this.user.getResumes().add(this);
+        this.education.setResume(this);
+        this.header.setResume(this);
+        this.creationTime = Instant.now();
+        // Technically, the LocalDataTime.now() call will be different from the one above,
+        // and we want these dates to match initially
+        this.lastModifiedTime = this.creationTime;
+
     }
 
 }

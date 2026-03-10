@@ -270,6 +270,15 @@ public class ResumeVersioningService {
         resumeVersion.setVersionedProjects(newProjects);
     }
 
+    public Resume createResumeFromVersion(User user, UUID version_id, String resumeName)
+    {
+        ResumeVersion foundVersion = versionRepository.findByIdAndAssociatedResume_User(version_id, user).orElseThrow(() ->
+                new BelongingException("That version does not belong to you")
+        );
+
+        return resumeRepository.save(new Resume(foundVersion, resumeName, user));
+
+    }
 
     @Transactional
     public void deleteVersion(User user, UUID resumeId, UUID versionId){
