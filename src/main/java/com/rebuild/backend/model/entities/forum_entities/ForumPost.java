@@ -26,7 +26,7 @@ public class ForumPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
+    @Column(nullable = false, updatable = false)
     @GenericField(searchable = Searchable.YES)
     private UUID id;
 

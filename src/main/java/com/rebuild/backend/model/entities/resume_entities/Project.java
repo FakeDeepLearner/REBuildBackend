@@ -37,37 +37,29 @@ public class Project implements Serializable {
 
     @NonNull
     @Column(name = "project_name")
-    @FullTextField(searchable = Searchable.YES)
     private String projectName;
 
     @ElementCollection
     @CollectionTable(name = "project_technologies", joinColumns = @JoinColumn(name = "experience_id"))
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
-            searchable = Searchable.YES)
     private List<String> technologyList;
 
     @NonNull
     @Column(name = "start_date")
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private YearMonth startDate;
 
     @Column(name = "end_date")
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private YearMonth endDate;
 
     @ElementCollection
     @CollectionTable(name = "project_bullets", joinColumns = @JoinColumn(name = "project_id"))
     @Column(name = "bullets", nullable = false)
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
-            searchable = Searchable.YES)
     private List<String> bullets;
-
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id", referencedColumnName = "id")

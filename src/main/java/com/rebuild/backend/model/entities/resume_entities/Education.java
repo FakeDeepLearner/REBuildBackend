@@ -44,32 +44,26 @@ public class Education implements Serializable {
 
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @GenericField(searchable = Searchable.YES)
     private String schoolName;
 
     @NonNull
     @ElementCollection
     @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id"))
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
-    searchable = Searchable.YES)
     private List<String> relevantCoursework;
 
     @Column(name = "location", nullable = false)
     @NonNull
-    @FullTextField(searchable =  Searchable.YES)
     private String location;
 
     @Column(name = "start_date", nullable = false)
     @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private YearMonth startDate;
 
     @Column(name = "end_date", nullable = false)
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private YearMonth endDate;
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)

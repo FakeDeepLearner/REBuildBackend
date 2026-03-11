@@ -92,7 +92,6 @@ public class Resume implements Serializable {
     @OrderBy("createdDate DESC")
     private List<ResumeVersion> versions = new ArrayList<>();
 
-
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
             CascadeType.PERSIST,

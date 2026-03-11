@@ -41,45 +41,36 @@ public class Experience implements Serializable {
     @Column(name = "company_name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField(searchable = Searchable.YES)
     private String companyName;
 
     @ElementCollection
     @CollectionTable(name = "experience_technologies", joinColumns = @JoinColumn(name = "experience_id"))
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
-    searchable = Searchable.YES)
     private List<String> technologyList;
 
     @Column(name = "location", nullable = false)
     @NonNull
-    @FullTextField(searchable = Searchable.YES)
     private String location;
 
     @Column(name = "experience_type")
     @NonNull
-    @FullTextField(searchable =  Searchable.YES)
     private String experienceType;
 
     @Column(name = "start_date", nullable = false)
     @NonNull
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField(searchable = Searchable.YES, sortable =  Sortable.YES)
     private YearMonth startDate;
 
     @Column(name = "end_date")
     @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
-    @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private YearMonth endDate;
 
     @ElementCollection
     @CollectionTable(name = "experience_bullets", joinColumns = @JoinColumn(name = "experience_id"))
     @Column(name = "bullets", nullable = false)
     @NonNull
-    @FullTextField(extraction = @ContainerExtraction(BuiltinContainerExtractors.COLLECTION),
-    searchable = Searchable.YES)
     private List<String> bullets;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch =  FetchType.LAZY)
