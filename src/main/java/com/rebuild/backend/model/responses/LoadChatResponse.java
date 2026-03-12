@@ -5,6 +5,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import java.util.List;
 import java.util.UUID;
 
-public record LoadChatResponse(String username, UUID userId,
+public record LoadChatResponse(String displayName, UUID chatId,
                                List<MessageDisplayDTO> messages, String profilePictureUrl) {
 }

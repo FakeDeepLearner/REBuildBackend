@@ -38,8 +38,4 @@ public class ProfilePicture implements Serializable {
     @Column(name = "upload_time", nullable = false)
     @NonNull
     private Instant uploadedTime;
-
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
-    private UserProfile associatedProfile;
 }

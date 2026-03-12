@@ -36,7 +36,8 @@ public class UserProfile implements Serializable {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @OneToOne(orphanRemoval = true, cascade = ALL, mappedBy = "associatedProfile")
+    @OneToOne(orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name = "picture_id", referencedColumnName = "id")
     private ProfilePicture profilePicture;
 
     @OneToOne(mappedBy = "associatedProfile", cascade = CascadeType.ALL, orphanRemoval = true)

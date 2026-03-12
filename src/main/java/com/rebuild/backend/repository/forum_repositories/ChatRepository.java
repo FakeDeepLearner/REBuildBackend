@@ -13,14 +13,6 @@ import java.util.UUID;
 @Repository
 public interface ChatRepository extends JpaRepository<Chat, UUID> {
 
-    @Query(value = """
-            SELECT c FROM Chat c
-            JOIN FETCH c.initiatingUser JOIN FETCH c.receivingUser
-            WHERE c.initiatingUser=?1 OR c.receivingUser=?1
-        """
-    )
-    List<Chat> findByUser(User user);
-
 
     @Query(
             value = "SELECT c from Chat c " +

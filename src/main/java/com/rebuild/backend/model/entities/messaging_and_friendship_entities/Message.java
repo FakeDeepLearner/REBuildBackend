@@ -35,11 +35,6 @@ public class Message {
     @NonNull
     private User sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_id")
-    @NonNull
-    private User recipient;
-
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "associated_chat_id")
     @JsonIgnore

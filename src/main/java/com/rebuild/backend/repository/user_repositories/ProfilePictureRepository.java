@@ -13,8 +13,9 @@ public interface ProfilePictureRepository extends JpaRepository<ProfilePicture, 
 
     void deleteProfilePictureByPublic_id(String public_id);
 
-    @Query(value = "SELECT p FROM ProfilePicture p WHERE " +
-            "p.associatedProfile.user.id=?1"
+    @Query(value = "SELECT p FROM UserProfile u JOIN ProfilePicture p WHERE " +
+            "u.user.id=?1"
     )
     Optional<ProfilePicture> findByUserId(UUID userId);
+
 }

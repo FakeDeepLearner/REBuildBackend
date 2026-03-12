@@ -1,11 +1,14 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
+import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
 import java.util.*;
+
+import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
 @Table(name = "chats", indexes = {
@@ -23,22 +26,25 @@ public class Chat {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    //The actual names of these don't matter. It just matters that one is defined as the initiator.
-    //This is necessary to make the mappings back in the User class more understandable.
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY)
     @NonNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "initiating_user_id", referencedColumnName = "id")
-    private User initiatingUser;
-
-    @NonNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiving_user_id", referencedColumnName = "id")
-    private User receivingUser;
+    private List<ChatParticipation> participations;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY)
     @OrderBy(value = "createdAt ASC")
     private List<Message> messages = Collections.synchronizedList(new ArrayList<>());
 
-
+    @Column(name = "creation_time")
     private Instant createdAt = Instant.now();
+
+    @Column(name = "last_message")
+    private String lastMessage = null;
+
+    //The name being null means that this is a chat between 2 users. Otherwise, it is a "group chat".
+    @Column(name = "chat_name")
+    private String chatName = null;
+
+    @OneToOne(orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name = "picture_id", referencedColumnName = "id")
+    private ProfilePicture chatPicture = null;
 }

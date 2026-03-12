@@ -1,5 +1,7 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -84,15 +86,15 @@ public class HomePageController {
     public ResponseEntity<?> sendMessage(@PathVariable UUID recipient_id,
                                               @RequestBody String messageContent,
                                               @AuthenticationPrincipal User authenticatedUser) {
-        Message createdMessage = chatAndMessageService.
+        NewMessageDTO newMessageDTO = chatAndMessageService.
                 createMessage(authenticatedUser, recipient_id, messageContent);
-        if (createdMessage == null){
+        if (newMessageDTO == null){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
                     body("You cannot start a chat with this user unless you are friends with them");
         }
         simpMessagingTemplate.convertAndSendToUser(recipient_id.toString(),
-                "/messages", createdMessage);
-        return ResponseEntity.ok(createdMessage);
+                "/messages", newMessageDTO.newMessage());
+        return ResponseEntity.ok(newMessageDTO.newChat());
 
 
     }

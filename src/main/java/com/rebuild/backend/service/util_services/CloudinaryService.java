@@ -121,7 +121,6 @@ public class CloudinaryService {
 
             ProfilePicture profilePicture = createNewPicture(pictureFile);
             pictureRemovedProfile.setProfilePicture(profilePicture);
-            profilePicture.setAssociatedProfile(pictureRemovedProfile);
             return profileRepository.save(pictureRemovedProfile);
         }
         return changingUser.getUserProfile();

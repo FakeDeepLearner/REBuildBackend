@@ -93,7 +93,7 @@ public class UserService{
         return cloudinaryService.modifyProfilePictureOf(newUser, pictureFile);
     }
 
-    public UserProfileResponse loadProfileFromForum(UUID clickedUserId)
+    public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
     {
         return null;
     }

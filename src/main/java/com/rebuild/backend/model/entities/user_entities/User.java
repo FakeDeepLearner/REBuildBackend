@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
@@ -123,15 +124,10 @@ public class User implements UserDetails, OidcUser, Serializable {
             mappedBy = "author", fetch = FetchType.LAZY)
     private transient List<Comment> madeComments = new ArrayList<>();
 
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
-    mappedBy = "initiatingUser")
-    private transient List<Chat> initiatedChats = new ArrayList<>();
 
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY,
-            mappedBy = "receivingUser")
-    private transient List<Chat> receivedChats = new ArrayList<>();
+    @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
+    fetch = FetchType.LAZY)
+    private transient List<ChatParticipation> chatParticipations = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;
@@ -204,17 +200,14 @@ public class User implements UserDetails, OidcUser, Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(id);
     }
 
-
-    public void addSenderChat(Chat chat){
-        initiatedChats.add(chat);
+    public void addChatParticipation(ChatParticipation participation)
+    {
+        this.chatParticipations.add(participation);
     }
 
-    public void addReceiverChat(Chat chat){
-        receivedChats.add(chat);
-    }
 
     @Override
     public Map<String, Object> getClaims() {

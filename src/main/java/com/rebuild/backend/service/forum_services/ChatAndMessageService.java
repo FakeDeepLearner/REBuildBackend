@@ -1,13 +1,16 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
+import com.rebuild.backend.repository.forum_repositories.ChatParticipationRepository;
 import com.rebuild.backend.repository.forum_repositories.ChatRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.forum_repositories.MessageRepository;
@@ -17,6 +20,7 @@ import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,60 +30,70 @@ public class ChatAndMessageService {
 
     private final ChatRepository chatRepository;
 
-    private final MessageRepository messageRepository;
-
     private final UserRepository userRepository;
 
     private final FriendRelationshipRepository friendRelationshipRepository;
 
-    private final ProfilePictureRepository profilePictureRepository;
-
     private final CloudinaryService cloudinaryService;
 
+    private final ChatParticipationRepository participationRepository;
+
     @Autowired
-    public ChatAndMessageService(ChatRepository chatRepository, MessageRepository messageRepository,
-                                 UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository,
-                                 ProfilePictureRepository profilePictureRepository, CloudinaryService cloudinaryService) {
+    public ChatAndMessageService(ChatRepository chatRepository, UserRepository userRepository,
+                                 FriendRelationshipRepository friendRelationshipRepository,
+                                 CloudinaryService cloudinaryService,
+                                 ChatParticipationRepository participationRepository) {
         this.chatRepository = chatRepository;
-        this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
-        this.profilePictureRepository = profilePictureRepository;
         this.cloudinaryService = cloudinaryService;
+        this.participationRepository = participationRepository;
     }
 
     private Chat createChatBetween(User sender, User recipient)
     {
-        Chat newChat = new Chat(sender, recipient);
-        sender.addSenderChat(newChat);
-        recipient.addReceiverChat(newChat);
+        Chat newChat = new Chat();
+        ChatParticipation senderParticipation = new ChatParticipation(sender, newChat, true, Instant.now());
+        ChatParticipation recipientParticipation = new ChatParticipation(recipient, newChat, false, Instant.now());
+        newChat.setParticipations(List.of(senderParticipation, recipientParticipation));
+        sender.addChatParticipation(senderParticipation);
+        recipient.addChatParticipation(recipientParticipation);
+
         return chatRepository.save(newChat);
     }
 
-    private Message createNewMessage(User sender, User recipient, String messageContent){
+    private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
         //If we enter this method, we know that we will have to create a new chat.
         Chat createdChat = createChatBetween(sender, recipient);
 
-        Message newMessage = new Message(sender, recipient, messageContent);
+        Message newMessage = new Message(sender, messageContent);
         newMessage.setAssociatedChat(createdChat);
         createdChat.getMessages().add(newMessage);
 
-        return messageRepository.save(newMessage);
+        return new NewMessageDTO(chatRepository.save(createdChat), newMessage);
     }
 
-    private Message createNewMessage(User sender, User recipient, String content,
-                                     Chat associatedChat)
+    private NewMessageDTO sendMessageTo(User sender, String content,
+                                        Chat associatedChat)
     {
 
-        Message newMessage = new Message(sender, recipient, content);
+        Message newMessage = new Message(sender, content);
         newMessage.setAssociatedChat(associatedChat);
         associatedChat.getMessages().add(newMessage);
+        associatedChat.setLastMessage(content);
 
-        return messageRepository.save(newMessage);
+        List<ChatParticipation> otherChatParticipations = associatedChat.getParticipations().stream().
+                filter(participation -> !sender.equals(participation.getParticipatingUser())).
+                toList();
+
+        otherChatParticipations.forEach(participation ->
+                participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1));
+
+        return new NewMessageDTO(chatRepository.save(associatedChat), newMessage);
     }
 
 
-    public Message createMessage(User sender, UUID recipientId, String messageContent)
+    public NewMessageDTO createMessage(User sender, UUID recipientId, String messageContent)
     {
         User recipient = userRepository.findById(recipientId).orElse(null);
         assert recipient != null : "User with this ID not found";
@@ -88,57 +102,98 @@ public class ChatAndMessageService {
         // immediately send the message no matter the recipient's profile settings
         Optional<Chat> foundChat = chatRepository.findByTwoUsers(sender, recipient);
         if (foundChat.isPresent()) {
-            return createNewMessage(sender, recipient, messageContent, foundChat.get());
+            return sendMessageTo(sender, messageContent, foundChat.get());
         }
 
         // If the recipient has not selected the setting, just send the message with the content,
         // creating a chat between the users first
         if(!recipient.getUserProfile().getSettings().isMessagesFromFriendsOnly())
         {
-            return createNewMessage(sender, recipient, messageContent);
+            return sendMessageTo(sender, recipient, messageContent);
         }
 
 
         Optional<FriendRelationship> foundRelationship =
                 friendRelationshipRepository.findByTwoUsers(sender, recipient);
         if (foundRelationship.isPresent()) {
-            return createNewMessage(sender, recipient, messageContent);
+            return sendMessageTo(sender, recipient, messageContent);
         }
         return null;
 
     }
 
 
+    private User determineOtherChatUser(Chat chat, User loadingUser)
+    {
+        return chat.getParticipations().stream().map(ChatParticipation::getParticipatingUser)
+                .filter(user -> !user.equals(loadingUser)).findFirst().orElseThrow();
+    }
+
+    private String determineChatDisplayName(Chat chat, User loadingUser)
+    {
+        //If this is a group chat, the display name will be the name of the chat.
+        if (chat.getChatName() != null)
+        {
+            return chat.getChatName();
+        }
+        //Otherwise, the display name will be the forum username of the "other" user in the chat
+        User otherUser = determineOtherChatUser(chat, loadingUser);
+        return otherUser.getForumUsername();
+    }
+
+    private String determineChatPictureUrl(Chat chat, User loadingUser)
+    {
+        //If this chat is a group chat, just return its profile picture url if it has one.
+        if (chat.getChatName() != null)
+        {
+            ProfilePicture chatPicture = chat.getChatPicture();
+            if (chatPicture == null)
+            {
+                return null;
+            }
+            return cloudinaryService.generateTimedUrlForPicture(chatPicture);
+        }
+        //Otherwise, just return the "other" person's profile picture's url.
+        else
+        {
+            User otherUser = determineOtherChatUser(chat, loadingUser);
+            ProfilePicture picture = otherUser.getUserProfile().getProfilePicture();
+            if (picture == null)
+            {
+                return null;
+            }
+            return cloudinaryService.generateTimedUrlForPicture(picture);
+
+        }
+    }
+
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<Chat> allChats = chatRepository.findByUser(displayingUser);
+        List<ChatParticipation> userParticipations = participationRepository.
+                findParticipationsByUser(displayingUser);
 
-        return allChats.stream()
-                .map(chat -> {
-                    User chatInitiator = chat.getInitiatingUser();
-                    User chatReceiver = chat.getReceivingUser();
+        return userParticipations.stream()
+                .map(participation -> {
+                    Chat participatedChat = participation.getParticipatedChat();
 
+                    String chatDisplayName = determineChatDisplayName(participatedChat, displayingUser);
 
-                    User otherChatUser = chatInitiator.equals(displayingUser) ? chatReceiver : chatInitiator;
+                    String chatPictureUrl = determineChatPictureUrl(participatedChat, displayingUser);
 
-                    String picture_url = profilePictureRepository.findByUserId(otherChatUser.getId()).
-                            map(cloudinaryService::generateTimedUrlForPicture).orElse(null);
-                    UUID chatId = chat.getId();
-                    String username = otherChatUser.getForumUsername();
-
-                    return new DisplayChatResponse(chatId, username, picture_url);
+                    return new DisplayChatResponse(participatedChat.getId(), chatDisplayName,
+                            chatPictureUrl, participatedChat.getLastMessage(),
+                            participation.getUnreadMessagesCount());
                 }).toList();
     }
+
 
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
     {
         Chat chat = chatRepository.findByIdWithMessages(chatId).orElse(null);
-        assert chat != null : "Chat with this ID not found";
-        User receiver = chat.getReceivingUser();
-        UUID userID = receiver.getId();
-        String userName = receiver.getForumUsername();
-        Optional<ProfilePicture> foundPicture = profilePictureRepository.findByUserId(userID);
+        assert chat != null : "Chat with this ID is not found";
+        String chatDisplay = determineChatDisplayName(chat, loadingUser);
+        String chatPictureUrl = determineChatPictureUrl(chat, loadingUser);
 
         List<MessageDisplayDTO> messages = chat.getMessages()
                 .stream().
@@ -148,8 +203,6 @@ public class ChatAndMessageService {
                             displayOnTheRight);
                 }).toList();
 
-
-        String pictureUrl = foundPicture.map(cloudinaryService::generateTimedUrlForPicture).orElse(null);
-        return new LoadChatResponse(userName, userID, messages, pictureUrl);
+        return new LoadChatResponse(chatDisplay, chat.getId(), messages, chatPictureUrl);
     }
 }
