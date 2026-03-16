@@ -18,7 +18,6 @@ import static jakarta.persistence.CascadeType.ALL;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class Chat {
 
     @Id
@@ -28,11 +27,11 @@ public class Chat {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY)
     @NonNull
-    private List<ChatParticipation> participations;
+    private List<ChatParticipation> participations = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY)
     @OrderBy(value = "createdAt ASC")
-    private List<Message> messages = Collections.synchronizedList(new ArrayList<>());
+    private List<Message> messages = new ArrayList<>();
 
     @Column(name = "creation_time")
     private Instant createdAt = Instant.now();
@@ -43,7 +42,6 @@ public class Chat {
     //The name being null means that this is a chat between 2 users. Otherwise, it is a "group chat".
     @Column(name = "chat_name")
     private String chatName = null;
-
 
     @OneToOne(orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "picture_id", referencedColumnName = "id")

@@ -105,13 +105,10 @@ public class ForumHomePageController {
     }
 
     @PostMapping("/decline_request/{request_id}")
-    public ResponseEntity<@NonNull String> declineFriendshipRequest(@PathVariable UUID request_id,
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void declineFriendshipRequest(@PathVariable UUID request_id,
                                                                     @AuthenticationPrincipal User acceptingUser) {
-        StatusAndError result =
-                friendshipService.declineFriendshipRequest(acceptingUser, request_id);
-
-        return ResponseEntity.status(result.status()).body(result.message());
-
+        friendshipService.declineFriendshipRequest(acceptingUser, request_id);
     }
 
     @PostMapping("/send_friendship/{recipient_id}")

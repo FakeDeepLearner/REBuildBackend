@@ -52,9 +52,8 @@ public class ChatParticipation {
     @Column(name = "is_muted")
     private boolean isMuted = false;
 
-    @NonNull
     @Column(name = "joined_at")
-    private Instant initiatedTime;
+    private Instant initiatedTime = Instant.now();
 
     @Column(name = "num_unread_messages")
     private int unreadMessagesCount = 0;

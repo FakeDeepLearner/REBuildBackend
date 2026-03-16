@@ -19,12 +19,12 @@ public class ChatInvitation {
     private UUID id;
 
     @NonNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)
     private User sender;
 
     @NonNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)
     private User recipient;
 

@@ -1,14 +1,13 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.StatusAndError;
+import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.repository.forum_repositories.*;
@@ -16,12 +15,12 @@ import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ChatAndMessageService {
@@ -36,25 +35,109 @@ public class ChatAndMessageService {
 
     private final ChatParticipationRepository participationRepository;
 
+    private final ChatInvitationRepository chatInvitationRepository;
+
     @Autowired
     public ChatAndMessageService(ChatRepository chatRepository, UserRepository userRepository,
                                  FriendRelationshipRepository friendRelationshipRepository,
                                  CloudinaryService cloudinaryService,
-                                 ChatParticipationRepository participationRepository) {
+                                 ChatParticipationRepository participationRepository,
+                                 ChatInvitationRepository chatInvitationRepository) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.cloudinaryService = cloudinaryService;
         this.participationRepository = participationRepository;
+        this.chatInvitationRepository = chatInvitationRepository;
+    }
+
+
+    public Chat createNewGroupChat(User creatingUser, String chatName)
+    {
+        Chat newChat = new Chat();
+
+        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true);
+
+        newChat.setChatName(chatName);
+        newChat.setParticipations(new ArrayList<>(List.of(userParticipation)));
+
+        return chatRepository.save(newChat);
+    }
+
+    @Transactional
+    public StatusAndError acceptChatInvitation(User recipient, UUID invitationId)
+    {
+        ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
+                recipient).orElseThrow(() ->
+                new BelongingException("This invitation either does not exist or does not belong to you"));
+
+        Chat associatedChat = foundInvitation.getAssociatedChat();
+
+        ChatParticipation recipientParticipation = new ChatParticipation(recipient,
+                associatedChat, false);
+
+        associatedChat.getParticipations().add(recipientParticipation);
+
+        chatInvitationRepository.delete(foundInvitation);
+
+        chatRepository.save(associatedChat);
+
+        return new StatusAndError(HttpStatus.CREATED, "You are now a member of " + associatedChat.getChatName());
+    }
+
+    public void declineChatInvitation(User recipient, UUID invitationId)
+    {
+        ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
+                recipient).orElseThrow(() ->
+                new BelongingException("This invitation either does not exist or does not belong to you"));
+
+        chatInvitationRepository.delete(foundInvitation);
+    }
+
+    @Transactional
+    public StatusAndError sendGroupChatInvitation(User sender, UUID recipientId, UUID chatId)
+    {
+        User recipient = userRepository.findById(recipientId).orElse(null);
+
+        Chat foundChat = chatRepository.findById(chatId).orElse(null);
+
+        assert recipient != null : "Recipient not found";
+
+        assert foundChat != null : "Chat not found";
+
+        if (foundChat.getChatName() == null)
+        {
+            return new StatusAndError(HttpStatus.FORBIDDEN, "This chat is not a group chat, " +
+                    "you can't invite users to it");
+        }
+
+
+        Optional<ChatInvitation> foundInvitation =
+                chatInvitationRepository.findBySenderAndRecipientAndAssociatedChat_Id(sender, recipient,
+                        chatId);
+
+        if (foundInvitation.isPresent()) {
+            return new StatusAndError(HttpStatus.CONFLICT,
+                    "You already have an existing group chat invitation with this user, you cannot send " +
+                            "another one.");
+        }
+
+
+
+        ChatInvitation newInvitation = new ChatInvitation(sender, recipient, foundChat);
+
+        chatInvitationRepository.save(newInvitation);
+
+        return new StatusAndError(HttpStatus.OK, "The invitation has been sent");
     }
 
 
     private Chat createChatBetween(User sender, User recipient)
     {
         Chat newChat = new Chat();
-        ChatParticipation senderParticipation = new ChatParticipation(sender, newChat, true, Instant.now());
-        ChatParticipation recipientParticipation = new ChatParticipation(recipient, newChat, false, Instant.now());
-        newChat.setParticipations(List.of(senderParticipation, recipientParticipation));
+        ChatParticipation senderParticipation = new ChatParticipation(sender, newChat, true);
+        ChatParticipation recipientParticipation = new ChatParticipation(recipient, newChat, false);
+        newChat.setParticipations(new ArrayList<>(List.of(senderParticipation, recipientParticipation)));
         sender.addChatParticipation(senderParticipation);
         recipient.addChatParticipation(recipientParticipation);
 
@@ -92,32 +175,34 @@ public class ChatAndMessageService {
     }
 
 
-    public NewMessageDTO createMessage(User sender, UUID recipientId, String messageContent)
+    public NewMessageDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
-        User recipient = userRepository.findById(recipientId).orElse(null);
-        assert recipient != null : "User with this ID not found";
+        Optional<User> recipient = userRepository.findById(receivingObjectId);
 
-        // If the 2 users have a chat together,
-        // immediately send the message no matter the recipient's profile settings
-        Optional<Chat> foundChat = chatRepository.findByTwoUsers(sender, recipient);
-        if (foundChat.isPresent()) {
-            return sendMessageTo(sender, messageContent, foundChat.get());
-        }
-
-        // If the recipient has not selected the setting, just send the message with the content,
-        // creating a chat between the users first
-        if(!recipient.getUserProfile().getSettings().isMessagesFromFriendsOnly())
+        if (recipient.isPresent())
         {
-            return sendMessageTo(sender, recipient, messageContent);
+           User receivingUser = recipient.get();
+
+            // If the recipient has not selected the setting, just send the message with the content,
+            // creating a chat between the users first
+            if(!receivingUser.getUserProfile().getSettings().isMessagesFromFriendsOnly())
+            {
+                return sendMessageTo(sender, receivingUser, messageContent);
+            }
+
+
+            Optional<FriendRelationship> foundRelationship =
+                    friendRelationshipRepository.findByTwoUsers(sender, receivingUser);
+            if (foundRelationship.isPresent()) {
+                return sendMessageTo(sender, receivingUser, messageContent);
+            }
         }
 
 
-        Optional<FriendRelationship> foundRelationship =
-                friendRelationshipRepository.findByTwoUsers(sender, recipient);
-        if (foundRelationship.isPresent()) {
-            return sendMessageTo(sender, recipient, messageContent);
-        }
-        return null;
+        Optional<Chat> recipientChat = chatRepository.findById(receivingObjectId);
+
+        return recipientChat.map(chat ->
+                sendMessageTo(sender, messageContent, chat)).orElse(null);
 
     }
 

@@ -35,20 +35,13 @@ public class HomePageController {
 
     private final FriendshipService friendshipService;
 
-    private final SimpMessagingTemplate simpMessagingTemplate;
-
-    private final ChatAndMessageService chatAndMessageService;
-
     private final UserHomePageService homePageService;
 
     @Autowired
     public HomePageController(ResumeService resumeService, FriendshipService friendshipService,
-                              SimpMessagingTemplate simpMessagingTemplate,
-                              ChatAndMessageService chatAndMessageService, UserHomePageService homePageService) {
+                               UserHomePageService homePageService) {
         this.resumeService = resumeService;
         this.friendshipService = friendshipService;
-        this.simpMessagingTemplate = simpMessagingTemplate;
-        this.chatAndMessageService = chatAndMessageService;
         this.homePageService = homePageService;
     }
 
@@ -67,36 +60,6 @@ public class HomePageController {
                                      @RequestBody String nameToSearch) {
         return homePageService.getSearchResult(nameToSearch,
                 authenticatedUser, pageNumber, pageSize);
-    }
-
-
-    @GetMapping("/chats/all_chats")
-    public List<DisplayChatResponse> showAllChats(@AuthenticationPrincipal User authenticatedUser) {
-        return chatAndMessageService.displayAllChats(authenticatedUser);
-    }
-
-    @GetMapping("/chats/load/{chat_id}")
-    @ResponseStatus(HttpStatus.OK)
-    public LoadChatResponse loadChat(@PathVariable UUID chat_id,
-                                     @AuthenticationPrincipal User authenticatedUser) {
-        return chatAndMessageService.loadChat(chat_id, authenticatedUser);
-    }
-
-    @PostMapping("/chats/send_message/{recipient_id}")
-    public ResponseEntity<?> sendMessage(@PathVariable UUID recipient_id,
-                                              @RequestBody String messageContent,
-                                              @AuthenticationPrincipal User authenticatedUser) {
-        NewMessageDTO newMessageDTO = chatAndMessageService.
-                createMessage(authenticatedUser, recipient_id, messageContent);
-        if (newMessageDTO == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
-                    body("You cannot start a chat with this user unless you are friends with them");
-        }
-        simpMessagingTemplate.convertAndSendToUser(recipient_id.toString(),
-                "/messages", newMessageDTO.newMessage());
-        return ResponseEntity.ok(newMessageDTO.newChat());
-
-
     }
 
     @GetMapping("/")

@@ -62,16 +62,13 @@ public class FriendshipService {
     }
 
     @Transactional
-    public StatusAndError declineFriendshipRequest(User declininguser, UUID friendRequestId)
+    public void declineFriendshipRequest(User declininguser, UUID friendRequestId)
     {
         FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, declininguser).
                 orElseThrow(() ->
                         new BelongingException("This friend either does not exist or has not been addressed to you."));
 
         friendRequestRepository.delete(friendRequest);
-
-        return new StatusAndError(HttpStatus.OK, "Friend request declined");
-
     }
 
 
