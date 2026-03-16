@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import com.rebuild.backend.utils.database_utils.YearMonthSerializer;
@@ -104,6 +105,12 @@ public class Experience implements Serializable {
         return new Experience(other.companyName, other.technologyList, other.location, other.experienceType,
                 other.startDate, other.endDate, other.bullets);
 
+    }
+
+    public static Experience sensitiveCopy(Experience other)
+    {
+        return new Experience(StringUtil.maskString(other.companyName), other.technologyList, other.location, other.experienceType,
+                other.startDate, other.endDate, other.bullets);
     }
 
 }

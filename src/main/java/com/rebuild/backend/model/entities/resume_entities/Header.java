@@ -4,6 +4,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -65,6 +66,12 @@ public class Header implements Serializable {
     public static Header copy(Header other)
     {
         return new Header(other.getNumber(), other.getFirstName(), other.getLastName(), other.getEmail());
+    }
+
+    public static Header sensitiveCopy(Header other)
+    {
+        return new Header(StringUtil.maskString(other.getNumber()), StringUtil.maskString(other.firstName),
+                StringUtil.maskString(other.getLastName()), StringUtil.maskString(other.getEmail()));
     }
 
 

@@ -88,5 +88,11 @@ public class Project implements Serializable {
                 other.startDate, other.endDate, other.bullets);
     }
 
+    public static Project sensitiveCopy(Project other)
+    {
+        return new Project(other.projectName, other.technologyList,
+                other.startDate, other.endDate, other.bullets);
+    }
+
 
 }

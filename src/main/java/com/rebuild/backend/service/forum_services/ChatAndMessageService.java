@@ -1,5 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.rebuild.backend.model.dtos.StatusAndError;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
@@ -10,10 +11,7 @@ import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
-import com.rebuild.backend.repository.forum_repositories.ChatParticipationRepository;
-import com.rebuild.backend.repository.forum_repositories.ChatRepository;
-import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
-import com.rebuild.backend.repository.forum_repositories.MessageRepository;
+import com.rebuild.backend.repository.forum_repositories.*;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
@@ -49,6 +47,7 @@ public class ChatAndMessageService {
         this.cloudinaryService = cloudinaryService;
         this.participationRepository = participationRepository;
     }
+
 
     private Chat createChatBetween(User sender, User recipient)
     {

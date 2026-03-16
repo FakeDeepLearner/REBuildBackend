@@ -47,7 +47,7 @@ public class FriendStatusProcessingBatchStepsConfig {
     @Bean
     public Step friendStatusStep(JobRepository jobRepository,
                                  ItemReader<FriendRequest> requestsReader,
-                                 FriendStatusUpgradeWriter likesWriter) throws Exception {
+                                 FriendStatusUpgradeWriter likesWriter){
         return new StepBuilder("friendStatusStep", jobRepository).
                 <FriendRequest, FriendRequest>chunk(100).
                 reader(requestsReader).writer(likesWriter).faultTolerant().

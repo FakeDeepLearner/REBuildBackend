@@ -71,11 +71,11 @@ public class PostResume {
         List<Project> originalProjects = originalResume.getProjects();
         // We are creating new objects here,
         // because we do not want them to be a reference to the original ones.
-        this.education = Education.copy(originalEducation);
-        this.header = Header.copy(originalHeader);
+        this.education = Education.sensitiveCopy(originalEducation);
+        this.header = Header.sensitiveCopy(originalHeader);
         this.experiences = originalExperiences.stream().map(
-                Experience::copy).toList();
-        this.projects = originalProjects.stream().map(Project::copy).toList();
+                Experience::sensitiveCopy).toList();
+        this.projects = originalProjects.stream().map(Project::sensitiveCopy).toList();
 
         this.creationTime = Instant.now();
 

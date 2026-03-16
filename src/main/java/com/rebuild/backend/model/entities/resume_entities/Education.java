@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import com.rebuild.backend.utils.database_utils.YearMonthSerializer;
@@ -88,6 +89,12 @@ public class Education implements Serializable {
     public static Education copy(Education other)
     {
         return new Education(other.schoolName,
+                other.relevantCoursework, other.location, other.startDate, other.endDate);
+    }
+
+    public static Education sensitiveCopy(Education other)
+    {
+        return new Education(StringUtil.maskString(other.schoolName),
                 other.relevantCoursework, other.location, other.startDate, other.endDate);
     }
 }

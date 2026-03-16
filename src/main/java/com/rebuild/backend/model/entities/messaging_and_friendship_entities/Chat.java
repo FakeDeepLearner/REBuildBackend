@@ -44,7 +44,13 @@ public class Chat {
     @Column(name = "chat_name")
     private String chatName = null;
 
+
     @OneToOne(orphanRemoval = true, cascade = ALL)
     @JoinColumn(name = "picture_id", referencedColumnName = "id")
     private ProfilePicture chatPicture = null;
+
+    //A chat only has invitations if it is a group chat.
+    @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ChatInvitation> invitations = new ArrayList<>();
 }

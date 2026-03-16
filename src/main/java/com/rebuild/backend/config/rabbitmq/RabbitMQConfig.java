@@ -21,6 +21,8 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 @Configuration
 public class RabbitMQConfig {
 
+    public final static String CHATS_QUEUE_NAME = "chatsQueue";
+
     public final static String FRIENDS_QUEUE_NAME = "friendsQueue";
 
     public final static String COMMENT_QUEUE_NAME = "commentsQueue";
@@ -35,9 +37,16 @@ public class RabbitMQConfig {
 
     public final static String FRIENDS_ROUTING_KEY = "friendsRoutingKey";
 
+    public final static String CHATS_ROUTING_KEY = "chatsRoutingKey";
+
     @Bean
     public ConnectionFactory cachingFactory(){
         return new CachingConnectionFactory("localhost");
+    }
+
+    @Bean
+    public Queue chatRequestsQueue() {
+        return new Queue(CHATS_QUEUE_NAME, true);
     }
 
     @Bean
@@ -73,6 +82,12 @@ public class RabbitMQConfig {
     @Bean
     public Binding friendsBinding(){
         return BindingBuilder.bind(friendsQueue()).to(likesExchange()).with(FRIENDS_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding chatsBinding()
+    {
+        return BindingBuilder.bind(chatRequestsQueue()).to(likesExchange()).with(CHATS_ROUTING_KEY);
     }
 
     @Bean
