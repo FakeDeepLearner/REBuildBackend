@@ -1,15 +1,9 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
-import com.rebuild.backend.model.responses.DisplayChatResponse;
-import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.HomePageData;
-import com.rebuild.backend.service.forum_services.ChatAndMessageService;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserHomePageService;
@@ -18,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 

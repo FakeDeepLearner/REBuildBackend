@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
@@ -123,7 +122,6 @@ public class User implements UserDetails, OidcUser, Serializable {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "author", fetch = FetchType.LAZY)
     private transient List<Comment> madeComments = new ArrayList<>();
-
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)

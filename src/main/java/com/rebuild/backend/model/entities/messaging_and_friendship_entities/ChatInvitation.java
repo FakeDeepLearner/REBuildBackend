@@ -35,6 +35,6 @@ public class ChatInvitation {
             CascadeType.MERGE
     }, fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id", nullable = false, referencedColumnName = "id")
-    private Chat associatedChat;
+    private GroupChat associatedChat;
 
 }

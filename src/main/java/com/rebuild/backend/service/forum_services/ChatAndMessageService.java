@@ -52,11 +52,12 @@ public class ChatAndMessageService {
     }
 
 
-    public Chat createNewGroupChat(User creatingUser, String chatName)
+    public GroupChat createNewGroupChat(User creatingUser, String chatName)
     {
-        Chat newChat = new Chat();
+        GroupChat newChat = new GroupChat();
 
         ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true);
+        creatingUser.addChatParticipation(userParticipation);
 
         newChat.setChatName(chatName);
         newChat.setParticipations(new ArrayList<>(List.of(userParticipation)));
@@ -71,12 +72,13 @@ public class ChatAndMessageService {
                 recipient).orElseThrow(() ->
                 new BelongingException("This invitation either does not exist or does not belong to you"));
 
-        Chat associatedChat = foundInvitation.getAssociatedChat();
+        GroupChat associatedChat = foundInvitation.getAssociatedChat();
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient,
                 associatedChat, false);
 
         associatedChat.getParticipations().add(recipientParticipation);
+        recipient.addChatParticipation(recipientParticipation);
 
         chatInvitationRepository.delete(foundInvitation);
 
@@ -99,13 +101,13 @@ public class ChatAndMessageService {
     {
         User recipient = userRepository.findById(recipientId).orElse(null);
 
-        Chat foundChat = chatRepository.findById(chatId).orElse(null);
+        AbstractChat foundChat = chatRepository.findById(chatId).orElse(null);
 
         assert recipient != null : "Recipient not found";
 
         assert foundChat != null : "Chat not found";
 
-        if (foundChat.getChatName() == null)
+        if (!(foundChat instanceof GroupChat))
         {
             return new StatusAndError(HttpStatus.FORBIDDEN, "This chat is not a group chat, " +
                     "you can't invite users to it");
@@ -123,8 +125,8 @@ public class ChatAndMessageService {
         }
 
 
-
-        ChatInvitation newInvitation = new ChatInvitation(sender, recipient, foundChat);
+        //This cast is safe, since we already know that it isn't a private chat by this point. 
+        ChatInvitation newInvitation = new ChatInvitation(sender, recipient, (GroupChat) foundChat);
 
         chatInvitationRepository.save(newInvitation);
 
@@ -132,44 +134,61 @@ public class ChatAndMessageService {
     }
 
 
-    private Chat createChatBetween(User sender, User recipient)
+    private PrivateChat createChatBetween(User sender, User recipient)
     {
-        Chat newChat = new Chat();
-        ChatParticipation senderParticipation = new ChatParticipation(sender, newChat, true);
-        ChatParticipation recipientParticipation = new ChatParticipation(recipient, newChat, false);
-        newChat.setParticipations(new ArrayList<>(List.of(senderParticipation, recipientParticipation)));
-        sender.addChatParticipation(senderParticipation);
-        recipient.addChatParticipation(recipientParticipation);
-
+        PrivateChat newChat = new PrivateChat(sender, recipient);
+        
         return chatRepository.save(newChat);
     }
 
     private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
         //If we enter this method, we know that we will have to create a new chat.
-        Chat createdChat = createChatBetween(sender, recipient);
+        PrivateChat createdChat = createChatBetween(sender, recipient);
 
         Message newMessage = new Message(sender, messageContent);
         newMessage.setAssociatedChat(createdChat);
         createdChat.getMessages().add(newMessage);
+        createdChat.setLastMessage(messageContent);
+        
+        createdChat.addRecipientUnread();
 
         return new NewMessageDTO(chatRepository.save(createdChat), newMessage);
     }
 
     private NewMessageDTO sendMessageTo(User sender, String content,
-                                        Chat associatedChat)
+                                        AbstractChat associatedChat)
     {
 
         Message newMessage = new Message(sender, content);
         newMessage.setAssociatedChat(associatedChat);
         associatedChat.getMessages().add(newMessage);
         associatedChat.setLastMessage(content);
+        
+        if (associatedChat instanceof GroupChat groupChat)
+        {
+            List<ChatParticipation> otherChatParticipations = groupChat.getParticipations().stream().
+                    filter(participation -> !sender.equals(participation.getParticipatingUser())).
+                    toList();
 
-        List<ChatParticipation> otherChatParticipations = associatedChat.getParticipations().stream().
-                filter(participation -> !sender.equals(participation.getParticipatingUser())).
-                toList();
+            // For every other user participating in this chat except for the
+            // sender of the message, they will have 1 more unread message
+            otherChatParticipations.forEach(participation ->
+                    participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1));
+        }
 
-        otherChatParticipations.forEach(participation ->
-                participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1));
+        if (associatedChat instanceof PrivateChat privateChat)
+        {
+            User otherUser = determineOtherChatUser(privateChat, sender);
+            if (otherUser.equals(sender))
+            {
+                privateChat.addSenderUnread();
+            }
+            else {
+                privateChat.addRecipientUnread();
+            }
+        }
+
+        
 
         return new NewMessageDTO(chatRepository.save(associatedChat), newMessage);
     }
@@ -179,6 +198,8 @@ public class ChatAndMessageService {
     {
         Optional<User> recipient = userRepository.findById(receivingObjectId);
 
+        //If we find a user with the given id, the recipient will receive a message from this user for the first time
+        //So, create a private chat between the 2 users and send the message
         if (recipient.isPresent())
         {
            User receivingUser = recipient.get();
@@ -198,8 +219,9 @@ public class ChatAndMessageService {
             }
         }
 
-
-        Optional<Chat> recipientChat = chatRepository.findById(receivingObjectId);
+        // If the provided identifier is instead the id of a chat,
+        // then send a message to the chat identified by it.
+        Optional<AbstractChat> recipientChat = chatRepository.findById(receivingObjectId);
 
         return recipientChat.map(chat ->
                 sendMessageTo(sender, messageContent, chat)).orElse(null);
@@ -207,66 +229,97 @@ public class ChatAndMessageService {
     }
 
 
-    private User determineOtherChatUser(Chat chat, User loadingUser)
+    private User determineOtherChatUser(PrivateChat chat, User loadingUser)
     {
-        return chat.getParticipations().stream().map(ChatParticipation::getParticipatingUser)
-                .filter(user -> !user.equals(loadingUser)).findFirst().orElseThrow();
+        return loadingUser.equals(chat.getRecipient()) ? chat.getRecipient() : chat.getSender();
     }
 
-    private String determineChatDisplayName(Chat chat, User loadingUser)
+    private String determineChatDisplayName(AbstractChat chat, User loadingUser)
     {
-        //If this is a group chat, the display name will be the name of the chat.
-        if (chat.getChatName() != null)
+        if (chat instanceof GroupChat groupChat)
         {
-            return chat.getChatName();
+            return groupChat.getChatName();
         }
-        //Otherwise, the display name will be the forum username of the "other" user in the chat
-        User otherUser = determineOtherChatUser(chat, loadingUser);
-        return otherUser.getForumUsername();
+        if (chat instanceof PrivateChat privateChat)
+        {
+            //Otherwise, the display name will be the forum username of the "other" user in the chat
+            User otherUser = determineOtherChatUser(privateChat, loadingUser);
+            return "Chat with " + otherUser.getForumUsername();
+        }
+
+        //Should never get here
+        return null;
     }
 
-    private String determineChatPictureUrl(Chat chat, User loadingUser)
+    private String determineChatPictureUrl(AbstractChat chat, User loadingUser)
     {
-        //If this chat is a group chat, just return its profile picture url if it has one.
-        if (chat.getChatName() != null)
+        if (chat instanceof GroupChat groupChat)
         {
-            ProfilePicture chatPicture = chat.getChatPicture();
+            ProfilePicture chatPicture = groupChat.getChatPicture();
             if (chatPicture == null)
             {
                 return null;
             }
             return cloudinaryService.generateTimedUrlForPicture(chatPicture);
         }
-        //Otherwise, just return the "other" person's profile picture's url.
-        else
+
+        if (chat instanceof PrivateChat privateChat)
         {
-            User otherUser = determineOtherChatUser(chat, loadingUser);
+            User otherUser = determineOtherChatUser(privateChat, loadingUser);
             ProfilePicture picture = otherUser.getUserProfile().getProfilePicture();
             if (picture == null)
             {
                 return null;
             }
             return cloudinaryService.generateTimedUrlForPicture(picture);
+        }
+
+        //Should never get here.
+        return null;
+    }
+
+    private int determineUnreadMessageCount(AbstractChat abstractChat, User user)
+    {
+        if (abstractChat instanceof GroupChat groupChat)
+        {
+            return groupChat.getParticipations().stream().
+                    dropWhile(participation ->
+                            !participation.getParticipatingUser().equals(user)).findFirst()
+                    .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
+        }
+
+        if (abstractChat instanceof PrivateChat privateChat)
+        {
+            if (privateChat.getSender().equals(user))
+            {
+                return privateChat.getSenderUnreadMessages();
+            }
+
+            if (privateChat.getRecipient().equals(user))
+            {
+                return privateChat.getRecipientUnreadMessages();
+            }
 
         }
+
+        return 0;
     }
 
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<ChatParticipation> userParticipations = participationRepository.
-                findParticipationsByUser(displayingUser);
+        List<AbstractChat> userChats = chatRepository.findAllChatsForUser(displayingUser);
 
-        return userParticipations.stream()
-                .map(participation -> {
-                    Chat participatedChat = participation.getParticipatedChat();
+        return userChats.stream()
+                .map(abstractChat -> {
+                    int unreadMessageCount = determineUnreadMessageCount(abstractChat, displayingUser);
 
-                    String chatDisplayName = determineChatDisplayName(participatedChat, displayingUser);
+                    String chatDisplayName = determineChatDisplayName(abstractChat, displayingUser);
 
-                    String chatPictureUrl = determineChatPictureUrl(participatedChat, displayingUser);
+                    String chatPictureUrl = determineChatPictureUrl(abstractChat, displayingUser);
 
-                    return new DisplayChatResponse(participatedChat.getId(), chatDisplayName,
-                            chatPictureUrl, participatedChat.getLastMessage(),
-                            participation.getUnreadMessagesCount());
+                    return new DisplayChatResponse(abstractChat.getId(), chatDisplayName,
+                            chatPictureUrl, abstractChat.getLastMessage(),
+                            unreadMessageCount);
                 }).toList();
     }
 
@@ -274,7 +327,7 @@ public class ChatAndMessageService {
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
     {
-        Chat chat = chatRepository.findByIdWithMessages(chatId).orElse(null);
+        AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElse(null);
         assert chat != null : "Chat with this ID is not found";
         String chatDisplay = determineChatDisplayName(chat, loadingUser);
         String chatPictureUrl = determineChatPictureUrl(chat, loadingUser);

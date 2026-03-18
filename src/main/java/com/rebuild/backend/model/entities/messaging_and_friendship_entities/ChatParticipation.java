@@ -40,7 +40,7 @@ public class ChatParticipation {
     @JoinColumn(name = "participated_chat_id", referencedColumnName = "id")
     @JsonIgnore
     @NonNull
-    private Chat participatedChat;
+    private GroupChat participatedChat;
 
     // Indicates whether this user initiated this chat (i.e. sent the first message),
     // or received this chat (i.e. received the first message)

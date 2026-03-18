@@ -38,7 +38,7 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "associated_chat_id")
     @JsonIgnore
-    private Chat associatedChat;
+    private AbstractChat associatedChat;
 
     @NonNull
     @Column(name = "content", nullable = false)

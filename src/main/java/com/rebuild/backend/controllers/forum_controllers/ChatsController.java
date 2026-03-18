@@ -2,7 +2,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.dtos.StatusAndError;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
@@ -62,7 +62,7 @@ public class ChatsController {
     }
 
     @PostMapping("/create")
-    public Chat createGroupChat(@AuthenticationPrincipal User creatingUser, @RequestBody String name)
+    public GroupChat createGroupChat(@AuthenticationPrincipal User creatingUser, @RequestBody String name)
     {
         return chatAndMessageService.createNewGroupChat(creatingUser, name);
     }
