@@ -27,13 +27,6 @@ import java.util.UUID;
         @Index(columnList = "user_id"),
         @Index(columnList = "user_id, id")
 })
-@NamedQueries(
-        value = {
-                @NamedQuery(name = "Resume.countByIdAndUserId",
-                query = "SELECT COUNT(*) FROM Resume r WHERE r.id=?1 and r.user.id=?2")
-        }
-)
-
 @NamedEntityGraph(name = Resume.GRAPH_NAME,
     attributeNodes = {
         @NamedAttributeNode(value = "header"),

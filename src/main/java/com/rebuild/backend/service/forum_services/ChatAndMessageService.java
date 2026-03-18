@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatAndMessageService {
@@ -31,24 +32,23 @@ public class ChatAndMessageService {
 
     private final FriendRelationshipRepository friendRelationshipRepository;
 
-    private final CloudinaryService cloudinaryService;
-
     private final ChatParticipationRepository participationRepository;
 
     private final ChatInvitationRepository chatInvitationRepository;
 
+    private final ChatUtilService chatUtilService;
+
     @Autowired
     public ChatAndMessageService(ChatRepository chatRepository, UserRepository userRepository,
                                  FriendRelationshipRepository friendRelationshipRepository,
-                                 CloudinaryService cloudinaryService,
                                  ChatParticipationRepository participationRepository,
-                                 ChatInvitationRepository chatInvitationRepository) {
+                                 ChatInvitationRepository chatInvitationRepository, ChatUtilService chatUtilService) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
-        this.cloudinaryService = cloudinaryService;
         this.participationRepository = participationRepository;
         this.chatInvitationRepository = chatInvitationRepository;
+        this.chatUtilService = chatUtilService;
     }
 
 
@@ -178,7 +178,7 @@ public class ChatAndMessageService {
 
         if (associatedChat instanceof PrivateChat privateChat)
         {
-            User otherUser = determineOtherChatUser(privateChat, sender);
+            User otherUser = chatUtilService.determineOtherChatUser(privateChat, sender);
             if (otherUser.equals(sender))
             {
                 privateChat.addSenderUnread();
@@ -228,99 +228,45 @@ public class ChatAndMessageService {
 
     }
 
-
-    private User determineOtherChatUser(PrivateChat chat, User loadingUser)
-    {
-        return loadingUser.equals(chat.getRecipient()) ? chat.getRecipient() : chat.getSender();
-    }
-
-    private String determineChatDisplayName(AbstractChat chat, User loadingUser)
-    {
-        if (chat instanceof GroupChat groupChat)
-        {
-            return groupChat.getChatName();
-        }
-        if (chat instanceof PrivateChat privateChat)
-        {
-            //Otherwise, the display name will be the forum username of the "other" user in the chat
-            User otherUser = determineOtherChatUser(privateChat, loadingUser);
-            return "Chat with " + otherUser.getForumUsername();
-        }
-
-        //Should never get here
-        return null;
-    }
-
-    private String determineChatPictureUrl(AbstractChat chat, User loadingUser)
-    {
-        if (chat instanceof GroupChat groupChat)
-        {
-            ProfilePicture chatPicture = groupChat.getChatPicture();
-            if (chatPicture == null)
-            {
-                return null;
-            }
-            return cloudinaryService.generateTimedUrlForPicture(chatPicture);
-        }
-
-        if (chat instanceof PrivateChat privateChat)
-        {
-            User otherUser = determineOtherChatUser(privateChat, loadingUser);
-            ProfilePicture picture = otherUser.getUserProfile().getProfilePicture();
-            if (picture == null)
-            {
-                return null;
-            }
-            return cloudinaryService.generateTimedUrlForPicture(picture);
-        }
-
-        //Should never get here.
-        return null;
-    }
-
-    private int determineUnreadMessageCount(AbstractChat abstractChat, User user)
-    {
-        if (abstractChat instanceof GroupChat groupChat)
-        {
-            return groupChat.getParticipations().stream().
-                    dropWhile(participation ->
-                            !participation.getParticipatingUser().equals(user)).findFirst()
-                    .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
-        }
-
-        if (abstractChat instanceof PrivateChat privateChat)
-        {
-            if (privateChat.getSender().equals(user))
-            {
-                return privateChat.getSenderUnreadMessages();
-            }
-
-            if (privateChat.getRecipient().equals(user))
-            {
-                return privateChat.getRecipientUnreadMessages();
-            }
-
-        }
-
-        return 0;
-    }
-
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<AbstractChat> userChats = chatRepository.findAllChatsForUser(displayingUser);
+        List<ChatParticipation> groupChatParticipations = participationRepository.findParticipationsByUser(displayingUser);
+        List<PrivateChat> userChats = chatRepository.findPrivateChatsByUser(displayingUser);
 
-        return userChats.stream()
+        List<DisplayChatResponse> privateChatResponses = userChats.stream()
                 .map(abstractChat -> {
-                    int unreadMessageCount = determineUnreadMessageCount(abstractChat, displayingUser);
+                    int unreadMessageCount = chatUtilService.determineUnreadMessageCount(abstractChat, displayingUser);
 
-                    String chatDisplayName = determineChatDisplayName(abstractChat, displayingUser);
+                    String chatDisplayName = chatUtilService.determineChatDisplayName(abstractChat, displayingUser);
 
-                    String chatPictureUrl = determineChatPictureUrl(abstractChat, displayingUser);
+                    String chatPictureUrl = chatUtilService.determineChatPictureUrl(abstractChat, displayingUser);
 
                     return new DisplayChatResponse(abstractChat.getId(), chatDisplayName,
                             chatPictureUrl, abstractChat.getLastMessage(),
                             unreadMessageCount);
                 }).toList();
+
+        //We have to use the collect method at the very end, because using toList() returns an unmodifiable list.
+        List<DisplayChatResponse> groupChatResponses = groupChatParticipations.stream()
+                .map(participation -> {
+                    GroupChat participatedChat = participation.getParticipatedChat();
+
+                    int unreadMessageCount = chatUtilService.determineUnreadMessageCount(participatedChat, displayingUser);
+
+                    String chatDisplayName = chatUtilService.determineChatDisplayName(participatedChat, displayingUser);
+
+                    String chatPictureUrl = chatUtilService.determineChatPictureUrl(participatedChat, displayingUser);
+
+                    return new DisplayChatResponse(participatedChat.getId(), chatDisplayName,
+                            chatPictureUrl, participatedChat.getLastMessage(),
+                            unreadMessageCount);
+                }).collect(Collectors.toCollection(ArrayList::new));
+
+        groupChatResponses.addAll(privateChatResponses);
+
+        return groupChatResponses;
+
+
     }
 
 
@@ -329,8 +275,8 @@ public class ChatAndMessageService {
     {
         AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElse(null);
         assert chat != null : "Chat with this ID is not found";
-        String chatDisplay = determineChatDisplayName(chat, loadingUser);
-        String chatPictureUrl = determineChatPictureUrl(chat, loadingUser);
+        String chatDisplay = chatUtilService.determineChatDisplayName(chat, loadingUser);
+        String chatPictureUrl = chatUtilService.determineChatPictureUrl(chat, loadingUser);
 
         List<MessageDisplayDTO> messages = chat.getMessages()
                 .stream().
