@@ -87,12 +87,7 @@ public class UserService{
 
         return cloudinaryService.modifyProfilePictureOf(newUser, pictureFile);
     }
-
-    public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
-    {
-        return null;
-    }
-
+    
     @Transactional
     public User modifyForumUsername(User modifyingUser, String newUsername){
         modifyingUser.setForumUsername(newUsername);
