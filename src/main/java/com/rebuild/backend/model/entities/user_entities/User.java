@@ -113,15 +113,7 @@ public class User implements UserDetails, OidcUser, Serializable {
     @Column(name = "backup_forum_username", nullable = false)
     private String backupForumUsername;
 
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY, mappedBy = "creatingUser")
-    private transient List<ForumPost> madePosts = new ArrayList<>();
 
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
-            mappedBy = "author", fetch = FetchType.LAZY)
-    private transient List<Comment> madeComments = new ArrayList<>();
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)

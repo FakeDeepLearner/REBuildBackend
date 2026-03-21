@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.FullProfileForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
+import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
 import com.rebuild.backend.service.util_services.CloudinaryService;
@@ -44,11 +45,17 @@ public class ProfileController {
         this.cloudinaryService = cloudinaryService;
     }
 
-    @DeleteMapping("/delete")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @CacheEvict
-    public void deleteProfile(@AuthenticationPrincipal User deletingUser) {
-        profileService.deleteProfile(deletingUser);
+
+    @GetMapping("/load_profile")
+    public UserProfileResponse loadOwnProfile(@AuthenticationPrincipal User user)
+    {
+        return profileService.loadUserProfile(user, user.getId());
+    }
+
+    @GetMapping("/load_profile/{clicked_user_id}")
+    public UserProfileResponse loadClickedUserProfile(@AuthenticationPrincipal User user, @PathVariable UUID clicked_user_id)
+    {
+        return profileService.loadUserProfile(user, clicked_user_id);
     }
 
     @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -71,8 +78,8 @@ public class ProfileController {
     @DeleteMapping("/remove_image")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict
-    public ResponseEntity<?> removeProfileImage(@AuthenticationPrincipal User user){
-        return ResponseEntity.ok(cloudinaryService.removeProfilePicture(user, true));
+    public UserProfile removeProfileImage(@AuthenticationPrincipal User user){
+        return cloudinaryService.removeProfilePicture(user, true);
     }
 
     @DeleteMapping("/delete_phone")

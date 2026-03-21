@@ -1,6 +1,8 @@
 package com.rebuild.backend.model.entities.profile_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.forum_entities.Comment;
+import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
@@ -8,6 +10,7 @@ import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,6 +64,17 @@ public class UserProfile implements Serializable {
     @Column(name = "sensitive_information_setting")
     @Enumerated(EnumType.STRING)
     private InformationVisibility sensitiveInfoVisibility = DEFAULT_SENSITIVE_INFO_VISIBILITY;
+
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY, mappedBy = "associatedProfile")
+    private transient List<ForumPost> madePosts = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+            mappedBy = "associatedProfile", fetch = FetchType.LAZY)
+    private transient List<Comment> madeComments = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,

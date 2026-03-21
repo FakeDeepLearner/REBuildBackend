@@ -3,6 +3,7 @@ package com.rebuild.backend.service.forum_services;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
@@ -44,8 +45,10 @@ public class CommentsService {
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
         newComment.setParent(null);
-        // creatingUser.getMadeComments().add(newComment);
-        newComment.setAuthor(creatingUser);
+
+        UserProfile profile = creatingUser.getUserProfile();
+        profile.getMadeComments().add(newComment);
+        newComment.setAssociatedProfile(profile);
         return commentRepository.save(newComment);
 
     }
@@ -57,12 +60,16 @@ public class CommentsService {
                 orElseThrow(RuntimeException::new);
 
         Comment newComment = new Comment(commentForm.content());
-        newComment.setAuthor(creatingUser);
         newComment.setAssociatedPost(parentComment.getAssociatedPost());
         newComment.setParent(parentComment);
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
 
 
+        UserProfile profile = creatingUser.getUserProfile();
+        newComment.setAssociatedProfile(profile);
+        profile.getMadeComments().add(newComment);
+
+        
         return commentRepository.save(newComment);
     }
 

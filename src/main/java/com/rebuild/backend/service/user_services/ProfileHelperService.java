@@ -24,9 +24,8 @@ public class ProfileHelperService {
         this.cloudinaryService = cloudinaryService;
     }
 
-    private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, boolean thereIsFriendship)
+    private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, UserProfile profile, boolean thereIsFriendship)
     {
-        UserProfile profile = user.getUserProfile();
         InformationVisibility sensitiveInfoVisibility = profile.getSensitiveInfoVisibility();
         if (thereIsFriendship)
         {
@@ -55,9 +54,8 @@ public class ProfileHelperService {
                 StringUtil.maskString(user.getEmail()), StringUtil.maskString(user.getPhoneNumber()));
     }
 
-    private List<Comment> decideCommentList(User user, boolean thereIsFriendship)
+    private List<Comment> decideCommentList(UserProfile profile, boolean thereIsFriendship)
     {
-        UserProfile profile = user.getUserProfile();
         InformationVisibility commentsVisibility = profile.getCommentsVisibility();
         if (thereIsFriendship)
         {
@@ -65,7 +63,7 @@ public class ProfileHelperService {
             if (commentsVisibility.equals(InformationVisibility.EVERYONE) ||
                     commentsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return user.getMadeComments();
+                return profile.getMadeComments();
             }
             //Otherwise, return the information masked
         }
@@ -75,7 +73,7 @@ public class ProfileHelperService {
         {
             if (commentsVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return user.getMadeComments();
+                return profile.getMadeComments();
             }
 
             //Otherwise, return the information masked
@@ -83,16 +81,15 @@ public class ProfileHelperService {
         return null;
     }
 
-    private List<ForumPost> decidePostsList(User user, boolean thereIsFriendship)
+    private List<ForumPost> decidePostsList(UserProfile profile, boolean thereIsFriendship)
     {
-        UserProfile profile = user.getUserProfile();
         InformationVisibility postsVisibility = profile.getPostsVisibility();
         if (thereIsFriendship)
         {
             if (postsVisibility.equals(InformationVisibility.EVERYONE) ||
                     postsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return user.getMadePosts();
+                return profile.getMadePosts();
             }
         }
 
@@ -100,19 +97,20 @@ public class ProfileHelperService {
         {
             if (postsVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return user.getMadePosts();
+                return profile.getMadePosts();
             }
         }
         return null;
     }
 
 
-    public UserProfileResponse loadOtherUserProfile(User otherUser, boolean thereIsFriendship)
+    public UserProfileResponse loadOtherUserProfile(User otherUser, UserProfile profile, boolean thereIsFriendship)
     {
-        List<ForumPost> postsList = decidePostsList(otherUser, thereIsFriendship);
-        List<Comment> commentsList = decideCommentList(otherUser, thereIsFriendship);
+        List<ForumPost> postsList = decidePostsList(profile, thereIsFriendship);
+        List<Comment> commentsList = decideCommentList(profile, thereIsFriendship);
 
-        ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser, thereIsFriendship);
+        ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser,
+                profile, thereIsFriendship);
 
         return new UserProfileResponse(sensitiveInformationDTO, otherUser.getForumUsername(), commentsList, postsList);
     }

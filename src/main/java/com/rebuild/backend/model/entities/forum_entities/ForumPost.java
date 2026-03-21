@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,8 +46,9 @@ public class ForumPost {
     private List<ResumeFileUploadRecord> uploadedFiles;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
     @JsonIgnore
-    private User creatingUser;
+    private UserProfile associatedProfile;
 
     @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant creationDate = Instant.now();

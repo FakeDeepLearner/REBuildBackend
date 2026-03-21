@@ -56,17 +56,16 @@ public class ProfileService {
     @Transactional
     public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
     {
-        UserProfile associatedProfile;
+        UserProfile associatedProfile = profileRepository.findByUserId(clickedUserId);
         // If you are trying to load your own profile, simply get
         // all the information regardless of info visibility settings
         if (clickedUserId.equals(user.getId()))
         {
-            associatedProfile = user.getUserProfile();
 
             return new UserProfileResponse(
                     new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPicture(associatedProfile.getProfilePicture()),
                     user.getEmail(), user.getPhoneNumber()),
-                    user.getForumUsername(), user.getMadeComments(), user.getMadePosts()
+                    user.getForumUsername(), associatedProfile.getMadeComments(), associatedProfile.getMadePosts()
                     );
         }
 
@@ -75,18 +74,11 @@ public class ProfileService {
 
         assert foundUser != null : "User not found";
 
-        Optional<FriendRelationship> foundRelationship = friendRelationshipRepository.findByTwoUsers(user, foundUser);
+        Optional<FriendRelationship> foundRelationship = friendRelationshipRepository.
+                findByUserAndUserId(user, clickedUserId);
 
-        return helperService.loadOtherUserProfile(foundUser, foundRelationship.isPresent());
+        return helperService.loadOtherUserProfile(foundUser, associatedProfile, foundRelationship.isPresent());
 
     }
-
-    @Transactional
-    public void deleteProfile(User deletingUser){
-        UserProfile profile = cloudinaryService.removeProfilePicture(deletingUser, true);
-
-        profileRepository.delete(profile);
-    }
-
 
 }

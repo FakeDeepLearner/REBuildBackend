@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
@@ -27,9 +28,9 @@ public class Comment {
     private UUID id;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
     @JsonIgnore
-    private User author;
+    private UserProfile associatedProfile;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")

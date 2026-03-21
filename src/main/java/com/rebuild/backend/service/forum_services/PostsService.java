@@ -5,6 +5,7 @@ import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.ResumeFileUploadRecord;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.FileUploadException;
@@ -106,8 +107,10 @@ public class PostsService {
         //Wait here until all the uploads have been processed.
         CompletableFuture.allOf(fileUploadResults.toArray(new CompletableFuture[0])).join();
 
-        newPost.setCreatingUser(creatingUser);
-        creatingUser.getMadePosts().add(newPost);
+        UserProfile profile = creatingUser.getUserProfile();
+
+        newPost.setAssociatedProfile(profile);
+        profile.getMadePosts().add(newPost);
         return postRepository.save(newPost);
     }
 
@@ -145,7 +148,7 @@ public class PostsService {
                         resumeFileUploadRecord.getObjectKey())).toList();
 
         return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(),
-                forumPost.getCreatingUser().getForumUsername(),
+                forumPost.getAssociatedProfile().getUser().getForumUsername(),
                 forumPost.getResumes(),
                 displayedComments, presignedUrls);
 

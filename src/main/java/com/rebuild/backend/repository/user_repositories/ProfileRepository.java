@@ -74,6 +74,11 @@ public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
 
 
     @Cacheable
+    @Query("""
+    SELECT p FROM UserProfile p
+    LEFT JOIN FETCH p.madeComments LEFT JOIN FETCH p.madePosts
+    WHERE p.user.id=:id
+    """)
     UserProfile findByUserId(UUID id);
 
 }
