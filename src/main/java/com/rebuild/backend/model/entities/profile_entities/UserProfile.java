@@ -43,7 +43,6 @@ public class UserProfile implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @OneToOne(orphanRemoval = true, cascade = ALL)

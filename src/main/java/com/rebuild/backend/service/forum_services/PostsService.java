@@ -13,17 +13,23 @@ import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.util_services.AWSService;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Transactional(readOnly = true)
@@ -47,8 +53,8 @@ public class PostsService {
     }
 
     @Transactional
-    public ForumPost createNewPost(NewPostForm postForm,
-                                   User creatingUser, List<MultipartFile> resumeFiles) {
+    public ResponseEntity<ForumPost> createNewPost(NewPostForm postForm,
+                                                  User creatingUser, List<MultipartFile> resumeFiles) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
         List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
                         .map(PostResume::new).
@@ -60,58 +66,55 @@ public class PostsService {
         //This variable is here because we might want to do something with it later just in case.
 
         List<CompletableFuture<?>> fileUploadResults = new ArrayList<>();
-        for (int i = 0; i < resumeFiles.size(); i++)
-        {
-            MultipartFile file = resumeFiles.get(i);
-            try{
+        for (MultipartFile file : resumeFiles) {
+            String actualFileName = FilenameUtils.getName(file.getOriginalFilename());
+            try {
                 String detectedFileType = new Tika().detect(file.getInputStream());
-
-                if (!"application/pdf".equals(detectedFileType))
-                {
-                    fileUploadResults.add(CompletableFuture.failedFuture(new FileUploadException(i + 1,
-                            "File type is not a pdf", new IllegalArgumentException())));
-                }
-                else {
+                if (!"application/pdf".equals(detectedFileType)) {
+                    fileUploadResults.add(CompletableFuture.failedFuture(new FileUploadException(
+                            "File " + actualFileName + " is not a pdf", new IllegalArgumentException())));
+                } else {
                     fileUploadResults.add(awsService.uploadFileToS3(newPost, file.getBytes()));
                 }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 fileUploadResults.add(CompletableFuture.
-                        failedFuture(new FileUploadException(i + 1, e.getMessage(), e.getCause())));
+                        failedFuture(new FileUploadException("An error occurred with uploading " + actualFileName, e)));
             }
         }
-        /*
-        List<CompletableFuture<?>> uploadResults = resumeFiles.stream()
-                        .map(file -> {
-
-                            try{
-                                String detectedFileType = new Tika().detect(file.getInputStream());
-
-                                if (!"application/pdf".equals(detectedFileType))
-                                {
-                                    return CompletableFuture.failedFuture(new FileUploadException(resumeFiles.indexOf(file),
-                                            ))
-                                }
-                                return awsService.uploadFileToS3(file.getOriginalFilename(),
-                                        creatingUser, newPost, file.getBytes());
-                            }
-                            catch (IOException e) {
-                                return CompletableFuture.failedFuture(new FileUploadException(resumeFiles.indexOf(file), e.getMessage(),
-                                        e.getCause()));
-                            }
-
-                        }).toList();
-
-         */
-
         //Wait here until all the uploads have been processed.
-        CompletableFuture.allOf(fileUploadResults.toArray(new CompletableFuture[0])).join();
+
+        HttpStatus responseStatusCode = HttpStatus.CREATED;
+        try {
+            CompletableFuture.allOf(fileUploadResults.toArray(new CompletableFuture[0])).get();
+        }
+        catch (ExecutionException executionException)
+        {
+            Throwable executionExceptionCause = executionException.getCause();
+            if (executionExceptionCause instanceof FileUploadException)
+            {
+
+                if (executionExceptionCause.getCause() instanceof IOException _)
+                {
+                    responseStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+                }
+                if (executionException.getCause() instanceof IllegalArgumentException)
+                {
+                    responseStatusCode = HttpStatus.BAD_REQUEST;
+                }
+                return ResponseEntity.status(responseStatusCode).body(postRepository.save(newPost));
+            }
+
+
+        }
+        catch(CancellationException | InterruptedException _){
+
+        }
 
         UserProfile profile = creatingUser.getUserProfile();
 
         newPost.setAssociatedProfile(profile);
         profile.getMadePosts().add(newPost);
-        return postRepository.save(newPost);
+        return ResponseEntity.status(responseStatusCode).body(postRepository.save(newPost));
     }
 
 
@@ -119,7 +122,7 @@ public class PostsService {
     {
         List<ResumeFileUploadRecord> fileUploadRecords = postToDelete.getUploadedFiles();
 
-        List<CompletableFuture<Void>> allDeleteResults = fileUploadRecords.stream()
+        List<CompletableFuture<DeleteObjectResponse>> allDeleteResults = fileUploadRecords.stream()
                 .map(awsService::deleteFileFromS3).toList();
     }
 

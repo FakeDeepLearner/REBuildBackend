@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -59,13 +60,10 @@ public class AWSService {
                             putObjectResponse.expiration(), putObjectResponse.eTag());
                     newUploadRecord.setAssociatedPost(post);
                     post.getUploadedFiles().add(newUploadRecord);
-
-                }, executor).exceptionally(throwable -> {
-                    throw new FileUploadException(-1, throwable.getMessage(), throwable);
-                });
+                }, executor);
     }
 
-    public CompletableFuture<Void> deleteFileFromS3(ResumeFileUploadRecord uploadRecord)
+    public CompletableFuture<DeleteObjectResponse> deleteFileFromS3(ResumeFileUploadRecord uploadRecord)
     {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(uploadRecord.getBucketName())
@@ -73,10 +71,7 @@ public class AWSService {
                 .ifMatch(uploadRecord.getETag())
                 .build();
 
-        return s3AsyncClient.deleteObject(deleteObjectRequest).
-                exceptionally(throwable ->  {
-                    throw new FileUploadException(-1, throwable.getMessage(), throwable);
-                }).thenApply(_ -> null);
+        return s3AsyncClient.deleteObject(deleteObjectRequest);
     }
 
 
@@ -91,7 +86,7 @@ public class AWSService {
                     .build();
 
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(20))
+                    .signatureDuration(Duration.ofMinutes(5))
                     .getObjectRequest(objectRequest)
                     .build();
 
