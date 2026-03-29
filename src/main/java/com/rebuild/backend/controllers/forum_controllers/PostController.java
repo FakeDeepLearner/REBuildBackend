@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +34,9 @@ public class PostController {
     }
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ForumPost createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
-                                   @RequestPart(name = "files") List<MultipartFile> resumeFiles,
-                                   @AuthenticationPrincipal User creatingUser) {
+    public ResponseEntity<ForumPost> createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
+                                        @RequestPart(name = "files") List<MultipartFile> resumeFiles,
+                                        @AuthenticationPrincipal User creatingUser) {
         return postsService.createNewPost(postForm,
                 creatingUser, resumeFiles);
     }

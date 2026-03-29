@@ -14,6 +14,9 @@ import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.util_services.AWSService;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -52,6 +58,21 @@ public class PostsService {
         this.awsService = awsService;
     }
 
+    private byte[] sanitizedPDFBytes(byte[] input) throws IOException {
+        try(PDDocument originalDocument = Loader.loadPDF(input);
+            PDDocument cleanDocument = new PDDocument())
+        {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            for (PDPage page : originalDocument.getPages())
+            {
+                cleanDocument.importPage(page);
+            }
+            cleanDocument.save(baos);
+            return baos.toByteArray();
+        }
+    }
+
     @Transactional
     public ResponseEntity<ForumPost> createNewPost(NewPostForm postForm,
                                                   User creatingUser, List<MultipartFile> resumeFiles) {
@@ -62,30 +83,32 @@ public class PostsService {
                 toList();
         newPost.setResumes(resumes);
 
-        //Calling the upload function in a loop already kick-starts everything for the upload process.
-        //This variable is here because we might want to do something with it later just in case.
-
-        List<CompletableFuture<?>> fileUploadResults = new ArrayList<>();
+        //First, we sort out potential failures before we even begin uploading the document
+        List<byte[]> allSanitizedFileBytes = new ArrayList<>();
         for (MultipartFile file : resumeFiles) {
             String actualFileName = FilenameUtils.getName(file.getOriginalFilename());
-            try {
-                String detectedFileType = new Tika().detect(file.getInputStream());
+            try(InputStream inputStream = file.getInputStream()) {
+                String detectedFileType = new Tika().detect(inputStream);
                 if (!"application/pdf".equals(detectedFileType)) {
-                    fileUploadResults.add(CompletableFuture.failedFuture(new FileUploadException(
-                            "File " + actualFileName + " is not a pdf", new IllegalArgumentException())));
-                } else {
-                    fileUploadResults.add(awsService.uploadFileToS3(newPost, file.getBytes()));
+                    throw new FileUploadException("File " + actualFileName + " is not a PDF");
                 }
+                byte[] sanitizedBytes = sanitizedPDFBytes(file.getBytes());
+                allSanitizedFileBytes.add(sanitizedBytes);
+
             } catch (IOException e) {
-                fileUploadResults.add(CompletableFuture.
-                        failedFuture(new FileUploadException("An error occurred with uploading " + actualFileName, e)));
+                throw new FileUploadException("An error occurred when uploading file " + actualFileName);
             }
         }
-        //Wait here until all the uploads have been processed.
+
+
+        List<CompletableFuture<Void>> allFileUploads = allSanitizedFileBytes.stream()
+                .map(input -> awsService.uploadFileToS3(newPost, input)).toList();
 
         HttpStatus responseStatusCode = HttpStatus.CREATED;
         try {
-            CompletableFuture.allOf(fileUploadResults.toArray(new CompletableFuture[0])).get();
+            //Wait here until all the uploads have been processed.
+            // The only possible way for this to fail is if we have something go wrong during the upload itself
+            CompletableFuture.allOf(allFileUploads.toArray(new CompletableFuture[0])).get();
         }
         catch (ExecutionException executionException)
         {
