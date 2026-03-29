@@ -174,12 +174,12 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume copyResume(User user, UUID resumeId, ResumeCreationForm creationForm){
+    public Resume copyResume(User user, UUID resumeId, String name){
         Resume copiedResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
-        if(creationForm.newName().equals(copiedResume.getName())){
+        if(name.equals(copiedResume.getName())){
             throw new RuntimeException("The new resume must have a different name than the original one.");
         }
-        Resume newResume = new Resume(copiedResume, creationForm);
+        Resume newResume = new Resume(copiedResume, name);
         return resumeRepository.save(newResume);
 
     }

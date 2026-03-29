@@ -52,10 +52,10 @@ public class ResumeUtilController {
 
     @PostMapping("/copy/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> copyResume(@RequestBody ResumeCreationForm creationForm,
+    public ResponseEntity<?> copyResume(@RequestBody String newName,
                                         @AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
         try {
-            Resume copiedResume = resumeService.copyResume(user, resume_id, creationForm);
+            Resume copiedResume = resumeService.copyResume(user, resume_id, newName);
             return ResponseEntity.ok(copiedResume);
         }
 

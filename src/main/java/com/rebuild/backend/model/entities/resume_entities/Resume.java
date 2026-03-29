@@ -80,11 +80,6 @@ public class Resume implements Serializable {
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
     private List<Project> projects = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
-    orphanRemoval = true, mappedBy = "associatedResume")
-    @OrderBy("createdDate DESC")
-    private List<ResumeVersion> versions = new ArrayList<>();
-
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
             CascadeType.PERSIST,
@@ -112,10 +107,10 @@ public class Resume implements Serializable {
         this.name = resume_name;
     }
 
-    public Resume(@NonNull Resume originalResume, @NonNull ResumeCreationForm creationForm){
+    public Resume(@NonNull Resume originalResume, @NonNull String newName){
 
 
-        this.name = creationForm.newName();
+        this.name = newName;
         this.user = originalResume.getUser();
         // We are creating new objects here,
         // because we do not want them to be a reference to the original ones.
@@ -135,37 +130,6 @@ public class Resume implements Serializable {
         // Technically, the LocalDataTime.now() call will be different from the one above,
         // and we want these dates to match initially
         this.lastModifiedTime = this.creationTime;
-
-        if (creationForm.copyVersions())
-        {
-            for (ResumeVersion resumeVersion : originalResume.getVersions()) {
-                this.versions.add(ResumeVersion.copy(resumeVersion));
-            }
-
-        }
-    }
-
-    public Resume(ResumeVersion version, String newName, User user)
-    {
-        this.user = user;
-        this.name = newName;
-        this.education = Education.copy(version.getVersionedEducation());
-        this.header = Header.copy(version.getVersionedHeader());
-        this.experiences = version.getVersionedExperiences().stream().map(
-                Experience::copy
-        ).peek(experience -> experience.setResume(this)).toList();
-        this.projects = version.getVersionedProjects().stream().map(
-                Project::copy
-        ).peek(project -> project.setResume(this)).toList();
-
-        this.user.getResumes().add(this);
-        this.education.setResume(this);
-        this.header.setResume(this);
-        this.creationTime = Instant.now();
-        // Technically, the LocalDataTime.now() call will be different from the one above,
-        // and we want these dates to match initially
-        this.lastModifiedTime = this.creationTime;
-
     }
 
 }
