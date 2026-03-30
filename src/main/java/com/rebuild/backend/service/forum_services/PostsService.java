@@ -41,6 +41,16 @@ import java.util.concurrent.ExecutionException;
 @Transactional(readOnly = true)
 public class PostsService {
 
+    private static final int MAX_FILE_UPLOADS = 5;
+
+    //1 MB = 2 ^ 20 bytes
+    private static final long MEGABYTE_IN_BYTES = 1024 * 1024;
+
+    //Each individual file must be 5 MB or less in size
+    private static final long FILE_SIZE_LIMIT = 5 * MEGABYTE_IN_BYTES;
+
+    //The files uploaded can have a total size of 15 MB or less
+    private static final long TOTAL_FILE_SIZE_LIMIT = 15 * MEGABYTE_IN_BYTES;
 
     private final ForumPostRepository postRepository;
 
@@ -73,6 +83,44 @@ public class PostsService {
         }
     }
 
+    private List<byte[]> doFilePreprocessing(List<MultipartFile> resumeFiles)
+    {
+        List<byte[]> result = new ArrayList<>();
+        if (resumeFiles.size() > MAX_FILE_UPLOADS)
+        {
+            throw new FileUploadException("You cannot upload more than " + MAX_FILE_UPLOADS + " files");
+        }
+        long totalFileSize = resumeFiles.stream().mapToLong(MultipartFile::getSize).sum();
+
+        if (totalFileSize > TOTAL_FILE_SIZE_LIMIT)
+        {
+            throw new FileUploadException("The total size of the files is too large");
+        }
+
+        for (MultipartFile file : resumeFiles)
+        {
+            String actualFileName = FilenameUtils.getName(file.getOriginalFilename());
+            if (file.getSize() >= FILE_SIZE_LIMIT)
+            {
+                throw new FileUploadException("File " + actualFileName + " is too large");
+            }
+            try(InputStream inputStream = file.getInputStream())
+            {
+                String detectedFileType = new Tika().detect(inputStream);
+                if (!"application/pdf".equals(detectedFileType)) {
+                    throw new FileUploadException("File " + actualFileName + " is not a PDF");
+                }
+                byte[] sanitizedBytes = sanitizedPDFBytes(file.getBytes());
+                result.add(sanitizedBytes);
+            }
+            catch (IOException _)
+            {
+                throw new FileUploadException("An error occurred while uploading file " + actualFileName);
+            }
+        }
+        return result;
+    }
+
     @Transactional
     public ResponseEntity<ForumPost> createNewPost(NewPostForm postForm,
                                                   User creatingUser, List<MultipartFile> resumeFiles) {
@@ -83,23 +131,12 @@ public class PostsService {
                 toList();
         newPost.setResumes(resumes);
 
-        //First, we sort out potential failures before we even begin uploading the document
-        List<byte[]> allSanitizedFileBytes = new ArrayList<>();
-        for (MultipartFile file : resumeFiles) {
-            String actualFileName = FilenameUtils.getName(file.getOriginalFilename());
-            try(InputStream inputStream = file.getInputStream()) {
-                String detectedFileType = new Tika().detect(inputStream);
-                if (!"application/pdf".equals(detectedFileType)) {
-                    throw new FileUploadException("File " + actualFileName + " is not a PDF");
-                }
-                byte[] sanitizedBytes = sanitizedPDFBytes(file.getBytes());
-                allSanitizedFileBytes.add(sanitizedBytes);
-
-            } catch (IOException e) {
-                throw new FileUploadException("An error occurred when uploading file " + actualFileName);
-            }
-        }
-
+        /*
+        This function takes care of all possible errors that can arise early,
+         so we never begin the upload process if we don't have to. If everything is ok with the files,
+         it returns the byte arrays of all files in a sanitized (i.e. stripped from its metadata) manner
+        */
+        List<byte[]> allSanitizedFileBytes = doFilePreprocessing(resumeFiles);
 
         List<CompletableFuture<Void>> allFileUploads = allSanitizedFileBytes.stream()
                 .map(input -> awsService.uploadFileToS3(newPost, input)).toList();
