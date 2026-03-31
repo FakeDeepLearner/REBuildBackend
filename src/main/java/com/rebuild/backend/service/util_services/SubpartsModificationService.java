@@ -8,6 +8,8 @@ import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
+import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
+import com.rebuild.backend.repository.resume_repositories.ProjectRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.resume_services.ResumeObtainer;
@@ -27,10 +29,17 @@ public class SubpartsModificationService {
 
     private final ResumeRepository resumeRepository;
 
+    private final ExperienceRepository experienceRepository;
+
+    private final ProjectRepository projectRepository;
+
     @Autowired
-    public SubpartsModificationService(ResumeObtainer getUtility, ResumeRepository resumeRepository) {
+    public SubpartsModificationService(ResumeObtainer getUtility, ResumeRepository resumeRepository,
+                                       ExperienceRepository experienceRepository, ProjectRepository projectRepository) {
         this.getUtility = getUtility;
         this.resumeRepository = resumeRepository;
+        this.experienceRepository = experienceRepository;
+        this.projectRepository = projectRepository;
     }
 
     @Transactional
@@ -47,34 +56,38 @@ public class SubpartsModificationService {
     }
 
     @Transactional
-    public Resume modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
+    public Experience modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
                                          UUID resumeId, User changingUser) {
-        Resume changingResume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
-        Optional<Experience> changingExperience = changingResume.getExperiences().stream().
-                filter(experience -> experience.getId().equals(experienceId)).findFirst();
+        Optional<Experience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
+                resumeId, changingUser);
 
         if (changingExperience.isEmpty()) {
-            throw new BelongingException("Experience with this id either does not exist or does not belong to this resume");
+            throw new BelongingException("Experience with this id either does " +
+                    "not exist or does not belong to this resume");
         }
 
-        modifyExperience(changingExperience.get(), experienceForm);
-        return resumeRepository.save(changingResume);
+        Experience experience = changingExperience.get();
+
+        modifyExperience(experience, experienceForm);
+        return experienceRepository.save(experience);
     }
 
     @Transactional
-    public Resume modifyResumeProject(ProjectForm projectForm, UUID projectId,
+    public Project modifyResumeProject(ProjectForm projectForm, UUID projectId,
                                       UUID resumeId, User changingUser) {
-        Resume changingResume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
 
-        Optional<Project> changingProject = changingResume.getProjects().stream().
-                filter(project -> project.getId().equals(projectId)).findFirst();
+        Optional<Project> changingProject = projectRepository.findByIdAndResume_IdAndResume_User(
+                projectId, resumeId, changingUser
+        );
 
         if (changingProject.isEmpty()) {
-            throw new BelongingException("Project with this id either does not exist or does not belong to this resume");
+            throw new BelongingException("Project with this id either does not " +
+                    "exist or does not belong to this resume");
         }
 
-        modifyProject(changingProject.get(), projectForm);
-        return resumeRepository.save(changingResume);
+        Project project = changingProject.get();
+        modifyProject(project, projectForm);
+        return projectRepository.save(project);
     }
 
     @Transactional

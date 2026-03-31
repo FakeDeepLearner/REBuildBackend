@@ -1,5 +1,7 @@
 package com.rebuild.backend.controllers.resume_controllers;
 
+import com.rebuild.backend.model.entities.resume_entities.Experience;
+import com.rebuild.backend.model.entities.resume_entities.Project;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.resume_forms.*;
@@ -37,9 +39,9 @@ public class ResumePutController {
 
     @PutMapping("/experience/{resume_id}/{experience_id}")
     @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
-    public Resume modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
-                                                       @AuthenticationPrincipal User user,
-                                                       @PathVariable UUID experience_id, @PathVariable UUID resume_id){
+    public Experience modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
+                                       @AuthenticationPrincipal User user,
+                                       @PathVariable UUID experience_id, @PathVariable UUID resume_id){
 
         return resumeService.changeExperienceInfo(experienceForm, experience_id,
                 resume_id, user);
@@ -68,9 +70,9 @@ public class ResumePutController {
 
     @PutMapping("/experience/{resume_id}/{project_id}")
     @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
-    public Resume modifyProject(@Valid @RequestBody ProjectForm projectForm,
-                                   @AuthenticationPrincipal User user,
-                                   @PathVariable UUID project_id, @PathVariable UUID resume_id){
+    public Project modifyProject(@Valid @RequestBody ProjectForm projectForm,
+                                 @AuthenticationPrincipal User user,
+                                 @PathVariable UUID project_id, @PathVariable UUID resume_id){
         return resumeService.changeProjectInfo(projectForm, project_id,
                 resume_id, user);
     }

@@ -54,13 +54,13 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
+    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
                                            User user){
         return modificationUtility.modifyResumeExperience(experienceForm, experienceID, resumeId, user);
 
     }
 
-    public Resume changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
+    public Project changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
         return modificationUtility.modifyResumeProject(projectForm, projectID, resumeID, user);
     }
 
