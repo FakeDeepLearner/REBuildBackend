@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
@@ -39,7 +40,9 @@ public class CommentsService {
 
     @Transactional
     public Comment makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
-        ForumPost post = postRepository.findByIdWithComments(post_id).orElseThrow(RuntimeException::new);
+        ForumPost post = postRepository.findByIdWithComments(post_id).orElseThrow(
+                () -> new NotFoundException("Post with the specified id is not found")
+        );
         post.setCommentCount(post.getCommentCount() + 1);
         Comment newComment = new Comment(commentForm.content());
         newComment.setAssociatedPost(post);
@@ -57,7 +60,7 @@ public class CommentsService {
     public Comment createReplyTo(UUID parent_comment_id, User creatingUser,
                                  CommentForm commentForm){
         Comment parentComment = commentRepository.findById(parent_comment_id).
-                orElseThrow(RuntimeException::new);
+                orElseThrow(() -> new NotFoundException("Comment with the specified id not found"));
 
         Comment newComment = new Comment(commentForm.content());
         newComment.setAssociatedPost(parentComment.getAssociatedPost());

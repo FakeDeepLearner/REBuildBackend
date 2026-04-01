@@ -34,7 +34,8 @@ public class PostController {
     }
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ForumPost> createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
+    @ResponseStatus(HttpStatus.OK)
+    public ForumPost createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
                                         @RequestPart(name = "files") List<MultipartFile> resumeFiles,
                                         @AuthenticationPrincipal User creatingUser) {
         return postsService.createNewPost(postForm,

@@ -88,13 +88,13 @@ public class PostsService {
         List<byte[]> result = new ArrayList<>();
         if (resumeFiles.size() > MAX_FILE_UPLOADS)
         {
-            throw new FileUploadException("You cannot upload more than " + MAX_FILE_UPLOADS + " files");
+            throw new FileUploadException(HttpStatus.BAD_REQUEST, "You cannot upload more than " + MAX_FILE_UPLOADS + " files");
         }
         long totalFileSize = resumeFiles.stream().mapToLong(MultipartFile::getSize).sum();
 
         if (totalFileSize > TOTAL_FILE_SIZE_LIMIT)
         {
-            throw new FileUploadException("The total size of the files is too large");
+            throw new FileUploadException(HttpStatus.BAD_REQUEST, "The total size of the files is too large");
         }
 
         for (MultipartFile file : resumeFiles)
@@ -102,27 +102,28 @@ public class PostsService {
             String actualFileName = FilenameUtils.getName(file.getOriginalFilename());
             if (file.getSize() >= FILE_SIZE_LIMIT)
             {
-                throw new FileUploadException("File " + actualFileName + " is too large");
+                throw new FileUploadException(HttpStatus.BAD_REQUEST, "File " + actualFileName + " is too large");
             }
             try(InputStream inputStream = file.getInputStream())
             {
                 String detectedFileType = new Tika().detect(inputStream);
                 if (!"application/pdf".equals(detectedFileType)) {
-                    throw new FileUploadException("File " + actualFileName + " is not a PDF");
+                    throw new FileUploadException(HttpStatus.BAD_REQUEST, "File " + actualFileName + " is not a PDF");
                 }
                 byte[] sanitizedBytes = sanitizedPDFBytes(file.getBytes());
                 result.add(sanitizedBytes);
             }
             catch (IOException _)
             {
-                throw new FileUploadException("An error occurred while uploading file " + actualFileName);
+                throw new FileUploadException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "An error occurred while uploading file " + actualFileName);
             }
         }
         return result;
     }
 
     @Transactional
-    public ResponseEntity<ForumPost> createNewPost(NewPostForm postForm,
+    public ForumPost createNewPost(NewPostForm postForm,
                                                   User creatingUser, List<MultipartFile> resumeFiles) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
         List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
@@ -141,32 +142,14 @@ public class PostsService {
         List<CompletableFuture<Void>> allFileUploads = allSanitizedFileBytes.stream()
                 .map(input -> awsService.uploadFileToS3(newPost, input)).toList();
 
-        HttpStatus responseStatusCode = HttpStatus.CREATED;
         try {
             //Wait here until all the uploads have been processed.
             // The only possible way for this to fail is if we have something go wrong during the upload itself
             CompletableFuture.allOf(allFileUploads.toArray(new CompletableFuture[0])).get();
         }
-        catch (ExecutionException executionException)
-        {
-            Throwable executionExceptionCause = executionException.getCause();
-            if (executionExceptionCause instanceof FileUploadException)
-            {
-
-                if (executionExceptionCause.getCause() instanceof IOException _)
-                {
-                    responseStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-                }
-                if (executionException.getCause() instanceof IllegalArgumentException)
-                {
-                    responseStatusCode = HttpStatus.BAD_REQUEST;
-                }
-                return ResponseEntity.status(responseStatusCode).body(postRepository.save(newPost));
-            }
-
-
-        }
-        catch(CancellationException | InterruptedException _){
+        catch (Exception _){
+            throw new FileUploadException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "An unexpected error occurred");
 
         }
 
@@ -174,7 +157,7 @@ public class PostsService {
 
         newPost.setAssociatedProfile(profile);
         profile.getMadePosts().add(newPost);
-        return ResponseEntity.status(responseStatusCode).body(postRepository.save(newPost));
+        return postRepository.save(newPost);
     }
 
 

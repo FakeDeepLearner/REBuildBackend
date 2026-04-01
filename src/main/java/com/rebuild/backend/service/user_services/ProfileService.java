@@ -7,6 +7,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Frie
 import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePreferencesForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.model.responses.UserProfileResponse;
@@ -70,9 +71,9 @@ public class ProfileService {
         }
 
 
-        User foundUser = userRepository.findById(clickedUserId).orElse(null);
+        User foundUser = userRepository.findById(clickedUserId).orElseThrow(() ->
+                new NotFoundException("User with this id is not found"));
 
-        assert foundUser != null : "User not found";
 
         Optional<FriendRelationship> foundRelationship = friendRelationshipRepository.
                 findByUserAndUserId(user, clickedUserId);

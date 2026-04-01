@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.repository.forum_repositories.*;
@@ -99,13 +100,12 @@ public class ChatAndMessageService {
     @Transactional
     public StatusAndError sendGroupChatInvitation(User sender, UUID recipientId, UUID chatId)
     {
-        User recipient = userRepository.findById(recipientId).orElse(null);
+        User recipient = userRepository.findById(recipientId).orElseThrow(
+                () -> new NotFoundException("User with the specified id not found"));
 
-        AbstractChat foundChat = chatRepository.findById(chatId).orElse(null);
-
-        assert recipient != null : "Recipient not found";
-
-        assert foundChat != null : "Chat not found";
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(
+                "Chat with the specified id not found"
+        ));
 
         if (!(foundChat instanceof GroupChat))
         {

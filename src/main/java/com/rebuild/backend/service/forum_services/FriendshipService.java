@@ -6,6 +6,7 @@ import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.dtos.StatusAndError;
 import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
+import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
@@ -75,9 +76,8 @@ public class FriendshipService {
     @Transactional
     public StatusAndError sendFriendRequest(User sender, UUID recipientId)
     {
-        User recipient = userRepository.findById(recipientId).orElse(null);
-
-        assert recipient != null : "Recipient not found";
+        User recipient = userRepository.findById(recipientId).orElseThrow(() ->
+                new NotFoundException("User with the given id not found"));
 
         Optional<FriendRequest> foundRequest =
                 friendRequestRepository.findByTwoUsers(sender, recipient);

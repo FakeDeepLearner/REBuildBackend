@@ -1,7 +1,10 @@
 package com.rebuild.backend.model.exceptions;
 
-public class BelongingException extends RuntimeException {
+
+import org.springframework.http.HttpStatus;
+
+public class BelongingException extends ApiException {
     public BelongingException(String message) {
-        super(message);
+        super(HttpStatus.FORBIDDEN, message);
     }
 }
