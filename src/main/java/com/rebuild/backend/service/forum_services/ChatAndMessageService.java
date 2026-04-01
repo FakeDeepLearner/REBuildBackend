@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.model.exceptions.ChatException;
 import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
@@ -67,7 +68,7 @@ public class ChatAndMessageService {
     }
 
     @Transactional
-    public StatusAndError acceptChatInvitation(User recipient, UUID invitationId)
+    public GroupChat acceptChatInvitation(User recipient, UUID invitationId)
     {
         ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
                 recipient).orElseThrow(() ->
@@ -83,9 +84,8 @@ public class ChatAndMessageService {
 
         chatInvitationRepository.delete(foundInvitation);
 
-        chatRepository.save(associatedChat);
+        return chatRepository.save(associatedChat);
 
-        return new StatusAndError(HttpStatus.CREATED, "You are now a member of " + associatedChat.getChatName());
     }
 
     public void declineChatInvitation(User recipient, UUID invitationId)
@@ -98,7 +98,7 @@ public class ChatAndMessageService {
     }
 
     @Transactional
-    public StatusAndError sendGroupChatInvitation(User sender, UUID recipientId, UUID chatId)
+    public ChatInvitation sendGroupChatInvitation(User sender, UUID recipientId, UUID chatId)
     {
         User recipient = userRepository.findById(recipientId).orElseThrow(
                 () -> new NotFoundException("User with the specified id not found"));
@@ -109,8 +109,8 @@ public class ChatAndMessageService {
 
         if (!(foundChat instanceof GroupChat))
         {
-            return new StatusAndError(HttpStatus.FORBIDDEN, "This chat is not a group chat, " +
-                    "you can't invite users to it");
+            throw new ChatException(HttpStatus.FORBIDDEN,
+                    "This chat is not a group chat, so you can't invite anyone to it");
         }
 
 
@@ -119,7 +119,7 @@ public class ChatAndMessageService {
                         chatId);
 
         if (foundInvitation.isPresent()) {
-            return new StatusAndError(HttpStatus.CONFLICT,
+            throw new ChatException(HttpStatus.CONFLICT,
                     "You already have an existing group chat invitation with this user, you cannot send " +
                             "another one.");
         }
@@ -128,9 +128,7 @@ public class ChatAndMessageService {
         //This cast is safe, since we already know that it isn't a private chat by this point. 
         ChatInvitation newInvitation = new ChatInvitation(sender, recipient, (GroupChat) foundChat);
 
-        chatInvitationRepository.save(newInvitation);
-
-        return new StatusAndError(HttpStatus.OK, "The invitation has been sent");
+        return chatInvitationRepository.save(newInvitation);
     }
 
 
@@ -273,8 +271,9 @@ public class ChatAndMessageService {
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
     {
-        AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElse(null);
-        assert chat != null : "Chat with this ID is not found";
+        AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElseThrow(
+                () -> new NotFoundException("Chat with this id not found")
+        );
         String chatDisplay = chatUtilService.determineChatDisplayName(chat, loadingUser);
         String chatPictureUrl = chatUtilService.determineChatPictureUrl(chat, loadingUser);
 

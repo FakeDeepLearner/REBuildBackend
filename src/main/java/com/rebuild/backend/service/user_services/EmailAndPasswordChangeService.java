@@ -2,6 +2,7 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.EmailChangeConfirmationForm;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.PasswordResetForm;
@@ -99,19 +100,19 @@ public class EmailAndPasswordChangeService {
         String token = Jwts.builder().setSubject(oldEmail).
                 claim("new_subject", newEmail).
                 setIssuedAt(Date.from(Instant.now())).
-                setExpiration(Date.from(Instant.now().plusSeconds(EMAIL_EXPIRY_MINUTES * 10))).
+                setExpiration(Date.from(Instant.now().plusSeconds(EMAIL_EXPIRY_MINUTES * 60))).
                 signWith(jwtSigningKey, SignatureAlgorithm.HS256).compact();
 
         return "https://rerebuild.ca/change_email?token=" + token;
     }
 
-    public ResponseEntity<String> sendEmailChange(String currentEmail, String newEmail)
+    public boolean sendEmailChange(String currentEmail, String newEmail)
     {
         try {
             Optional<User> foundUser = userRepository.findByEmailOrPhoneNumber(newEmail);
             if (foundUser.isPresent())
             {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("A user already exists with " +
+                throw new UserAuthException(HttpStatus.CONFLICT, "A user already exists with " +
                         "the same email address as your new email");
             }
 
@@ -126,33 +127,16 @@ public class EmailAndPasswordChangeService {
             String emailChangeUrl = generateEmailChangeUrl(currentEmail, newEmail);
             personalization.addDynamicTemplateData("url", emailChangeUrl);
             personalization.addDynamicTemplateData("email_reset_link", emailChangeUrl);
-            personalization.addDynamicTemplateData("email_expiry_minutes", EMAIL_EXPIRY_MINUTES);
-
-            mailToSend.addPersonalization(personalization);
-
-            Request request = new Request();
-
-            request.setMethod(Method.POST);
-            request.setEndpoint("/mail/send");
-            request.setBaseUri("https://api.sendgrid.com");
-            request.setBody(mailToSend.build());
-
-            Response response = sendGrid.api(request);
-            if (response.getStatusCode() == 202)
-            {
-                return ResponseEntity.status(202).body("An email has been sent to the new email address that you entered," +
-                        "please follow the instructions in that email");
-            }
-            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+            return finalizeEmailSending(mailToSend, personalization);
         }
         catch (IOException e)
         {
-            return ResponseEntity.internalServerError().body("An unexpected error occurred, please try again");
+            throw new UserAuthException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         }
     }
 
     @Transactional
-    public ResponseEntity<String> processEmailChange(String token, EmailChangeConfirmationForm confirmationForm)
+    public boolean processEmailChange(String token, EmailChangeConfirmationForm confirmationForm)
     {
         try {
             Claims tokenClaims = Jwts.parserBuilder().
@@ -164,10 +148,8 @@ public class EmailAndPasswordChangeService {
 
             if (validationResult == null || !validationResult.canLogin())
             {
-                return ResponseEntity.status(404).body("A user with these credentials has not been found");
+                throw new UserAuthException(HttpStatus.NOT_FOUND, "Invalid credentials");
             }
-
-
 
             String newEmail = tokenClaims.get("new_subject").toString();
 
@@ -175,32 +157,29 @@ public class EmailAndPasswordChangeService {
 
             changeEmail(foundUser, newEmail);
 
-
-            return ResponseEntity.ok("Your email has successfully been changed");
+            return true;
         }
         catch (ExpiredJwtException _)
         {
-            return ResponseEntity.status(401).body("The email change token has expired, please request a new one");
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The password reset token has expired, please request a new one");
         }
         catch (SignatureException _)
         {
-            return ResponseEntity.status(401).body("The token is either invalid or has been tampered with");
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The token is either invalid or has been tampered with");
         }
         catch (IllegalArgumentException _)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing or empty token, please try again");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Missing or empty token");
         }
         catch (MalformedJwtException _)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The token format is malformed, please try again.");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The token is malformed");
         }
-
-
 
     }
 
 
-    public ResponseEntity<String> sendPasswordChangeEmail(String email)
+    public boolean sendPasswordChangeEmail(String email)
     {
         try {
             Mail mailToSend = new Mail();
@@ -213,38 +192,41 @@ public class EmailAndPasswordChangeService {
             String passwordChangeUrl = generatePasswordChangeUrl(email);
             personalization.addDynamicTemplateData("url", passwordChangeUrl);
             personalization.addDynamicTemplateData("password_reset_link", passwordChangeUrl);
-            personalization.addDynamicTemplateData("email_expiry_minutes", EMAIL_EXPIRY_MINUTES);
-
-            mailToSend.addPersonalization(personalization);
-
-            Request request = new Request();
-
-            request.setMethod(Method.POST);
-            request.setEndpoint("/mail/send");
-            request.setBaseUri("https://api.sendgrid.com");
-            request.setBody(mailToSend.build());
-
-            Response response = sendGrid.api(request);
-            if (response.getStatusCode() == 202)
-            {
-                return ResponseEntity.status(202).body("If there is an email address with " +
-                        "this account, it has been sent an email to reset your password");
-            }
-            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+            return finalizeEmailSending(mailToSend, personalization);
         }
         catch (IOException e)
         {
-            return ResponseEntity.internalServerError().body("An unexpected error occurred, please try again");
+            throw new UserAuthException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         }
+    }
+
+    private boolean finalizeEmailSending(Mail mailToSend, Personalization personalization) throws IOException {
+        personalization.addDynamicTemplateData("email_expiry_minutes", EMAIL_EXPIRY_MINUTES);
+
+        mailToSend.addPersonalization(personalization);
+
+        Request request = new Request();
+
+        request.setMethod(Method.POST);
+        request.setEndpoint("/mail/send");
+        request.setBaseUri("https://api.sendgrid.com");
+        request.setBody(mailToSend.build());
+
+        Response response = sendGrid.api(request);
+        if (response.getStatusCode() == 202)
+        {
+            return true;
+        }
+        throw new UserAuthException(HttpStatus.valueOf(response.getStatusCode()), response.getBody());
     }
 
 
     @Transactional
-    public ResponseEntity<String> processPasswordChange(String token, PasswordResetForm resetForm)
+    public boolean processPasswordChange(String token, PasswordResetForm resetForm)
     {
         if (!resetForm.newPasswordConfirmation().equals(resetForm.newPassword()))
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The 2 passwords don't match");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The passwords do not match");
         }
 
         try {
@@ -258,28 +240,27 @@ public class EmailAndPasswordChangeService {
 
             //For security reasons, we do not reveal whether the email address exists within the system
             if (foundUser.isEmpty()) {
-                return ResponseEntity.status(401).body("Invalid token");
+                throw new UserAuthException(HttpStatus.UNAUTHORIZED, "Invalid token");
             }
 
             changePassword(foundUser.get(), resetForm.newPassword());
-
-            return ResponseEntity.ok("Your password has successfully been changed");
+            return true;
         }
         catch (ExpiredJwtException _)
         {
-            return ResponseEntity.status(401).body("The password reset token has expired, please request a new one");
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The password reset token has expired, please request a new one");
         }
         catch (SignatureException _)
         {
-            return ResponseEntity.status(401).body("The token is either invalid or has been tampered with");
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The token is either invalid or has been tampered with");
         }
         catch (IllegalArgumentException _)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing or empty token, please try again");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Missing or empty token");
         }
         catch (MalformedJwtException _)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The token format is malformed, please try again.");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The token is malformed");
         }
     }
 

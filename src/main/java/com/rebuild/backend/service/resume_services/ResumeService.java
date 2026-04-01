@@ -3,6 +3,7 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.exceptions.ApiException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
@@ -10,6 +11,7 @@ import com.rebuild.backend.service.util_services.SubpartsModificationService;
 import com.rebuild.backend.utils.database_utils.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -176,8 +178,10 @@ public class ResumeService {
     @Transactional
     public Resume copyResume(User user, UUID resumeId, String name){
         Resume copiedResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
+
         if(name.equals(copiedResume.getName())){
-            throw new RuntimeException("The new resume must have a different name than the original one.");
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "The new resume must have a different name than the original one.");
         }
         Resume newResume = new Resume(copiedResume, name);
         return resumeRepository.save(newResume);

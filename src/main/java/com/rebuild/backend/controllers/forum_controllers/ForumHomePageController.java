@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.StatusAndError;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
@@ -99,8 +100,8 @@ public class ForumHomePageController {
     @PostMapping("/accept_request/{request_id}")
     public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
                                                                    @AuthenticationPrincipal User acceptingUser) {
-        StatusAndError result = friendshipService.acceptFriendshipRequest(acceptingUser, request_id);
-        return ResponseEntity.ok(result.message());
+        FriendRelationship result = friendshipService.acceptFriendshipRequest(acceptingUser, request_id);
+        return ResponseEntity.ok("You have added " + result.getSender().getForumUsername()  + " as a friend");
 
     }
 
@@ -115,9 +116,9 @@ public class ForumHomePageController {
     public ResponseEntity<@NonNull String> sendFriendshipRequest(@PathVariable UUID recipient_id,
                                                                  @AuthenticationPrincipal User sendingUser)
     {
-        StatusAndError requestResult =
-                friendshipService.sendFriendRequest(sendingUser, recipient_id);
 
-        return ResponseEntity.status(requestResult.status()).body(requestResult.message());
+        friendshipService.sendFriendRequest(sendingUser, recipient_id);
+
+        return ResponseEntity.ok("Friendship request sent");
     }
 }

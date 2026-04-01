@@ -3,6 +3,7 @@ package com.rebuild.backend.service.auth_services;
 import com.rebuild.backend.model.entities.user_entities.SecretStatus;
 import com.rebuild.backend.model.entities.user_entities.TOTPSecret;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
@@ -11,6 +12,7 @@ import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import org.apache.commons.codec.binary.Base32;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -99,19 +101,20 @@ public class TOTPCodeService {
         return userOtpMatches(foundUser, enteredOtp);
     }
 
-    public ResponseEntity<String> enrolUserInMFA(User enrollingUser, MFAEnrolmentForm enrolmentForm)
+    public User enrolUserInMFA(User enrollingUser, MFAEnrolmentForm enrolmentForm)
     {
 
         if (!enrolmentForm.codesUnretrievableConfirmation())
         {
-            return ResponseEntity.badRequest().body("Please confirm that you will not be able to retrieve " +
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Please confirm that you will not be able to retrieve " +
                     "the codes later, and that you have saved them somewhere");
+
         }
 
 
         if (!userOtpMatches(enrollingUser, enrolmentForm.enteredOTP()))
         {
-            return ResponseEntity.badRequest().body("The code that you have entered is incorrect");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The code that you have entered is incorrect");
         }
 
         enrollingUser.setEnrolledInMFA(true);
@@ -120,9 +123,7 @@ public class TOTPCodeService {
 
         recoveryCodeHelperService.associateCodesWithUser(enrollingUser, enrolmentForm.recoveryCodes());
 
-        userRepository.save(enrollingUser);
-
-        return ResponseEntity.ok("Enrolment in MFA is successful");
+        return userRepository.save(enrollingUser);
 
     }
 

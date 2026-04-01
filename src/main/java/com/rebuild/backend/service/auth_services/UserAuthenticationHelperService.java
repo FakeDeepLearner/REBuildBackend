@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.auth_services;
 
 import com.rebuild.backend.model.entities.user_entities.*;
+import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
@@ -110,21 +111,21 @@ public class UserAuthenticationHelperService {
     }
 
 
-    public ResponseEntity<String> doPreliminaryPasswordChecks(SignupForm signupForm) throws IOException, InterruptedException {
+    public boolean doPreliminaryPasswordChecks(SignupForm signupForm) throws IOException, InterruptedException {
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupForm.password().equals(signupForm.repeatedPassword())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Passwords do not match");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");
         }
 
         if (signupForm.password().length() < 10)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).
-                    body("Password is too short, please ensure it has a length of at least 10");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST,
+                    "Password is too short, please ensure it has a length of at least 10");
         }
 
         if (!signupForm.forcePassword() && passwordService.passwordFoundInDataBreach(signupForm.password()))
         {
-            return ResponseEntity.badRequest().body("The password you entered was found in a data breach." +
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The password you entered was found in a data breach." +
                     "We strongly recommend that you choose a different one.");
         }
 
@@ -140,13 +141,12 @@ public class UserAuthenticationHelperService {
                 builder.append(suggestion);
                 builder.append("\n");
             }
-
-            return ResponseEntity.badRequest().body("This password is not recommended due to " +
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "This password is not recommended due to " +
                     "the following reason:\n " + feedbackResponse.warning() + "\n" +
                     "We recommend the following:\n" + builder);
         }
 
-        return null;
+        return true;
     }
 
     public Bucket returnUserBucket(User user){

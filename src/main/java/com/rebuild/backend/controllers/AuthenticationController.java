@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.*;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
@@ -63,7 +64,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login/initialize")
-    public ResponseEntity<?> initializeLogin(@Valid @RequestBody LoginForm loginForm,
+    public ResponseEntity<String> initializeLogin(@Valid @RequestBody LoginForm loginForm,
                                              @RequestParam(name = "g-recaptcha-response") String userResponse,
                                              HttpServletRequest request) {
         if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
@@ -73,7 +74,7 @@ public class AuthenticationController {
         CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginForm);
         if (credentialValidationDTO == null)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user with this email or phone number exists");
+            throw new UserAuthException(HttpStatus.NOT_FOUND, "No user with this email or phone number exists");
         }
         Bucket userBucket = authenticationHelperService.returnUserBucket(credentialValidationDTO.foundUser());
 
@@ -83,7 +84,7 @@ public class AuthenticationController {
 
             boolean userCanLogin = credentialValidationDTO.canLogin();
             if (!userCanLogin){
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid username or password");
+                throw new UserAuthException(HttpStatus.CONFLICT, "Invalid username or password");
             }
 
             if (!credentialValidationDTO.enrolledInMFA())
@@ -109,11 +110,11 @@ public class AuthenticationController {
             int secondsRemaining = resetSeconds - minutesRemaining * 60;
 
             if (remainingTokens == 0){
-                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many login attempts, " +
+                throw new UserAuthException(HttpStatus.TOO_MANY_REQUESTS, "Too many login attempts, " +
                         "please retry in " + minutesRemaining + " minutes and " + secondsRemaining + " seconds");
             }
             else{
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Wrong credentials, " +
+                throw new UserAuthException(HttpStatus.UNAUTHORIZED, "Wrong credentials, " +
                         remainingTokens + " attempts left");
             }
         }
@@ -134,7 +135,7 @@ public class AuthenticationController {
             return ResponseEntity.ok().body("Login successful, redirecting you to your home page.");
         }
         else {
-            return ResponseEntity.badRequest().body("You have entered the incorrect code.");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Incorrect code");
         }
     }
 
@@ -148,7 +149,7 @@ public class AuthenticationController {
 
         if (verificationResponse.userOutOfCodes())
         {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("The request cannot be completed because you" +
+            throw new UserAuthException(HttpStatus.CONFLICT, "The request cannot be completed because you" +
                     "have no valid codes left to use. We have generated new codes for you, displayed below. You do not need to " +
                     "restart the authentication process.\n\n" + verificationResponse.newCodes());
         }
@@ -160,8 +161,7 @@ public class AuthenticationController {
             return ResponseEntity.ok("Emergency code used successfully, redirecting you to home page");
         }
         else {
-            return ResponseEntity.badRequest().body("The code you have entered does not " +
-                    "correspond to any of your codes, please retry");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Incorrect recovery code");
         }
     }
 
@@ -174,7 +174,7 @@ public class AuthenticationController {
         request.getSession(true);
     }
 
-    private ResponseEntity<?> signUpNewUser(SignupForm signupForm, HttpServletRequest request,
+    private User signUpNewUser(SignupForm signupForm, HttpServletRequest request,
                                             MultipartFile pictureFile)
     {
         //This block of code deals with creating the user in the database.
@@ -188,77 +188,71 @@ public class AuthenticationController {
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
             request.getSession(true);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+            return createdUser;
         }
         catch (DataIntegrityViolationException integrityViolationException){
             Throwable cause = integrityViolationException.getCause();
             if (cause instanceof ConstraintViolationException violationException){
                 String violatedConstraint = violationException.getConstraintName();
                 switch (violatedConstraint){
-                    case "uk_email" -> {
-                        return ResponseEntity.status(HttpStatus.CONFLICT).body("This email already exists");
-
-                    }
-                    case "uk_phone_number" -> {
-                        return ResponseEntity.status(HttpStatus.CONFLICT).body("This phone number already exists");
-
-                    }
-                    case "uk_forum_username" -> {
-                        return ResponseEntity.status(HttpStatus.CONFLICT).body("This forum username already exists");
-                    }
+                    case "uk_email" -> throw new UserAuthException(HttpStatus.CONFLICT, "This email already exists");
+                    case "uk_phone_number" -> throw new UserAuthException(HttpStatus.CONFLICT, "This phone number already exists");
+                    case "uk_forum_username" -> throw new UserAuthException(HttpStatus.CONFLICT, "This username already exists");
 
                     //This should never happen
-                    case null -> {}
+                    case null -> throw new RuntimeException();
 
                     default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
                 }
             }
         }
-        catch (IOException ioException){
-            return ResponseEntity.status(500).body("An unexpected error has occurred, please try again later. The error is:\n "
-            + ioException.getMessage());
+        catch (IOException _){
+            throw new UserAuthException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error has occurred, please try again");
         }
+
 
         return null;
     }
 
     @PostMapping(value = "/signup", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> signUpUser(@Valid @RequestPart(name = "meta") SignupForm signupForm,
+    @ResponseStatus(HttpStatus.OK)
+    public User signUpUser(@Valid @RequestPart(name = "meta") SignupForm signupForm,
                                             HttpServletRequest request,
                                             @RequestPart(name = "file") MultipartFile profilePicture,
                                             @RequestParam(name = "g-recaptcha-response") String userResponse)
             throws IOException, InterruptedException {
         if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
-            return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Invalid captcha response");
         }
 
-        ResponseEntity<String> passwordCheckResponse = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
+        boolean passwordCheckSuccessful = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
 
-        if (passwordCheckResponse != null)
+        if (passwordCheckSuccessful)
         {
-            return passwordCheckResponse;
+            return signUpNewUser(signupForm, request, profilePicture);
         }
-
-        return signUpNewUser(signupForm, request, profilePicture);
+        return null;
 
     }
 
 
     @PostMapping("/mfa/initialize")
-    public ResponseEntity<?> startMFAEnrolment(@AuthenticationPrincipal User startingUser,
+    @ResponseStatus(HttpStatus.OK)
+    public MFAEnrolmentResponse startMFAEnrolment(@AuthenticationPrincipal User startingUser,
                                                @RequestBody String enteredPassword)
     {
         MFAEnrolmentResponse enrolmentResponse = totpCodeService.startMFAEnrolment(startingUser, enteredPassword);
 
         if (enrolmentResponse == null)
         {
-            return ResponseEntity.badRequest().body("Incorrect password");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Incorrect password");
         }
-        return ResponseEntity.ok(enrolmentResponse);
+        return enrolmentResponse;
     }
 
     @PostMapping("/mfa/finalize")
-    public ResponseEntity<String> finalizeMFAEnrolment(@AuthenticationPrincipal User user,
+    @ResponseStatus(HttpStatus.OK)
+    public User finalizeMFAEnrolment(@AuthenticationPrincipal User user,
                                                        @RequestBody MFAEnrolmentForm enrolmentForm)
     {
         return totpCodeService.enrolUserInMFA(user, enrolmentForm);
@@ -275,28 +269,36 @@ public class AuthenticationController {
     @PostMapping("/initialize_password_reset")
     public ResponseEntity<String> sendPasswordResetEmail(@RequestBody String enteredEmail)
     {
-        return emailAndPasswordChangeService.sendPasswordChangeEmail(enteredEmail);
+        boolean _ = emailAndPasswordChangeService.sendPasswordChangeEmail(enteredEmail);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("A link to change your password " +
+                "has been sent to your email");
+
     }
 
     @PostMapping("/finalize_password_reset")
     public ResponseEntity<String> changePassword(@RequestParam(name = "token") String token,
                                                  @RequestBody PasswordResetForm passwordResetForm)
     {
-        return emailAndPasswordChangeService.processPasswordChange(token, passwordResetForm);
+        boolean _ = emailAndPasswordChangeService.processPasswordChange(token, passwordResetForm);
+        return ResponseEntity.ok("Your password has been updated");
     }
 
 
     @PostMapping("initialize_email_change")
     public ResponseEntity<String> sendEmailChangeEmail(@RequestBody EmailChangeInitialForm form)
     {
-        return emailAndPasswordChangeService.sendEmailChange(form.oldEmail(), form.newEmail());
+        boolean _ = emailAndPasswordChangeService.sendEmailChange(form.oldEmail(), form.newEmail());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).
+                body("A link to change your email has been sent to your current email address");
     }
 
     @PostMapping("/finalize_email_change")
     public ResponseEntity<String> processEmailChange(@RequestParam(name = "token") String token,
                                                      @RequestBody EmailChangeConfirmationForm confirmationForm)
     {
-        return emailAndPasswordChangeService.processEmailChange(token, confirmationForm);
+        boolean _ = emailAndPasswordChangeService.processEmailChange(token, confirmationForm);
+        return ResponseEntity.ok("Your email address has been successfully updated");
     }
 
 

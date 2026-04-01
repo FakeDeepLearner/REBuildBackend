@@ -26,26 +26,6 @@ public class NullSafeQuerySearchBuilder {
         return this;
     }
 
-    public NullSafeQuerySearchBuilder atLeast(String attribute, Object filterValue)
-    {
-        if (filterValue != null)
-        {
-            booleanPredicateClausesStep = booleanPredicateClausesStep.filter(searchPredicateFactory.range().
-            field(attribute).atLeast(filterValue));
-        }
-        return this;
-    }
-
-    public NullSafeQuerySearchBuilder atMost(String attribute, Object filterValue)
-    {
-        if (filterValue != null)
-        {
-            booleanPredicateClausesStep = booleanPredicateClausesStep.filter(searchPredicateFactory.range().
-                    field(attribute).atMost(filterValue));
-        }
-        return this;
-    }
-
     public BooleanPredicateClausesStep<?, ?> getResult()
     {
         return booleanPredicateClausesStep;

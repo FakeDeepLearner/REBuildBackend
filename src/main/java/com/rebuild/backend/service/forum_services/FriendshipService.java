@@ -6,6 +6,7 @@ import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.dtos.StatusAndError;
 import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
+import com.rebuild.backend.model.exceptions.FriendshipException;
 import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
@@ -43,7 +44,7 @@ public class FriendshipService {
     }
 
     @Transactional
-    public StatusAndError acceptFriendshipRequest(User receiver, UUID friendRequestId)
+    public FriendRelationship acceptFriendshipRequest(User receiver, UUID friendRequestId)
     {
         FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, receiver).
                 orElseThrow(() ->
@@ -54,11 +55,10 @@ public class FriendshipService {
 
         FriendRelationship newRelationship = new FriendRelationship(sender, receiver);
 
-        friendRelationshipRepository.save(newRelationship);
-
         friendRequestRepository.delete(friendRequest);
 
-        return new StatusAndError(HttpStatus.OK, "You have added " + sender.getForumUsername() + " as a friend");
+        return friendRelationshipRepository.save(newRelationship);
+
 
     }
 
@@ -74,7 +74,7 @@ public class FriendshipService {
 
 
     @Transactional
-    public StatusAndError sendFriendRequest(User sender, UUID recipientId)
+    public void sendFriendRequest(User sender, UUID recipientId)
     {
         User recipient = userRepository.findById(recipientId).orElseThrow(() ->
                 new NotFoundException("User with the given id not found"));
@@ -83,7 +83,7 @@ public class FriendshipService {
                 friendRequestRepository.findByTwoUsers(sender, recipient);
 
         if (foundRequest.isPresent()) {
-            return new StatusAndError(HttpStatus.CONFLICT,
+            throw new FriendshipException(HttpStatus.CONFLICT,
                     "You already have an existing friend request with this user, you cannot send " +
                             "another one until it is either declined or times out.");
         }
@@ -91,14 +91,13 @@ public class FriendshipService {
         Optional<FriendRelationship> foundRelationship =
                 friendRelationshipRepository.findByTwoUsers(sender, recipient);
         if (foundRelationship.isPresent()) {
-            return new StatusAndError(HttpStatus.CONFLICT,
+            throw new FriendshipException(HttpStatus.CONFLICT,
                     "You are already friends with this user");
         }
 
         FriendRequestDTO friendRequestDTO = new FriendRequestDTO(sender, recipientId);
 
         rabbitMQService.sendFriendshipRequest(friendRequestDTO);
-        return new StatusAndError(HttpStatus.OK, "The request has been sent");
     }
 
     public List<UsernameSearchResultDTO> loadUserFriendRequests(User loadingUser)

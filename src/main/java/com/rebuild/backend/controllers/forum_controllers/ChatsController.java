@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.dtos.StatusAndError;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
@@ -75,21 +76,21 @@ public class ChatsController {
     }
 
     @PostMapping("/accept_invite/{invitation_id}")
-    public ResponseEntity<String> acceptChatInvitation(@AuthenticationPrincipal User acceptingUser, @PathVariable UUID invitation_id)
-    {
-        StatusAndError result = chatAndMessageService.acceptChatInvitation(acceptingUser, invitation_id);
-
-        return ResponseEntity.status(result.status()).body(result.message());
+    @ResponseStatus(HttpStatus.OK)
+    public GroupChat acceptChatInvitation(@AuthenticationPrincipal User acceptingUser,
+                                                          @PathVariable UUID invitation_id) {
+        return chatAndMessageService.acceptChatInvitation(acceptingUser, invitation_id);
     }
 
+
     @PostMapping("/send_invite/{user_id}/{chat_id}")
-    public ResponseEntity<String> sendChatInvite(@AuthenticationPrincipal User user,
+    @ResponseStatus(HttpStatus.OK)
+    public ChatInvitation sendChatInvite(@AuthenticationPrincipal User user,
                                                  @PathVariable UUID user_id,
                                                  @PathVariable UUID chat_id)
     {
-        StatusAndError result = chatAndMessageService.sendGroupChatInvitation(user, user_id, chat_id);
+        return chatAndMessageService.sendGroupChatInvitation(user, user_id, chat_id);
 
-        return ResponseEntity.status(result.status()).body(result.message());
     }
 
 
