@@ -83,7 +83,6 @@ public class EmailAndPasswordChangeService {
 
     }
 
-
     private String generatePasswordChangeUrl(String email)
     {
         String token = Jwts.builder().setSubject(email).
@@ -104,6 +103,32 @@ public class EmailAndPasswordChangeService {
                 signWith(jwtSigningKey, SignatureAlgorithm.HS256).compact();
 
         return "https://rerebuild.ca/change_email?token=" + token;
+    }
+
+    private Claims extractTokenClaims(String token)
+    {
+        try{
+            return Jwts.parserBuilder().
+                    setSigningKey(jwtSigningKey).build()
+                    .parseClaimsJws(token).getBody();
+        }
+        catch (ExpiredJwtException _)
+        {
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The password reset token has expired, please request a new one");
+        }
+        catch (SignatureException _)
+        {
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The token is either invalid or has been tampered with");
+        }
+        catch (IllegalArgumentException _)
+        {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Missing or empty token");
+        }
+        catch (MalformedJwtException _)
+        {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The token is malformed");
+        }
+
     }
 
     public boolean sendEmailChange(String currentEmail, String newEmail)
@@ -138,43 +163,21 @@ public class EmailAndPasswordChangeService {
     @Transactional
     public boolean processEmailChange(String token, EmailChangeConfirmationForm confirmationForm)
     {
-        try {
-            Claims tokenClaims = Jwts.parserBuilder().
-                    setSigningKey(jwtSigningKey).
-                    build().parseClaimsJws(token).getBody();
 
-            CredentialValidationDTO validationResult = authenticationHelperService.
-                    validateLoginCredentials(new LoginForm(confirmationForm.oldEmail(), confirmationForm.password()));
+        Claims tokenClaims = extractTokenClaims(token);
 
-            if (validationResult == null || !validationResult.canLogin())
-            {
-                throw new UserAuthException(HttpStatus.NOT_FOUND, "Invalid credentials");
-            }
+        CredentialValidationDTO validationResult = authenticationHelperService.
+                validateLoginCredentials(new LoginForm(confirmationForm.oldEmail(), confirmationForm.password()));
 
-            String newEmail = tokenClaims.get("new_subject").toString();
-
-            User foundUser = validationResult.foundUser();
-
-            changeEmail(foundUser, newEmail);
-
-            return true;
-        }
-        catch (ExpiredJwtException _)
+        if (validationResult == null || !validationResult.canLogin())
         {
-            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The password reset token has expired, please request a new one");
+            throw new UserAuthException(HttpStatus.NOT_FOUND, "Invalid credentials");
         }
-        catch (SignatureException _)
-        {
-            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The token is either invalid or has been tampered with");
-        }
-        catch (IllegalArgumentException _)
-        {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Missing or empty token");
-        }
-        catch (MalformedJwtException _)
-        {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The token is malformed");
-        }
+
+        String newEmail = tokenClaims.get("new_subject").toString();
+        User foundUser = validationResult.foundUser();
+        changeEmail(foundUser, newEmail);
+        return true;
 
     }
 
@@ -229,39 +232,18 @@ public class EmailAndPasswordChangeService {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "The passwords do not match");
         }
 
-        try {
-            Claims tokenClaims = Jwts.parserBuilder().
-                    setSigningKey(jwtSigningKey).
-                    build().parseClaimsJws(token).getBody();
+        Claims tokenClaims = extractTokenClaims(token);
+        String email = tokenClaims.getSubject();
 
-            String email = tokenClaims.getSubject();
+        Optional<User> foundUser = userRepository.findByEmailOrPhoneNumber(email);
 
-            Optional<User> foundUser = userRepository.findByEmailOrPhoneNumber(email);
+        //For security reasons, we do not reveal whether the email address exists within the system
+        if (foundUser.isEmpty()) {
+            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
 
-            //For security reasons, we do not reveal whether the email address exists within the system
-            if (foundUser.isEmpty()) {
-                throw new UserAuthException(HttpStatus.UNAUTHORIZED, "Invalid token");
-            }
-
-            changePassword(foundUser.get(), resetForm.newPassword());
-            return true;
-        }
-        catch (ExpiredJwtException _)
-        {
-            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The password reset token has expired, please request a new one");
-        }
-        catch (SignatureException _)
-        {
-            throw new UserAuthException(HttpStatus.UNAUTHORIZED, "The token is either invalid or has been tampered with");
-        }
-        catch (IllegalArgumentException _)
-        {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Missing or empty token");
-        }
-        catch (MalformedJwtException _)
-        {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The token is malformed");
-        }
+        changePassword(foundUser.get(), resetForm.newPassword());
+        return true;
     }
 
 }
