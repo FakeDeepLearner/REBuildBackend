@@ -1,6 +1,5 @@
 package com.rebuild.backend.service.util_services;
 
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
@@ -11,9 +10,8 @@ import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
 import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
 import com.rebuild.backend.repository.resume_repositories.ProjectRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
-import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.resume_services.ResumeObtainer;
-import com.rebuild.backend.utils.database_utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,8 +94,8 @@ public class SubpartsModificationService {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
-                educationForm.location(), YearMonthStringOperations.getYearMonth(educationForm.startDate()),
-                YearMonthStringOperations.getYearMonth(educationForm.endDate()));
+                educationForm.location(), StringUtil.getYearMonth(educationForm.startDate()),
+                StringUtil.getYearMonth(educationForm.endDate()));
         changingResume.setEducation(newEducation);
         newEducation.setResume(changingResume);
 
@@ -106,8 +104,8 @@ public class SubpartsModificationService {
 
 
     private void modifyExperience(Experience changingExperience, ExperienceForm experienceForm) {
-        YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
-        YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
+        YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
+        YearMonth end = StringUtil.getYearMonth(experienceForm.endDate());
         changingExperience.setLocation(experienceForm.location());
         changingExperience.setEndDate(end);
         changingExperience.setStartDate(start);
@@ -119,8 +117,8 @@ public class SubpartsModificationService {
 
 
     private void modifyProject(Project changingProject, ProjectForm projectForm) {
-        YearMonth start = YearMonthStringOperations.getYearMonth(projectForm.startDate());
-        YearMonth end = YearMonthStringOperations.getYearMonth(projectForm.endDate());
+        YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
+        YearMonth end = StringUtil.getYearMonth(projectForm.endDate());
         changingProject.setStartDate(start);
         changingProject.setEndDate(end);
 

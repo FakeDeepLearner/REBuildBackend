@@ -1,7 +1,5 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.StatusAndError;
-import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;

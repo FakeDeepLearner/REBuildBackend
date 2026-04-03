@@ -8,25 +8,16 @@ import com.rebuild.backend.model.entities.profile_entities.*;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.NotFoundException;
-import com.rebuild.backend.model.forms.profile_forms.ProfilePreferencesForm;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
-import com.rebuild.backend.service.util_services.SubpartsModificationService;
-import com.rebuild.backend.utils.StringUtil;
-import com.rebuild.backend.utils.database_utils.YearMonthStringOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.print.DocFlavor;
-import java.io.IOException;
-import java.time.YearMonth;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 

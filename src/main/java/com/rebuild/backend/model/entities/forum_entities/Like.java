@@ -9,9 +9,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "likes", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "liked_object_id, liking_username")
+        @UniqueConstraint(columnNames = "liked_object_id, liking_user_id")
 }, indexes = {
-        @Index(columnList = "liking_username, liked_object_type")
+        @Index(columnList = "liking_user_id, liked_object_id")
 })
 @NoArgsConstructor
 @Data
@@ -25,8 +25,8 @@ public class Like {
     private UUID id;
 
     @NonNull
-    @Column(nullable = false, name = "liking_username")
-    private String likingUsername;
+    @Column(nullable = false, name = "liking_user_id")
+    private UUID likingUserId;
 
     @NonNull
     @Column(nullable = false, name = "liked_object_id")
@@ -38,7 +38,6 @@ public class Like {
     private LikeType likedObjectType;
 
     @CreationTimestamp
-    @NonNull
     @Column(nullable = false, updatable = false, name = "liking_timestamp")
-    private Instant likeTimestamp;
+    private Instant likeTimestamp = Instant.now();
 }

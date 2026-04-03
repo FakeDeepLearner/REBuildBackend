@@ -8,7 +8,7 @@ import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationService;
-import com.rebuild.backend.utils.database_utils.YearMonthStringOperations;
+import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
@@ -76,8 +76,8 @@ public class ResumeService {
     public Resume createNewExperience(User changingUser, UUID resumeId,
                                       ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
-        YearMonth start = YearMonthStringOperations.getYearMonth(experienceForm.startDate());
-        YearMonth end = YearMonthStringOperations.getYearMonth(experienceForm.endDate());
+        YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
+        YearMonth end = StringUtil.getYearMonth(experienceForm.endDate());
         Experience newExperience = new Experience(experienceForm.companyName(),
                 experienceForm.technologies(), experienceForm.location(), experienceForm.experienceType(),
                 start, end, experienceForm.bullets());
@@ -92,8 +92,8 @@ public class ResumeService {
     public Resume createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
 
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
-        YearMonth start = YearMonthStringOperations.getYearMonth(projectForm.startDate());
-        YearMonth end = YearMonthStringOperations.getYearMonth(projectForm.endDate());
+        YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
+        YearMonth end = StringUtil.getYearMonth(projectForm.endDate());
         Project newProject = new Project(projectForm.projectName(), projectForm.technologyList(),
                 start, end, projectForm.bullets());
         newProject.setResume(resume);
@@ -155,8 +155,8 @@ public class ResumeService {
         Education newEducation = new Education(resumeForm.educationForm().schoolName(),
                 resumeForm.educationForm().relevantCoursework(),
                 resumeForm.educationForm().location(),
-                YearMonthStringOperations.getYearMonth(resumeForm.educationForm().startDate()),
-                YearMonthStringOperations.getYearMonth(resumeForm.educationForm().endDate()));
+                StringUtil.getYearMonth(resumeForm.educationForm().startDate()),
+                StringUtil.getYearMonth(resumeForm.educationForm().endDate()));
         resume.setEducation(newEducation);
 
         resume.setProjects(extractProjects(resumeForm.projects(), resume));
@@ -191,8 +191,8 @@ public class ResumeService {
         return experienceForms.stream().map( rawForm -> {
                     Experience newExperience = new Experience(rawForm.companyName(),
                             rawForm.technologies(), rawForm.location(), rawForm.experienceType(),
-                            YearMonthStringOperations.getYearMonth(rawForm.startDate()),
-                            YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                            StringUtil.getYearMonth(rawForm.startDate()),
+                            StringUtil.getYearMonth(rawForm.endDate()),
                             rawForm.bullets());
                     newExperience.setResume(associatedResume);
                     return newExperience;
@@ -205,8 +205,8 @@ public class ResumeService {
     private List<Project> extractProjects(List<ProjectForm> projectForms, Resume resume){
         return projectForms.stream().map(rawForm -> {
                     Project newProject = new Project(rawForm.projectName(), rawForm.technologyList(),
-                            YearMonthStringOperations.getYearMonth(rawForm.startDate()),
-                            YearMonthStringOperations.getYearMonth(rawForm.endDate()),
+                            StringUtil.getYearMonth(rawForm.startDate()),
+                            StringUtil.getYearMonth(rawForm.endDate()),
                             rawForm.bullets());
                     newProject.setResume(resume);
                     return newProject;

@@ -2,15 +2,15 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
-import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.forum_entities.PostResume;
-import com.rebuild.backend.model.entities.forum_entities.ResumeFileUploadRecord;
+import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.FileUploadException;
+import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
+import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.util_services.AWSService;
 import org.apache.commons.io.FilenameUtils;
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -58,14 +59,17 @@ public class PostsService {
 
     private final AWSService awsService;
 
+    private final LikeRepository likeRepository;
+
 
     @Autowired
     public PostsService(ResumeRepository resumeRepository,
                         ForumPostRepository postRepository,
-                        AWSService awsService) {
+                        AWSService awsService, LikeRepository likeRepository) {
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
         this.awsService = awsService;
+        this.likeRepository = likeRepository;
     }
 
     private byte[] sanitizedPDFBytes(byte[] input) throws IOException {
@@ -198,6 +202,31 @@ public class PostsService {
                 forumPost.getResumes(),
                 displayedComments, presignedUrls);
 
+    }
+
+
+    public ForumPost likePost(UUID comment_id, User likingUser)
+    {
+        ForumPost post = postRepository.findById(comment_id).orElseThrow(
+                () -> new NotFoundException("Post with this id is not found"));
+
+        Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
+                likingUser.getId());
+
+        //If the user has already liked this comment, remove the like.
+        foundLike.ifPresent(like -> {
+            likeRepository.delete(like);
+            post.setLikeCount(post.getLikeCount() - 1);
+        });
+
+        //If the user has not like this comment, simply add a like for this comment for this user.
+
+        Like newLike = new Like(likingUser.getId(), comment_id, LikeType.POST);
+
+        likeRepository.save(newLike);
+        post.setLikeCount(post.getLikeCount() + 1);
+
+        return postRepository.save(post);
     }
 
 }

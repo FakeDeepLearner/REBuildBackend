@@ -1,12 +1,11 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
+import com.rebuild.backend.model.entities.forum_entities.Comment;
+import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.dtos.forum_dtos.CommentLikeRequest;
-import com.rebuild.backend.model.dtos.forum_dtos.PostLikeRequest;
-import com.rebuild.backend.service.util_services.RabbitMQService;
-import org.springframework.amqp.AmqpException;
+import com.rebuild.backend.service.forum_services.CommentsService;
+import com.rebuild.backend.service.forum_services.PostsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,37 +15,29 @@ import java.util.UUID;
 @RequestMapping("/api/forum/batch")
 public class ForumLikesController {
 
-    private final RabbitMQService rabbitMQService;
+    private final CommentsService commentsService;
+
+    private final PostsService postsService;
 
     @Autowired
-    public ForumLikesController(RabbitMQService rabbitMQService) {
-        this.rabbitMQService = rabbitMQService;
+    public ForumLikesController(CommentsService commentsService, PostsService postsService) {
+        this.commentsService = commentsService;
+        this.postsService = postsService;
     }
 
+
+
     @PostMapping("/like_comment/{comment_id}")
-    public ResponseEntity<String> likeComment(@AuthenticationPrincipal User likingUser,
-                                              @PathVariable UUID comment_id){
-        try{
-            CommentLikeRequest newRequest = new CommentLikeRequest(likingUser.getForumUsername(), comment_id);
-            rabbitMQService.sendCommentLike(newRequest);
-            return ResponseEntity.ok("Comment liked");
-        }
-        catch (AmqpException amqpException){
-            return ResponseEntity.internalServerError().body(amqpException.getMessage());
-        }
+    public Comment triggerCommentLikeStatus(@AuthenticationPrincipal User likingUser,
+                               @PathVariable UUID comment_id){
+        return commentsService.likeComment(comment_id, likingUser);
+
     }
 
     @PostMapping("/like_post/{post_id}")
-    public ResponseEntity<String> likePost(@AuthenticationPrincipal User likingUser,
-                                           @PathVariable UUID post_id){
-        try{
-            PostLikeRequest newRequest = new PostLikeRequest(likingUser.getForumUsername(), post_id);
-            rabbitMQService.sendPostLike(newRequest);
-            return ResponseEntity.ok("Comment liked");
-        }
-        catch (AmqpException amqpException){
-            return ResponseEntity.internalServerError().body(amqpException.getMessage());
-        }
+    public ForumPost likePost(@AuthenticationPrincipal User likingUser,
+                              @PathVariable UUID post_id){
+        return postsService.likePost(post_id, likingUser);
     }
 
 }

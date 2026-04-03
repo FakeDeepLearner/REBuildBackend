@@ -3,15 +3,12 @@ package com.rebuild.backend.service.forum_services;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
-import com.rebuild.backend.model.dtos.StatusAndError;
-import com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.exceptions.FriendshipException;
 import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRequestRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.service.util_services.RabbitMQService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,17 +27,13 @@ public class FriendshipService {
 
     private final FriendRequestRepository friendRequestRepository;
 
-    private final RabbitMQService rabbitMQService;
-
     @Autowired
     public FriendshipService(UserRepository userRepository,
                              FriendRelationshipRepository friendRelationshipRepository,
-                             FriendRequestRepository friendRequestRepository,
-                             RabbitMQService rabbitMQService) {
+                             FriendRequestRepository friendRequestRepository) {
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.friendRequestRepository = friendRequestRepository;
-        this.rabbitMQService = rabbitMQService;
     }
 
     @Transactional
@@ -58,8 +51,6 @@ public class FriendshipService {
         friendRequestRepository.delete(friendRequest);
 
         return friendRelationshipRepository.save(newRelationship);
-
-
     }
 
     @Transactional
@@ -95,9 +86,9 @@ public class FriendshipService {
                     "You are already friends with this user");
         }
 
-        FriendRequestDTO friendRequestDTO = new FriendRequestDTO(sender, recipientId);
 
-        rabbitMQService.sendFriendshipRequest(friendRequestDTO);
+        FriendRequest newRequest = new FriendRequest(sender, recipient);
+        friendRequestRepository.save(newRequest);
     }
 
     public List<UsernameSearchResultDTO> loadUserFriendRequests(User loadingUser)
