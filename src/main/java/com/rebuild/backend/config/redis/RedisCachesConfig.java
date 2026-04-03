@@ -13,7 +13,9 @@ import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 
@@ -67,8 +69,7 @@ public class RedisCachesConfig {
         RedisCacheConfiguration idempotencyConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofSeconds(30));
 
-
-        return RedisCacheManager.builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
+        return RedisCacheManager.builder(connectionFactory)
                 .withCacheConfiguration("idempotency_cache", idempotencyConfig)
                 .withCacheConfiguration("resume_cache", resumeCacheConfig)
                 .withCacheConfiguration("profile_cache", profilesCacheConfig)

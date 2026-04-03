@@ -39,22 +39,8 @@ public class SingularBeansConfig {
     }
 
     @Bean
-    public DbxRequestConfig requestConfig()
-    {
-        return DbxRequestConfig.newBuilder("rerebuild").build();
-    }
-
-    @Bean
     public Cloudinary cloudinary(Dotenv dotenv) {
         return new Cloudinary(dotenv.get("CLOUDINARY_URL"));
-    }
-
-    @Bean
-    public BloomFilter<String> bloomFilter()
-    {
-        return BloomFilter.
-                create(Funnels.stringFunnel(Charset.defaultCharset()),
-                        1_000_000, 0.01);
     }
 
     @Bean
@@ -66,7 +52,6 @@ public class SingularBeansConfig {
     @Bean
     public UrlHandlerFilter handlerFilter()
     {
-
         return UrlHandlerFilter
                 .trailingSlashHandler("/api/**", "/home/**").redirect(HttpStatus.PERMANENT_REDIRECT)
                 .build();
