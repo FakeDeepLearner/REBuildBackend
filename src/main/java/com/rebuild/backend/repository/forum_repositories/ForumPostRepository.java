@@ -23,7 +23,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(value = """
             SELECT fp FROM ForumPost fp\s
                         LEFT JOIN FETCH fp.resumes\s
-                        JOIN fp.creatingUser u WHERE fp.id=?1
+                        JOIN fp.associatedProfile.user u WHERE fp.id=?1
            \s""")
     Optional<ForumPost> findById(UUID uuid);
 
@@ -31,7 +31,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             SELECT fp FROM ForumPost fp
             LEFT JOIN FETCH fp.resumes
             LEFT JOIN FETCH fp.uploadedFiles
-                        JOIN fp.creatingUser u WHERE fp.id=?1
+                        JOIN fp.associatedProfile.user u WHERE fp.id=?1
            """)
     Optional<ForumPost> findByIdWithMoreInfo(UUID id);
 
@@ -43,12 +43,14 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     Optional<ForumPost> findByIdWithComments(UUID id);
 
     @Query(value = """
-            SELECT NEW com.rebuild.backend.model.forms.dtos.forum_dtos.CommentDisplayDTO(
-            c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount)
-            FROM ForumPost p LEFT JOIN p.comments c JOIN c.author u
+            SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO(
+            c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount,
+            CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
+            THEN true ELSE false END)
+            FROM ForumPost p LEFT JOIN p.comments c JOIN c.associatedProfile.user u
             WHERE p.id=?1 ORDER BY c.creationDate ASC
-            """)
-    List<CommentDisplayDTO> loadCommentsById(UUID id);
+           \s""")
+    List<CommentDisplayDTO> loadCommentsById(UUID id, UUID userId);
 
     @NonNull
     Page<ForumPost> findAll(@NonNull Pageable pageable);
@@ -56,18 +58,9 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(value = """
             SELECT fp FROM ForumPost fp
             LEFT JOIN FETCH fp.uploadedFiles
-            JOIN fp.creatingUser u WHERE fp.id=?1 AND u=?2
+            JOIN fp.associatedProfile.user u WHERE fp.id=?1 AND u=?2
            """)
     Optional<ForumPost> findByIdWithFiles(UUID id, User creatingUser);
-
-    @Query(value = """
-            SELECT fp FROM ForumPost fp
-            LEFT JOIN FETCH fp.uploadedFiles
-            JOIN fp.creatingUser u WHERE u=?1
-           """)
-    List<ForumPost> findByUserWithFiles(User deletingUser);
-
-    Optional<ForumPost> findByIdAndCreatingUser(UUID id, User creatingUser);
 
     Page<ForumPost> findByIdIn(Collection<UUID> ids, Pageable pageable);
 }

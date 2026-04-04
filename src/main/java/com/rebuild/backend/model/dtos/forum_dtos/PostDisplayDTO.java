@@ -7,5 +7,5 @@ import java.util.List;
 public record PostDisplayDTO(String title, String content,
                              String authorUsername, List<PostResume> resumes,
                              List<CommentDisplayDTO> displayedComments,
-                             List<String> fileUploadURLs) {
+                             List<String> fileUploadURLs, boolean userHasLikedPost) {
 }

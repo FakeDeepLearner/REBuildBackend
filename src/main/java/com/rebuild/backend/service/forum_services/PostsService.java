@@ -186,10 +186,10 @@ public class PostsService {
         postRepository.delete(postToDelete);
     }
 
-    public PostDisplayDTO loadPost(UUID postID){
+    public PostDisplayDTO loadPost(UUID postID, User loadingUser){
         ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(RuntimeException::new);
 
-        List<CommentDisplayDTO> displayedComments = postRepository.loadCommentsById(postID);
+        List<CommentDisplayDTO> displayedComments = postRepository.loadCommentsById(postID, loadingUser.getId());
 
         List<ResumeFileUploadRecord> uploadRecords = forumPost.getUploadedFiles();
 
@@ -200,7 +200,8 @@ public class PostsService {
         return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(),
                 forumPost.getAssociatedProfile().getUser().getForumUsername(),
                 forumPost.getResumes(),
-                displayedComments, presignedUrls);
+                displayedComments, presignedUrls,
+                likeRepository.findByLikedObjectIdAndLikingUserId(postID, loadingUser.getId()).isPresent());
 
     }
 

@@ -83,9 +83,9 @@ public class CommentsService {
         return commentRepository.save(newComment);
     }
 
-    public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id)
+    public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id, User user)
     {
-        return commentRepository.loadParentCommentInfo(parent_id);
+        return commentRepository.loadParentCommentInfo(parent_id, user.getId());
     }
 
 

@@ -72,8 +72,8 @@ public class ForumHomePageController {
 
     @GetMapping("/get_posts/{post_id}")
     @ResponseStatus(HttpStatus.OK)
-    public PostDisplayDTO loadPost(@PathVariable UUID post_id) {
-        return postAndCommentService.loadPost(post_id);
+    public PostDisplayDTO loadPost(@PathVariable UUID post_id, @AuthenticationPrincipal User user) {
+        return postAndCommentService.loadPost(post_id, user);
     }
 
     @PostMapping("/change_username")

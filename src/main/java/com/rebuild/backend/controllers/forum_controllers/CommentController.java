@@ -43,8 +43,9 @@ public class CommentController {
 
     @GetMapping("/{parent_comment_id}/replies")
     @ResponseStatus(HttpStatus.OK)
-    public List<CommentDisplayDTO> getReplies(@PathVariable UUID parent_comment_id){
-        return commentsService.getCommentExpansionInfo(parent_comment_id);
+    public List<CommentDisplayDTO> getReplies(@PathVariable UUID parent_comment_id,
+                                              @AuthenticationPrincipal User user){
+        return commentsService.getCommentExpansionInfo(parent_comment_id, user);
     }
 
 
