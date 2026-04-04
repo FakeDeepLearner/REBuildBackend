@@ -27,14 +27,6 @@ import java.util.UUID;
         @Index(columnList = "user_id"),
         @Index(columnList = "user_id, id")
 })
-@NamedEntityGraph(name = Resume.GRAPH_NAME,
-    attributeNodes = {
-        @NamedAttributeNode(value = "header"),
-        @NamedAttributeNode(value = "education"),
-        @NamedAttributeNode(value = "experiences"),
-        @NamedAttributeNode(value = "projects"),
-        @NamedAttributeNode(value = "user")
-    })
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -42,12 +34,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Indexed
-public class Resume implements Serializable {
-
-    public static final String GRAPH_NAME = "Resume.fullData";
-
-    @Serial
-    private static final long serialVersionUID = 1;
+public class Resume{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -17,19 +17,15 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     Optional<Resume> findByIdAndUser(UUID id, User user);
 
-    @EntityGraph(value = Resume.GRAPH_NAME, type =  EntityGraph.EntityGraphType.LOAD)
-    List<Resume> findByUserAndIdIn(User user, Collection<UUID> ids);
-
-
     @Query("""
         SELECT r FROM Resume r
-        LEFT JOIN FETCH r.header
-        LEFT JOIN FETCH r.education
-        LEFT JOIN FETCH r.projects
-        LEFT JOIN FETCH r.experiences
-                WHERE r.id IN ?1
-       """)
-    List<Resume> findAllByIdWithOtherData(Iterable<UUID> ids);
+        JOIN FETCH r.header
+        JOIN FETCH r.education
+        JOIN FETCH r.projects
+        JOIN FETCH r.experiences
+        WHERE r.user=?1 AND r.id IN ?2
+        """)
+    List<Resume> findByUserAndIdIn(User user, Collection<UUID> ids);
 
     @Query(value = """
         SELECT r FROM Resume r

@@ -33,10 +33,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class Education implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 3L;
+public class Education{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

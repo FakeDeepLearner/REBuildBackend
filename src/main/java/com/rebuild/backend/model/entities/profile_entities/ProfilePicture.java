@@ -17,10 +17,7 @@ import java.util.UUID;
         @Index(columnList = "asset_id"),
         @Index(columnList = "profile_id")
 })
-public class ProfilePicture implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 6L;
+public class ProfilePicture {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

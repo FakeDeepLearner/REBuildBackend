@@ -22,10 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
-public class Header implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 2L;
+public class Header{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

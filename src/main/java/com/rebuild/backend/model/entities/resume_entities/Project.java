@@ -26,10 +26,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class Project implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 11L;
+public class Project{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -29,10 +29,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
-public class Experience implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 4L;
+public class Experience{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
