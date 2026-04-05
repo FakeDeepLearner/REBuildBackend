@@ -5,7 +5,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import com.rebuild.backend.service.util_services.ElasticSearchService;
+import com.rebuild.backend.service.util_services.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,15 +21,15 @@ public class UserHomePageService {
 
     private final ResumeRepository resumeRepository;
 
-    private final ElasticSearchService elasticSearchService;
+    private final SearchService searchService;
 
     private final ResumeService resumeService;
 
     @Autowired
-    public UserHomePageService(ResumeRepository resumeRepository, ElasticSearchService elasticSearchService,
+    public UserHomePageService(ResumeRepository resumeRepository, SearchService searchService,
                                ResumeService resumeService) {
         this.resumeRepository = resumeRepository;
-        this.elasticSearchService = elasticSearchService;
+        this.searchService = searchService;
         this.resumeService = resumeService;
     }
 
@@ -47,7 +47,7 @@ public class UserHomePageService {
     @Transactional
     public HomePageData getSearchResult(String name,
                                         User user, int pageNumber, int pageSize){
-        List<UUID> matchedResults = elasticSearchService.executeResumeSearch(name);
+        List<UUID> matchedResults = searchService.executeResumeSearch(name);
 
         PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(
                 Sort.Order.desc("lastModifiedTime").nullsLast(),

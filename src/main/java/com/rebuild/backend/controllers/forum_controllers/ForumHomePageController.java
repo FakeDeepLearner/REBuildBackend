@@ -45,9 +45,10 @@ public class ForumHomePageController {
     }
 
     @PostMapping("/username_search")
-    public UsernameSearchResponse searchUsernames(@RequestBody String username)
+    public UsernameSearchResponse searchUsernames(@RequestBody String username,
+                                                  @AuthenticationPrincipal User user)
     {
-        return homePageService.getUsernameSearchResults(username);
+        return homePageService.getUsernameSearchResults(username, user);
     }
 
     @PostMapping("/get_posts")

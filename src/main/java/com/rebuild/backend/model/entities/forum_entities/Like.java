@@ -32,11 +32,6 @@ public class Like {
     @Column(nullable = false, name = "liked_object_id")
     private UUID likedObjectId;
 
-    @NonNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "liked_object_type")
-    private LikeType likedObjectType;
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false, name = "liking_timestamp")
     private Instant likeTimestamp = Instant.now();

@@ -187,7 +187,9 @@ public class PostsService {
     }
 
     public PostDisplayDTO loadPost(UUID postID, User loadingUser){
-        ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(RuntimeException::new);
+        ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(
+                () -> new NotFoundException("Post with this id is not found")
+        );
 
         List<CommentDisplayDTO> displayedComments = postRepository.loadCommentsById(postID, loadingUser.getId());
 
@@ -222,7 +224,7 @@ public class PostsService {
 
         //If the user has not like this comment, simply add a like for this comment for this user.
 
-        Like newLike = new Like(likingUser.getId(), comment_id, LikeType.POST);
+        Like newLike = new Like(likingUser.getId(), comment_id);
 
         likeRepository.save(newLike);
         post.setLikeCount(post.getLikeCount() + 1);

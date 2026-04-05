@@ -4,7 +4,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.model.entities.forum_entities.LikeType;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
@@ -105,7 +104,7 @@ public class CommentsService {
 
         //If the user has not like this comment, simply add a like for this comment for this user.
 
-        Like newLike = new Like(likingUser.getId(), comment_id, LikeType.COMMENT);
+        Like newLike = new Like(likingUser.getId(), comment_id);
 
         likeRepository.save(newLike);
         comment.setLikeCount(comment.getLikeCount() + 1);
