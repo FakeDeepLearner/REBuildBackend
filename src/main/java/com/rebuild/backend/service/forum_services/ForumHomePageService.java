@@ -1,5 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -36,18 +37,19 @@ public class ForumHomePageService {
         this.friendRelationshipRepository = friendRelationshipRepository;
     }
 
-    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize)
+    public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize, User user)
     {
-        return getPagedResult(pageNumber, pageSize, new ForumSpecsForm(null, null));
+        return getPagedResult(pageNumber, pageSize, new ForumSpecsForm(null, null), user);
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
-                                                ForumSpecsForm forumSpecsForm)
+                                                ForumSpecsForm forumSpecsForm, User user)
     {
         PageRequest request = PageRequest.of(pageNumber, pageSize);
 
-        Slice<ForumPost> foundPosts = postRepository.findByTitleAndContent(forumSpecsForm.titleContains(),
+        Slice<ForumPostSummaryDTO> foundPosts = postRepository.findByTitleAndContent(forumSpecsForm.titleContains(),
                 forumSpecsForm.bodyContains(),
+                user.getId(),
                 request);
 
         return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(), foundPosts.hasNext());

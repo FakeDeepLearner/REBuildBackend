@@ -1,5 +1,6 @@
 package com.rebuild.backend.repository.forum_repositories;
 
+import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -50,7 +51,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.associatedProfile.user u
             WHERE p.id=?1 ORDER BY c.creationDate ASC
            \s""")
-    List<CommentDisplayDTO> loadCommentsById(UUID id, UUID userId);
+    Slice<CommentDisplayDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
 
     @NonNull
     Page<ForumPost> findAll(@NonNull Pageable pageable);
@@ -62,11 +63,16 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
            """)
     Optional<ForumPost> findByIdWithFiles(UUID id, User creatingUser);
 
-    @Query(value = """
-    SELECT fp FROM ForumPost fp
-    WHERE (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
+    @Query(
+    value = """
+    SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO(
+    fp.id, fp.title, fp.content, fp.likeCount, fp.commentCount,
+    CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=fp.id AND l.likingUserId=?3) > 0
+    THEN true ELSE false END)
+    FROM ForumPost fp WHERE
+    (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
     AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
     ORDER BY fp.creationDate DESC, fp.lastModificationDate DESC
     """)
-    Slice<ForumPost> findByTitleAndContent(String title, String content, Pageable pageable);
+    Slice<ForumPostSummaryDTO> findByTitleAndContent(String title, String content, UUID userID, Pageable pageable);
 }

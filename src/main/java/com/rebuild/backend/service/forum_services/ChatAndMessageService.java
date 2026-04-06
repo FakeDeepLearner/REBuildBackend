@@ -3,7 +3,6 @@ package com.rebuild.backend.service.forum_services;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
-import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.ChatException;
@@ -11,15 +10,12 @@ import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.repository.forum_repositories.*;
-import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -164,7 +160,7 @@ public class ChatAndMessageService {
         {
             List<ChatParticipation> otherChatParticipations = groupChat.getParticipations().stream().
                     filter(participation -> !sender.equals(participation.getParticipatingUser())).
-                    toList();
+                    collect(Collectors.toCollection(ArrayList::new));
 
             // For every other user participating in this chat except for the
             // sender of the message, they will have 1 more unread message
@@ -226,7 +222,7 @@ public class ChatAndMessageService {
 
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<ChatParticipation> groupChatParticipations = participationRepository.findParticipationsByUser(displayingUser);
+        List<ChatParticipation> groupChatParticipation = participationRepository.findParticipationsByUser(displayingUser);
         List<PrivateChat> userChats = chatRepository.findPrivateChatsByUser(displayingUser);
 
         List<DisplayChatResponse> privateChatResponses = userChats.stream()
@@ -243,7 +239,7 @@ public class ChatAndMessageService {
                 }).toList();
 
         //We have to use the collect method at the very end, because using toList() returns an unmodifiable list.
-        List<DisplayChatResponse> groupChatResponses = groupChatParticipations.stream()
+        List<DisplayChatResponse> groupChatResponses = groupChatParticipation.stream()
                 .map(participation -> {
                     GroupChat participatedChat = participation.getParticipatedChat();
 

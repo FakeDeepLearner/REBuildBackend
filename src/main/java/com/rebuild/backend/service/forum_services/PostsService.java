@@ -19,6 +19,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -186,12 +189,15 @@ public class PostsService {
         postRepository.delete(postToDelete);
     }
 
-    public PostDisplayDTO loadPost(UUID postID, User loadingUser){
+    public PostDisplayDTO loadPost(UUID postID, User loadingUser, int pageSize){
         ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(
                 () -> new NotFoundException("Post with this id is not found")
         );
 
-        List<CommentDisplayDTO> displayedComments = postRepository.loadCommentsById(postID, loadingUser.getId());
+        //When we are loading a post, we just fetch the initial page of the comments
+        Pageable request = PageRequest.of(0, pageSize);
+        Slice<CommentDisplayDTO> displayedComments =
+                postRepository.loadCommentsById(postID, loadingUser.getId(), request);
 
         List<ResumeFileUploadRecord> uploadRecords = forumPost.getUploadedFiles();
 
@@ -199,13 +205,16 @@ public class PostsService {
                 awsService.createPresignedGetUrl(resumeFileUploadRecord.getBucketName(),
                         resumeFileUploadRecord.getObjectKey())).toList();
 
-        return new PostDisplayDTO(forumPost.getTitle(), forumPost.getContent(),
+        return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
                 forumPost.getAssociatedProfile().getUser().getForumUsername(),
                 forumPost.getResumes(),
-                displayedComments, presignedUrls,
+                displayedComments.getContent(), displayedComments.getNumber(), displayedComments.hasNext(),
+                presignedUrls,
                 likeRepository.findByLikedObjectIdAndLikingUserId(postID, loadingUser.getId()).isPresent());
 
     }
+
+
 
 
     public ForumPost likePost(UUID comment_id, User likingUser)

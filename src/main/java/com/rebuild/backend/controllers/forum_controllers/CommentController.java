@@ -1,5 +1,6 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
+import com.rebuild.backend.model.responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
@@ -46,6 +47,16 @@ public class CommentController {
     public List<CommentDisplayDTO> getReplies(@PathVariable UUID parent_comment_id,
                                               @AuthenticationPrincipal User user){
         return commentsService.getCommentExpansionInfo(parent_comment_id, user);
+    }
+
+
+    @GetMapping("/load-comments/{post_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LoadCommentsResponse loadMorePostComments(@PathVariable UUID post_id, @AuthenticationPrincipal User user,
+                                                     @RequestParam(defaultValue = "1") int pageNumber,
+                                                     @RequestParam(defaultValue = "30", required = false) int pageSize)
+    {
+        return commentsService.loadMoreComments(post_id, user, pageNumber, pageSize);
     }
 
 

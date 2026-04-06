@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.Like;
@@ -13,6 +14,9 @@ import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +84,20 @@ public class CommentsService {
 
         
         return commentRepository.save(newComment);
+    }
+
+
+    public LoadCommentsResponse loadMoreComments(UUID postId, User user, int pageNumber, int pageSize)
+    {
+        ForumPost foundPost = postRepository.findById(postId).orElseThrow(() ->
+                new NotFoundException("Post with this id is not found"));
+        Pageable request = PageRequest.of(pageNumber, pageSize);
+
+        Slice<CommentDisplayDTO> loadedComments = commentRepository.loadCommentExpansion(foundPost,
+                user.getId(), request);
+
+        return new LoadCommentsResponse(loadedComments.getContent(), loadedComments.getNumber(),
+                loadedComments.hasNext());
     }
 
     public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id, User user)

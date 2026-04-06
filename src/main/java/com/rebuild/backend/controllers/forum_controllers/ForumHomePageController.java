@@ -64,22 +64,25 @@ public class ForumHomePageController {
                                           @RequestParam(defaultValue = "50", name = "size", required = false)
                                           int pageSize,
 
-                                          @RequestBody ForumSpecsForm forumSpecsForm) {
+                                          @RequestBody ForumSpecsForm forumSpecsForm,
+                                          @AuthenticationPrincipal User user) {
 
-        return homePageService.getPagedResult(pageNumber, pageSize, forumSpecsForm);
+        return homePageService.getPagedResult(pageNumber, pageSize, forumSpecsForm, user);
     }
 
     @GetMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page", required = false) int pageNumber,
-                                          @RequestParam(defaultValue = "50", name = "size", required = false) int pageSize) {
-        return homePageService.serveGetRequest(pageNumber, pageSize);
+                                          @RequestParam(defaultValue = "50", name = "size", required = false) int pageSize,
+                                          @AuthenticationPrincipal User user) {
+        return homePageService.serveGetRequest(pageNumber, pageSize, user);
     }
 
     @GetMapping("/get_posts/{post_id}")
     @ResponseStatus(HttpStatus.OK)
-    public PostDisplayDTO loadPost(@PathVariable UUID post_id, @AuthenticationPrincipal User user) {
-        return postAndCommentService.loadPost(post_id, user);
+    public PostDisplayDTO loadPost(@PathVariable UUID post_id, @AuthenticationPrincipal User user,
+                                   @RequestParam(defaultValue = "30", name = "size", required = false) int pageSize) {
+        return postAndCommentService.loadPost(post_id, user, pageSize);
     }
 
     @PostMapping("/change_username")

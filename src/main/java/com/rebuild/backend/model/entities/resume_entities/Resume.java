@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "resumes", uniqueConstraints = {
@@ -105,10 +106,12 @@ public class Resume{
         this.header = Header.copy(originalResume.getHeader());
         this.experiences = originalResume.getExperiences().stream().map(
                 Experience::copy
-        ).peek(experience -> experience.setResume(this)).toList();
+        ).peek(experience -> experience.setResume(this)).
+                collect(Collectors.toCollection(ArrayList::new));
         this.projects = originalResume.getProjects().stream().map(
                 Project::copy
-        ).peek(project -> project.setResume(this)).toList();
+        ).peek(project -> project.setResume(this)).
+                collect(Collectors.toCollection(ArrayList::new));
         //Necessary in order for cascading to work properly
         this.user.getResumes().add(this);
         this.education.setResume(this);
