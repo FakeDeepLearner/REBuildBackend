@@ -67,5 +67,16 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     Page<Resume> findByUser(User user, Pageable pageable);
 
-    Page<Resume> findByUserAndIdIn(User user, Collection<UUID> ids, Pageable pageable);
+    @Query(value = """
+    SELECT r FROM Resume r
+    WHERE (?2 IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%")))
+    AND r.user=?1
+    """,
+    countQuery = """
+    SELECT COUNT(r)
+    FROM Resume r
+    WHERE (?2 IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%")))
+    AND r.user=?1
+    """)
+    Page<Resume> findByUserAndName(User user, String name, Pageable pageable);
 }

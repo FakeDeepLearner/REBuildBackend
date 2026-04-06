@@ -1,10 +1,12 @@
 package com.rebuild.backend.repository.user_repositories;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +24,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         WHERE u.email=?1 OR u.phoneNumber=?1
        """)
     Optional<User> findByEmailOrPhoneWithRecoveryCodes(String emailOrPhone);
+
+
+    @Query(value = """
+    SELECT u FROM User u
+    WHERE COALESCE(u.forumUsername, u.backupForumUsername) LIKE LOWER(CONCAT('%', ?1, '%'))
+    """)
+    List<User> findBySimilarUsername(String username);
 
 
 

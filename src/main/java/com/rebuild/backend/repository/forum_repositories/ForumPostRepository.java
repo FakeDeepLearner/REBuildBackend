@@ -62,5 +62,16 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
            """)
     Optional<ForumPost> findByIdWithFiles(UUID id, User creatingUser);
 
-    Page<ForumPost> findByIdIn(Collection<UUID> ids, Pageable pageable);
+    @Query(value = """
+    SELECT fp FROM ForumPost fp
+    WHERE (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
+    AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
+    ORDER BY fp.creationDate DESC, fp.lastModificationDate DESC
+    """,
+    countQuery = """
+    SELECT COUNT(fp) FROM ForumPost fp
+    WHERE (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
+    AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
+    """)
+    Page<ForumPost> findByTitleAndContent(String title, String content, Pageable pageable);
 }

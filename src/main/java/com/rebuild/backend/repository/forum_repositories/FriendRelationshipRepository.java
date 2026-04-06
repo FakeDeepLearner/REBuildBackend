@@ -28,13 +28,6 @@ public interface FriendRelationshipRepository extends JpaRepository<FriendRelati
     )
     Optional<FriendRelationship> findByUserAndUserId(User user1, UUID user2Id);
 
-    @Query(
-            value = "SELECT r from FriendRelationship r " +
-                    "WHERE (r.recipient=?1 AND COALESCE(r.sender.forumUsername, r.sender.backupForumUsername)=?2)" +
-                    "OR (COALESCE(r.sender.forumUsername, r.sender.backupForumUsername)=?2 AND r.sender=?1)"
-    )
-    Optional<FriendRelationship> findByUserAndUsername(User user, String user2Name);
-
 
 
 }

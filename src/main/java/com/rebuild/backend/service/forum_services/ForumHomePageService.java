@@ -9,7 +9,6 @@ import com.rebuild.backend.model.responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.service.util_services.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,21 +22,15 @@ import java.util.UUID;
 public class ForumHomePageService {
     private final ForumPostRepository postRepository;
 
-    private final SearchService searchService;
-
-    private final PostsService postsService;
-
     private final UserRepository userRepository;
 
     private final FriendRelationshipRepository friendRelationshipRepository;
 
     @Autowired
     public ForumHomePageService(ForumPostRepository postRepository,
-                                SearchService searchService,
-                                PostsService postsService, UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository) {
+                               UserRepository userRepository,
+                                FriendRelationshipRepository friendRelationshipRepository) {
         this.postRepository = postRepository;
-        this.searchService = searchService;
-        this.postsService = postsService;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
     }
@@ -56,13 +49,12 @@ public class ForumHomePageService {
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
                                                 ForumSpecsForm forumSpecsForm)
     {
-
-        List<UUID> matchedResults = searchService.executePostSearch(forumSpecsForm);
         PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,
                 "creationDate"));
 
-
-        Page<ForumPost> foundPosts = postRepository.findByIdIn(matchedResults, request);
+        Page<ForumPost> foundPosts = postRepository.findByTitleAndContent(forumSpecsForm.titleContains(),
+                forumSpecsForm.bodyContains(),
+                request);
 
         return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(),
                 foundPosts.getTotalElements(), foundPosts.getTotalPages(), foundPosts.getSize());
@@ -70,14 +62,12 @@ public class ForumHomePageService {
 
     public UsernameSearchResponse getUsernameSearchResults(String username, User searchingUser)
     {
-        List<UUID> foundIds = searchService.executeUserSearch(username);
-
         List<UsernameSearchResultDTO> searchResultDTOS =
-                userRepository.findAllById(foundIds).stream()
+                userRepository.findBySimilarUsername(username).stream()
                         .map(user ->
                                 new UsernameSearchResultDTO(user.getId(), user.getForumUsername(),
-                                        friendRelationshipRepository.findByUserAndUsername(searchingUser,
-                                                user.getForumUsername()).isPresent())).
+                                        friendRelationshipRepository.findByTwoUsers(searchingUser,
+                                                user).isPresent())).
                         toList();
         return new UsernameSearchResponse(searchResultDTOS);
     }
