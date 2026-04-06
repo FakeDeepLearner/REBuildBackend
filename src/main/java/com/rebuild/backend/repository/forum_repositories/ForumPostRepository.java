@@ -1,11 +1,11 @@
 package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import lombok.NonNull;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -67,11 +67,6 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     WHERE (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
     AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
     ORDER BY fp.creationDate DESC, fp.lastModificationDate DESC
-    """,
-    countQuery = """
-    SELECT COUNT(fp) FROM ForumPost fp
-    WHERE (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
-    AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
     """)
-    Page<ForumPost> findByTitleAndContent(String title, String content, Pageable pageable);
+    Slice<ForumPost> findByTitleAndContent(String title, String content, Pageable pageable);
 }

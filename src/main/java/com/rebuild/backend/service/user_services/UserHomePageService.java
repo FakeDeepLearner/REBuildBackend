@@ -7,6 +7,7 @@ import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,29 +23,20 @@ public class UserHomePageService {
     }
 
     @Transactional
-    public HomePageData getHomePageData(User user, int pageNumber, int pageSize){
-        PageRequest request =
-                PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
+    public HomePageData getHomePageData(User user, int pageNumber, int pageSize) {
 
-        Page<Resume> foundPage = resumeRepository.findByUser(user, request);
-
-        return new HomePageData(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize());
+        return getSearchResult(null, user, pageNumber, pageSize);
     }
 
     @Transactional
     public HomePageData getSearchResult(String name,
                                         User user, int pageNumber, int pageSize){
 
-        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(
-                Sort.Order.desc("lastModifiedTime").nullsLast(),
-                Sort.Order.desc("creationTime")));
+        PageRequest request = PageRequest.of(pageNumber, pageSize);
 
-
-        Page<Resume> matchedResumes = resumeRepository.findByUserAndName(user, name, request);
+        Slice<Resume> matchedResumes = resumeRepository.findByUserAndName(user, name, request);
         return new HomePageData(matchedResumes.getContent(), matchedResumes.getNumber(),
-                matchedResumes.getTotalElements(),
-                matchedResumes.getTotalPages(), matchedResumes.getSize());
+                matchedResumes.hasNext());
 
     }
 }

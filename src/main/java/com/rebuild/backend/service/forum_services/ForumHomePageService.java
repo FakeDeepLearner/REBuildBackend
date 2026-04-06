@@ -12,6 +12,7 @@ import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -37,38 +38,33 @@ public class ForumHomePageService {
 
     public ForumPostPageResponse serveGetRequest(int pageNumber, int pageSize)
     {
-        PageRequest request =
-                PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "creationDate"));
-
-        Page<ForumPost> foundPage = postRepository.findAll(request);
-
-        return new ForumPostPageResponse(foundPage.getContent(), foundPage.getNumber(), foundPage.getTotalElements(),
-                foundPage.getTotalPages(), foundPage.getSize());
+        return getPagedResult(pageNumber, pageSize, new ForumSpecsForm(null, null));
     }
 
     public ForumPostPageResponse getPagedResult(int pageNumber, int pageSize,
                                                 ForumSpecsForm forumSpecsForm)
     {
-        PageRequest request = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,
-                "creationDate"));
+        PageRequest request = PageRequest.of(pageNumber, pageSize);
 
-        Page<ForumPost> foundPosts = postRepository.findByTitleAndContent(forumSpecsForm.titleContains(),
+        Slice<ForumPost> foundPosts = postRepository.findByTitleAndContent(forumSpecsForm.titleContains(),
                 forumSpecsForm.bodyContains(),
                 request);
 
-        return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(),
-                foundPosts.getTotalElements(), foundPosts.getTotalPages(), foundPosts.getSize());
+        return new ForumPostPageResponse(foundPosts.getContent(), foundPosts.getNumber(), foundPosts.hasNext());
     }
 
-    public UsernameSearchResponse getUsernameSearchResults(String username, User searchingUser)
+    public UsernameSearchResponse getUsernameSearchResults(String username, User searchingUser,
+                                                           int pageNumber, int pageSize)
     {
+        PageRequest request = PageRequest.of(pageNumber, pageSize);
+        Slice<User> foundUsers = userRepository.findBySimilarUsername(username, request);
         List<UsernameSearchResultDTO> searchResultDTOS =
-                userRepository.findBySimilarUsername(username).stream()
+                foundUsers.stream()
                         .map(user ->
                                 new UsernameSearchResultDTO(user.getId(), user.getForumUsername(),
                                         friendRelationshipRepository.findByTwoUsers(searchingUser,
                                                 user).isPresent())).
                         toList();
-        return new UsernameSearchResponse(searchResultDTOS);
+        return new UsernameSearchResponse(searchResultDTOS, foundUsers.getNumber(), foundUsers.hasNext());
     }
 }

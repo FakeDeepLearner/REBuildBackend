@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -71,12 +72,6 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     SELECT r FROM Resume r
     WHERE (?2 IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%")))
     AND r.user=?1
-    """,
-    countQuery = """
-    SELECT COUNT(r)
-    FROM Resume r
-    WHERE (?2 IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%")))
-    AND r.user=?1
     """)
-    Page<Resume> findByUserAndName(User user, String name, Pageable pageable);
+    Slice<Resume> findByUserAndName(User user, String name, Pageable pageable);
 }

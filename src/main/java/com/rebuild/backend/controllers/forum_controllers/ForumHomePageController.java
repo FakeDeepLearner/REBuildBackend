@@ -46,9 +46,14 @@ public class ForumHomePageController {
 
     @PostMapping("/username_search")
     public UsernameSearchResponse searchUsernames(@RequestBody String username,
-                                                  @AuthenticationPrincipal User user)
+                                                  @AuthenticationPrincipal User user,
+                                                  @RequestParam(defaultValue = "0", name = "page", required = false)
+                                                      int pageNumber,
+
+                                                  @RequestParam(defaultValue = "10", name = "size", required = false)
+                                                      int pageSize)
     {
-        return homePageService.getUsernameSearchResults(username, user);
+        return homePageService.getUsernameSearchResults(username, user, pageNumber, pageSize);
     }
 
     @PostMapping("/get_posts")
@@ -56,7 +61,7 @@ public class ForumHomePageController {
     public ForumPostPageResponse loadForumWithSpecsForm(@RequestParam(defaultValue = "0", name = "page", required = false)
                                           int pageNumber,
 
-                                          @RequestParam(defaultValue = "20", name = "size", required = false)
+                                          @RequestParam(defaultValue = "50", name = "size", required = false)
                                           int pageSize,
 
                                           @RequestBody ForumSpecsForm forumSpecsForm) {
@@ -67,7 +72,7 @@ public class ForumHomePageController {
     @GetMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page", required = false) int pageNumber,
-                                          @RequestParam(defaultValue = "20", name = "size", required = false) int pageSize) {
+                                          @RequestParam(defaultValue = "50", name = "size", required = false) int pageSize) {
         return homePageService.serveGetRequest(pageNumber, pageSize);
     }
 
