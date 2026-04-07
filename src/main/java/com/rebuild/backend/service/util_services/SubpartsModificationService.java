@@ -45,7 +45,7 @@ public class SubpartsModificationService {
                                      UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
-        Header newHeader = new Header(headerForm.number(), headerForm.firstName(), headerForm.lastName(),
+        Header newHeader = new Header(headerForm.number(), headerForm.name(),
                 headerForm.email());
 
         changingResume.setHeader(newHeader);

@@ -42,7 +42,6 @@ import static jakarta.persistence.CascadeType.ALL;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Indexed
 public class User implements UserDetails, OidcUser, Serializable {
 
     @Serial
@@ -104,16 +103,11 @@ public class User implements UserDetails, OidcUser, Serializable {
     @JsonIgnore
     private List<MFARecoveryCodeEntity> recoveryCodes;
 
-
     @Column(name = "forum_username")
-    @FullTextField
     private String forumUsername;
-
 
     @Column(name = "backup_forum_username", nullable = false)
     private String backupForumUsername;
-
-
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)

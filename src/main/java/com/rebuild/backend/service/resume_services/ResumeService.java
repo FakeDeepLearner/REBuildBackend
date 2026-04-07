@@ -148,8 +148,7 @@ public class ResumeService {
         //We can't modify the resume's fields directly here, as that would also modify the variables that
         // we declared outside the try block, causing a bug.
         Header newHeader = new Header(resumeForm.headerForm().number(),
-                resumeForm.headerForm().firstName(),
-                resumeForm.headerForm().lastName(), resumeForm.headerForm().email());
+                resumeForm.headerForm().name(), resumeForm.headerForm().email());
         resume.setHeader(newHeader);
 
         Education newEducation = new Education(resumeForm.educationForm().schoolName(),

@@ -19,15 +19,6 @@ import java.util.UUID;
 @Repository
 public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
-    @Override
-    @NonNull
-    @Query(value = """
-            SELECT fp FROM ForumPost fp\s
-                        LEFT JOIN FETCH fp.resumes\s
-                        JOIN fp.associatedProfile.user u WHERE fp.id=?1
-           \s""")
-    Optional<ForumPost> findById(UUID uuid);
-
     @Query(value = """
             SELECT fp FROM ForumPost fp
             LEFT JOIN FETCH fp.resumes
@@ -52,9 +43,6 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             WHERE p.id=?1 ORDER BY c.creationDate ASC
            \s""")
     Slice<CommentDisplayDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
-
-    @NonNull
-    Page<ForumPost> findAll(@NonNull Pageable pageable);
 
     @Query(value = """
             SELECT fp FROM ForumPost fp

@@ -55,18 +55,12 @@ public class RedisCachesConfig {
                         SerializationPair.
                         fromSerializer(new Jackson3JsonRedisSerializer<>(Resume.class)));
 
-        RedisCacheConfiguration profilesCacheConfig = RedisCacheConfiguration.defaultCacheConfig().
-                entryTtl(Duration.ofMinutes(1)).
-                serializeValuesWith(RedisSerializationContext.
-                        SerializationPair.fromSerializer(new Jackson3JsonRedisSerializer<>(UserProfile.class)));
-
         RedisCacheConfiguration idempotencyConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofSeconds(30));
 
         return RedisCacheManager.builder(connectionFactory)
                 .withCacheConfiguration("idempotency_cache", idempotencyConfig)
                 .withCacheConfiguration("resume_cache", resumeCacheConfig)
-                .withCacheConfiguration("profile_cache", profilesCacheConfig)
                 .build();
     }
 }

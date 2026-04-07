@@ -66,8 +66,6 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
        """)
     Optional<Resume> findByIdAndUserWithProjects(UUID id, User user);
 
-    Page<Resume> findByUser(User user, Pageable pageable);
-
     @Query(value = """
     SELECT r FROM Resume r
     WHERE (?2 IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%")))

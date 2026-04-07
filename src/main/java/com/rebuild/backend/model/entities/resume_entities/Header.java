@@ -34,15 +34,10 @@ public class Header{
     @Convert(converter = DatabaseEncryptor.class)
     private String number;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false)
-    @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
-    private String lastName;
+    private String name;
 
     @Column(name = "email", nullable = false)
     @NonNull
@@ -57,13 +52,13 @@ public class Header{
 
     public static Header copy(Header other)
     {
-        return new Header(other.getNumber(), other.getFirstName(), other.getLastName(), other.getEmail());
+        return new Header(other.getNumber(), other.getName(), other.getEmail());
     }
 
     public static Header sensitiveCopy(Header other)
     {
-        return new Header(StringUtil.maskString(other.getNumber()), StringUtil.maskString(other.firstName),
-                StringUtil.maskString(other.getLastName()), StringUtil.maskString(other.getEmail()));
+        return new Header(StringUtil.maskString(other.getNumber()), StringUtil.maskString(other.getName()),
+                StringUtil.maskString(other.getEmail()));
     }
 
 

@@ -8,77 +8,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@CacheConfig(cacheManager = "cacheManager", cacheNames = "profile_cache",
-keyGenerator = "profileCacheKeyGenerator")
 public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
 
-    @Query(
-    """
-    SELECT p FROM UserProfile p
-    JOIN FETCH p.header JOIN FETCH p.education JOIN FETCH p.experienceList JOIN FETCH p.projectList
-    WHERE p.user=?1
-"""
-    )
-    @Cacheable
-    UserProfile findByUserWithAllData(User user);
+    Optional<UserProfile> findByUser(User user);
 
 
-    @Query(
-            """
-            SELECT p FROM UserProfile p
-            JOIN FETCH p.header
-            WHERE p.user=?1
-        """
-    )
-    @Cacheable
-    UserProfile findByUserWithHeader(User user);
-
-    @Query(
-            """
-            SELECT p FROM UserProfile p
-            JOIN FETCH p.education
-            WHERE p.user=?1
-        """
-    )
-    @Cacheable
-    UserProfile findByUserWithEducation(User user);
-
-    @Query(
-            """
-            SELECT p FROM UserProfile p
-            JOIN FETCH p.experienceList
-            WHERE p.user=?1
-        """
-    )
-    @Cacheable
-    UserProfile findByUserWithExperiences(User user);
-
-    @Query(
-            """
-            SELECT p FROM UserProfile p
-            JOIN FETCH p.projectList
-            WHERE p.user=?1
-        """
-    )
-    @Cacheable
-    UserProfile findByUserWithProjects(User user);
-
-
-
-
-    @Cacheable
-    UserProfile findByUser(User user);
-
-
-    @Cacheable
     @Query("""
     SELECT p FROM UserProfile p
     LEFT JOIN FETCH p.madeComments LEFT JOIN FETCH p.madePosts
     WHERE p.user.id=:id
     """)
-    UserProfile findByUserId(UUID id);
+    Optional<UserProfile> findByUserId(UUID id);
 
 }

@@ -34,19 +34,16 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Indexed
 public class Resume{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @GenericField(searchable = Searchable.YES)
     private UUID id;
 
     @Column(name = "name", nullable = false)
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
-    @FullTextField(searchable =  Searchable.YES)
     private String name;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
@@ -81,10 +78,8 @@ public class Resume{
     @Column(name = "version_count", nullable = false)
     private int versionCount = 0;
 
-    @GenericField(searchable = Searchable.YES, sortable = Sortable.YES)
     private Instant creationTime = Instant.now();
 
-    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant lastModifiedTime = Instant.now();
 
     public Resume(@NonNull String resume_name, @NonNull User user){

@@ -22,7 +22,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-@Indexed
 public class ForumPost {
 
     @Id
@@ -32,11 +31,9 @@ public class ForumPost {
     private UUID id;
 
     @NonNull
-    @FullTextField(searchable = Searchable.YES)
     private String title;
 
     @NonNull
-    @FullTextField(searchable = Searchable.YES)
     private String content;
 
     @OneToMany(mappedBy = "associatedPost", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -50,10 +47,8 @@ public class ForumPost {
     @JsonIgnore
     private UserProfile associatedProfile;
 
-    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant creationDate = Instant.now();
 
-    @GenericField(sortable = Sortable.YES, searchable = Searchable.YES)
     private Instant lastModificationDate = Instant.now();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},

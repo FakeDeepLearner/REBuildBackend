@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.FileUploadException;
+import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,11 +79,13 @@ public class CloudinaryService {
 
 
     public UserProfile removeProfilePicture(User removingUser, boolean saveAndReturn){
-        UserProfile profile = profileRepository.findByUser(removingUser);
+        UserProfile profile = profileRepository.findByUser(removingUser).orElseThrow(
+                () -> new NotFoundException("The specified user is not found")
+        );
 
         if (profile.getProfilePicture() != null) {
             scheduleDeletion(profile.getProfilePicture().getPublic_id());
-            profilePictureRepository.deleteProfilePictureByPublic_id(profile.getProfilePicture().getPublic_id());
+            profilePictureRepository.deleteById(profile.getProfilePicture().getId());
             profile.setProfilePicture(null);
         }
         if (saveAndReturn) {

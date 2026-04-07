@@ -11,11 +11,5 @@ import java.util.UUID;
 public interface ProfilePictureRepository extends JpaRepository<ProfilePicture, UUID> {
 
 
-    void deleteProfilePictureByPublic_id(String public_id);
-
-    @Query(value = "SELECT p FROM UserProfile u JOIN ProfilePicture p WHERE " +
-            "u.user.id=?1"
-    )
-    Optional<ProfilePicture> findByUserId(UUID userId);
 
 }
