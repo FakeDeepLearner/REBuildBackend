@@ -4,6 +4,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
 import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
@@ -13,6 +14,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -44,6 +46,12 @@ public class Header{
     @Convert(converter = DatabaseEncryptor.class)
     private String email;
 
+    @ElementCollection
+    @CollectionTable(name = "header_links",
+            joinColumns = {@JoinColumn(name = "header_id", referencedColumnName = "id")})
+    @NonNull
+    private List<String> links;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     @JsonIgnore
@@ -52,13 +60,18 @@ public class Header{
 
     public static Header copy(Header other)
     {
-        return new Header(other.getNumber(), other.getName(), other.getEmail());
+        return new Header(other.getNumber(), other.getName(), other.getEmail(), other.getLinks());
     }
 
     public static Header sensitiveCopy(Header other)
     {
         return new Header(StringUtil.maskString(other.getNumber()), StringUtil.maskString(other.getName()),
-                StringUtil.maskString(other.getEmail()));
+                StringUtil.maskString(other.getEmail()), other.getLinks());
+    }
+
+    public HeaderResponse toResponse()
+    {
+        return new HeaderResponse(this.number, this.name, this.email, this.links);
     }
 
 

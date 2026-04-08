@@ -1,9 +1,9 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserHomePageService;
@@ -40,8 +40,8 @@ public class HomePageController {
 
     @GetMapping("/resume/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    public Resume getResume(@AuthenticationPrincipal User user,
-                            @PathVariable UUID resume_id){
+    public ResumeResponse getResume(@AuthenticationPrincipal User user,
+                                    @PathVariable UUID resume_id){
         return resumeService.findByUserAndResumeId(user, resume_id);
     }
 
@@ -65,26 +65,9 @@ public class HomePageController {
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> createNewResume(@RequestBody String name,
+    public ResumeResponse createNewResume(@RequestBody String name,
                                           @AuthenticationPrincipal User authenticatedUser) {
-        try{
-            Resume createdResume = resumeService.createNewResumeFor(name, authenticatedUser);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdResume);
-        }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException violationException &&
-                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("You already have a resume with this name");
-            }
-        }
-        catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(e.getMessage());
-        }
-
-        //Should never get here.
-        return null;
+        return resumeService.createNewResumeFor(name, authenticatedUser);
     }
 
     @GetMapping("/friends")

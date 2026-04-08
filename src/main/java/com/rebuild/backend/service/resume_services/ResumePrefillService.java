@@ -2,6 +2,10 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
+import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
+import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
+import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +29,7 @@ public class ResumePrefillService {
     }
 
     @Transactional
-    public Resume prefillResumeHeader(UUID currentResumeId, UUID sampleResumeId, User user)
+    public HeaderResponse prefillResumeHeader(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
 
@@ -36,11 +40,13 @@ public class ResumePrefillService {
         newHeader.setResume(currentResume);
         currentResume.setHeader(newHeader);
 
-        return resumeRepository.save(currentResume);
+        resumeRepository.save(currentResume);
+
+        return newHeader.toResponse();
     }
 
     @Transactional
-    public Resume prefillResumeEducation(UUID currentResumeId, UUID sampleResumeId, User user)
+    public EducationResponse prefillResumeEducation(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
 
@@ -51,11 +57,13 @@ public class ResumePrefillService {
         newEducation.setResume(currentResume);
         currentResume.setEducation(newEducation);
 
-        return resumeRepository.save(currentResume);
+        resumeRepository.save(currentResume);
+
+        return newEducation.toResponse();
     }
 
     @Transactional
-    public Resume prefillResumeExperiences(UUID currentResumeId, UUID sampleResumeId, User user)
+    public List<ExperienceResponse> prefillResumeExperiences(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
 
@@ -68,11 +76,14 @@ public class ResumePrefillService {
 
         currentResume.setExperiences(newExperiences);
 
-        return resumeRepository.save(currentResume);
+        Resume savedResume = resumeRepository.save(currentResume);
+
+        return savedResume.getExperiences().stream()
+                .map(Experience::toResponse).toList();
     }
 
     @Transactional
-    public Resume prefillResumeProjects(UUID currentResumeId, UUID sampleResumeId, User user)
+    public List<ProjectResponse> prefillResumeProjects(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
 
@@ -85,7 +96,10 @@ public class ResumePrefillService {
 
         currentResume.setProjects(newProjects);
 
-        return resumeRepository.save(currentResume);
+        Resume savedResume = resumeRepository.save(currentResume);
+
+        return savedResume.getProjects().stream()
+                .map(Project::toResponse).toList();
     }
 
 }

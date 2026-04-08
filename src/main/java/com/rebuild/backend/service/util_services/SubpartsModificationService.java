@@ -7,9 +7,11 @@ import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
-import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
-import com.rebuild.backend.repository.resume_repositories.ProjectRepository;
-import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
+import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
+import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
+import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
+import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
+import com.rebuild.backend.repository.resume_repositories.*;
 import com.rebuild.backend.service.resume_services.ResumeObtainer;
 import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,31 +33,40 @@ public class SubpartsModificationService {
 
     private final ProjectRepository projectRepository;
 
+    private final HeaderRepository headerRepository;
+
+    private final EducationRepository educationRepository;
+
     @Autowired
     public SubpartsModificationService(ResumeObtainer getUtility, ResumeRepository resumeRepository,
-                                       ExperienceRepository experienceRepository, ProjectRepository projectRepository) {
+                                       ExperienceRepository experienceRepository,
+                                       ProjectRepository projectRepository,
+                                       HeaderRepository headerRepository, EducationRepository educationRepository) {
         this.getUtility = getUtility;
         this.resumeRepository = resumeRepository;
         this.experienceRepository = experienceRepository;
         this.projectRepository = projectRepository;
+        this.headerRepository = headerRepository;
+        this.educationRepository = educationRepository;
     }
 
     @Transactional
-    public Resume modifyResumeHeader(HeaderForm headerForm,
-                                     UUID resumeId, User changingUser) {
+    public HeaderResponse modifyResumeHeader(HeaderForm headerForm,
+                                             UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Header newHeader = new Header(headerForm.number(), headerForm.name(),
-                headerForm.email());
+                headerForm.email(), headerForm.links());
 
         changingResume.setHeader(newHeader);
         newHeader.setResume(changingResume);
-        return resumeRepository.save(changingResume);
+        Header savedHeader = headerRepository.save(newHeader);
+        return savedHeader.toResponse();
     }
 
     @Transactional
-    public Experience modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
-                                         UUID resumeId, User changingUser) {
+    public ExperienceResponse modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
+                                                     UUID resumeId, User changingUser) {
         Optional<Experience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
                 resumeId, changingUser);
 
@@ -67,12 +78,13 @@ public class SubpartsModificationService {
         Experience experience = changingExperience.get();
 
         modifyExperience(experience, experienceForm);
-        return experienceRepository.save(experience);
+        Experience savedExperience = experienceRepository.save(experience);
+        return savedExperience.toResponse();
     }
 
     @Transactional
-    public Project modifyResumeProject(ProjectForm projectForm, UUID projectId,
-                                      UUID resumeId, User changingUser) {
+    public ProjectResponse modifyResumeProject(ProjectForm projectForm, UUID projectId,
+                                               UUID resumeId, User changingUser) {
 
         Optional<Project> changingProject = projectRepository.findByIdAndResume_IdAndResume_User(
                 projectId, resumeId, changingUser
@@ -85,12 +97,13 @@ public class SubpartsModificationService {
 
         Project project = changingProject.get();
         modifyProject(project, projectForm);
-        return projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+        return savedProject.toResponse();
     }
 
     @Transactional
-    public Resume modifyResumeEducation(EducationForm educationForm,
-                                        UUID resumeId, User changingUser) {
+    public EducationResponse modifyResumeEducation(EducationForm educationForm,
+                                                   UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
@@ -99,7 +112,9 @@ public class SubpartsModificationService {
         changingResume.setEducation(newEducation);
         newEducation.setResume(changingResume);
 
-        return resumeRepository.save(changingResume);
+        Education savedEducation =  educationRepository.save(newEducation);
+
+        return savedEducation.toResponse();
     }
 
 

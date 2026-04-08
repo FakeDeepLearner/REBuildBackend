@@ -6,6 +6,10 @@ import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
+import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
+import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
+import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
+import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,16 +35,16 @@ public class ResumePostController {
 
     @PostMapping("/header/{resume_id}")
     @CacheEvict
-    public Resume createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
-                                  @AuthenticationPrincipal User user){
+    public HeaderResponse createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
+                                          @AuthenticationPrincipal User user){
         return resumeService.changeHeaderInfo(headerForm, resume_id, user);
     }
 
     @PostMapping("/experience/{resume_id}")
     @CacheEvict
-    public Resume createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
-                                                 @PathVariable UUID resume_id,
-                                                 @AuthenticationPrincipal User user){
+    public ExperienceResponse createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
+                                                  @PathVariable UUID resume_id,
+                                                  @AuthenticationPrincipal User user){
 
         return resumeService.createNewExperience(user, resume_id, experienceForm);
 
@@ -48,17 +52,17 @@ public class ResumePostController {
 
     @PostMapping("/education/{resume_id}")
     @CacheEvict
-    public Resume createNewEducation(@Valid @RequestBody EducationForm educationForm,
-                                     @PathVariable UUID resume_id,
-                                     @AuthenticationPrincipal User user ){
+    public EducationResponse createNewEducation(@Valid @RequestBody EducationForm educationForm,
+                                                @PathVariable UUID resume_id,
+                                                @AuthenticationPrincipal User user ){
         return resumeService.changeEducationInfo(educationForm, resume_id, user);
     }
 
     @PostMapping("/project/{resume_id}")
     @CacheEvict
-    public Resume createNewProject(@Valid @RequestBody ProjectForm projectForm,
-                                   @PathVariable UUID resume_id,
-                                   @AuthenticationPrincipal User user){
+    public ProjectResponse createNewProject(@Valid @RequestBody ProjectForm projectForm,
+                                            @PathVariable UUID resume_id,
+                                            @AuthenticationPrincipal User user){
         return resumeService.createNewProject(user, resume_id, projectForm);
     }
 }

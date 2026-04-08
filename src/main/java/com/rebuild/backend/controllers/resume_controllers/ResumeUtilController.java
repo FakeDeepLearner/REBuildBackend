@@ -30,48 +30,17 @@ public class ResumeUtilController {
     @CacheEvict(cacheManager = "cacheManager", cacheNames = "resume_cache",
             keyGenerator = "resumeCacheKeyGenerator")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> changeResumeName(@RequestBody String newName,
+    public Resume changeResumeName(@RequestBody String newName,
                                               @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user) {
-        try {
-            Resume changedResume = resumeService.changeName(user, resume_id, newName);
-            return ResponseEntity.ok(changedResume);
-        }
-
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-
-            if(cause instanceof ConstraintViolationException violationException &&
-                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
-                return ResponseEntity.status(CONFLICT).body("You already have a resume with this name");
-            }
-        }
-
-        return null;
+        return resumeService.changeName(user, resume_id, newName);
     }
 
     @PostMapping("/copy/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> copyResume(@RequestBody String newName,
+    public Resume copyResume(@RequestBody String newName,
                                         @AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
-        try {
-            Resume copiedResume = resumeService.copyResume(user, resume_id, newName);
-            return ResponseEntity.ok(copiedResume);
-        }
-
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
-
-            if(cause instanceof ConstraintViolationException violationException &&
-                    Objects.equals(violationException.getConstraintName(), "uk_same_user_resume_name")){
-                return ResponseEntity.status(CONFLICT).body("You already have a resume with this name");
-            }
-        }
-
-        catch (RuntimeException e){
-            return ResponseEntity.status(BAD_REQUEST).body(e.getMessage());
-        }
-        return null;
+        return resumeService.copyResume(user, resume_id, newName);
     }
 
     @GetMapping("/view_experience_values")

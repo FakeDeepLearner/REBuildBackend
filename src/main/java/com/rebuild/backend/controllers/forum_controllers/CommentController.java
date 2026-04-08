@@ -28,14 +28,14 @@ public class CommentController {
 
     @PostMapping("/create/{post_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Comment createTopLevelComment(@PathVariable UUID post_id, @RequestBody @Valid CommentForm commentForm,
+    public CommentDisplayDTO createTopLevelComment(@PathVariable UUID post_id, @RequestBody @Valid CommentForm commentForm,
                                          @AuthenticationPrincipal User creatingUser){
         return commentsService.makeTopLevelComment(commentForm, post_id, creatingUser);
     }
 
     @PostMapping("/reply/{top_level_comment_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Comment createReply(@PathVariable UUID top_level_comment_id,
+    public CommentDisplayDTO createReply(@PathVariable UUID top_level_comment_id,
                                     @RequestBody @Valid CommentForm commentForm,
                                     @AuthenticationPrincipal User creatingUser){
         return commentsService.createReplyTo(top_level_comment_id, creatingUser, commentForm);

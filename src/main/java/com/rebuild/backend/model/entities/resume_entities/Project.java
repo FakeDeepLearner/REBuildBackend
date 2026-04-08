@@ -1,21 +1,12 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
+import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
-import com.rebuild.backend.utils.database_utils.YearMonthSerializer;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.engine.backend.types.Searchable;
-import org.hibernate.search.engine.backend.types.Sortable;
-import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
-import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
@@ -37,18 +28,17 @@ public class Project{
     private String projectName;
 
     @ElementCollection
-    @CollectionTable(name = "project_technologies", joinColumns = @JoinColumn(name = "experience_id"))
+    @CollectionTable(name = "project_technologies",
+            joinColumns = @JoinColumn(name = "project_id", referencedColumnName = "id"))
     @NonNull
     private List<String> technologyList;
 
     @NonNull
     @Column(name = "start_date")
-    @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
     private YearMonth startDate;
 
     @Column(name = "end_date")
-    @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
     private YearMonth endDate;
 
@@ -84,6 +74,13 @@ public class Project{
     {
         return new Project(other.projectName, other.technologyList,
                 other.startDate, other.endDate, other.bullets);
+    }
+
+    public ProjectResponse toResponse()
+    {
+        return new ProjectResponse(this.id, this.projectName, this.technologyList,
+                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate),
+                this.bullets);
     }
 
 

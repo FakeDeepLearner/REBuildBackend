@@ -2,6 +2,7 @@ package com.rebuild.backend.controllers.resume_controllers;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -28,27 +29,27 @@ public class ResumeDeleteController {
 
     @DeleteMapping("/header/{resume_id}")
     @CacheEvict
-    public Resume deleteHeader(@PathVariable UUID resume_id,
-                               @AuthenticationPrincipal User user) {
+    public ResumeResponse deleteHeader(@PathVariable UUID resume_id,
+                                       @AuthenticationPrincipal User user) {
         return resumeService.deleteHeader(user, resume_id);
     }
 
     @DeleteMapping("/experience/{resume_id}/{experience_id}")
     @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
-    public Resume deleteExperience(@PathVariable UUID experience_id, @PathVariable UUID resume_id,
+    public ResumeResponse deleteExperience(@PathVariable UUID experience_id, @PathVariable UUID resume_id,
                                    @AuthenticationPrincipal User user) {
         return resumeService.deleteExperience(user, resume_id, experience_id);
     }
 
     @DeleteMapping("/education/{resume_id}")
     @CacheEvict
-    public Resume deleteEducation(@PathVariable UUID resume_id, @AuthenticationPrincipal User user) {
+    public ResumeResponse deleteEducation(@PathVariable UUID resume_id, @AuthenticationPrincipal User user) {
         return resumeService.deleteEducation(user, resume_id);
     }
 
     @DeleteMapping("/project/{resume_id}/{project_id}")
     @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
-    public Resume deleteProject(@PathVariable UUID project_id, @PathVariable UUID resume_id,
+    public ResumeResponse deleteProject(@PathVariable UUID project_id, @PathVariable UUID resume_id,
                                 @AuthenticationPrincipal User user) {
         return resumeService.deleteProject(user, project_id, resume_id);
     }

@@ -5,10 +5,8 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +32,7 @@ public class UserHomePageService {
 
         PageRequest request = PageRequest.of(pageNumber, pageSize);
 
-        Slice<Resume> matchedResumes = resumeRepository.findByUserAndName(user, name, request);
+        Slice<Resume> matchedResumes = resumeRepository.findByUserAndNameContaining(user, name, request);
         return new HomePageData(matchedResumes.getContent(), matchedResumes.getNumber(),
                 matchedResumes.hasNext());
 

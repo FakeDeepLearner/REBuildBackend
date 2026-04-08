@@ -1,24 +1,14 @@
 package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
+import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
 import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
-import com.rebuild.backend.utils.database_utils.YearMonthSerializer;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.engine.backend.types.Searchable;
-import org.hibernate.search.engine.backend.types.Sortable;
-import org.hibernate.search.mapper.pojo.extractor.builtin.BuiltinContainerExtractors;
-import org.hibernate.search.mapper.pojo.extractor.mapping.annotation.ContainerExtraction;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
@@ -42,7 +32,8 @@ public class Experience{
     private String companyName;
 
     @ElementCollection
-    @CollectionTable(name = "experience_technologies", joinColumns = @JoinColumn(name = "experience_id"))
+    @CollectionTable(name = "experience_technologies",
+            joinColumns = @JoinColumn(name = "experience_id", referencedColumnName = "id"))
     @NonNull
     private List<String> technologyList;
 
@@ -56,12 +47,10 @@ public class Experience{
 
     @Column(name = "start_date", nullable = false)
     @NonNull
-    @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
     private YearMonth startDate;
 
     @Column(name = "end_date")
-    @JsonSerialize(using = YearMonthSerializer.class)
     @Convert(converter = YearMonthDatabaseConverter.class)
     private YearMonth endDate;
 
@@ -90,8 +79,6 @@ public class Experience{
     }
 
 
-
-
     public static Experience copy(Experience other)
     {
         return new Experience(other.companyName, other.technologyList, other.location, other.experienceType,
@@ -103,6 +90,14 @@ public class Experience{
     {
         return new Experience(StringUtil.maskString(other.companyName), other.technologyList, other.location, other.experienceType,
                 other.startDate, other.endDate, other.bullets);
+    }
+
+
+    public ExperienceResponse toResponse()
+    {
+        return new ExperienceResponse(this.id, this.companyName, this.technologyList,
+                this.location, this.experienceType, StringUtil.transformYearMonth(this.startDate),
+                StringUtil.transformYearMonth(this.endDate), this.bullets);
     }
 
 }

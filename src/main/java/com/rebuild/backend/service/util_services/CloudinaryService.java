@@ -4,14 +4,19 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.EagerTransformation;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
+import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.FileUploadException;
 import com.rebuild.backend.model.exceptions.NotFoundException;
+import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
+import com.rebuild.backend.service.user_services.ProfileService;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,12 +46,15 @@ public class CloudinaryService {
 
     private final ProfileRepository profileRepository;
 
+    private final ProfileService profileService;
+
     @Autowired
     public CloudinaryService(Cloudinary cloudinary, ProfilePictureRepository profilePictureRepository,
-                             ProfileRepository profileRepository) {
+                             ProfileRepository profileRepository, ProfileService profileService) {
         this.cloudinary = cloudinary;
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
+        this.profileService = profileService;
     }
 
 
@@ -95,6 +103,20 @@ public class CloudinaryService {
         }
     }
 
+    public UserProfileResponse removeProfilePicture(User removingUser)
+    {
+        UserProfile profile = profileRepository.findByUser(removingUser).orElseThrow(
+                () -> new NotFoundException("The specified user is not found")
+        );
+
+        if (profile.getProfilePicture() != null) {
+            scheduleDeletion(profile.getProfilePicture().getPublic_id());
+            profilePictureRepository.deleteById(profile.getProfilePicture().getId());
+            profile.setProfilePicture(null);
+        }
+        return profileService.loadUserProfile(removingUser, removingUser.getId());
+    }
+
     private ProfilePicture createNewPicture(MultipartFile pictureFile) throws IOException {
 
         Transformation transformation = new Transformation<>().
@@ -108,24 +130,57 @@ public class CloudinaryService {
     }
 
 
-    public UserProfile modifyProfilePictureOf(User changingUser, MultipartFile pictureFile) throws IOException
+    private UserProfile modifyPicture(User changingUser, MultipartFile pictureFile)
     {
-        List<String> allowedTypes = List.of("image/jpeg", "image/png");
+        UserProfile newProfile = null;
+        try {
+            String detectedFileType = new Tika().detect(pictureFile.getInputStream());
+            if (!"image/jpeg".equals(detectedFileType) && !"image.png".equals(detectedFileType))
+            {
+                throw new FileUploadException(HttpStatus.BAD_REQUEST, "The file is not of jpeg or png type");
+            }
 
-        String fileContent = pictureFile.getContentType();
+            if (!pictureFile.isEmpty())
+            {
+                newProfile = removeProfilePicture(changingUser, false);
 
-        if (fileContent == null || !allowedTypes.contains(fileContent)){
-            return null;
+                ProfilePicture profilePicture = createNewPicture(pictureFile);
+                newProfile.setProfilePicture(profilePicture);
+
+            }
+
         }
-
-        if (!pictureFile.isEmpty())
+        catch (IOException _)
         {
-            UserProfile pictureRemovedProfile = removeProfilePicture(changingUser, false);
-
-            ProfilePicture profilePicture = createNewPicture(pictureFile);
-            pictureRemovedProfile.setProfilePicture(profilePicture);
-            return profileRepository.save(pictureRemovedProfile);
+            throw new FileUploadException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         }
-        return changingUser.getUserProfile();
+
+        if (newProfile == null)
+        {
+            return changingUser.getUserProfile();
+        }
+
+        return profileRepository.save(newProfile);
+    }
+
+    public UserProfile modifyProfilePictureOf(User changingUser, MultipartFile pictureFile)
+    {
+
+        return modifyPicture(changingUser, pictureFile);
+    }
+
+
+    public UserProfileResponse changeProfilePicture(User changingUser, MultipartFile pictureFile)
+    {
+
+        UserProfile changedProfile = modifyPicture(changingUser, pictureFile);
+
+
+        return new UserProfileResponse(
+                new ProfileSensitiveInformationDTO(generateTimedUrlForPicture(changedProfile.getProfilePicture()),
+                        changingUser.getEmail(), changingUser.getPhoneNumber()),
+
+                changingUser.getForumUsername(), changedProfile.getMadeComments(), changedProfile.getMadePosts()
+        );
     }
 }

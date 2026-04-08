@@ -27,8 +27,6 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/api/profile")
-@CacheConfig(cacheManager = "cacheManager", cacheNames = "profile_cache",
-    keyGenerator = "profileCacheKeyGenerator")
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -60,26 +58,16 @@ public class ProfileController {
 
     @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict
-    public ResponseEntity<?> changeImage(@AuthenticationPrincipal User changingUser,
+    public UserProfileResponse changeImage(@AuthenticationPrincipal User changingUser,
                                    @RequestPart(name = "file") MultipartFile pictureFile)
     {
-        try {
-            UserProfile profile = cloudinaryService.modifyProfilePictureOf(changingUser, pictureFile);
-            return ResponseEntity.ok().body(profile);
-        }
-
-        catch (IOException ioException) {
-            return ResponseEntity.internalServerError().body("An unexpected error occurred:\n " +
-                    ioException.getMessage());
-        }
+        return cloudinaryService.changeProfilePicture(changingUser, pictureFile);
     }
 
     @DeleteMapping("/remove_image")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict
-    public UserProfile removeProfileImage(@AuthenticationPrincipal User user){
-        return cloudinaryService.removeProfilePicture(user, true);
+    public UserProfileResponse removeProfileImage(@AuthenticationPrincipal User user){
+        return cloudinaryService.removeProfilePicture(user);
     }
 
     @DeleteMapping("/delete_phone")

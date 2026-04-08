@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.resume_entities.Project;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.resume_forms.*;
+import com.rebuild.backend.model.responses.resume_responses.*;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,18 +31,18 @@ public class ResumePutController {
 
     @PutMapping("/header/{resume_id}/")
     @CacheEvict
-    public Resume modifyHeader(@Valid @RequestBody HeaderForm headerForm,
-                                               @AuthenticationPrincipal User user,
-                                                @PathVariable UUID resume_id){
+    public HeaderResponse modifyHeader(@Valid @RequestBody HeaderForm headerForm,
+                                       @AuthenticationPrincipal User user,
+                                       @PathVariable UUID resume_id){
         return resumeService.changeHeaderInfo(headerForm, resume_id, user);
 
     }
 
     @PutMapping("/experience/{resume_id}/{experience_id}")
     @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
-    public Experience modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
-                                       @AuthenticationPrincipal User user,
-                                       @PathVariable UUID experience_id, @PathVariable UUID resume_id){
+    public ExperienceResponse modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
+                                               @AuthenticationPrincipal User user,
+                                               @PathVariable UUID experience_id, @PathVariable UUID resume_id){
 
         return resumeService.changeExperienceInfo(experienceForm, experience_id,
                 resume_id, user);
@@ -50,9 +51,9 @@ public class ResumePutController {
     @PutMapping("/education/{resume_id}")
     @CacheEvict
     @ResponseStatus(HttpStatus.OK)
-    public Resume modifyEducation(@Valid @RequestBody EducationForm educationForm,
-                                                     @AuthenticationPrincipal User user,
-                                                     @PathVariable UUID resume_id){
+    public EducationResponse modifyEducation(@Valid @RequestBody EducationForm educationForm,
+                                             @AuthenticationPrincipal User user,
+                                             @PathVariable UUID resume_id){
         return resumeService.changeEducationInfo(educationForm,
                 resume_id, user);
 
@@ -61,18 +62,18 @@ public class ResumePutController {
     @PutMapping("/{resume_id}")
     @ResponseStatus(HttpStatus.OK)
     @CacheEvict
-    public Resume updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
-                                   @PathVariable UUID resume_id,
-                                   @AuthenticationPrincipal User user) {
+    public ResumeResponse updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
+                                           @PathVariable UUID resume_id,
+                                           @AuthenticationPrincipal User user) {
         return resumeService.fullUpdate(user, resume_id, fullInformationForm);
 
     }
 
     @PutMapping("/experience/{resume_id}/{project_id}")
     @CacheEvict(key = "#user.id.toString() + ':' + #resume_id")
-    public Project modifyProject(@Valid @RequestBody ProjectForm projectForm,
-                                 @AuthenticationPrincipal User user,
-                                 @PathVariable UUID project_id, @PathVariable UUID resume_id){
+    public ProjectResponse modifyProject(@Valid @RequestBody ProjectForm projectForm,
+                                         @AuthenticationPrincipal User user,
+                                         @PathVariable UUID project_id, @PathVariable UUID resume_id){
         return resumeService.changeProjectInfo(projectForm, project_id,
                 resume_id, user);
     }

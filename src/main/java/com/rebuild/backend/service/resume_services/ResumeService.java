@@ -6,6 +6,9 @@ import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.exceptions.ApiException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
+import com.rebuild.backend.model.responses.resume_responses.*;
+import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
+import com.rebuild.backend.repository.resume_repositories.ProjectRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.util_services.SubpartsModificationService;
 import com.rebuild.backend.utils.StringUtil;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -29,51 +33,65 @@ public class ResumeService {
 
     private final ResumeObtainer getUtility;
 
+    private final ExperienceRepository experienceRepository;
+
+    private final ProjectRepository projectRepository;
+
     @Autowired
     public ResumeService(ResumeRepository resumeRepository,
                          SubpartsModificationService modificationUtility,
-                         ResumeObtainer getUtility) {
+                         ResumeObtainer getUtility, ExperienceRepository experienceRepository,
+                         ProjectRepository projectRepository) {
         this.resumeRepository = resumeRepository;
         this.modificationUtility = modificationUtility;
         this.getUtility = getUtility;
+        this.experienceRepository = experienceRepository;
+        this.projectRepository = projectRepository;
     }
 
     @Transactional
-    public Resume changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
+    public HeaderResponse changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
         return modificationUtility.modifyResumeHeader(headerForm, resumeID, user);
     }
 
     @Transactional
-    public Resume createNewResumeFor(String resume_name, User user){
+    public ResumeResponse createNewResumeFor(String resume_name, User user){
+        Optional<Resume> foundResume = resumeRepository.findByUserAndName(user, resume_name);
+        if (foundResume.isPresent())
+        {
+            throw new ApiException(HttpStatus.CONFLICT, "You already have a resume with this name");
+        }
+
         Resume newResume = new Resume(resume_name, user);
         user.getResumes().add(newResume);
-        return resumeRepository.save(newResume);
+        return resumeRepository.save(newResume).toResponse();
 
     }
 
-    public Resume findByUserAndResumeId(User user, UUID resumeID){
-        return getUtility.findByUserResumeId(user, resumeID);
+    public ResumeResponse findByUserAndResumeId(User user, UUID resumeID){
+        Resume foundResume = getUtility.findByUserResumeId(user, resumeID);
+        return foundResume.toResponse();
     }
 
     @Transactional
-    public Experience changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
-                                           User user){
+    public ExperienceResponse changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
+                                                   User user){
         return modificationUtility.modifyResumeExperience(experienceForm, experienceID, resumeId, user);
 
     }
 
-    public Project changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
+    public ProjectResponse changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
         return modificationUtility.modifyResumeProject(projectForm, projectID, resumeID, user);
     }
 
     @Transactional
-    public Resume changeEducationInfo(EducationForm educationForm,
-                                      UUID resumeID, User user){
+    public EducationResponse changeEducationInfo(EducationForm educationForm,
+                                                 UUID resumeID, User user){
        return modificationUtility.modifyResumeEducation(educationForm, resumeID, user);
     }
 
     @Transactional
-    public Resume createNewExperience(User changingUser, UUID resumeId,
+    public ExperienceResponse createNewExperience(User changingUser, UUID resumeId,
                                       ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
@@ -85,11 +103,13 @@ public class ResumeService {
 
         resume.getExperiences().add(newExperience);
 
-        return resumeRepository.save(resume);
+        Experience savedExperience = experienceRepository.save(newExperience);
+
+        return savedExperience.toResponse();
 
     }
 
-    public Resume createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
+    public ProjectResponse createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
 
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
         YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
@@ -99,7 +119,9 @@ public class ResumeService {
         newProject.setResume(resume);
         resume.getProjects().add(newProject);
 
-        return resumeRepository.save(resume);
+        Project savedProject = projectRepository.save(newProject);
+
+        return savedProject.toResponse();
 
     }
 
@@ -110,37 +132,37 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume deleteEducation(User changingUser, UUID resumeId){
+    public ResumeResponse deleteEducation(User changingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setEducation(null);
-        return resumeRepository.save(resume);
+        return resumeRepository.save(resume).toResponse();
     }
 
     @Transactional
-    public Resume deleteExperience(User changingUser, UUID resumeId, UUID experienceId){
+    public ResumeResponse deleteExperience(User changingUser, UUID resumeId, UUID experienceId){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         resume.getExperiences().removeIf(experience -> experience.getId().equals(experienceId));
-        return resumeRepository.save(resume);
+        return resumeRepository.save(resume).toResponse();
     }
 
 
     @Transactional
-    public Resume deleteProject(User changingUser, UUID resumeId, UUID projectId){
+    public ResumeResponse deleteProject(User changingUser, UUID resumeId, UUID projectId){
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
         resume.getProjects().removeIf(project -> project.getId().equals(projectId));
-        return resumeRepository.save(resume);
+        return resumeRepository.save(resume).toResponse();
     }
 
 
     @Transactional
-    public Resume deleteHeader(User changingUser, UUID resumeId){
+    public ResumeResponse deleteHeader(User changingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setHeader(null);
-        return resumeRepository.save(resume);
+        return resumeRepository.save(resume).toResponse();
     }
 
     @Transactional
-    public Resume fullUpdate(User updatingUser, UUID resumeID,
+    public ResumeResponse fullUpdate(User updatingUser, UUID resumeID,
                              FullInformationForm resumeForm) {
         Resume resume = getUtility.findByUserResumeId(updatingUser, resumeID);
 
@@ -148,7 +170,8 @@ public class ResumeService {
         //We can't modify the resume's fields directly here, as that would also modify the variables that
         // we declared outside the try block, causing a bug.
         Header newHeader = new Header(resumeForm.headerForm().number(),
-                resumeForm.headerForm().name(), resumeForm.headerForm().email());
+                resumeForm.headerForm().name(), resumeForm.headerForm().email(),
+                resumeForm.headerForm().links());
         resume.setHeader(newHeader);
 
         Education newEducation = new Education(resumeForm.educationForm().schoolName(),
@@ -162,12 +185,17 @@ public class ResumeService {
 
         resume.setExperiences(extractExperiences(resumeForm.experiences(), resume));
 
-        return resumeRepository.save(resume);
+        return resumeRepository.save(resume).toResponse();
 
     }
 
     @Transactional
     public Resume changeName(User changingUser, UUID resumeId, String newName){
+        Optional<Resume> foundResume = resumeRepository.findByUserAndName(changingUser, newName);
+        if (foundResume.isPresent())
+        {
+            throw new ApiException(HttpStatus.CONFLICT, "You already have a resume with this name");
+        }
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
         changingResume.setName(newName);
         return resumeRepository.save(changingResume);
@@ -176,16 +204,20 @@ public class ResumeService {
 
     @Transactional
     public Resume copyResume(User user, UUID resumeId, String name){
+
+        Optional<Resume> foundResume = resumeRepository.findByUserAndName(user, name);
+        if (foundResume.isPresent())
+        {
+            throw new ApiException(HttpStatus.CONFLICT, "You already have a resume with this name");
+        }
+
         Resume copiedResume = getUtility.findByUserAndIdWithAllInfo(user, resumeId);
 
-        if(name.equals(copiedResume.getName())){
-            throw new ApiException(HttpStatus.CONFLICT,
-                    "The new resume must have a different name than the original one.");
-        }
         Resume newResume = new Resume(copiedResume, name);
         return resumeRepository.save(newResume);
 
     }
+
     private List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
         return experienceForms.stream().map( rawForm -> {
                     Experience newExperience = new Experience(rawForm.companyName(),

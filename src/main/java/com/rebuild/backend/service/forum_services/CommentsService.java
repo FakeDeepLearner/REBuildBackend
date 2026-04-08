@@ -49,7 +49,7 @@ public class CommentsService {
     }
 
     @Transactional
-    public Comment makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
+    public CommentDisplayDTO makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
         ForumPost post = postRepository.findByIdWithComments(post_id).orElseThrow(
                 () -> new NotFoundException("Post with the specified id is not found")
         );
@@ -62,12 +62,14 @@ public class CommentsService {
         UserProfile profile = creatingUser.getUserProfile();
         profile.getMadeComments().add(newComment);
         newComment.setAssociatedProfile(profile);
-        return commentRepository.save(newComment);
+        Comment savedComment =  commentRepository.save(newComment);
+        return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
+                creatingUser.getForumUsername(), 0, false);
 
     }
 
     @Transactional
-    public Comment createReplyTo(UUID parent_comment_id, User creatingUser,
+    public CommentDisplayDTO createReplyTo(UUID parent_comment_id, User creatingUser,
                                  CommentForm commentForm){
         Comment parentComment = commentRepository.findById(parent_comment_id).
                 orElseThrow(() -> new NotFoundException("Comment with the specified id not found"));
@@ -82,8 +84,9 @@ public class CommentsService {
         newComment.setAssociatedProfile(profile);
         profile.getMadeComments().add(newComment);
 
-        
-        return commentRepository.save(newComment);
+        Comment savedComment = commentRepository.save(newComment);
+        return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
+                creatingUser.getForumUsername(), 0, false);
     }
 
 
@@ -118,6 +121,7 @@ public class CommentsService {
         foundLike.ifPresent(like -> {
             likeRepository.delete(like);
             comment.setLikeCount(comment.getLikeCount() - 1);
+            
         });
 
         //If the user has not like this comment, simply add a like for this comment for this user.
