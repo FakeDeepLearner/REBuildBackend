@@ -1,7 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
@@ -125,15 +124,15 @@ public class ChatAndMessageService {
         return chatInvitationRepository.save(newInvitation);
     }
 
-    private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
+    private AbstractChat sendMessageTo(User sender, User recipient, String messageContent){
 
         //The constructor already takes care of all necessary initialization.
         PrivateChat createdChat = new PrivateChat(sender, recipient, messageContent);
 
-        return new NewMessageDTO(chatRepository.save(createdChat), createdChat.getMessages().getFirst());
+        return chatRepository.save(createdChat);
     }
 
-    private NewMessageDTO sendMessageTo(User sender, String content,
+    private AbstractChat sendMessageTo(User sender, String content,
                                         AbstractChat associatedChat)
     {
 
@@ -168,11 +167,11 @@ public class ChatAndMessageService {
 
         
 
-        return new NewMessageDTO(chatRepository.save(associatedChat), newMessage);
+        return chatRepository.save(associatedChat);
     }
 
 
-    public NewMessageDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
+    public AbstractChat createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
         Optional<User> recipient = userRepository.findById(receivingObjectId);
 
@@ -206,14 +205,20 @@ public class ChatAndMessageService {
             if (foundRelationship.isPresent()) {
                 return sendMessageTo(sender, receivingUser, messageContent);
             }
+
+
+            //If we are trying to message a user and none of the above conditions hold, throw an exception
+            throw new ChatException(HttpStatus.UNAUTHORIZED, "This user either does not exist," +
+                    "or you are not authorized to send messages to this chat");
         }
 
         // If the provided identifier is instead the id of a chat,
-        // then send a message to the chat identified by it.
+        // then send a message to the chat identified by it, if it exists.
         Optional<AbstractChat> recipientChat = chatRepository.findById(receivingObjectId);
 
         return recipientChat.map(chat ->
-                sendMessageTo(sender, messageContent, chat)).orElse(null);
+                sendMessageTo(sender, messageContent, chat)).
+                orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with the given id is not found"));
 
     }
 
