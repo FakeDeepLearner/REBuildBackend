@@ -87,21 +87,9 @@ public class ForumHomePageController {
 
     @PostMapping("/change_username")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> changeUsername(@AuthenticationPrincipal User authenticatedUser,
+    public User changeUsername(@AuthenticationPrincipal User authenticatedUser,
                                             @RequestBody String newUsername) {
-        try {
-            User changedUser = userService.modifyForumUsername(authenticatedUser, newUsername);
-            return ResponseEntity.ok(changedUser);
-        } catch (DataIntegrityViolationException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException violationException) {
-                if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")) {
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body("This username is taken");
-                }
-            }
-
-        }
-        return null;
+        return userService.modifyForumUsername(authenticatedUser, newUsername);
     }
 
 

@@ -3,12 +3,14 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.ApiException;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,6 +91,11 @@ public class UserService{
 
     @Transactional
     public User modifyForumUsername(User modifyingUser, String newUsername){
+        Optional<User> foundUser = repository.findByForumUsername(newUsername);
+
+        if (foundUser.isPresent()){
+            throw new ApiException(HttpStatus.CONFLICT, "A user with this username already exists");
+        }
         modifyingUser.setForumUsername(newUsername);
         return repository.save(modifyingUser);
 

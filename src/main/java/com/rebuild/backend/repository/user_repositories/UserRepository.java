@@ -35,6 +35,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 
 
+    @Query(value = """
+    SELECT u FROM User u
+    WHERE COALESCE(u.forumUsername, u.backupForumUsername)=?1
+    """)
+    Optional<User> findByForumUsername(String forumUsername);
+
+
 
 
 
