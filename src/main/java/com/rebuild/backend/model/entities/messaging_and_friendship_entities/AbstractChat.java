@@ -20,13 +20,13 @@ public class AbstractChat {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY)
     @OrderBy(value = "createdAt ASC")
-    private List<Message> messages = new ArrayList<>();
+    protected List<Message> messages = new ArrayList<>();
 
     @Column(name = "creation_time")
     private Instant createdAt = Instant.now();
 
     @Column(name = "last_message")
-    private String lastMessage = null;
+    protected String lastMessage = null;
 
 
 }

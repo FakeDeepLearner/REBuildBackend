@@ -125,26 +125,12 @@ public class ChatAndMessageService {
         return chatInvitationRepository.save(newInvitation);
     }
 
-
-    private PrivateChat createChatBetween(User sender, User recipient)
-    {
-        PrivateChat newChat = new PrivateChat(sender, recipient);
-        
-        return chatRepository.save(newChat);
-    }
-
     private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
-        //If we enter this method, we know that we will have to create a new chat.
-        PrivateChat createdChat = createChatBetween(sender, recipient);
 
-        Message newMessage = new Message(sender, messageContent);
-        newMessage.setAssociatedChat(createdChat);
-        createdChat.getMessages().add(newMessage);
-        createdChat.setLastMessage(messageContent);
-        
-        createdChat.addRecipientUnread();
+        //The constructor already takes care of all necessary initialization.
+        PrivateChat createdChat = new PrivateChat(sender, recipient, messageContent);
 
-        return new NewMessageDTO(chatRepository.save(createdChat), newMessage);
+        return new NewMessageDTO(chatRepository.save(createdChat), createdChat.getMessages().getFirst());
     }
 
     private NewMessageDTO sendMessageTo(User sender, String content,
@@ -195,6 +181,17 @@ public class ChatAndMessageService {
         if (recipient.isPresent())
         {
            User receivingUser = recipient.get();
+
+            // If these 2 users already have a private chat between them, we send the message to that chat instead
+            // of trying to unsuccessfully create a new one.
+           Optional<PrivateChat> foundChat = chatRepository.findPrivateChatsByUsers(sender, receivingUser);
+
+           if (foundChat.isPresent())
+           {
+               return sendMessageTo(sender, messageContent, foundChat.get());
+           }
+
+            //At this point, we know that we are sending to a user, and we don't have a chat already with that user.
 
             // If the recipient has not selected the setting, just send the message with the content,
             // creating a chat between the users first

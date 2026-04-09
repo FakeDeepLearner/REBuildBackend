@@ -1,7 +1,10 @@
 package com.rebuild.backend.utils;
 
+import com.rebuild.backend.model.entities.user_entities.User;
+
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 
 public class StringUtil {
@@ -70,5 +73,11 @@ public class StringUtil {
         }
 
         return determineMonthString(yearMonth.getMonthValue()) + " - " + yearMonth.getYear();
+    }
+
+
+    public static String generateResumeCacheKey(User user, UUID uuid)
+    {
+        return user.getId().toString() + ":" + uuid.toString();
     }
 }
