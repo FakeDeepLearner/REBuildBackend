@@ -217,7 +217,7 @@ public class PostsService {
 
 
 
-    public ForumPost likePost(UUID comment_id, User likingUser)
+    public boolean likePost(UUID comment_id, User likingUser)
     {
         ForumPost post = postRepository.findById(comment_id).orElseThrow(
                 () -> new NotFoundException("Post with this id is not found"));
@@ -225,20 +225,24 @@ public class PostsService {
         Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
                 likingUser.getId());
 
-        //If the user has already liked this comment, remove the like.
-        foundLike.ifPresent(like -> {
-            likeRepository.delete(like);
+        if (foundLike.isPresent())
+        {
+            likeRepository.delete(foundLike.get());
             post.setLikeCount(post.getLikeCount() - 1);
-        });
+            postRepository.save(post);
+            return false;
+        }
 
-        //If the user has not like this comment, simply add a like for this comment for this user.
+
+        //If the user has not liked this comment, simply add a like for this comment for this user.
 
         Like newLike = new Like(likingUser.getId(), comment_id);
 
         likeRepository.save(newLike);
         post.setLikeCount(post.getLikeCount() + 1);
+        postRepository.save(post);
 
-        return postRepository.save(post);
+        return true;
     }
 
 }

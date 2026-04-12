@@ -109,7 +109,7 @@ public class CommentsService {
     }
 
 
-    public Comment likeComment(UUID comment_id, User likingUser)
+    public boolean likeComment(UUID comment_id, User likingUser)
     {
         Comment comment = commentRepository.findById(comment_id).orElseThrow(
                 () -> new NotFoundException("Comment with this id is not found"));
@@ -117,20 +117,23 @@ public class CommentsService {
         Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
                 likingUser.getId());
 
-        //If the user has already liked this comment, remove the like.
-        foundLike.ifPresent(like -> {
-            likeRepository.delete(like);
+        if (foundLike.isPresent())
+        {
+            likeRepository.delete(foundLike.get());
             comment.setLikeCount(comment.getLikeCount() - 1);
-            
-        });
+            commentRepository.save(comment);
+            return false;
+        }
 
-        //If the user has not like this comment, simply add a like for this comment for this user.
+
+        //If the user has not liked this comment, simply add a like for this comment for this user.
 
         Like newLike = new Like(likingUser.getId(), comment_id);
 
         likeRepository.save(newLike);
         comment.setLikeCount(comment.getLikeCount() + 1);
 
-        return commentRepository.save(comment);
+        commentRepository.save(comment);
+        return true;
     }
 }

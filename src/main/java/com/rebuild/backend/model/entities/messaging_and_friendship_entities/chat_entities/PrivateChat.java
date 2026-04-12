@@ -1,13 +1,11 @@
-package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
+package com.rebuild.backend.model.entities.messaging_and_friendship_entities.chat_entities;
 
 
-import com.google.common.collect.Lists;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)

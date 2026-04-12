@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository.forum_repositories;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.chat_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

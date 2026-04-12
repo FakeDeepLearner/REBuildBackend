@@ -1,5 +1,7 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
+import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -28,15 +30,15 @@ public class ForumLikesController {
 
 
     @PostMapping("/like_comment/{comment_id}")
-    public Comment triggerCommentLikeStatus(@AuthenticationPrincipal User likingUser,
-                               @PathVariable UUID comment_id){
+    public boolean triggerCommentLikeStatus(@AuthenticationPrincipal User likingUser,
+                                                      @PathVariable UUID comment_id){
         return commentsService.likeComment(comment_id, likingUser);
 
     }
 
     @PostMapping("/like_post/{post_id}")
-    public ForumPost likePost(@AuthenticationPrincipal User likingUser,
-                              @PathVariable UUID post_id){
+    public boolean triggerPostLikeStatus(@AuthenticationPrincipal User likingUser,
+                                                @PathVariable UUID post_id){
         return postsService.likePost(post_id, likingUser);
     }
 

@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
+package com.rebuild.backend.model.entities.messaging_and_friendship_entities.chat_entities;
 
 import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import jakarta.persistence.*;

@@ -2,6 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.chat_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.ChatException;
