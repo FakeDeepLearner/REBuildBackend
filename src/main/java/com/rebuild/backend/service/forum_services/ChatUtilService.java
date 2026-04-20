@@ -4,7 +4,6 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Abst
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.PrivateChat;
-import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,23 +45,23 @@ public class ChatUtilService {
     {
         if (chat instanceof GroupChat groupChat)
         {
-            ProfilePicture chatPicture = groupChat.getChatPicture();
-            if (chatPicture == null)
+            String chatPictureId = groupChat.getPictureId();
+            if (chatPictureId == null)
             {
                 return null;
             }
-            return cloudinaryService.generateTimedUrlForPicture(chatPicture);
+            return cloudinaryService.generateTimedUrlForPictureId(chatPictureId);
         }
 
         if (chat instanceof PrivateChat privateChat)
         {
             User otherUser = determineOtherChatUser(privateChat, loadingUser);
-            ProfilePicture picture = otherUser.getUserProfile().getProfilePicture();
-            if (picture == null)
+            String pictureUrl = otherUser.getUserProfile().getPictureId();
+            if (pictureUrl == null)
             {
                 return null;
             }
-            return cloudinaryService.generateTimedUrlForPicture(picture);
+            return cloudinaryService.generateTimedUrlForPictureId(pictureUrl);
         }
 
         //Should never get here.

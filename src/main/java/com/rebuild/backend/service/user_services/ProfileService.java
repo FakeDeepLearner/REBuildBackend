@@ -45,6 +45,9 @@ public class ProfileService {
         this.helperService = helperService;
     }
 
+
+
+
     @Transactional
     public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
     {
@@ -57,7 +60,7 @@ public class ProfileService {
         {
 
             return new UserProfileResponse(
-                    new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPicture(associatedProfile.getProfilePicture()),
+                    new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
                     user.getEmail(), user.getPhoneNumber()),
                     user.getForumUsername(), associatedProfile.getMadeComments(), associatedProfile.getMadePosts()
                     );

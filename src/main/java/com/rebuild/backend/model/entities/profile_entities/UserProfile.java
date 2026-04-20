@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,9 +38,9 @@ public class UserProfile{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "picture_id", referencedColumnName = "id")
-    private ProfilePicture profilePicture = null;
+    @Column(name = "profile_picture_id")
+    @Convert(converter = DatabaseEncryptor.class)
+    private String pictureId = null;
 
     @Column(name = "post_history_setting")
     @Enumerated(EnumType.STRING)

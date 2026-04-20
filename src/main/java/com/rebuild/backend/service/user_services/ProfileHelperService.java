@@ -33,7 +33,7 @@ public class ProfileHelperService {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE) ||
                     sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPicture(profile.getProfilePicture()),
+                return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(profile.getPictureId()),
                         user.getEmail(), user.getPhoneNumber());
             }
             //Otherwise, return the information masked
@@ -44,7 +44,7 @@ public class ProfileHelperService {
         {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPicture(profile.getProfilePicture()),
+                return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(profile.getPictureId()),
                         user.getEmail(), user.getPhoneNumber());
             }
 

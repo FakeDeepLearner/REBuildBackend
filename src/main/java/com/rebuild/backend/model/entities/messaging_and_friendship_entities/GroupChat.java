@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
-import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
+import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,11 +24,12 @@ public class GroupChat extends AbstractChat {
 
     @Column(name = "chat_name")
     @NonNull
+    @Convert(converter = DatabaseEncryptor.class)
     private String chatName;
 
-    @OneToOne(orphanRemoval = true, cascade = ALL)
-    @JoinColumn(name = "picture_id", referencedColumnName = "id")
-    private ProfilePicture chatPicture = null;
+    @Column(name = "profile_picture_id")
+    @Convert(converter = DatabaseEncryptor.class)
+    private String pictureId = null;
 
     @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)

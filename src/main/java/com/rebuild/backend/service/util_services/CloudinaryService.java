@@ -1,36 +1,26 @@
 package com.rebuild.backend.service.util_services;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.EagerTransformation;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
-import com.rebuild.backend.model.entities.profile_entities.ProfilePicture;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.FileUploadException;
 import com.rebuild.backend.model.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.UserProfileResponse;
-import com.rebuild.backend.repository.user_repositories.ProfilePictureRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.service.user_services.ProfileService;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageOutputStream;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -42,26 +32,23 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
 
-    private final ProfilePictureRepository profilePictureRepository;
-
     private final ProfileRepository profileRepository;
 
     private final ProfileService profileService;
 
     @Autowired
-    public CloudinaryService(Cloudinary cloudinary, ProfilePictureRepository profilePictureRepository,
+    public CloudinaryService(Cloudinary cloudinary,
                              ProfileRepository profileRepository, ProfileService profileService) {
         this.cloudinary = cloudinary;
-        this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.profileService = profileService;
     }
 
 
-    public String generateTimedUrlForPicture(ProfilePicture profilePicture){
+    public String generateTimedUrlForPictureId(String pictureId){
         try {
             long expiryTimestamp = Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond();
-            return cloudinary.privateDownload(profilePicture.getPublic_id(), "jpg",
+            return cloudinary.privateDownload(pictureId, "jpg",
                     ObjectUtils.asMap("expires_at", expiryTimestamp));
         }
         catch (Exception _) {
@@ -91,10 +78,10 @@ public class CloudinaryService {
                 () -> new NotFoundException("The specified user is not found")
         );
 
-        if (profile.getProfilePicture() != null) {
-            scheduleDeletion(profile.getProfilePicture().getPublic_id());
-            profilePictureRepository.deleteById(profile.getProfilePicture().getId());
-            profile.setProfilePicture(null);
+        String profilePictureId = profile.getPictureId();
+        if (profilePictureId != null) {
+            scheduleDeletion(profilePictureId);
+            profile.setPictureId(null);
         }
         if (saveAndReturn) {
             return profileRepository.save(profile);
@@ -109,15 +96,16 @@ public class CloudinaryService {
                 () -> new NotFoundException("The specified user is not found")
         );
 
-        if (profile.getProfilePicture() != null) {
-            scheduleDeletion(profile.getProfilePicture().getPublic_id());
-            profilePictureRepository.deleteById(profile.getProfilePicture().getId());
-            profile.setProfilePicture(null);
+        String profilePictureId = profile.getPictureId();
+
+        if (profilePictureId != null) {
+            scheduleDeletion(profilePictureId);
+            profile.setPictureId(null);
         }
         return profileService.loadUserProfile(removingUser, removingUser.getId());
     }
 
-    private ProfilePicture createNewPicture(MultipartFile pictureFile) throws IOException {
+    private String createNewPicture(MultipartFile pictureFile) throws IOException {
 
         Transformation transformation = new Transformation<>().
                 flags("force_strip").fetchFormat("jpg");
@@ -125,8 +113,7 @@ public class CloudinaryService {
                 ObjectUtils.asMap("type", "private",
                         "transformation", transformation));
 
-        return new ProfilePicture((String) uploadResult.get("public_id"),
-                (String) uploadResult.get("asset_id"), Instant.now());
+        return (String) uploadResult.get("public_id");
     }
 
 
@@ -137,15 +124,15 @@ public class CloudinaryService {
             String detectedFileType = new Tika().detect(pictureFile.getInputStream());
             if (!"image/jpeg".equals(detectedFileType) && !"image.png".equals(detectedFileType))
             {
-                throw new FileUploadException(HttpStatus.BAD_REQUEST, "The file is not of jpeg or png type");
+                throw new FileUploadException(HttpStatus.BAD_REQUEST, "The file is not of jpeg or png");
             }
 
             if (!pictureFile.isEmpty())
             {
                 newProfile = removeProfilePicture(changingUser, false);
 
-                ProfilePicture profilePicture = createNewPicture(pictureFile);
-                newProfile.setProfilePicture(profilePicture);
+                String newPictureId = createNewPicture(pictureFile);
+                newProfile.setPictureId(newPictureId);
 
             }
 
@@ -177,7 +164,7 @@ public class CloudinaryService {
 
 
         return new UserProfileResponse(
-                new ProfileSensitiveInformationDTO(generateTimedUrlForPicture(changedProfile.getProfilePicture()),
+                new ProfileSensitiveInformationDTO(generateTimedUrlForPictureId(changedProfile.getPictureId()),
                         changingUser.getEmail(), changingUser.getPhoneNumber()),
 
                 changingUser.getForumUsername(), changedProfile.getMadeComments(), changedProfile.getMadePosts()
