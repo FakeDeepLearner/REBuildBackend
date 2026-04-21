@@ -47,24 +47,25 @@ public class ProfileService {
 
 
 
+    public UserProfileResponse loadSelfProfile(User user)
+    {
+        UserProfile associatedProfile = user.getUserProfile();
+        return new UserProfileResponse(
+                new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
+                        user.getEmail(), user.getPhoneNumber()),
+                user.getForumUsername(), associatedProfile.getMadeComments(), associatedProfile.getMadePosts()
+        );
+    }
 
     @Transactional
     public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
     {
-        UserProfile associatedProfile = profileRepository.findByUserId(clickedUserId).orElseThrow(
-                () -> new NotFoundException("User with the specified id not found")
-        );
-        // If you are trying to load your own profile, simply get
-        // all the information regardless of info visibility settings
+
         if (clickedUserId.equals(user.getId()))
         {
-
-            return new UserProfileResponse(
-                    new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
-                    user.getEmail(), user.getPhoneNumber()),
-                    user.getForumUsername(), associatedProfile.getMadeComments(), associatedProfile.getMadePosts()
-                    );
+            return loadSelfProfile(user);
         }
+
 
 
         User foundUser = userRepository.findById(clickedUserId).orElseThrow(() ->
@@ -74,7 +75,8 @@ public class ProfileService {
         Optional<FriendRelationship> foundRelationship = friendRelationshipRepository.
                 findByUserAndUserId(user, clickedUserId);
 
-        return helperService.loadOtherUserProfile(foundUser, associatedProfile, foundRelationship.isPresent());
+        return helperService.
+                loadOtherUserProfile(foundUser, foundUser.getUserProfile(), foundRelationship.isPresent());
 
     }
 

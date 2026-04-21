@@ -13,15 +13,4 @@ import java.util.UUID;
 
 @Repository
 public interface ProfileRepository extends JpaRepository<UserProfile, UUID> {
-
-    Optional<UserProfile> findByUser(User user);
-
-
-    @Query("""
-    SELECT p FROM UserProfile p
-    LEFT JOIN FETCH p.madeComments LEFT JOIN FETCH p.madePosts
-    WHERE p.user.id=:id
-    """)
-    Optional<UserProfile> findByUserId(UUID id);
-
 }

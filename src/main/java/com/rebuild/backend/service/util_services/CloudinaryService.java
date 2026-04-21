@@ -74,9 +74,7 @@ public class CloudinaryService {
 
 
     public UserProfile removeProfilePicture(User removingUser, boolean saveAndReturn){
-        UserProfile profile = profileRepository.findByUser(removingUser).orElseThrow(
-                () -> new NotFoundException("The specified user is not found")
-        );
+        UserProfile profile = removingUser.getUserProfile();
 
         String profilePictureId = profile.getPictureId();
         if (profilePictureId != null) {
@@ -92,9 +90,7 @@ public class CloudinaryService {
 
     public UserProfileResponse removeProfilePicture(User removingUser)
     {
-        UserProfile profile = profileRepository.findByUser(removingUser).orElseThrow(
-                () -> new NotFoundException("The specified user is not found")
-        );
+        UserProfile profile = removingUser.getUserProfile();
 
         String profilePictureId = profile.getPictureId();
 
@@ -102,7 +98,9 @@ public class CloudinaryService {
             scheduleDeletion(profilePictureId);
             profile.setPictureId(null);
         }
-        return profileService.loadUserProfile(removingUser, removingUser.getId());
+
+        profileRepository.save(profile);
+        return profileService.loadSelfProfile(removingUser);
     }
 
     private String createNewPicture(MultipartFile pictureFile) throws IOException {

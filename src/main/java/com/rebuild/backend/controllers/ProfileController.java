@@ -47,7 +47,7 @@ public class ProfileController {
     @GetMapping("/load_profile")
     public UserProfileResponse loadOwnProfile(@AuthenticationPrincipal User user)
     {
-        return profileService.loadUserProfile(user, user.getId());
+        return profileService.loadSelfProfile(user);
     }
 
     @GetMapping("/load_profile/{clicked_user_id}")
