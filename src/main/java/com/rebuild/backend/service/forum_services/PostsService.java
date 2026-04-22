@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
@@ -160,10 +161,8 @@ public class PostsService {
 
         }
 
-        UserProfile profile = creatingUser.getUserProfile();
-
-        newPost.setAssociatedProfile(profile);
-        profile.getMadePosts().add(newPost);
+        newPost.setUser(creatingUser);
+        creatingUser.getMadePosts().add(newPost);
         return postRepository.save(newPost);
     }
 
@@ -196,8 +195,13 @@ public class PostsService {
 
         //When we are loading a post, we just fetch the initial page of the comments
         Pageable request = PageRequest.of(0, pageSize);
-        Slice<CommentDisplayDTO> displayedComments =
+        Slice<CommentFetchDTO> fetchedComments =
                 postRepository.loadCommentsById(postID, loadingUser.getId(), request);
+
+
+        List<CommentDisplayDTO> displayedComments = fetchedComments.stream().map(commentFetchDTO ->
+                commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(forumPost.getUser().getId()))).
+                toList();
 
         List<ResumeFileUploadRecord> uploadRecords = forumPost.getUploadedFiles();
 
@@ -206,9 +210,9 @@ public class PostsService {
                         resumeFileUploadRecord.getObjectKey())).toList();
 
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
-                forumPost.getAssociatedProfile().getUser().getForumUsername(),
+                forumPost.getUser().getForumUsername(),
                 forumPost.getResumes(),
-                displayedComments.getContent(), displayedComments.getNumber(), displayedComments.hasNext(),
+                displayedComments, fetchedComments.getNumber(), fetchedComments.hasNext(),
                 presignedUrls,
                 likeRepository.findByLikedObjectIdAndLikingUserId(postID, loadingUser.getId()).isPresent());
 

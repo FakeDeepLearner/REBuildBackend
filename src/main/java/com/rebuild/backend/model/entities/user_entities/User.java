@@ -114,6 +114,16 @@ public class User implements UserDetails, OidcUser, Serializable {
     private transient List<ChatParticipation> chatParticipations = new ArrayList<>();
 
     @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY, mappedBy = "user")
+    private List<ForumPost> madePosts = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
+            mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Comment> madeComments = new ArrayList<>();
+
+    @JsonIgnore
     private int numberOfResumes = 0;
 
     @JsonIgnore

@@ -43,9 +43,9 @@ public class ForumPost {
     private List<ResumeFileUploadRecord> uploadedFiles;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore
-    private UserProfile associatedProfile;
+    private User user;
 
     private Instant creationDate = Instant.now();
 

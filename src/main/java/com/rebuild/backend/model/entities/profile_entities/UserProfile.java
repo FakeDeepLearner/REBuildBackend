@@ -10,6 +10,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static jakarta.persistence.CascadeType.*;
@@ -57,16 +58,6 @@ public class UserProfile{
     @Enumerated(EnumType.STRING)
     private InformationVisibility sensitiveInfoVisibility = DEFAULT_SENSITIVE_INFO_VISIBILITY;
 
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY, mappedBy = "associatedProfile")
-    private List<ForumPost> madePosts = new ArrayList<>();
-
-    @JsonIgnore
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
-            mappedBy = "associatedProfile", fetch = FetchType.LAZY)
-    private List<Comment> madeComments = new ArrayList<>();
-
     @OneToOne(fetch = FetchType.LAZY, cascade = {
             PERSIST,
             MERGE,
@@ -76,4 +67,14 @@ public class UserProfile{
     @JsonIgnore
     private User user;
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof UserProfile that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

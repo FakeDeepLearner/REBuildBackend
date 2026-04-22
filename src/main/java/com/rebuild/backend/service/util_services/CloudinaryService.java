@@ -165,7 +165,7 @@ public class CloudinaryService {
                 new ProfileSensitiveInformationDTO(generateTimedUrlForPictureId(changedProfile.getPictureId()),
                         changingUser.getEmail(), changingUser.getPhoneNumber()),
 
-                changingUser.getForumUsername(), changedProfile.getMadeComments(), changedProfile.getMadePosts()
+                changingUser.getForumUsername(), changingUser.getMadeComments(), changingUser.getMadePosts()
         );
     }
 }

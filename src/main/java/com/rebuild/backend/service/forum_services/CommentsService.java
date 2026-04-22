@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -59,12 +60,12 @@ public class CommentsService {
         post.getComments().add(newComment);
         newComment.setParent(null);
 
-        UserProfile profile = creatingUser.getUserProfile();
-        profile.getMadeComments().add(newComment);
-        newComment.setAssociatedProfile(profile);
+        creatingUser.getMadeComments().add(newComment);
+        newComment.setUser(creatingUser);
         Comment savedComment =  commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                creatingUser.getForumUsername(), 0, false);
+                creatingUser.getForumUsername(), 0, post.getUser().equals(creatingUser),
+                false);
 
     }
 
@@ -80,13 +81,13 @@ public class CommentsService {
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
 
 
-        UserProfile profile = creatingUser.getUserProfile();
-        newComment.setAssociatedProfile(profile);
-        profile.getMadeComments().add(newComment);
+        newComment.setUser(creatingUser);
+        creatingUser.getMadeComments().add(newComment);
 
         Comment savedComment = commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                creatingUser.getForumUsername(), 0, false);
+                creatingUser.getForumUsername(), 0,
+                parentComment.getAssociatedPost().getUser().equals(creatingUser), false);
     }
 
 
@@ -96,16 +97,25 @@ public class CommentsService {
                 new NotFoundException("Post with this id is not found"));
         Pageable request = PageRequest.of(pageNumber, pageSize);
 
-        Slice<CommentDisplayDTO> loadedComments = commentRepository.loadCommentExpansion(foundPost,
+        Slice<CommentFetchDTO> loadedComments = commentRepository.loadCommentExpansion(foundPost,
                 user.getId(), request);
 
-        return new LoadCommentsResponse(loadedComments.getContent(), loadedComments.getNumber(),
+        List<CommentDisplayDTO> displayedList = loadedComments.stream().map(commentFetchDTO ->
+                commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(foundPost.getUser().getId()))).
+                toList();
+
+        return new LoadCommentsResponse(displayedList, loadedComments.getNumber(),
                 loadedComments.hasNext());
     }
 
     public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id, User user)
     {
-        return commentRepository.loadParentCommentInfo(parent_id, user.getId());
+        List<CommentFetchDTO> fetchedList = commentRepository.loadParentCommentInfo(parent_id, user.getId());
+
+        return fetchedList.stream().map(commentFetchDTO ->
+                commentFetchDTO.toDisplayDto(commentFetchDTO.associatedPostId().equals(commentFetchDTO.authorId())))
+                .toList();
+
     }
 
 

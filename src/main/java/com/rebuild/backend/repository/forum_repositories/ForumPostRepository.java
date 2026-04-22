@@ -1,5 +1,6 @@
 package com.rebuild.backend.repository.forum_repositories;
 
+import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
@@ -23,7 +24,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             SELECT fp FROM ForumPost fp
             LEFT JOIN FETCH fp.resumes
             LEFT JOIN FETCH fp.uploadedFiles
-                        JOIN fp.associatedProfile.user u WHERE fp.id=?1
+                        JOIN fp.user u WHERE fp.id=?1
            """)
     Optional<ForumPost> findByIdWithMoreInfo(UUID id);
 
@@ -35,19 +36,19 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     Optional<ForumPost> findByIdWithComments(UUID id);
 
     @Query(value = """
-            SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO(
-            c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount,
+            SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
+            u.id, p.id, c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount,
             CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
             THEN true ELSE false END)
-            FROM ForumPost p LEFT JOIN p.comments c JOIN c.associatedProfile.user u
+            FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
             WHERE p.id=?1 ORDER BY c.creationDate ASC
-           \s""")
-    Slice<CommentDisplayDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
+           """)
+    Slice<CommentFetchDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
 
     @Query(value = """
             SELECT fp FROM ForumPost fp
             LEFT JOIN FETCH fp.uploadedFiles
-            JOIN fp.associatedProfile.user u WHERE fp.id=?1 AND u=?2
+            JOIN fp.user u WHERE fp.id=?1 AND u=?2
            """)
     Optional<ForumPost> findByIdWithFiles(UUID id, User creatingUser);
 

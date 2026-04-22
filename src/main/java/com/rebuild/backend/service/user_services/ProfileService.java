@@ -53,7 +53,7 @@ public class ProfileService {
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
                         user.getEmail(), user.getPhoneNumber()),
-                user.getForumUsername(), associatedProfile.getMadeComments(), associatedProfile.getMadePosts()
+                user.getForumUsername(), user.getMadeComments(), user.getMadePosts()
         );
     }
 
