@@ -2,6 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
+import com.rebuild.backend.model.exceptions.ApiException;
 import com.rebuild.backend.model.responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +48,18 @@ public class CommentsService {
         Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
                 () -> new BelongingException("This comment does not belong to you")
         );
-        commentRepository.delete(commentToDelete);
+        ForumPost associatedPost = commentToDelete.getAssociatedPost();
+        associatedPost.setCommentCount(associatedPost.getCommentCount() - 1);
+
+        if(commentToDelete.getParentCommentId() != null){
+            Comment parentComment = commentRepository.findById(commentToDelete.getParentCommentId()).orElseThrow(
+                    () -> new NotFoundException("Parent comment with this id not found")
+            );
+            parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
+        }
+        //Comments are "soft-deleted"
+        commentToDelete.setDeleted(true);
+        commentRepository.save(commentToDelete);
     }
 
     @Transactional
@@ -58,14 +71,13 @@ public class CommentsService {
         Comment newComment = new Comment(commentForm.content());
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
-        newComment.setParent(null);
 
         creatingUser.getMadeComments().add(newComment);
         newComment.setUser(creatingUser);
         Comment savedComment =  commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
                 creatingUser.getForumUsername(), 0, post.getUser().equals(creatingUser),
-                false);
+                false, false);
 
     }
 
@@ -75,10 +87,21 @@ public class CommentsService {
         Comment parentComment = commentRepository.findById(parent_comment_id).
                 orElseThrow(() -> new NotFoundException("Comment with the specified id not found"));
 
+        if (parentComment.isDeleted())
+        {
+            throw new ApiException(HttpStatus.CONFLICT, "This comment has been deleted, you can't reply to deleted comments");
+        }
+
+        ForumPost associatedPost = parentComment.getAssociatedPost();
+
         Comment newComment = new Comment(commentForm.content());
-        newComment.setAssociatedPost(parentComment.getAssociatedPost());
-        newComment.setParent(parentComment);
+        newComment.setAssociatedPost(associatedPost);
+        newComment.setParentCommentId(parent_comment_id);
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
+
+
+        associatedPost.getComments().add(newComment);
+        associatedPost.setCommentCount(associatedPost.getCommentCount() + 1);
 
 
         newComment.setUser(creatingUser);
@@ -87,7 +110,7 @@ public class CommentsService {
         Comment savedComment = commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
                 creatingUser.getForumUsername(), 0,
-                parentComment.getAssociatedPost().getUser().equals(creatingUser), false);
+                associatedPost.getUser().equals(creatingUser), false, false);
     }
 
 

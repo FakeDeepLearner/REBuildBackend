@@ -24,8 +24,8 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
         SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
           u.id, p.id, c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount, 
           CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2) > 0
-          THEN true ELSE false END)\s
-          FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parent.id=?1
+          THEN true ELSE false END, c.isDeleted)
+          FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentCommentId=?1
           ORDER BY c.creationDate ASC"""
     )
     List<CommentFetchDTO> loadParentCommentInfo(UUID parentId, UUID userId);
@@ -36,8 +36,8 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
             SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
               u.id, p.id, c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount,
               CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2) > 0
-              THEN true ELSE false END)\s
-              FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.associatedPost=?1
+              THEN true ELSE false END, c.isDeleted)\s
+              FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE p=?1
               ORDER BY c.creationDate ASC"""
     )
     Slice<CommentFetchDTO> loadCommentExpansion(ForumPost post, UUID userId, Pageable pageable);

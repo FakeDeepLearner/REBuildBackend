@@ -37,12 +37,8 @@ public class Comment {
     @JsonIgnore
     private ForumPost associatedPost;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {
-                CascadeType.MERGE, CascadeType.PERSIST
-    })
-    @JoinColumn(name = "parent_comment_id")
-    @JsonIgnore
-    private Comment parent;
+    @Column(name = "parent_comment_id")
+    private UUID parentCommentId = null;
 
     private int repliesCount = 0;
 
@@ -57,4 +53,6 @@ public class Comment {
 
     @Column(name = "likes_count", nullable = false)
     private int likeCount = 0;
+
+    private boolean isDeleted = false;
 }
