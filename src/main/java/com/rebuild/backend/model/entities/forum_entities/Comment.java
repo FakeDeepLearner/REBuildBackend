@@ -55,4 +55,6 @@ public class Comment {
     private int likeCount = 0;
 
     private boolean isDeleted = false;
+
+    private boolean isAnonymized;
 }

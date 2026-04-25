@@ -15,6 +15,7 @@ public record SignupForm(
                          @NotBlank(message = "Repeated password is required")
                          String repeatedPassword,
 
+                         @NotBlank(message = "Username is required")
                          String forumUsername,
 
                          String phoneNumber,

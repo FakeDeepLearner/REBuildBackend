@@ -14,6 +14,7 @@ import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.util_services.AWSService;
+import com.rebuild.backend.utils.StringUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -134,6 +135,7 @@ public class PostsService {
     public ForumPost createNewPost(NewPostForm postForm,
                                                   User creatingUser, List<MultipartFile> resumeFiles) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
+        newPost.setAnonymized(postForm.remainAnonymous());
         List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
                         .map(PostResume::new).
                         peek(postResume -> postResume.setAssociatedPost(newPost)).
@@ -181,17 +183,27 @@ public class PostsService {
                 orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
 
         deletePostFiles(postToDelete);
-        //Unlike a create post operation, we do not need to wait for all the uploads to be removed in order
+        // Unlike a create post operation, we do not need to wait for all the uploads to be removed
         // to return from the function. When the deletes actually happen is irrelevant in terms of UX.
 
 
         postRepository.delete(postToDelete);
     }
 
+    private String determinePostDisplayedUsername(ForumPost post, User user)
+    {
+        if (post.isAnonymized())
+        {
+            return StringUtil.getAnonymizedName(user.getAnonymizedNameBase(), post.getId());
+        }
+        return post.getUser().getForumUsername();
+    }
+
     public PostDisplayDTO loadPost(UUID postID, User loadingUser, int pageSize){
         ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(
                 () -> new NotFoundException("Post with this id is not found")
         );
+        User postUser = forumPost.getUser();
 
         //When we are loading a post, we just fetch the initial page of the comments
         Pageable request = PageRequest.of(0, pageSize);
@@ -200,7 +212,7 @@ public class PostsService {
 
 
         List<CommentDisplayDTO> displayedComments = fetchedComments.stream().map(commentFetchDTO ->
-                commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(forumPost.getUser().getId()))).
+                commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(postUser.getId()))).
                 toList();
 
         List<ResumeFileUploadRecord> uploadRecords = forumPost.getUploadedFiles();
@@ -210,7 +222,7 @@ public class PostsService {
                         resumeFileUploadRecord.getObjectKey())).toList();
 
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
-                forumPost.getUser().getForumUsername(),
+                determinePostDisplayedUsername(forumPost, postUser),
                 forumPost.getResumes(),
                 displayedComments, fetchedComments.getNumber(), fetchedComments.hasNext(),
                 presignedUrls,
@@ -235,7 +247,7 @@ public class PostsService {
             post.setLikeCount(post.getLikeCount() - 1);
         });
 
-        //If the user has not like this comment, simply add a like for this comment for this user.
+        //If the user has not liked this comment, simply add a like for this comment for this user.
 
         Like newLike = new Like(likingUser.getId(), comment_id);
 

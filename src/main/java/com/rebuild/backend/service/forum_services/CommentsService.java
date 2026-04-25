@@ -15,6 +15,7 @@ import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.forum_repositories.LikeRepository;
+import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +63,17 @@ public class CommentsService {
         commentRepository.save(commentToDelete);
     }
 
+
+    private String determineCommentDisplayName(Comment createdComment, User creatingUser, ForumPost associatedPost)
+    {
+        if (createdComment.isAnonymized())
+        {
+            return StringUtil.getAnonymizedName(creatingUser.getAnonymizedNameBase(),
+                    associatedPost.getId());
+        }
+        return creatingUser.getForumUsername();
+    }
+
     @Transactional
     public CommentDisplayDTO makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
         ForumPost post = postRepository.findByIdWithComments(post_id).orElseThrow(
@@ -69,6 +81,7 @@ public class CommentsService {
         );
         post.setCommentCount(post.getCommentCount() + 1);
         Comment newComment = new Comment(commentForm.content());
+        newComment.setAnonymized(commentForm.remainAnonymous());
         newComment.setAssociatedPost(post);
         post.getComments().add(newComment);
 
@@ -76,7 +89,7 @@ public class CommentsService {
         newComment.setUser(creatingUser);
         Comment savedComment =  commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                creatingUser.getForumUsername(), 0, post.getUser().equals(creatingUser),
+                determineCommentDisplayName(savedComment, creatingUser, post), 0, post.getUser().equals(creatingUser),
                 false, false);
 
     }
@@ -95,6 +108,7 @@ public class CommentsService {
         ForumPost associatedPost = parentComment.getAssociatedPost();
 
         Comment newComment = new Comment(commentForm.content());
+        newComment.setAnonymized(commentForm.remainAnonymous());
         newComment.setAssociatedPost(associatedPost);
         newComment.setParentCommentId(parent_comment_id);
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
@@ -109,7 +123,7 @@ public class CommentsService {
 
         Comment savedComment = commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                creatingUser.getForumUsername(), 0,
+                determineCommentDisplayName(savedComment, creatingUser, associatedPost), 0,
                 associatedPost.getUser().equals(creatingUser), false, false);
     }
 
@@ -157,7 +171,7 @@ public class CommentsService {
             
         });
 
-        //If the user has not like this comment, simply add a like for this comment for this user.
+        //If the user has not liked this comment, simply add a like for this comment for this user.
 
         Like newLike = new Like(likingUser.getId(), comment_id);
 

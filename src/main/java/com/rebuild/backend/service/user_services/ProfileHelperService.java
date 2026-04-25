@@ -7,6 +7,8 @@ import com.rebuild.backend.model.entities.profile_entities.InformationVisibility
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.UserProfileResponse;
+import com.rebuild.backend.repository.forum_repositories.CommentRepository;
+import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +21,16 @@ public class ProfileHelperService {
 
     private final CloudinaryService cloudinaryService;
 
+    private final CommentRepository commentRepository;
+
+    private final ForumPostRepository forumPostRepository;
+
     @Autowired
-    public ProfileHelperService(CloudinaryService cloudinaryService) {
+    public ProfileHelperService(CloudinaryService cloudinaryService,
+                                CommentRepository commentRepository, ForumPostRepository forumPostRepository) {
         this.cloudinaryService = cloudinaryService;
+        this.commentRepository = commentRepository;
+        this.forumPostRepository = forumPostRepository;
     }
 
     private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, UserProfile profile, boolean thereIsFriendship)
@@ -63,7 +72,7 @@ public class ProfileHelperService {
             if (commentsVisibility.equals(InformationVisibility.EVERYONE) ||
                     commentsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return user.getMadeComments();
+                return commentRepository.findByUserUnAnonymized(user);
             }
             //Otherwise, return the information masked
         }
@@ -73,7 +82,7 @@ public class ProfileHelperService {
         {
             if (commentsVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return user.getMadeComments();
+                return commentRepository.findByUserUnAnonymized(user);
             }
 
             //Otherwise, return the information masked
@@ -89,7 +98,7 @@ public class ProfileHelperService {
             if (postsVisibility.equals(InformationVisibility.EVERYONE) ||
                     postsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return user.getMadePosts();
+                return forumPostRepository.findByUserUnAnonymized(user);
             }
         }
 
@@ -97,7 +106,7 @@ public class ProfileHelperService {
         {
             if (postsVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return user.getMadePosts();
+                return forumPostRepository.findByUserUnAnonymized(user);
             }
         }
         return null;

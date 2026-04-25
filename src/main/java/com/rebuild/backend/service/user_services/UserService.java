@@ -3,12 +3,13 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
-import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,11 +46,9 @@ public class UserService{
         repository.save(deletingUser);
     }
 
-
-
     private String generateSaltValue(){
         SecureRandom random = new SecureRandom();
-        //16 bytes = 128 bit salt, which is what is recommended
+        //16 bytes = 128-bit salt, which is what is recommended
         int saltByteLength = 16;
         byte[] salt = new byte[saltByteLength];
         random.nextBytes(salt);
@@ -57,19 +56,21 @@ public class UserService{
     }
 
     @Transactional
-    public User createNewUser(SignupForm signupForm, MultipartFile pictureFile) throws IOException {
-        String generatedBackupForumName = "Anonymous#" + UUID.randomUUID().toString().substring(0, 8);
+    public User createNewUser(SignupForm signupForm, MultipartFile pictureFile){
+        if (signupForm.forumUsername().startsWith("Anonymous"))
+        {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Username cannot start with \"Anonymous\"");
+        }
+
         String generatedSalt = generateSaltValue();
         String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
         User newUser = new User(encodedPassword, signupForm.email(),
                 signupForm.phoneNumber(), generatedSalt);
 
-        if (signupForm.forumUsername() != null) {
-            newUser.setForumUsername(signupForm.forumUsername());
-        }
+        newUser.setForumUsername(signupForm.forumUsername());
 
-        newUser.setBackupForumUsername(generatedBackupForumName);
+        newUser.setAnonymizedNameBase(UUID.randomUUID().toString().substring(0, 8));
 
         UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
         newUser.setUserProfile(newUserProfile);
@@ -78,7 +79,7 @@ public class UserService{
         return repository.save(newUser);
     }
 
-    private UserProfile createNewProfile(User newUser, MultipartFile pictureFile) throws IOException {
+    private UserProfile createNewProfile(User newUser, MultipartFile pictureFile){
 
         UserProfile newProfile = new UserProfile();
         newUser.setUserProfile(newProfile);

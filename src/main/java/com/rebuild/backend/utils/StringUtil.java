@@ -2,6 +2,7 @@ package com.rebuild.backend.utils;
 
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 
 public class StringUtil {
@@ -70,5 +71,11 @@ public class StringUtil {
         }
 
         return determineMonthString(yearMonth.getMonthValue()) + " - " + yearMonth.getYear();
+    }
+
+
+    public static String getAnonymizedName(String userBaseName, UUID associatedPostId)
+    {
+        return "Anonymous" + "-" + userBaseName + "-" + associatedPostId.toString().substring(0, 8);
     }
 }

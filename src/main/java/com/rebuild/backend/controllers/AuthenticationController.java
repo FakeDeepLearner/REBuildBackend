@@ -206,11 +206,6 @@ public class AuthenticationController {
                 }
             }
         }
-        catch (IOException _){
-            throw new UserAuthException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error has occurred, please try again");
-        }
-
-
         return null;
     }
 

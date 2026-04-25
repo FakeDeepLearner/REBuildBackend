@@ -2,6 +2,7 @@ package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
+import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -37,9 +38,9 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
-            u.id, p.id, c.id, c.content, COALESCE(u.forumUsername, u.backupForumUsername), c.repliesCount,
+            u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
             CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
-            THEN true ELSE false END, c.isDeleted)
+            THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
             WHERE p.id=?1 ORDER BY c.creationDate ASC
            """)
@@ -64,4 +65,11 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     ORDER BY fp.creationDate DESC, fp.lastModificationDate DESC
     """)
     Slice<ForumPostSummaryDTO> findByTitleAndContent(String title, String content, UUID userID, Pageable pageable);
+
+
+    @Query("""
+    SELECT fp FROM ForumPost fp
+    WHERE fp.user=?1 AND fp.isAnonymized=false
+    """)
+    List<ForumPost> findByUserUnAnonymized(User user);
 }

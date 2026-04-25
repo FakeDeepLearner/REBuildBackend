@@ -9,8 +9,6 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -107,7 +105,7 @@ public class User implements UserDetails, OidcUser, Serializable {
     private String forumUsername;
 
     @Column(name = "backup_forum_username", nullable = false)
-    private String backupForumUsername;
+    private String anonymizedNameBase;
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)
@@ -225,7 +223,7 @@ public class User implements UserDetails, OidcUser, Serializable {
 
 
     public String getForumUsername() {
-        if  (forumUsername == null) return backupForumUsername;
+        if  (forumUsername == null) return anonymizedNameBase;
         return forumUsername;
     }
 }

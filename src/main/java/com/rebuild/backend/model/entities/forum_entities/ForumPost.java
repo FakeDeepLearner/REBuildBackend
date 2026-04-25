@@ -62,4 +62,6 @@ public class ForumPost {
     @Column(name = "comments_count", nullable = false)
     private int commentCount = 0;
 
+    private boolean isAnonymized;
+
 }

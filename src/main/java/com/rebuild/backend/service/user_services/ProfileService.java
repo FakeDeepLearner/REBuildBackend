@@ -66,8 +66,6 @@ public class ProfileService {
             return loadSelfProfile(user);
         }
 
-
-
         User foundUser = userRepository.findById(clickedUserId).orElseThrow(() ->
                 new NotFoundException("User with this id is not found"));
 
