@@ -8,6 +8,8 @@ import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
 import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
 import com.rebuild.backend.service.resume_services.ResumePrefillService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/resume/prefill")
+@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
 public class ResumePrefillController {
 
     private final ResumePrefillService prefillService;
@@ -28,6 +31,7 @@ public class ResumePrefillController {
 
     @PostMapping("/header/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public HeaderResponse prefillHeader(@AuthenticationPrincipal User user,
                                         @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {
@@ -36,6 +40,7 @@ public class ResumePrefillController {
 
     @PostMapping("/education/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public EducationResponse prefillEducation(@AuthenticationPrincipal User user,
                                               @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {
@@ -44,6 +49,7 @@ public class ResumePrefillController {
 
     @PostMapping("/experiences/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public List<ExperienceResponse> prefillExperiences(@AuthenticationPrincipal User user,
                                                        @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {
@@ -52,6 +58,7 @@ public class ResumePrefillController {
 
     @PostMapping("/projects/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public List<ProjectResponse> prefillProjects(@AuthenticationPrincipal User user,
                                                  @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {

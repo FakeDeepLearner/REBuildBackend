@@ -93,9 +93,8 @@ public class User implements UserDetails, OidcUser, Serializable {
     @Column(name = "is_mfa_user")
     private boolean enrolledInMFA = false;
 
-    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = ALL)
-    @JsonIgnore
-    private TOTPSecret totpSecret;
+    @Column(name = "mfa_secret_value")
+    private String mfaSecretValue = null;
 
     @OneToMany(orphanRemoval = true, mappedBy = "user", cascade = ALL)
     @JsonIgnore

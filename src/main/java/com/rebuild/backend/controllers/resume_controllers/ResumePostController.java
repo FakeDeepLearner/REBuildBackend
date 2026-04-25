@@ -24,7 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(value = "/api/resume/post", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.CREATED)
-@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache", keyGenerator = "resumeCacheKeyGenerator")
+@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
 public class ResumePostController {
     private final ResumeService resumeService;
 
@@ -34,14 +34,14 @@ public class ResumePostController {
     }
 
     @PostMapping("/header/{resume_id}")
-    @CacheEvict
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public HeaderResponse createNewHeader(@Valid @RequestBody HeaderForm headerForm, @PathVariable UUID resume_id,
                                           @AuthenticationPrincipal User user){
         return resumeService.changeHeaderInfo(headerForm, resume_id, user);
     }
 
     @PostMapping("/experience/{resume_id}")
-    @CacheEvict
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public ExperienceResponse createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                   @PathVariable UUID resume_id,
                                                   @AuthenticationPrincipal User user){
@@ -51,7 +51,7 @@ public class ResumePostController {
     }
 
     @PostMapping("/education/{resume_id}")
-    @CacheEvict
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public EducationResponse createNewEducation(@Valid @RequestBody EducationForm educationForm,
                                                 @PathVariable UUID resume_id,
                                                 @AuthenticationPrincipal User user ){
@@ -59,7 +59,7 @@ public class ResumePostController {
     }
 
     @PostMapping("/project/{resume_id}")
-    @CacheEvict
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public ProjectResponse createNewProject(@Valid @RequestBody ProjectForm projectForm,
                                             @PathVariable UUID resume_id,
                                             @AuthenticationPrincipal User user){

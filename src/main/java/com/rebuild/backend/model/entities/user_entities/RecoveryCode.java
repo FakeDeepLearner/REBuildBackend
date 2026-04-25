@@ -52,6 +52,7 @@ public class RecoveryCode {
     public String getDisplayValue()
     {
         //After every 4 characters, insert a dash(-), then trim the very final character (which is also a dash).
+        //I know that this looks weird, but trust me it works.
         return this.rawCode.replaceAll(
                 "(.{" + CODE_GROUP_SIZE + "})",
                 "$1" + CODE_GROUP_SEPARATOR

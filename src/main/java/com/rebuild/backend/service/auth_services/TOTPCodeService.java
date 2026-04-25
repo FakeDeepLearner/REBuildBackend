@@ -1,19 +1,15 @@
 package com.rebuild.backend.service.auth_services;
 
-import com.rebuild.backend.model.entities.user_entities.SecretStatus;
-import com.rebuild.backend.model.entities.user_entities.TOTPSecret;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.MFAEnrolmentForm;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
-import com.rebuild.backend.repository.user_repositories.TOTPSecretRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import org.apache.commons.codec.binary.Base32;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,17 +25,13 @@ public class TOTPCodeService {
 
     private final PasswordEncoder encoder;
 
-    private final TOTPSecretRepository totpSecretRepository;
-
     private final UserRepository userRepository;
 
     private final RecoveryCodeHelperService recoveryCodeHelperService;
 
-    public TOTPCodeService(TOTPSecretRepository totpSecretRepository,
-                           UserRepository userRepository,
+    public TOTPCodeService(UserRepository userRepository,
                            RecoveryCodeHelperService recoveryCodeHelperService,
                            PasswordEncoder encoder) {
-        this.totpSecretRepository = totpSecretRepository;
         this.userRepository = userRepository;
         this.recoveryCodeHelperService = recoveryCodeHelperService;
         this.encoder = encoder;
@@ -68,11 +60,9 @@ public class TOTPCodeService {
 
         String rawSecret = generateRandomSecret();
 
-        TOTPSecret newSecret = new TOTPSecret(SecretStatus.PENDING, rawSecret);
-        newSecret.setUser(requestingUser);
-        requestingUser.setTotpSecret(newSecret);
+        requestingUser.setMfaSecretValue(rawSecret);
 
-        totpSecretRepository.save(newSecret);
+        userRepository.save(requestingUser);
 
         String generatedURL = String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%s",
                 ISSUER_NAME, requestingUser.getEmail(), rawSecret, ISSUER_NAME, TOTP_CODE_NUM_DIGITS);
@@ -83,7 +73,7 @@ public class TOTPCodeService {
 
     private boolean userOtpMatches(User enteringUser, String enteredOtp)
     {
-        String userSecret = enteringUser.getTotpSecret().getActualSecret();
+        String userSecret = enteringUser.getMfaSecretValue();
         GoogleAuthenticatorConfig authConfig =
                 new GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder().setSecretBits(128).build();
 
@@ -118,9 +108,6 @@ public class TOTPCodeService {
         }
 
         enrollingUser.setEnrolledInMFA(true);
-        enrollingUser.getTotpSecret().setStatus(SecretStatus.CONFIRMED);
-
-
         recoveryCodeHelperService.associateCodesWithUser(enrollingUser, enrolmentForm.recoveryCodes());
 
         return userRepository.save(enrollingUser);

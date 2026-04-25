@@ -1,5 +1,7 @@
 package com.rebuild.backend.utils;
 
+import com.rebuild.backend.model.entities.user_entities.User;
+
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -77,5 +79,10 @@ public class StringUtil {
     public static String getAnonymizedName(String userBaseName, UUID associatedPostId)
     {
         return "Anonymous" + "-" + userBaseName + "-" + associatedPostId.toString().substring(0, 8);
+    }
+
+
+    public static String generateResumeCacheKey(User user, UUID resumeId) {
+        return user.getId() + ":" + resumeId;
     }
 }
