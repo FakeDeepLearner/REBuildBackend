@@ -7,7 +7,6 @@ import com.rebuild.backend.model.responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.Like;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.BelongingException;
 import com.rebuild.backend.model.exceptions.NotFoundException;
@@ -74,19 +73,45 @@ public class CommentsService {
         return creatingUser.getForumUsername();
     }
 
-    @Transactional
-    public CommentDisplayDTO makeTopLevelComment(CommentForm commentForm, UUID post_id, User creatingUser){
-        ForumPost post = postRepository.findByIdWithComments(post_id).orElseThrow(
-                () -> new NotFoundException("Post with the specified id is not found")
-        );
-        post.setCommentCount(post.getCommentCount() + 1);
-        Comment newComment = new Comment(commentForm.content());
-        newComment.setAnonymized(commentForm.remainAnonymous());
-        newComment.setAssociatedPost(post);
-        post.getComments().add(newComment);
+    private void addCommentToPostAndUser(Comment comment, ForumPost associatedPost, User user){
+        associatedPost.getComments().add(comment);
+        associatedPost.setCommentCount(associatedPost.getCommentCount() + 1);
+        comment.setAssociatedPost(associatedPost);
 
-        creatingUser.getMadeComments().add(newComment);
-        newComment.setUser(creatingUser);
+        user.getMadeComments().add(comment);
+        comment.setUser(user);
+    }
+
+    @Transactional
+    public CommentDisplayDTO createComment(CommentForm commentForm, UUID parentId, User creatingUser)
+    {
+        //Try to find a post that corresponds to this id. If we find one, create a top-level comment
+        Optional<ForumPost> foundPost = postRepository.findByIdWithComments(parentId);
+
+
+        if (foundPost.isPresent())
+        {
+            return makeTopLevelComment(commentForm, foundPost.get(), creatingUser);
+        }
+
+        //Otherwise, try to find a comment that corresponds to this id. If we find one, create a reply to it.
+        //If we can't find one, throw an exception.
+        else
+        {
+            Comment parentComment = commentRepository.findById(parentId).
+                    orElseThrow(() -> new NotFoundException("Comment or post with the specified id not found"));
+
+            return createReplyTo(parentComment, creatingUser, commentForm);
+        }
+
+    }
+
+
+    private CommentDisplayDTO makeTopLevelComment(CommentForm commentForm, ForumPost post, User creatingUser){
+        Comment newComment = new Comment(commentForm.content());
+        addCommentToPostAndUser(newComment, post, creatingUser);
+        newComment.setAnonymized(commentForm.remainAnonymous());
+
         Comment savedComment =  commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
                 determineCommentDisplayName(savedComment, creatingUser, post), 0, post.getUser().equals(creatingUser),
@@ -94,11 +119,9 @@ public class CommentsService {
 
     }
 
-    @Transactional
-    public CommentDisplayDTO createReplyTo(UUID parent_comment_id, User creatingUser,
+
+    private CommentDisplayDTO createReplyTo(Comment parentComment, User creatingUser,
                                  CommentForm commentForm){
-        Comment parentComment = commentRepository.findById(parent_comment_id).
-                orElseThrow(() -> new NotFoundException("Comment with the specified id not found"));
 
         if (parentComment.isDeleted())
         {
@@ -106,20 +129,12 @@ public class CommentsService {
         }
 
         ForumPost associatedPost = parentComment.getAssociatedPost();
-
         Comment newComment = new Comment(commentForm.content());
+        addCommentToPostAndUser(newComment, associatedPost, creatingUser);
+
         newComment.setAnonymized(commentForm.remainAnonymous());
-        newComment.setAssociatedPost(associatedPost);
-        newComment.setParentCommentId(parent_comment_id);
+        newComment.setParentCommentId(parentComment.getId());
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
-
-
-        associatedPost.getComments().add(newComment);
-        associatedPost.setCommentCount(associatedPost.getCommentCount() + 1);
-
-
-        newComment.setUser(creatingUser);
-        creatingUser.getMadeComments().add(newComment);
 
         Comment savedComment = commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
@@ -134,7 +149,7 @@ public class CommentsService {
                 new NotFoundException("Post with this id is not found"));
         Pageable request = PageRequest.of(pageNumber, pageSize);
 
-        Slice<CommentFetchDTO> loadedComments = commentRepository.loadCommentExpansion(foundPost,
+        Slice<CommentFetchDTO> loadedComments = commentRepository.loadAdditionalComments(foundPost,
                 user.getId(), request);
 
         List<CommentDisplayDTO> displayedList = loadedComments.stream().map(commentFetchDTO ->
@@ -147,7 +162,7 @@ public class CommentsService {
 
     public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id, User user)
     {
-        List<CommentFetchDTO> fetchedList = commentRepository.loadParentCommentInfo(parent_id, user.getId());
+        List<CommentFetchDTO> fetchedList = commentRepository.loadParentCommentExpansion(parent_id, user.getId());
 
         return fetchedList.stream().map(commentFetchDTO ->
                 commentFetchDTO.toDisplayDto(commentFetchDTO.associatedPostId().equals(commentFetchDTO.authorId())))

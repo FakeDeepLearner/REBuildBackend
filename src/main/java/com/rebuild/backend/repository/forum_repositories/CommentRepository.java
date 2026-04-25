@@ -4,7 +4,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import lombok.NonNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -28,7 +27,7 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
           FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentCommentId=?1
           ORDER BY c.creationDate ASC"""
     )
-    List<CommentFetchDTO> loadParentCommentInfo(UUID parentId, UUID userId);
+    List<CommentFetchDTO> loadParentCommentExpansion(UUID parentId, UUID userId);
 
 
     @Query(
@@ -40,7 +39,7 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
               FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE p=?1
               ORDER BY c.creationDate ASC"""
     )
-    Slice<CommentFetchDTO> loadCommentExpansion(ForumPost post, UUID userId, Pageable pageable);
+    Slice<CommentFetchDTO> loadAdditionalComments(ForumPost post, UUID userId, Pageable pageable);
 
 
     @Query("""

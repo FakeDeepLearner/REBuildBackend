@@ -42,7 +42,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
             THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
-            WHERE p.id=?1 ORDER BY c.creationDate ASC
+            WHERE p.id=?1 AND c.parentCommentId=null ORDER BY c.creationDate ASC
            """)
     Slice<CommentFetchDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
 

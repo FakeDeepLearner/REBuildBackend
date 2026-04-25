@@ -26,21 +26,12 @@ public class CommentController {
         this.commentsService = commentsService;
     }
 
-    @PostMapping("/create/{post_id}")
+    @PostMapping("/new_comment/{parent_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentDisplayDTO createTopLevelComment(@PathVariable UUID post_id, @RequestBody @Valid CommentForm commentForm,
-                                         @AuthenticationPrincipal User creatingUser){
-        return commentsService.makeTopLevelComment(commentForm, post_id, creatingUser);
+    public CommentDisplayDTO createComment(@PathVariable UUID parent_id, @RequestBody @Valid CommentForm commentForm,
+                                           @AuthenticationPrincipal User creatingUser){
+        return commentsService.createComment(commentForm, parent_id, creatingUser);
     }
-
-    @PostMapping("/reply/{top_level_comment_id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public CommentDisplayDTO createReply(@PathVariable UUID top_level_comment_id,
-                                    @RequestBody @Valid CommentForm commentForm,
-                                    @AuthenticationPrincipal User creatingUser){
-        return commentsService.createReplyTo(top_level_comment_id, creatingUser, commentForm);
-    }
-
 
     @GetMapping("/{parent_comment_id}/replies")
     @ResponseStatus(HttpStatus.OK)
