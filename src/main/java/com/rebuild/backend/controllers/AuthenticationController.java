@@ -67,8 +67,8 @@ public class AuthenticationController {
     public ResponseEntity<String> initializeLogin(@Valid @RequestBody LoginForm loginForm,
                                              @RequestParam(name = "g-recaptcha-response") String userResponse,
                                              HttpServletRequest request) {
-        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
-            return ResponseEntity.badRequest().body("Invalid captcha response, please try again");
+        if (authenticationHelperService.captchaFailed(userResponse)) {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
         CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginForm);
@@ -216,8 +216,8 @@ public class AuthenticationController {
                                             @RequestPart(name = "file") MultipartFile profilePicture,
                                             @RequestParam(name = "g-recaptcha-response") String userResponse)
             throws IOException, InterruptedException {
-        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Invalid captcha response");
+        if (authenticationHelperService.captchaFailed(userResponse)) {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
         boolean passwordCheckSuccessful = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
@@ -229,7 +229,6 @@ public class AuthenticationController {
         return null;
 
     }
-
 
     @PostMapping("/mfa/initialize")
     @ResponseStatus(HttpStatus.OK)

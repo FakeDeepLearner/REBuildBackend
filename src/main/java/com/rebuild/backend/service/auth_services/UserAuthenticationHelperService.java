@@ -6,7 +6,6 @@ import com.rebuild.backend.model.forms.auth_forms.LoginForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupForm;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
-import com.rebuild.backend.repository.user_repositories.CaptchaVerificationRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CustomPasswordService;
 import io.github.bucket4j.Bucket;
@@ -16,13 +15,11 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -31,8 +28,6 @@ public class UserAuthenticationHelperService {
     private final UserRepository userRepository;
 
     private final Dotenv dotenv;
-
-    private final CaptchaVerificationRepository verificationRepository;
 
     private final PasswordEncoder encoder;
 
@@ -45,14 +40,12 @@ public class UserAuthenticationHelperService {
 
     public UserAuthenticationHelperService(UserRepository userRepository,
                                            Dotenv dotenv,
-                                           CaptchaVerificationRepository verificationRepository,
                                            PasswordEncoder encoder,
                                            CustomPasswordService passwordService,
                                            ProxyManager<String> proxyManager,
                                            BucketConfiguration bucketConfiguration) {
         this.userRepository = userRepository;
         this.dotenv = dotenv;
-        this.verificationRepository = verificationRepository;
         this.encoder = encoder;
         this.passwordService = passwordService;
         this.proxyManager = proxyManager;
@@ -60,14 +53,14 @@ public class UserAuthenticationHelperService {
     }
 
 
-    public boolean captchaFailed(String userResponse, String userIp)
+    public boolean captchaFailed(String userResponse)
     {
         String urlToPost = "https://www.google.com/recaptcha/api/siteverify";
 
         Map<String, String> body = new HashMap<>();
         body.put("secret", dotenv.get("GOOGLE_CAPTCHA_SECRET_KEY"));
         body.put("response", userResponse);
-        body.put("remoteip", userIp);
+
 
         RequestEntity<Map<String, String>> request = RequestEntity.post(urlToPost).body(body);
 
@@ -79,12 +72,8 @@ public class UserAuthenticationHelperService {
             return true;
         }
         String successString = result.get("success");
-        String timestampString = result.get("challenge_ts");
 
         boolean success = Boolean.parseBoolean(successString);
-
-        CaptchaVerificationRecord newRecord = new CaptchaVerificationRecord(userIp,  Instant.now(), success);
-        verificationRepository.save(newRecord);
 
         return !success;
     }
