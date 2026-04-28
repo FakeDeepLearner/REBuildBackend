@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -21,13 +18,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
-@Indexed
 public class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
-    @GenericField
     private UUID id;
 
     @ManyToOne(fetch =  FetchType.LAZY)
@@ -42,7 +37,6 @@ public class Message {
 
     @NonNull
     @Column(name = "content", nullable = false)
-    @FullTextField
     private String content;
 
     @Column(name = "creationDate")

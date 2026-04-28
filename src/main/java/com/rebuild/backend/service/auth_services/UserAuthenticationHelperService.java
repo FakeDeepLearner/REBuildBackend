@@ -1,5 +1,10 @@
 package com.rebuild.backend.service.auth_services;
 
+import com.google.cloud.recaptchaenterprise.v1.RecaptchaEnterpriseServiceClient;
+import com.google.recaptchaenterprise.v1.Assessment;
+import com.google.recaptchaenterprise.v1.CreateAssessmentRequest;
+import com.google.recaptchaenterprise.v1.Event;
+import com.google.recaptchaenterprise.v1.ProjectName;
 import com.rebuild.backend.model.entities.user_entities.*;
 import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.LoginForm;
@@ -53,29 +58,44 @@ public class UserAuthenticationHelperService {
     }
 
 
-    public boolean captchaFailed(String userResponse)
-    {
-        String urlToPost = "https://www.google.com/recaptcha/api/siteverify";
+    private Assessment createAssessment(
+            String projectID, String recaptchaSiteKey, String token,
+             String userIpAddress, String userAgent)
+            throws IOException {
+        // Initialize client that will be used to send requests. This client only needs to be created
+        // once, and can be reused for multiple requests. After completing all of your requests, call
+        // the `client.close()` method on the client to safely
+        // clean up any remaining background resources.
+        try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create()) {
 
-        Map<String, String> body = new HashMap<>();
-        body.put("secret", dotenv.get("GOOGLE_CAPTCHA_SECRET_KEY"));
-        body.put("response", userResponse);
+            // Set the properties of the event to be tracked.
+            Event event = Event.newBuilder()
+                    .setSiteKey(recaptchaSiteKey)
+                    .setToken(token)
+                    .setUserIpAddress(userIpAddress)
+                    .setUserAgent(userAgent)
+                    .build();
 
+            // Build the assessment request.
+            CreateAssessmentRequest createAssessmentRequest =
+                    CreateAssessmentRequest.newBuilder()
+                            .setParent(ProjectName.of(projectID).toString())
+                            .setAssessment(Assessment.newBuilder().setEvent(event).build())
+                            .build();
 
-        RequestEntity<Map<String, String>> request = RequestEntity.post(urlToPost).body(body);
-
-        ResponseEntity<Map> response = new RestTemplate().exchange(request, Map.class);
-
-        Map<String, String> result = response.getBody();
-
-        if(result == null){
-            return true;
+            return client.createAssessment(createAssessmentRequest);
         }
-        String successString = result.get("success");
+    }
 
-        boolean success = Boolean.parseBoolean(successString);
 
-        return !success;
+    public boolean captchaFailed(String userResponse, String userIp) throws IOException {
+
+        Assessment assessment = createAssessment(dotenv.get("GOOGLE_CAPTCHA_PROJECT_ID"), "6Lel3s0sAAAAAFBcui1DEbyHP99ydRlS6XHnaqlz",
+                userResponse, userIp, "");
+
+        float assessmentScore = assessment.getRiskAnalysis().getScore();
+
+        return assessmentScore < 0.7;
     }
 
 

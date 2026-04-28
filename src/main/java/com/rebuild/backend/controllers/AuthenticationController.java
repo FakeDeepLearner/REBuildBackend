@@ -66,8 +66,8 @@ public class AuthenticationController {
     @PostMapping("/login/initialize")
     public ResponseEntity<String> initializeLogin(@Valid @RequestBody LoginForm loginForm,
                                              @RequestParam(name = "g-recaptcha-response") String userResponse,
-                                             HttpServletRequest request) {
-        if (authenticationHelperService.captchaFailed(userResponse)) {
+                                             HttpServletRequest request) throws IOException {
+        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
@@ -216,7 +216,7 @@ public class AuthenticationController {
                                             @RequestPart(name = "file") MultipartFile profilePicture,
                                             @RequestParam(name = "g-recaptcha-response") String userResponse)
             throws IOException, InterruptedException {
-        if (authenticationHelperService.captchaFailed(userResponse)) {
+        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 

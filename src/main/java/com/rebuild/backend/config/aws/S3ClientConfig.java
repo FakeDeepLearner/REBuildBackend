@@ -1,14 +1,10 @@
 package com.rebuild.backend.config.aws;
 
-import com.dropbox.core.v2.DbxClientV2;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Client;
-
-import java.util.concurrent.CompletableFuture;
 
 @Configuration
 public class S3ClientConfig {

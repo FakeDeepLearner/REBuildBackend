@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.search.engine.backend.types.Searchable;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,7 +21,6 @@ public class ForumPost {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false)
-    @GenericField(searchable = Searchable.YES)
     private UUID id;
 
     @NonNull

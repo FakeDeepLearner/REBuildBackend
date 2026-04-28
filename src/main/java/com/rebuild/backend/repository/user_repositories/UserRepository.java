@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query(value = """
     SELECT u FROM User u
-    WHERE COALESCE(u.forumUsername, u.backupForumUsername) LIKE LOWER(CONCAT('%', ?1, '%'))
+    WHERE u.forumUsername LIKE LOWER(CONCAT('%', ?1, '%'))
     """)
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 
