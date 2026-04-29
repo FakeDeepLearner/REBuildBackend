@@ -2,18 +2,13 @@ package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
-import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
-import lombok.NonNull;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,7 +37,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
             THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
-            WHERE p.id=?1 AND c.parentCommentId=null ORDER BY c.creationDate ASC
+            WHERE p.id=?1 AND c.parentId=?1 ORDER BY c.creationDate ASC
            """)
     Slice<CommentFetchDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
 

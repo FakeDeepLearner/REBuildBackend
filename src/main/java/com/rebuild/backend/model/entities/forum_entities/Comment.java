@@ -1,7 +1,6 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
@@ -37,8 +36,11 @@ public class Comment {
     @JsonIgnore
     private ForumPost associatedPost;
 
+    // This can be another comment if this comment is a reply to that comment,
+    // or it can be the id of this comment's associated post
+    // if this is a top-level comment
     @Column(name = "parent_comment_id")
-    private UUID parentCommentId = null;
+    private UUID parentId;
 
     private int repliesCount = 0;
 

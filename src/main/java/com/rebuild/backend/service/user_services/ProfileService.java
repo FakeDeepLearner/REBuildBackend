@@ -1,16 +1,12 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
-import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
-import com.rebuild.backend.model.entities.profile_entities.*;
-import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.exceptions.NotFoundException;
-import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.model.responses.UserProfileResponse;
-import com.rebuild.backend.repository.forum_repositories.FriendRelationshipRepository;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;

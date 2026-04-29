@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository.forum_repositories;
+package com.rebuild.backend.repository.messaging_and_friendship_repositories;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.AbstractChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.PrivateChat;

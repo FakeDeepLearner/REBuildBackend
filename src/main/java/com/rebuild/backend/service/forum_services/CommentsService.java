@@ -51,8 +51,8 @@ public class CommentsService {
         ForumPost associatedPost = commentToDelete.getAssociatedPost();
         associatedPost.setCommentCount(associatedPost.getCommentCount() - 1);
 
-        if(commentToDelete.getParentCommentId() != null){
-            Comment parentComment = commentRepository.findById(commentToDelete.getParentCommentId()).orElseThrow(
+        if(commentToDelete.getParentId() != null){
+            Comment parentComment = commentRepository.findById(commentToDelete.getParentId()).orElseThrow(
                     () -> new NotFoundException("Parent comment with this id not found")
             );
             parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
@@ -73,11 +73,13 @@ public class CommentsService {
         return creatingUser.getForumUsername();
     }
 
-    private void addCommentToPostAndUser(Comment comment, ForumPost associatedPost, User user){
+    private void configureComment(Comment comment, ForumPost associatedPost, User user,
+                                  UUID commentParentId, boolean isAnonymized){
+        comment.setAnonymized(isAnonymized);
         associatedPost.getComments().add(comment);
         associatedPost.setCommentCount(associatedPost.getCommentCount() + 1);
         comment.setAssociatedPost(associatedPost);
-
+        comment.setParentId(commentParentId);
         user.getMadeComments().add(comment);
         comment.setUser(user);
     }
@@ -109,8 +111,7 @@ public class CommentsService {
 
     private CommentDisplayDTO makeTopLevelComment(CommentForm commentForm, ForumPost post, User creatingUser){
         Comment newComment = new Comment(commentForm.content());
-        addCommentToPostAndUser(newComment, post, creatingUser);
-        newComment.setAnonymized(commentForm.remainAnonymous());
+        configureComment(newComment, post, creatingUser, post.getId(), commentForm.remainAnonymous());
 
         Comment savedComment =  commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
@@ -130,10 +131,8 @@ public class CommentsService {
 
         ForumPost associatedPost = parentComment.getAssociatedPost();
         Comment newComment = new Comment(commentForm.content());
-        addCommentToPostAndUser(newComment, associatedPost, creatingUser);
+        configureComment(newComment, associatedPost, creatingUser, parentComment.getId(), commentForm.remainAnonymous());
 
-        newComment.setAnonymized(commentForm.remainAnonymous());
-        newComment.setParentCommentId(parentComment.getId());
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
 
         Comment savedComment = commentRepository.save(newComment);

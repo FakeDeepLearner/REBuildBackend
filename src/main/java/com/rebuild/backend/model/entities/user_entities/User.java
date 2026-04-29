@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.profile_entities.UserProfile;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.model.entities.resume_entities.reviews_entities.ResumeReview;
+import com.rebuild.backend.model.entities.resume_entities.reviews_entities.ResumeSnapshot;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -119,6 +120,13 @@ public class User implements UserDetails, OidcUser, Serializable {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "user", fetch = FetchType.LAZY)
     private List<Comment> madeComments = new ArrayList<>();
+
+    @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "associatedUser")
+    private List<ResumeSnapshot> snapshots = new ArrayList<>();
+
+
+    @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "reviewingUser")
+    private List<ResumeReview> reviews = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;
