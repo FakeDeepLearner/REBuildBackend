@@ -3,7 +3,7 @@ package com.rebuild.backend.model.forms.auth_forms;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record SignupForm(
+public record SignupInitializationForm(
                          @Email(message = "Must be a valid email")
                          @NotBlank(message = "Email is required")
                          String email,
@@ -19,6 +19,5 @@ public record SignupForm(
                          String forumUsername,
 
                          String phoneNumber,
-                         boolean forcePassword,
                          boolean remember) {
 }

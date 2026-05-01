@@ -1,0 +1,31 @@
+package com.rebuild.backend.model.forms.auth_forms;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+import java.util.List;
+
+public record SignupFinalizationForm(@Email(message = "Must be a valid email")
+                                     @NotBlank(message = "Email is required")
+                                     String email,
+
+                                     @NotBlank(message = "Password is required")
+                                     String password,
+
+
+                                     @NotBlank(message = "Repeated password is required")
+                                     String repeatedPassword,
+
+                                     @NotBlank(message = "Username is required")
+                                     String forumUsername,
+
+                                     String phoneNumber,
+
+                                     String qrCode, List<String> recoveryCodes,
+
+                                     @NotBlank(message = "OTP is required")
+                                     String enteredOTP,
+
+                                     boolean codesUnretrievableConfirmation,
+                                     boolean remember) {
+}

@@ -4,10 +4,12 @@ import com.nulabinc.zxcvbn.Feedback;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.auth_forms.SignupForm;
+import com.rebuild.backend.model.exceptions.UserAuthException;
+import com.rebuild.backend.model.forms.auth_forms.SignupInitializationForm;
 import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -77,7 +79,7 @@ public class CustomPasswordService implements UserDetailsPasswordService {
     }
 
 
-    public boolean passwordFoundInDataBreach(String password) throws IOException, InterruptedException {
+    public boolean passwordFoundInDataBreach(String password) {
         String sha1Hash = encryptWithSHA1(password);
 
         String first5chars = sha1Hash.substring(0, 5);
@@ -91,30 +93,35 @@ public class CustomPasswordService implements UserDetailsPasswordService {
         HttpClient client = HttpClient.newHttpClient();
         Thread.currentThread().interrupt();
 
-        HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
+        try {
+            HttpResponse<Stream<String>> response = client.send(request, HttpResponse.BodyHandlers.ofLines());
 
-        return response.body().
-                anyMatch(line -> line.split(":")[0].equals(otherChars));
+            return response.body().
+                    anyMatch(line -> line.split(":")[0].equals(otherChars));
+        }
+        catch (IOException | InterruptedException e) {
+            throw new UserAuthException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong while checking the database for a password breach");
+        }
     }
 
 
-    public PasswordFeedbackDTO evaluateUserPassword(SignupForm signupForm)
+    public PasswordFeedbackDTO evaluateUserPassword(SignupInitializationForm signupInitializationForm)
     {
         List<String> penalizedWords = new ArrayList<>();
-        penalizedWords.add(signupForm.email());
-        penalizedWords.add(signupForm.forumUsername());
-        if (signupForm.forumUsername() != null)
+        penalizedWords.add(signupInitializationForm.email());
+        penalizedWords.add(signupInitializationForm.forumUsername());
+        if (signupInitializationForm.forumUsername() != null)
         {
-            penalizedWords.add(signupForm.forumUsername());
+            penalizedWords.add(signupInitializationForm.forumUsername());
         }
-        if (signupForm.phoneNumber() != null)
+        if (signupInitializationForm.phoneNumber() != null)
         {
-            penalizedWords.add(signupForm.phoneNumber());
+            penalizedWords.add(signupInitializationForm.phoneNumber());
         }
 
         Zxcvbn zxcvbn = new Zxcvbn();
 
-        Strength strength = zxcvbn.measure(determinePasswordToEvaluate(signupForm.password()), penalizedWords);
+        Strength strength = zxcvbn.measure(determinePasswordToEvaluate(signupInitializationForm.password()), penalizedWords);
 
         int score = strength.getScore();
 

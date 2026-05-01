@@ -34,6 +34,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     """)
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 
+    Optional<User> findByEmailOrForumUsernameOrPhoneNumber(String email, String forumUsername, String phoneNumber);
+
 
 
 

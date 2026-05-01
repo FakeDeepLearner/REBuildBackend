@@ -26,12 +26,7 @@ import java.util.*;
 import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_email", columnNames = {"email"}),
-        //Even if we set up a unique constraint on phone numbers, postgresql allows for multiple null values
-        @UniqueConstraint(name = "uk_phone_number", columnNames = {"phone_number"}),
-        @UniqueConstraint(name = "uk_forum_username", columnNames = {"forum_username"})
-}, indexes = {
+@Table(name = "users", indexes = {
         @Index(columnList = "lastLoginTime"),
         @Index(columnList = "email"),
         @Index(columnList = "phone_number")
@@ -63,13 +58,14 @@ public class User implements UserDetails, OidcUser, Serializable {
 
     @Column(
             nullable = false,
-            name = "email"
+            name = "email",
+            unique = true
     )
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)
     private String email;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
     @NonNull
@@ -91,17 +87,14 @@ public class User implements UserDetails, OidcUser, Serializable {
     @OrderBy("creationTime ASC")
     private List<Resume> resumes = new ArrayList<>();
 
-    @Column(name = "is_mfa_user")
-    private boolean enrolledInMFA = false;
-
-    @Column(name = "mfa_secret_value")
-    private String mfaSecretValue = null;
+    @Column(name = "mfa_secret_value", nullable = false)
+    private String mfaSecretValue;
 
     @OneToMany(orphanRemoval = true, mappedBy = "user", cascade = ALL)
     @JsonIgnore
     private List<MFARecoveryCodeEntity> recoveryCodes;
 
-    @Column(name = "forum_username")
+    @Column(name = "forum_username", unique = true)
     private String forumUsername;
 
     @Column(name = "backup_forum_username", nullable = false)
@@ -149,11 +142,13 @@ public class User implements UserDetails, OidcUser, Serializable {
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
                 String phoneNumber,
-                @NonNull String saltValue) {
+                @NonNull String saltValue,
+                @NonNull String mfaSecretValue) {
         this.password = encodedPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.saltValue = saltValue;
+        this.mfaSecretValue = mfaSecretValue;
     }
 
     @Override

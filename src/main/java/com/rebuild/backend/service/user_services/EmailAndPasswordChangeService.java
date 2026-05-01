@@ -4,7 +4,7 @@ import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.EmailChangeConfirmationForm;
-import com.rebuild.backend.model.forms.auth_forms.LoginForm;
+import com.rebuild.backend.model.forms.auth_forms.LoginInitializationForm;
 import com.rebuild.backend.model.forms.auth_forms.PasswordResetForm;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.auth_services.UserAuthenticationHelperService;
@@ -19,10 +19,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +29,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -167,7 +163,7 @@ public class EmailAndPasswordChangeService {
         Claims tokenClaims = extractTokenClaims(token);
 
         CredentialValidationDTO validationResult = authenticationHelperService.
-                validateLoginCredentials(new LoginForm(confirmationForm.oldEmail(), confirmationForm.password()));
+                validateLoginCredentials(new LoginInitializationForm(confirmationForm.oldEmail(), confirmationForm.password()));
 
         if (validationResult == null || !validationResult.canLogin())
         {

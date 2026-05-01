@@ -11,10 +11,8 @@ import com.rebuild.backend.service.auth_services.TOTPCodeService;
 import com.rebuild.backend.service.auth_services.UserAuthenticationHelperService;
 import com.rebuild.backend.service.user_services.EmailAndPasswordChangeService;
 import com.rebuild.backend.service.user_services.UserService;
-import com.sendgrid.helpers.mail.Mail;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.hibernate.exception.ConstraintViolationException;
@@ -27,9 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 
@@ -64,14 +60,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login/initialize")
-    public ResponseEntity<String> initializeLogin(@Valid @RequestBody LoginForm loginForm,
+    public ResponseEntity<String> initializeLogin(@Valid @RequestBody LoginInitializationForm loginInitializationForm,
                                              @RequestParam(name = "g-recaptcha-response") String userResponse,
-                                             HttpServletRequest request) throws IOException {
+                                             HttpServletRequest request){
         if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
-        CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginForm);
+        CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginInitializationForm);
         if (credentialValidationDTO == null)
         {
             throw new UserAuthException(HttpStatus.NOT_FOUND, "No user with this email or phone number exists");
@@ -85,12 +81,6 @@ public class AuthenticationController {
             boolean userCanLogin = credentialValidationDTO.canLogin();
             if (!userCanLogin){
                 throw new UserAuthException(HttpStatus.CONFLICT, "Invalid username or password");
-            }
-
-            if (!credentialValidationDTO.enrolledInMFA())
-            {
-                loginHelper(loginForm, request);
-                return ResponseEntity.ok("Login successful");
             }
 
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Please open your " +
@@ -124,7 +114,7 @@ public class AuthenticationController {
 
     @PostMapping("/login/finalize")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> finalizeLogin(@Valid @RequestBody LoginForm form,
+    public ResponseEntity<String> finalizeLogin(@Valid @RequestBody LoginFinalizationForm form,
                                                @RequestParam(name = "remember-me") boolean remember,
     @RequestParam(name = "code") String enteredOtpCode,
     HttpServletRequest request){
@@ -140,12 +130,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login/recovery_code")
-    public ResponseEntity<String> loginWithRecoveryCode(@Valid @RequestBody LoginForm form,
-                                                        @RequestParam(name = "code") String enteredCode,
+    public ResponseEntity<String> loginWithRecoveryCode(@Valid @RequestBody LoginFinalizationForm form,
                                                         HttpServletRequest request)
     {
         RecoveryCodeVerificationResponse verificationResponse =
-                recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), enteredCode);
+                recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), form.enteredCode());
 
         if (verificationResponse.userOutOfCodes())
         {
@@ -165,7 +154,7 @@ public class AuthenticationController {
         }
     }
 
-    private void loginHelper(LoginForm form, HttpServletRequest request){
+    private void loginHelper(LoginFinalizationForm form, HttpServletRequest request){
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         form.emailOrPhone(), form.password())
@@ -174,83 +163,52 @@ public class AuthenticationController {
         request.getSession(true);
     }
 
-    private User signUpNewUser(SignupForm signupForm, HttpServletRequest request,
-                                            MultipartFile pictureFile)
-    {
-        //This block of code deals with creating the user in the database.
-        try {
-            User createdUser = userService.createNewUser(signupForm, pictureFile);
-            // This block of code is used to automatically authenticate the user that just signed up,
-            // ensuring a seamless UX
-            Authentication auth = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            signupForm.email(), signupForm.password())
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            request.getSession(true);
-            return createdUser;
-        }
-        catch (DataIntegrityViolationException integrityViolationException){
-            Throwable cause = integrityViolationException.getCause();
-            if (cause instanceof ConstraintViolationException violationException){
-                String violatedConstraint = violationException.getConstraintName();
-                switch (violatedConstraint){
-                    case "uk_email" -> throw new UserAuthException(HttpStatus.CONFLICT, "This email already exists");
-                    case "uk_phone_number" -> throw new UserAuthException(HttpStatus.CONFLICT, "This phone number already exists");
-                    case "uk_forum_username" -> throw new UserAuthException(HttpStatus.CONFLICT, "This username already exists");
 
-                    //This should never happen
-                    case null -> throw new RuntimeException();
-
-                    default -> throw new IllegalStateException("Unexpected value: " + violatedConstraint);
-                }
-            }
-        }
-        return null;
-    }
-
-    @PostMapping(value = "/signup", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/signup/initialize")
     @ResponseStatus(HttpStatus.OK)
-    public User signUpUser(@Valid @RequestPart(name = "meta") SignupForm signupForm,
-                                            HttpServletRequest request,
-                                            @RequestPart(name = "file") MultipartFile profilePicture,
-                                            @RequestParam(name = "g-recaptcha-response") String userResponse)
-            throws IOException, InterruptedException {
+    public MFAEnrolmentResponse initializeSignup(@Valid @RequestBody SignupInitializationForm signupInitializationForm,
+                                                 @RequestParam(name = "g-recaptcha-response") String userResponse,
+                                                 HttpServletRequest request) {
         if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
-        boolean passwordCheckSuccessful = authenticationHelperService.doPreliminaryPasswordChecks(signupForm);
+        boolean credentialsAreFree = authenticationHelperService.signupCredentialsAreFree(signupInitializationForm);
 
-        if (passwordCheckSuccessful)
+        if (credentialsAreFree)
         {
-            return signUpNewUser(signupForm, request, profilePicture);
+            return totpCodeService.startMFAEnrolment(signupInitializationForm);
         }
+
+        // Will never get here, since the credential check will fail with an exception
+        // if the password is not strong enough or if any of the credentials are taken already.
         return null;
 
     }
 
-    @PostMapping("/mfa/initialize")
-    @ResponseStatus(HttpStatus.OK)
-    public MFAEnrolmentResponse startMFAEnrolment(@AuthenticationPrincipal User startingUser,
-                                               @RequestBody String enteredPassword)
-    {
-        MFAEnrolmentResponse enrolmentResponse = totpCodeService.startMFAEnrolment(startingUser, enteredPassword);
 
-        if (enrolmentResponse == null)
-        {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Incorrect password");
+    @PostMapping(value = "/signup/finalize")
+    @ResponseStatus(HttpStatus.CREATED)
+    public User finalizeSignup(@Valid @RequestBody SignupFinalizationForm signupFinalizationForm,
+                                                 HttpServletRequest request,
+                                                 @RequestParam(name = "g-recaptcha-response") String userResponse) {
+        if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
-        return enrolmentResponse;
+        User createdUser = totpCodeService.enrolUserInMFA(signupFinalizationForm);
+
+        // This block of code is used to automatically authenticate the user that just signed up,
+        // ensuring a seamless UX
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        createdUser.getEmail(), signupFinalizationForm.password())
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        request.getSession(true);
+        return createdUser;
+
     }
 
-    @PostMapping("/mfa/finalize")
-    @ResponseStatus(HttpStatus.OK)
-    public User finalizeMFAEnrolment(@AuthenticationPrincipal User user,
-                                                       @RequestBody MFAEnrolmentForm enrolmentForm)
-    {
-        return totpCodeService.enrolUserInMFA(user, enrolmentForm);
-    }
 
 
     @GetMapping("/mfa/regenerate_codes")

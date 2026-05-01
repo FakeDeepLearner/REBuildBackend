@@ -7,8 +7,8 @@ import com.google.recaptchaenterprise.v1.Event;
 import com.google.recaptchaenterprise.v1.ProjectName;
 import com.rebuild.backend.model.entities.user_entities.*;
 import com.rebuild.backend.model.exceptions.UserAuthException;
-import com.rebuild.backend.model.forms.auth_forms.LoginForm;
-import com.rebuild.backend.model.forms.auth_forms.SignupForm;
+import com.rebuild.backend.model.forms.auth_forms.LoginInitializationForm;
+import com.rebuild.backend.model.forms.auth_forms.SignupInitializationForm;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
@@ -18,14 +18,11 @@ import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Optional;
 
 @Service
 public class UserAuthenticationHelperService {
@@ -88,20 +85,25 @@ public class UserAuthenticationHelperService {
     }
 
 
-    public boolean captchaFailed(String userResponse, String userIp) throws IOException {
+    public boolean captchaFailed(String userResponse, String userIp) {
 
-        Assessment assessment = createAssessment(dotenv.get("GOOGLE_CAPTCHA_PROJECT_ID"), "6Lel3s0sAAAAAFBcui1DEbyHP99ydRlS6XHnaqlz",
-                userResponse, userIp, "");
+        try {
+            Assessment assessment = createAssessment(dotenv.get("GOOGLE_CAPTCHA_PROJECT_ID"), "6Lel3s0sAAAAAFBcui1DEbyHP99ydRlS6XHnaqlz",
+                    userResponse, userIp, "");
 
-        float assessmentScore = assessment.getRiskAnalysis().getScore();
+            float assessmentScore = assessment.getRiskAnalysis().getScore();
 
-        return assessmentScore < 0.7;
+            return assessmentScore < 0.7;
+        }
+        catch (IOException e){
+            throw new UserAuthException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to verify captcha");
+        }
     }
 
 
 
 
-    public CredentialValidationDTO validateLoginCredentials(LoginForm form) {
+    public CredentialValidationDTO validateLoginCredentials(LoginInitializationForm form) {
         String formField = form.emailOrPhone();
 
         User foundUser = userRepository.findByEmailOrPhoneNumber(formField).orElse(null);
@@ -115,33 +117,47 @@ public class UserAuthenticationHelperService {
         String pepper = dotenv.get("PEPPER_VALUE");
 
         return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
-                foundUser.getPassword()), foundUser, foundUser.isEnrolledInMFA());
+                foundUser.getPassword()), foundUser);
 
     }
 
 
-    public boolean doPreliminaryPasswordChecks(SignupForm signupForm) throws IOException, InterruptedException {
+    public boolean signupCredentialsAreFree(SignupInitializationForm form) {
+        if (form.forumUsername().startsWith("Anonymous"))
+        {
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Username cannot start with \"Anonymous\"");
+        }
+        Optional<User> foundUser = userRepository.findByEmailOrForumUsernameOrPhoneNumber(form.email(),
+                form.forumUsername(), form.phoneNumber());
+
+        if (foundUser.isPresent()) {
+            throw new UserAuthException(HttpStatus.CONFLICT, "A user already exists with the same email, forum username, or phone number");
+        }
+        return doPreliminaryPasswordChecks(form);
+
+    }
+    public boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
         //Do preliminary checks. If any of them fail, abort the signup immediately
-        if (!signupForm.password().equals(signupForm.repeatedPassword())){
+        if (!signupInitializationForm.password().equals(signupInitializationForm.repeatedPassword())){
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");
         }
 
-        if (signupForm.password().length() < 10)
+        if (signupInitializationForm.password().length() < 8)
         {
             throw new UserAuthException(HttpStatus.BAD_REQUEST,
-                    "Password is too short, please ensure it has a length of at least 10");
+                    "Password is too short, please ensure it has a length of at least 8 characters");
         }
 
-        if (!signupForm.forcePassword() && passwordService.passwordFoundInDataBreach(signupForm.password()))
+        if (passwordService.passwordFoundInDataBreach(signupInitializationForm.password()))
         {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "The password you entered was found in a data breach." +
                     "We strongly recommend that you choose a different one.");
         }
 
-        PasswordFeedbackDTO feedbackResponse = passwordService.evaluateUserPassword(signupForm);
+        PasswordFeedbackDTO feedbackResponse = passwordService.evaluateUserPassword(signupInitializationForm);
         int score = feedbackResponse.score();
 
-        if (!signupForm.forcePassword() && score <= 2)
+        if (score <= 2)
         {
 
             StringBuilder builder = new StringBuilder();

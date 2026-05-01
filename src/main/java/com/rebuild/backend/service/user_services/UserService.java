@@ -4,7 +4,8 @@ package com.rebuild.backend.service.user_services;
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.UserAuthException;
-import com.rebuild.backend.model.forms.auth_forms.SignupForm;
+import com.rebuild.backend.model.forms.auth_forms.SignupFinalizationForm;
+import com.rebuild.backend.model.forms.auth_forms.SignupInitializationForm;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -13,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
 import java.util.*;
@@ -55,36 +55,33 @@ public class UserService{
     }
 
     @Transactional
-    public User createNewUser(SignupForm signupForm, MultipartFile pictureFile){
-        if (signupForm.forumUsername().startsWith("Anonymous"))
-        {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Username cannot start with \"Anonymous\"");
-        }
+    public User createNewUser(SignupFinalizationForm finalizationForm, String mfaSecret){
 
         String generatedSalt = generateSaltValue();
         String pepper = dotenv.get("PEPPER_VALUE");
-        String encodedPassword = encoder.encode(signupForm.password() + generatedSalt + pepper);
-        User newUser = new User(encodedPassword, signupForm.email(),
-                signupForm.phoneNumber(), generatedSalt);
+        String encodedPassword = encoder.encode(finalizationForm.password() + generatedSalt + pepper);
+        User newUser = new User(encodedPassword, finalizationForm.email(),
+                finalizationForm.phoneNumber(), generatedSalt, mfaSecret);
 
-        newUser.setForumUsername(signupForm.forumUsername());
+        newUser.setForumUsername(finalizationForm.forumUsername());
 
         newUser.setAnonymizedNameBase(UUID.randomUUID().toString().substring(0, 8));
 
-        UserProfile newUserProfile = createNewProfile(newUser, pictureFile);
+        UserProfile newUserProfile = createNewProfile(newUser);
         newUser.setUserProfile(newUserProfile);
         newUserProfile.setUser(newUser);
 
-        return repository.save(newUser);
+        return newUser;
     }
 
-    private UserProfile createNewProfile(User newUser, MultipartFile pictureFile){
+    private UserProfile createNewProfile(User newUser){
 
         UserProfile newProfile = new UserProfile();
         newUser.setUserProfile(newProfile);
         newProfile.setUser(newUser);
 
-        return cloudinaryService.modifyProfilePictureOf(newUser, pictureFile);
+        return newProfile;
+
     }
 
     @Transactional
