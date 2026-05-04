@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,23 +65,26 @@ public class TOTPCodeService {
 
         List<String> codes = recoveryCodeHelperService.generateCodesForDisplay();
 
+        //This secret serves as the setup key and the secret at the same time
         String rawSecret = generateRandomSecret();
 
         String userEmail = signupInitializationForm.email();
 
 
-        Optional<TemporaryMFASecret> existingSecret = temporaryMFASecretRepository.findByEmail(userEmail);
+        //If we found a non-expired secret, delete it.
+        Optional<TemporaryMFASecret> existingSecret = temporaryMFASecretRepository.
+                findByEmailAndExpiryTimeAfter(userEmail, Instant.now());
 
         existingSecret.ifPresent(temporaryMFASecretRepository::delete);
 
-        TemporaryMFASecret newSecret = new TemporaryMFASecret(userEmail, rawSecret);
+        TemporaryMFASecret newSecret = new TemporaryMFASecret(userEmail, rawSecret, Instant.now().plus(Duration.ofMinutes(10)));
 
         temporaryMFASecretRepository.save(newSecret);
 
         String generatedURL = String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%s",
                 ISSUER_NAME, userEmail, rawSecret, ISSUER_NAME, TOTP_CODE_NUM_DIGITS);
 
-        return new MFAEnrolmentResponse(generatedURL, codes);
+        return new MFAEnrolmentResponse(generatedURL, codes, rawSecret);
 
     }
 
@@ -92,6 +98,7 @@ public class TOTPCodeService {
         return authenticator.authorize(userSecret, Integer.parseInt(enteredOtp));
     }
 
+    @Transactional
     public boolean otpMatches(LoginFinalizationForm form, String enteredOtp)
     {
         User foundUser = userRepository.findByEmailOrPhoneNumber(form.emailOrPhone()).orElse(null);
@@ -102,6 +109,7 @@ public class TOTPCodeService {
     }
 
 
+    @Transactional
     public User enrolUserInMFA(SignupFinalizationForm finalizationForm)
     {
 
@@ -112,7 +120,8 @@ public class TOTPCodeService {
 
         }
 
-        Optional<TemporaryMFASecret> foundSecret = temporaryMFASecretRepository.findByEmail(finalizationForm.email());
+        Optional<TemporaryMFASecret> foundSecret = temporaryMFASecretRepository.
+                findByEmailAndExpiryTimeAfter(finalizationForm.email(), Instant.now());
 
         //There should be a found secret here.
         if (foundSecret.isPresent()){
@@ -125,13 +134,18 @@ public class TOTPCodeService {
             // associate this secret and the generated recovery codes with it, and then delete this temporary saved secret.
 
             User newUser = userService.createNewUser(finalizationForm, mfaSecret.getSecret());
-            newUser.setMfaSecretValue(mfaSecret.getSecret());
             recoveryCodeHelperService.associateCodesWithUser(newUser, finalizationForm.recoveryCodes());
             temporaryMFASecretRepository.delete(mfaSecret);
             return userRepository.save(newUser);
         }
-        //If there is not found secret, we return null for now. We will figure out how to deal with this later.
-        return null;
+        //If a secret is not found, raise an exception as it is not possible to process this request.
+        //This means that this is either an adversary trying to skip the previous steps, or it is
+        //a regular user, but their temporary credential no longer exists
+        else
+        {
+            throw new UserAuthException(HttpStatus.UNPROCESSABLE_CONTENT, "This signup attempt is either expired," +
+                    "or is trying to bypass MFA. Please try signing up again");
+        }
 
 
     }

@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.user_entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -25,4 +26,7 @@ public class TemporaryMFASecret {
 
     @NonNull
     private String secret;
+
+    @NonNull
+    private Instant expiryTime;
 }
