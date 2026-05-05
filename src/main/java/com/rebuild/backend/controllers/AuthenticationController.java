@@ -116,10 +116,9 @@ public class AuthenticationController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> finalizeLogin(@Valid @RequestBody LoginFinalizationForm form,
                                                @RequestParam(name = "remember-me") boolean remember,
-    @RequestParam(name = "code") String enteredOtpCode,
     HttpServletRequest request){
 
-        if (totpCodeService.otpMatches(form, enteredOtpCode))
+        if (totpCodeService.otpMatches(form))
         {
             loginHelper(form, request);
             return ResponseEntity.ok().body("Login successful, redirecting you to your home page.");

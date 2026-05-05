@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TemporaryMFASecret {
+public class TemporaryMFACredentials {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +24,11 @@ public class TemporaryMFASecret {
     @NonNull
     @Column(unique = true)
     private String email;
+
+    @NonNull
+    @ElementCollection
+    @CollectionTable(name = "temporary_codes", joinColumns = @JoinColumn(name = "code_id", referencedColumnName = "id"))
+    private List<String> temporaryCodes;
 
     @NonNull
     private String secret;

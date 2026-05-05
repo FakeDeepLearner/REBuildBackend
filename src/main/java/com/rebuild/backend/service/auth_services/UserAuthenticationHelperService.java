@@ -20,6 +20,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -122,6 +123,7 @@ public class UserAuthenticationHelperService {
     }
 
 
+    @Transactional
     public boolean signupCredentialsAreFree(SignupInitializationForm form) {
         if (form.forumUsername().startsWith("Anonymous"))
         {
@@ -136,7 +138,9 @@ public class UserAuthenticationHelperService {
         return doPreliminaryPasswordChecks(form);
 
     }
-    public boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
+
+    @Transactional
+    private boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupInitializationForm.password().equals(signupInitializationForm.repeatedPassword())){
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");

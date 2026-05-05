@@ -1,5 +1,6 @@
 package com.rebuild.backend.service.auth_services;
 
+import com.rebuild.backend.model.dtos.RecoveryCodesDTO;
 import com.rebuild.backend.model.entities.user_entities.MFARecoveryCodeEntity;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
@@ -29,23 +30,30 @@ public class RecoveryCodeHelperService {
         this.recoveryCodeRepository = recoveryCodeRepository;
     }
 
-    List<String> generateCodesForDisplay()
+
+
+    public List<RecoveryCode> generateCodes()
     {
         return Stream.generate(RecoveryCode::create).
-                map(RecoveryCode::getDisplayValue).
                 limit(NUM_RECOVERY_CODES_GENERATED).toList();
     }
 
+    public RecoveryCodesDTO getHashedAndDisplayedCodes(List<RecoveryCode> rawCodes)
+    {
+        List<String> displayedCodes = rawCodes.stream().map(RecoveryCode::getDisplayValue).toList();
+
+        List<String> hashedCodes = rawCodes.stream().map(RecoveryCode::hashedValue).toList();
+
+        return new RecoveryCodesDTO(hashedCodes, displayedCodes);
+    }
 
     @Transactional
-    void associateCodesWithUser(User user, List<String> codes)
+    public void associateCodesWithUser(User user, List<String> codes)
     {
         List<MFARecoveryCodeEntity> derivedCodes = codes.stream()
                 .map(code -> {
-                    RecoveryCode codeRepr = RecoveryCode.fromInput(code);
                     MFARecoveryCodeEntity newCode =
-                            new MFARecoveryCodeEntity(Objects.
-                                    requireNonNull(codeRepr.hashedValue()));
+                            new MFARecoveryCodeEntity(code);
                     newCode.setUser(user);
                     return newCode;
                 }).toList();
@@ -57,12 +65,14 @@ public class RecoveryCodeHelperService {
     @Transactional
     public List<String> regenerateRecoveryCodesFor(User user)
     {
-        List<String> newCodes = generateCodesForDisplay();
+        List<RecoveryCode> rawCodes = generateCodes();
 
-        associateCodesWithUser(user, newCodes);
+        RecoveryCodesDTO recoveryCodesDTO = getHashedAndDisplayedCodes(rawCodes);
+
+        associateCodesWithUser(user, recoveryCodesDTO.hashedCodes());
         userRepository.save(user);
 
-        return newCodes;
+        return recoveryCodesDTO.displayedCodes();
     }
 
 

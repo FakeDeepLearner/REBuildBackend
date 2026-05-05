@@ -1,30 +1,31 @@
 package com.rebuild.backend.service.auth_services;
 
-import com.rebuild.backend.model.entities.user_entities.TemporaryMFASecret;
+import com.rebuild.backend.model.dtos.RecoveryCodesDTO;
+import com.rebuild.backend.model.entities.user_entities.RecoveryCode;
+import com.rebuild.backend.model.entities.user_entities.TemporaryMFACredentials;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.*;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
-import com.rebuild.backend.repository.user_repositories.TemporaryMFASecretRepository;
+import com.rebuild.backend.repository.user_repositories.TemporaryMFACredentialsRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.user_services.UserService;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import org.apache.commons.codec.binary.Base32;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class TOTPCodeService {
+    private static final int SECRET_BYTES_LENGTH = 16;
 
     private static final int TOTP_CODE_NUM_DIGITS = 6;
 
@@ -34,16 +35,16 @@ public class TOTPCodeService {
 
     private final RecoveryCodeHelperService recoveryCodeHelperService;
 
-    private final TemporaryMFASecretRepository temporaryMFASecretRepository;
+    private final TemporaryMFACredentialsRepository temporaryMFACredentialsRepository;
 
     private final UserService userService;
 
     public TOTPCodeService(UserRepository userRepository,
                            RecoveryCodeHelperService recoveryCodeHelperService,
-                           TemporaryMFASecretRepository temporaryMFASecretRepository, UserService userService) {
+                           TemporaryMFACredentialsRepository temporaryMFACredentialsRepository, UserService userService) {
         this.userRepository = userRepository;
         this.recoveryCodeHelperService = recoveryCodeHelperService;
-        this.temporaryMFASecretRepository = temporaryMFASecretRepository;
+        this.temporaryMFACredentialsRepository = temporaryMFACredentialsRepository;
         this.userService = userService;
     }
 
@@ -51,7 +52,7 @@ public class TOTPCodeService {
     {
         SecureRandom random = new SecureRandom();
 
-        byte[] bytes = new byte[16];
+        byte[] bytes = new byte[SECRET_BYTES_LENGTH];
 
         random.nextBytes(bytes);
 
@@ -63,7 +64,9 @@ public class TOTPCodeService {
     public MFAEnrolmentResponse startMFAEnrolment(SignupInitializationForm signupInitializationForm)
     {
 
-        List<String> codes = recoveryCodeHelperService.generateCodesForDisplay();
+        List<RecoveryCode> rawCodes = recoveryCodeHelperService.generateCodes();
+
+        RecoveryCodesDTO recoveryCodesDTO = recoveryCodeHelperService.getHashedAndDisplayedCodes(rawCodes);
 
         //This secret serves as the setup key and the secret at the same time
         String rawSecret = generateRandomSecret();
@@ -72,26 +75,29 @@ public class TOTPCodeService {
 
 
         //If we found a non-expired secret, delete it.
-        Optional<TemporaryMFASecret> existingSecret = temporaryMFASecretRepository.
+        Optional<TemporaryMFACredentials> existingSecret = temporaryMFACredentialsRepository.
                 findByEmailAndExpiryTimeAfter(userEmail, Instant.now());
 
-        existingSecret.ifPresent(temporaryMFASecretRepository::delete);
+        existingSecret.ifPresent(temporaryMFACredentialsRepository::delete);
 
-        TemporaryMFASecret newSecret = new TemporaryMFASecret(userEmail, rawSecret, Instant.now().plus(Duration.ofMinutes(10)));
+        TemporaryMFACredentials newSecret = new TemporaryMFACredentials(userEmail,
+                recoveryCodesDTO.hashedCodes(),
+                rawSecret, Instant.now().plus(Duration.ofMinutes(10)));
 
-        temporaryMFASecretRepository.save(newSecret);
+        temporaryMFACredentialsRepository.save(newSecret);
 
         String generatedURL = String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%s",
                 ISSUER_NAME, userEmail, rawSecret, ISSUER_NAME, TOTP_CODE_NUM_DIGITS);
 
-        return new MFAEnrolmentResponse(generatedURL, codes, rawSecret);
+        return new MFAEnrolmentResponse(generatedURL, recoveryCodesDTO.displayedCodes(), rawSecret);
 
     }
 
     private boolean userOtpMatches(String userSecret, String enteredOtp)
     {
         GoogleAuthenticatorConfig authConfig =
-                new GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder().setSecretBits(128).build();
+                new GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder().
+                        setSecretBits(SECRET_BYTES_LENGTH * 8).setCodeDigits(TOTP_CODE_NUM_DIGITS).build();
 
         GoogleAuthenticator authenticator = new GoogleAuthenticator(authConfig);
 
@@ -99,13 +105,13 @@ public class TOTPCodeService {
     }
 
     @Transactional
-    public boolean otpMatches(LoginFinalizationForm form, String enteredOtp)
+    public boolean otpMatches(LoginFinalizationForm form)
     {
         User foundUser = userRepository.findByEmailOrPhoneNumber(form.emailOrPhone()).orElse(null);
 
         assert foundUser != null;
 
-        return userOtpMatches(foundUser.getMfaSecretValue(), enteredOtp);
+        return userOtpMatches(foundUser.getMfaSecretValue(), form.enteredCode());
     }
 
 
@@ -115,17 +121,18 @@ public class TOTPCodeService {
 
         if (!finalizationForm.codesUnretrievableConfirmation())
         {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Please confirm that you will not be able to retrieve " +
+            throw new UserAuthException(HttpStatus.BAD_REQUEST,
+                    "Please confirm that you will not be able to retrieve " +
                     "the codes later, and that you have saved them somewhere");
 
         }
 
-        Optional<TemporaryMFASecret> foundSecret = temporaryMFASecretRepository.
+        Optional<TemporaryMFACredentials> foundSecret = temporaryMFACredentialsRepository.
                 findByEmailAndExpiryTimeAfter(finalizationForm.email(), Instant.now());
 
         //There should be a found secret here.
         if (foundSecret.isPresent()){
-            TemporaryMFASecret mfaSecret = foundSecret.get();
+            TemporaryMFACredentials mfaSecret = foundSecret.get();
             if (!userOtpMatches(mfaSecret.getSecret(), finalizationForm.enteredOTP()))
             {
                 throw new UserAuthException(HttpStatus.BAD_REQUEST, "The code that you have entered is incorrect");
@@ -134,8 +141,8 @@ public class TOTPCodeService {
             // associate this secret and the generated recovery codes with it, and then delete this temporary saved secret.
 
             User newUser = userService.createNewUser(finalizationForm, mfaSecret.getSecret());
-            recoveryCodeHelperService.associateCodesWithUser(newUser, finalizationForm.recoveryCodes());
-            temporaryMFASecretRepository.delete(mfaSecret);
+            recoveryCodeHelperService.associateCodesWithUser(newUser, mfaSecret.getTemporaryCodes());
+            temporaryMFACredentialsRepository.delete(mfaSecret);
             return userRepository.save(newUser);
         }
         //If a secret is not found, raise an exception as it is not possible to process this request.

@@ -21,8 +21,6 @@ public record SignupFinalizationForm(@Email(message = "Must be a valid email")
 
                                      String phoneNumber,
 
-                                     String qrCode, List<String> recoveryCodes,
-
                                      @NotBlank(message = "OTP is required")
                                      String enteredOTP,
 
