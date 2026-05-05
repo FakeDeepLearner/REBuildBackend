@@ -4,11 +4,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.security.SecureRandom;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class RecoveryCode {
 
+
     private static final char[] DOMAIN =
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
 
     private static final int CODE_GROUP_SIZE = 4;
 
@@ -17,6 +20,8 @@ public class RecoveryCode {
     private static final int CODE_TOTAL_LENGTH = CODE_GROUP_SIZE * CODE_NUM_GROUPS;
 
     private static final char CODE_GROUP_SEPARATOR = '-';
+
+    private static final int NUM_CODES_GENERATED = 12;
 
     private final String rawCode;
 
@@ -28,7 +33,13 @@ public class RecoveryCode {
         this.rawCode = code;
     }
 
-    public static RecoveryCode create()
+    public static List<RecoveryCode> createCodes()
+    {
+        return Stream.generate(RecoveryCode::create).
+                limit(NUM_CODES_GENERATED).toList();
+    }
+
+    private static RecoveryCode create()
     {
         SecureRandom random = new SecureRandom();
 

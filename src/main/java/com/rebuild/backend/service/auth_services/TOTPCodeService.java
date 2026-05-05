@@ -64,7 +64,7 @@ public class TOTPCodeService {
     public MFAEnrolmentResponse startMFAEnrolment(SignupInitializationForm signupInitializationForm)
     {
 
-        List<RecoveryCode> rawCodes = recoveryCodeHelperService.generateCodes();
+        List<RecoveryCode> rawCodes = RecoveryCode.createCodes();
 
         RecoveryCodesDTO recoveryCodesDTO = recoveryCodeHelperService.getHashedAndDisplayedCodes(rawCodes);
 
@@ -82,7 +82,8 @@ public class TOTPCodeService {
 
         TemporaryMFACredentials newSecret = new TemporaryMFACredentials(userEmail,
                 recoveryCodesDTO.hashedCodes(),
-                rawSecret, Instant.now().plus(Duration.ofMinutes(10)));
+                Instant.now().plus(Duration.ofMinutes(10)));
+        newSecret.setSecret(rawSecret);
 
         temporaryMFACredentialsRepository.save(newSecret);
 

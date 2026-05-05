@@ -30,7 +30,7 @@ public class TemporaryMFACredentials {
     @CollectionTable(name = "temporary_codes", joinColumns = @JoinColumn(name = "code_id", referencedColumnName = "id"))
     private List<String> temporaryCodes;
 
-    @NonNull
+
     private String secret;
 
     @NonNull

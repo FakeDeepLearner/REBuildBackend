@@ -132,24 +132,17 @@ public class AuthenticationController {
     public ResponseEntity<String> loginWithRecoveryCode(@Valid @RequestBody LoginFinalizationForm form,
                                                         HttpServletRequest request)
     {
-        RecoveryCodeVerificationResponse verificationResponse =
+        boolean codeVerified =
                 recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), form.enteredCode());
 
-        if (verificationResponse.userOutOfCodes())
-        {
-            throw new UserAuthException(HttpStatus.CONFLICT, "The request cannot be completed because you" +
-                    "have no valid codes left to use. We have generated new codes for you, displayed below. You do not need to " +
-                    "restart the authentication process.\n\n" + verificationResponse.newCodes());
-        }
-
-
-        if (verificationResponse.codeIsCorrect())
+        if (codeVerified)
         {
             loginHelper(form, request);
             return ResponseEntity.ok("Emergency code used successfully, redirecting you to home page");
         }
         else {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "Incorrect recovery code");
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "The code entered either has already been used," +
+                    "or is not a correct code");
         }
     }
 
@@ -211,9 +204,17 @@ public class AuthenticationController {
 
 
     @GetMapping("/mfa/regenerate_codes")
+    @ResponseStatus(HttpStatus.OK)
     public List<String> regenerateRecoveryCodes(@AuthenticationPrincipal User user)
     {
         return recoveryCodeHelperService.regenerateRecoveryCodesFor(user);
+    }
+
+    @PostMapping("/mfa/regenerate_codes")
+    @ResponseStatus(HttpStatus.OK)
+    public User associateGeneratedCodes(@AuthenticationPrincipal User user, @RequestBody boolean confirmed)
+    {
+        return recoveryCodeHelperService.associateGeneratedCodes(user, confirmed);
     }
 
 
