@@ -81,22 +81,18 @@ public class EmailAndPasswordChangeService {
 
     private String generatePasswordChangeUrl(String email)
     {
-        String token = Jwts.builder().setSubject(email).
-                setIssuedAt(Date.from(Instant.now())).
-                //Expires in 10 minutes
-                setExpiration(Date.from(Instant.now().plusSeconds(EMAIL_EXPIRY_MINUTES * 60))).
-                signWith(jwtSigningKey, SignatureAlgorithm.HS256).compact();
+        String token = Jwts.builder().subject(email).issuedAt(Date.from(Instant.now())).expiration(Date.from(Instant.now().plusSeconds(EMAIL_EXPIRY_MINUTES * 60))).
+                signWith(jwtSigningKey, Jwts.SIG.HS256).compact();
 
         return "https://rerebuild.ca/change_password?token=" + token;
     }
 
     private String generateEmailChangeUrl(String oldEmail, String newEmail)
     {
-        String token = Jwts.builder().setSubject(oldEmail).
-                claim("new_subject", newEmail).
-                setIssuedAt(Date.from(Instant.now())).
-                setExpiration(Date.from(Instant.now().plusSeconds(EMAIL_EXPIRY_MINUTES * 60))).
-                signWith(jwtSigningKey, SignatureAlgorithm.HS256).compact();
+        String token = Jwts.builder().subject(oldEmail).
+                claim("new_subject", newEmail).issuedAt(Date.from(Instant.now())).
+                expiration(Date.from(Instant.now().plusSeconds(EMAIL_EXPIRY_MINUTES * 60))).
+                signWith(jwtSigningKey, Jwts.SIG.HS256).compact();
 
         return "https://rerebuild.ca/change_email?token=" + token;
     }
@@ -104,9 +100,9 @@ public class EmailAndPasswordChangeService {
     private Claims extractTokenClaims(String token)
     {
         try{
-            return Jwts.parserBuilder().
-                    setSigningKey(jwtSigningKey).build()
-                    .parseClaimsJws(token).getBody();
+            return Jwts.parser().
+                    verifyWith(jwtSigningKey).build()
+                    .parseSignedClaims(token).getPayload();
         }
         catch (ExpiredJwtException _)
         {

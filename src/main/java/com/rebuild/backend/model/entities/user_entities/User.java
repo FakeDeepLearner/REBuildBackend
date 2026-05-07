@@ -13,10 +13,6 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
@@ -36,7 +32,7 @@ import static jakarta.persistence.CascadeType.ALL;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements UserDetails, OidcUser, Serializable {
+public class User implements UserDetails, Serializable {
 
     @Serial
     private static final long serialVersionUID = 8L;
@@ -152,11 +148,6 @@ public class User implements UserDetails, OidcUser, Serializable {
     }
 
     @Override
-    public Map<String, Object> getAttributes() {
-        return Map.of();
-    }
-
-    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return AuthorityUtils.NO_AUTHORITIES;
     }
@@ -201,28 +192,6 @@ public class User implements UserDetails, OidcUser, Serializable {
     {
         this.chatParticipations.add(participation);
     }
-
-
-    @Override
-    public Map<String, Object> getClaims() {
-        return Map.of();
-    }
-
-    @Override
-    public OidcUserInfo getUserInfo() {
-        return null;
-    }
-
-    @Override
-    public OidcIdToken getIdToken() {
-        return null;
-    }
-
-    @Override
-    public String getName() {
-        return id.toString();
-    }
-
 
     public String getForumUsername() {
         if  (forumUsername == null) return anonymizedNameBase;

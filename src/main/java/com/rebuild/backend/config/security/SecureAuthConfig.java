@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -58,16 +57,12 @@ public class SecureAuthConfig {
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
                                                          RememberMeServices rememberMeServices,
                                                          RememberMeAuthenticationFilter rememberMeAuthenticationFilter,
-                                                         ClientRegistrationRepository registrationRepository,
                                                          CsrfTokenRepository tokenRepository) throws Exception {
         security
-                //Form login is disabled, because it expects everything to be done in one endpoint.
-                //However, our standard (non-OAuth) login flow has 2 separate endpoints that need to be called.
+                //Form login is disabled because it expects everything to be done in one endpoint.
+                //However, our standard login flow has 2 separate endpoints that need to be called.
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .oauth2Login(config ->
-                        config.clientRegistrationRepository(registrationRepository).
-                                loginPage("/login"))
                 .logout(config -> config.
                     logoutUrl("/logout").
                     logoutSuccessUrl("logged-out").

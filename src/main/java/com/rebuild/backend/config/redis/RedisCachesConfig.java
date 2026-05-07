@@ -10,7 +10,7 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
@@ -47,7 +47,7 @@ public class RedisCachesConfig {
                 entryTtl(Duration.ofSeconds(30)).
                 serializeValuesWith(RedisSerializationContext.
                         SerializationPair.
-                        fromSerializer(new Jackson3JsonRedisSerializer<>(Resume.class)));
+                        fromSerializer(new JacksonJsonRedisSerializer<>(Resume.class)));
 
         RedisCacheConfiguration idempotencyConfig = RedisCacheConfiguration.defaultCacheConfig().
                 entryTtl(Duration.ofSeconds(30));

@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -46,25 +47,25 @@ public class CloudinaryService {
 
     public String generateTimedUrlForPictureId(String pictureId){
         try {
+
             long expiryTimestamp = Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond();
+            Map<String, Object> optionsMap = Map.of("expires_at", expiryTimestamp);
             return cloudinary.privateDownload(pictureId, "jpg",
-                    ObjectUtils.asMap("expires_at", expiryTimestamp));
+                    optionsMap);
         }
         catch (Exception _) {
            return null;
         }
     }
 
-    private CompletableFuture<Void> scheduleDeletion(String public_id)
+    private void scheduleDeletion(String public_id)
     {
-        return CompletableFuture.runAsync(() ->
+        CompletableFuture.runAsync(() ->
         {
             try {
                 cloudinary.uploader().destroy(public_id,
                         ObjectUtils.asMap("type", "private"));
-            }
-            catch (IOException _)
-            {
+            } catch (IOException _) {
 
             }
         }, taskExecutor);
@@ -104,9 +105,9 @@ public class CloudinaryService {
 
     private String createNewPicture(MultipartFile pictureFile) throws IOException {
 
-        Transformation transformation = new Transformation<>().
+        Transformation<?> transformation = new Transformation<>().
                 flags("force_strip").fetchFormat("jpg");
-        Map uploadResult = cloudinary.uploader().upload(pictureFile.getInputStream(),
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(pictureFile.getInputStream(),
                 ObjectUtils.asMap("type", "private",
                         "transformation", transformation));
 
