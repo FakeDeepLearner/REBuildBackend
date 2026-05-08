@@ -2,10 +2,10 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
-import com.rebuild.backend.model.exceptions.FriendshipException;
-import com.rebuild.backend.model.exceptions.NotFoundException;
+import com.rebuild.backend.utils.exceptions.FriendshipException;
+import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRequestRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;

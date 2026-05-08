@@ -1,7 +1,6 @@
-package com.rebuild.backend.utils;
+package com.rebuild.backend.utils.exceptions;
 
 
-import com.rebuild.backend.model.exceptions.ApiException;
 import com.rebuild.backend.model.responses.ApiErrorResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

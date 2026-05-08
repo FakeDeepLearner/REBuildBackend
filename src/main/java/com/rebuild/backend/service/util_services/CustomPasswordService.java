@@ -4,7 +4,7 @@ import com.nulabinc.zxcvbn.Feedback;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.UserAuthException;
+import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.SignupInitializationForm;
 import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
 import com.rebuild.backend.repository.user_repositories.UserRepository;

@@ -2,8 +2,6 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.ResumeFileUploadRecord;
-import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.FileUploadException;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

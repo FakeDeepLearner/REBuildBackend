@@ -2,7 +2,7 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.UserAuthException;
+import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.EmailChangeConfirmationForm;
 import com.rebuild.backend.model.forms.auth_forms.LoginInitializationForm;
 import com.rebuild.backend.model.forms.auth_forms.PasswordResetForm;

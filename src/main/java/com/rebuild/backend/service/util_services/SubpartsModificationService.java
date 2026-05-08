@@ -2,7 +2,7 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;

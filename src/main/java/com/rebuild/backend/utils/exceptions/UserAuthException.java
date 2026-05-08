@@ -1,6 +1,5 @@
-package com.rebuild.backend.model.exceptions;
+package com.rebuild.backend.utils.exceptions;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 
 public class UserAuthException extends ApiException {

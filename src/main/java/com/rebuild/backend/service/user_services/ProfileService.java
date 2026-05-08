@@ -4,7 +4,7 @@ import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
-import com.rebuild.backend.model.exceptions.NotFoundException;
+import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;

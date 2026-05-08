@@ -2,11 +2,10 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.BelongingException;
+import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.exceptions;
+package com.rebuild.backend.utils.exceptions;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
