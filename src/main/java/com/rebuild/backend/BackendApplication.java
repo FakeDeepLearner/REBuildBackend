@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 
 
 @SpringBootApplication
@@ -25,9 +26,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJdbcJobRepository
 @EnableRabbit
 @EnableTransactionManagement
+@EnableWebSocketMessageBroker
 public class BackendApplication {
 
-	public static void main(String[] args) {
+	static void main(String[] args) {
 		SpringApplication.run(BackendApplication.class, args);
 	}
 
