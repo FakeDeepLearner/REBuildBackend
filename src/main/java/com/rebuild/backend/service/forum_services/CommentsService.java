@@ -2,14 +2,14 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
-import com.rebuild.backend.model.exceptions.ApiException;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.model.responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.BelongingException;
-import com.rebuild.backend.model.exceptions.NotFoundException;
+import com.rebuild.backend.utils.exceptions.BelongingException;
+import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;

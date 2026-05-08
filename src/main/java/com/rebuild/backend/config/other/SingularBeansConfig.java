@@ -61,7 +61,7 @@ public class SingularBeansConfig {
         return Executors.newVirtualThreadPerTaskExecutor();
     }
 
-    @Bean
+    @Bean(name = "encoder")
     public PasswordEncoder encoder()
     {
         return new BCryptPasswordEncoder();

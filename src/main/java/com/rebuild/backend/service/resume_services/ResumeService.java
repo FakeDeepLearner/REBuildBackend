@@ -3,7 +3,7 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.model.exceptions.ApiException;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.model.responses.resume_responses.*;

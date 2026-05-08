@@ -6,7 +6,7 @@ import com.google.recaptchaenterprise.v1.CreateAssessmentRequest;
 import com.google.recaptchaenterprise.v1.Event;
 import com.google.recaptchaenterprise.v1.ProjectName;
 import com.rebuild.backend.model.entities.user_entities.*;
-import com.rebuild.backend.model.exceptions.UserAuthException;
+import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.LoginInitializationForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupInitializationForm;
 import com.rebuild.backend.model.dtos.CredentialValidationDTO;

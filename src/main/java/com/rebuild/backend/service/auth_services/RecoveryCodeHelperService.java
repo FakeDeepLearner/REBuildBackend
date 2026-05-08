@@ -4,8 +4,7 @@ import com.rebuild.backend.model.dtos.RecoveryCodesDTO;
 import com.rebuild.backend.model.entities.user_entities.MFARecoveryCodeEntity;
 import com.rebuild.backend.model.entities.user_entities.TemporaryMFACredentials;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.exceptions.UserAuthException;
-import com.rebuild.backend.model.responses.RecoveryCodeVerificationResponse;
+import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.TemporaryMFACredentialsRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
@@ -16,11 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class RecoveryCodeHelperService {
