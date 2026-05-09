@@ -34,7 +34,7 @@ public class SecureAuthConfig {
         return new SessionRegistryImpl();
     }
 
-    //Needed in order to make sure that the SessionRegistry listens to session invalidations and timeouts
+    //Needed to make sure that the SessionRegistry listens to session invalidations and timeouts
     @Bean
     public HttpSessionEventPublisher eventPublisher(){
         return new HttpSessionEventPublisher();

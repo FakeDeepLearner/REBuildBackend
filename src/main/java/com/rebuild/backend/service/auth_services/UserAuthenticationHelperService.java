@@ -140,7 +140,7 @@ public class UserAuthenticationHelperService {
     }
 
     @Transactional
-    private boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
+    protected boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupInitializationForm.password().equals(signupInitializationForm.repeatedPassword())){
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");

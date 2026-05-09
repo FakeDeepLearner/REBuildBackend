@@ -1,27 +1,32 @@
 package com.rebuild.backend.config.other;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.RememberMeAuthenticationProvider;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.*;
 
-import javax.sql.DataSource;
 
 
 // Pretty much this entire class is taken from here, with some modifications:
 // https://docs.spring.io/spring-security/reference/servlet/authentication/rememberme.html
 @Configuration
+@SuppressWarnings("removal")
 public class RememberMeConfig {
 
+    private static final int SECONDS_PER_DAY = 86400;
+
+    //The tokens will be valid for 7 days
+    private static final int TOKEN_VALIDITY_SECONDS = 7 * SECONDS_PER_DAY;
+
     @Bean
-    public PersistentTokenRepository persistentTokenRepository(DataSource dataSource) {
+    public PersistentTokenRepository persistentTokenRepository(JdbcTemplate jdbcTemplate) {
         JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
-        tokenRepository.setDataSource(dataSource);
+        tokenRepository.setJdbcTemplate(jdbcTemplate);
 
         return tokenRepository;
     }
@@ -33,7 +38,7 @@ public class RememberMeConfig {
         PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(
                 dotenv.get("REMEMBER_ME_KEY"),
                 userDetailsService, persistentTokenRepository);
-        services.setTokenValiditySeconds(86400 * 7);
+        services.setTokenValiditySeconds(TOKEN_VALIDITY_SECONDS);
         services.setParameter("remember-me");
 
         return services;
