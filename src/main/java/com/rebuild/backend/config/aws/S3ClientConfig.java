@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-
 @Configuration
 public class S3ClientConfig {
 
@@ -14,7 +13,7 @@ public class S3ClientConfig {
     public S3AsyncClient s3Client(Dotenv dotenv, CustomCredentialsProvider customCredentialsProvider) {
 
         return S3AsyncClient.builder().credentialsProvider(customCredentialsProvider).
-                region(Region.of(dotenv.get("AWS_S3_REGION"))).build();
+                region(Region.of(dotenv.get("AWS_REGION"))).build();
 
     }
 }
