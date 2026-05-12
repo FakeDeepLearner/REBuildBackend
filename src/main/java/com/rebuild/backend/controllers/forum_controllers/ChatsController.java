@@ -93,4 +93,11 @@ public class ChatsController {
     }
 
 
+    @GetMapping("/get_all_ids")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UUID> gatherChatIds(@AuthenticationPrincipal User user)
+    {
+        return chatAndMessageService.findAllChatIdsByUser(user);
+    }
+    
 }

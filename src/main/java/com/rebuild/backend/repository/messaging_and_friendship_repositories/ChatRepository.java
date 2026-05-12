@@ -17,16 +17,23 @@ public interface ChatRepository extends JpaRepository<AbstractChat, UUID> {
     @Query(value = """
     SELECT c FROM AbstractChat c
     LEFT JOIN FETCH c.messages m JOIN FETCH m.sender
-    WHERE c.id=:chatId""")
+    WHERE c.id=?1""")
     Optional<AbstractChat> findByIdWithMessages(UUID chatId);
 
 
 
     @Query("""
     SELECT c FROM PrivateChat c WHERE
-    c.sender=:user OR c.recipient=:user
+    c.sender=?1 OR c.recipient=?1
     """)
     List<PrivateChat> findPrivateChatsByUser(User user);
+
+
+    @Query("""
+    SELECT c.id FROM PrivateChat c WHERE
+    c.sender=?1 OR c.recipient=?1
+    """)
+    List<UUID> findIdsByUser(User user);
 
 
 }

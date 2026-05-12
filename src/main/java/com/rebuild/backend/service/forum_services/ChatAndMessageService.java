@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class ChatAndMessageService {
@@ -58,7 +59,7 @@ public class ChatAndMessageService {
     {
         GroupChat newChat = new GroupChat();
 
-        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true);
+        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat);
         creatingUser.addChatParticipation(userParticipation);
 
         newChat.setChatName(chatName);
@@ -77,7 +78,7 @@ public class ChatAndMessageService {
         GroupChat associatedChat = foundInvitation.getAssociatedChat();
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient,
-                associatedChat, false);
+                associatedChat);
 
         associatedChat.getParticipations().add(recipientParticipation);
         recipient.addChatParticipation(recipientParticipation);
@@ -233,7 +234,7 @@ public class ChatAndMessageService {
 
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<ChatParticipation> groupChatParticipation = participationRepository.findParticipationsByUser(displayingUser);
+        List<ChatParticipation> groupChatParticipation = participationRepository.findByParticipatingUser(displayingUser);
         List<PrivateChat> userChats = chatRepository.findPrivateChatsByUser(displayingUser);
 
         List<DisplayChatResponse> privateChatResponses = userChats.stream()
@@ -291,5 +292,17 @@ public class ChatAndMessageService {
                 }).toList();
 
         return new LoadChatResponse(chatDisplay, chat.getId(), messages, chatPictureUrl);
+    }
+
+
+    public List<UUID> findAllChatIdsByUser(User user)
+    {
+        List<UUID> groupChatIds = participationRepository.findIdsByParticipatingUser(user);
+
+        List<UUID> privateChatIds = chatRepository.findIdsByUser(user);
+
+        //Just add up the 2 lists together.
+        return Stream.of(groupChatIds, privateChatIds).flatMap(Collection::stream).
+                toList();
     }
 }

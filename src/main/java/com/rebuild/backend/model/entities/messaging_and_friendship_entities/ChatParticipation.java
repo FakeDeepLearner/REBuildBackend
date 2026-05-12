@@ -45,11 +45,6 @@ public class ChatParticipation extends Auditable {
     @NonNull
     private GroupChat participatedChat;
 
-    // Indicates whether this user initiated this chat (i.e. sent the first message),
-    // or received this chat (i.e. received the first message)
-    @NonNull
-    @Column(name = "is_sender")
-    private Boolean isSender;
 
     // Indicates whether this user has muted this chat or not.
     @Column(name = "is_muted")

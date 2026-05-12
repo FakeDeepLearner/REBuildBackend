@@ -12,12 +12,12 @@ import java.util.UUID;
 @Repository
 public interface ChatParticipationRepository extends JpaRepository<ChatParticipation, UUID> {
 
+    List<ChatParticipation> findByParticipatingUser(User participatingUser);
+
     @Query(value = """
-        SELECT p FROM ChatParticipation p
-        JOIN FETCH p.participatedChat c
-        JOIN FETCH c.participations cp
-        JOIN FETCH cp.participatingUser
-        WHERE p.participatingUser=:user
-       """)
-    List<ChatParticipation> findParticipationsByUser(User user);
+        SELECT c.id FROM ChatParticipation cp
+        JOIN cp.participatedChat c
+        WHERE cp.participatingUser=?1
+        """)
+    List<UUID> findIdsByParticipatingUser(User participatingUser);
 }

@@ -19,7 +19,6 @@ public class PrivateChat extends AbstractChat {
     @JoinColumn(name = "recipient_id", referencedColumnName = "id")
     private User sender;
 
-
     @NonNull
     @ManyToOne
     @JoinColumn(name = "recipient_id", referencedColumnName = "id")
