@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -26,7 +27,8 @@ public class FriendRequest {
     private UUID id;
 
     @Column(name = "creation_time")
-    private Instant creationTimestamp = Instant.now();
+    @CreationTimestamp
+    private Instant creationTimestamp;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)

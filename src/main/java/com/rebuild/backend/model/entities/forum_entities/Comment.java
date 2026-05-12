@@ -2,13 +2,14 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
 import java.util.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "comments", indexes = {
         @Index(columnList = "author_id"),
@@ -19,7 +20,7 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Comment {
+public class Comment extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -43,11 +44,6 @@ public class Comment {
     private UUID parentId;
 
     private int repliesCount = 0;
-
-    @Column(name = "creation_date")
-    private Instant creationDate = Instant.now();
-
-    private Instant modificationDate = Instant.now();
 
     @NonNull
     @Convert(converter = DatabaseEncryptor.class)

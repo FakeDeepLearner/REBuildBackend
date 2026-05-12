@@ -10,6 +10,7 @@ import com.rebuild.backend.model.entities.resume_entities.reviews_entities.Resum
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -113,7 +114,6 @@ public class User implements UserDetails, Serializable {
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "associatedUser")
     private List<ResumeSnapshot> snapshots = new ArrayList<>();
 
-
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "reviewingUser")
     private List<ResumeReview> reviews = new ArrayList<>();
 
@@ -121,19 +121,20 @@ public class User implements UserDetails, Serializable {
     private int numberOfResumes = 0;
 
     @JsonIgnore
-    private boolean accountNonLocked = false;
+    private boolean accountNonLocked = true;
 
     @JsonIgnore
-    private boolean credentialsNonExpired = false;
+    private boolean credentialsNonExpired = true;
 
     @JsonIgnore
     private boolean enabled = false;
 
     @JsonIgnore
-    private Instant signUpTime = Instant.now();
+    @CreationTimestamp
+    private Instant signUpTime;
 
     @JsonIgnore
-    private Instant lastLoginTime = Instant.now();
+    private Instant lastLoginTime = signUpTime;
 
     public User(@NonNull String encodedPassword,
                 @NonNull String email,

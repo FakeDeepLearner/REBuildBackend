@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.*;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,11 +19,11 @@ import java.util.UUID;
 })
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
 @NoArgsConstructor
 //@RequiredArgsConstructor
-public class PostResume {
+public class PostResume extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -61,23 +62,17 @@ public class PostResume {
     @JsonIgnore
     private ForumPost associatedPost;
 
-    private Instant creationTime = Instant.now();
-
-
     public PostResume(@NonNull Resume originalResume){
         Education originalEducation = originalResume.getEducation();
         Header originalHeader = originalResume.getHeader();
         List<Experience> originalExperiences = originalResume.getExperiences();
         List<Project> originalProjects = originalResume.getProjects();
-        // We are creating new objects here,
+        // We are creating new objects here
         // because we do not want them to be a reference to the original ones.
         this.education = Education.sensitiveCopy(originalEducation);
         this.header = Header.sensitiveCopy(originalHeader);
         this.experiences = originalExperiences.stream().map(
                 Experience::sensitiveCopy).toList();
         this.projects = originalProjects.stream().map(Project::sensitiveCopy).toList();
-
-        this.creationTime = Instant.now();
-
     }
 }

@@ -1,10 +1,13 @@
 package com.rebuild.backend.model.entities.user_entities;
 
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "mfa_codes", indexes = {
         @Index(columnList = "user_id")
@@ -13,7 +16,7 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class MFARecoveryCodeEntity {
+public class MFARecoveryCodeEntity extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

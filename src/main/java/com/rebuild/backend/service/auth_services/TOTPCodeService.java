@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.auth_services;
 
 import com.rebuild.backend.model.dtos.RecoveryCodesDTO;
-import com.rebuild.backend.model.entities.user_entities.RecoveryCode;
+import com.rebuild.backend.model.entities.util_entitites.RecoveryCode;
 import com.rebuild.backend.model.entities.user_entities.TemporaryMFACredentials;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.UserAuthException;

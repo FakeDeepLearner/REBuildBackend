@@ -21,6 +21,8 @@ import java.util.UUID;
 @Service
 public class FriendshipService {
 
+    private final WebsocketsService websocketsService;
+
     private final UserRepository userRepository;
 
     private final FriendRelationshipRepository friendRelationshipRepository;
@@ -28,9 +30,10 @@ public class FriendshipService {
     private final FriendRequestRepository friendRequestRepository;
 
     @Autowired
-    public FriendshipService(UserRepository userRepository,
+    public FriendshipService(WebsocketsService websocketsService, UserRepository userRepository,
                              FriendRelationshipRepository friendRelationshipRepository,
                              FriendRequestRepository friendRequestRepository) {
+        this.websocketsService = websocketsService;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.friendRequestRepository = friendRequestRepository;
@@ -88,7 +91,10 @@ public class FriendshipService {
 
 
         FriendRequest newRequest = new FriendRequest(sender, recipient);
-        friendRequestRepository.save(newRequest);
+
+        FriendRequest savedRequest = friendRequestRepository.save(newRequest);
+
+        websocketsService.sendFriendRequestNotification(savedRequest);
     }
 
     public List<UsernameSearchResultDTO> loadUserFriendRequests(User loadingUser)

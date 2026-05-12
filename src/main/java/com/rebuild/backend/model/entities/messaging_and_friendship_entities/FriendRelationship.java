@@ -1,15 +1,15 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "friendships", indexes = {
         @Index(columnList = "sender_id, recipient_id"),
@@ -20,7 +20,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class FriendRelationship {
+public class FriendRelationship extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,7 +36,4 @@ public class FriendRelationship {
     @JoinColumn(name = "recipient_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private User recipient;
-
-    @Column(name = "creation_time", nullable = false)
-    private Instant friendshipTime =  Instant.now();
 }

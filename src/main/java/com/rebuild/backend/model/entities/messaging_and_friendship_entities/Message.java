@@ -2,12 +2,14 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "messages", indexes = {
         @Index(columnList = "sender_id"),
@@ -18,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
-public class Message {
+public class Message extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,7 +40,4 @@ public class Message {
     @NonNull
     @Column(name = "content", nullable = false)
     private String content;
-
-    @Column(name = "creationDate")
-    private Instant createdAt = Instant.now();
 }

@@ -2,11 +2,13 @@ package com.rebuild.backend.model.entities.resume_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +27,11 @@ import java.util.stream.Collectors;
 })
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Resume{
+public class Resume extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -73,10 +75,6 @@ public class Resume{
     @Column(name = "version_count", nullable = false)
     private int versionCount = 0;
 
-    private Instant creationTime = Instant.now();
-
-    private Instant lastModifiedTime = Instant.now();
-
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;
         this.experiences = new ArrayList<>();
@@ -90,7 +88,7 @@ public class Resume{
 
         this.name = newName;
         this.user = originalResume.getUser();
-        // We are creating new objects here,
+        // We are creating new objects here
         // because we do not want them to be a reference to the original ones.
         this.education = Education.copy(originalResume.getEducation());
         this.header = Header.copy(originalResume.getHeader());
@@ -106,10 +104,6 @@ public class Resume{
         this.user.getResumes().add(this);
         this.education.setResume(this);
         this.header.setResume(this);
-        this.creationTime = Instant.now();
-        // Technically, the LocalDataTime.now() call will be different from the one above,
-        // and we want these dates to match initially
-        this.lastModifiedTime = this.creationTime;
     }
 
     public ResumeResponse toResponse()

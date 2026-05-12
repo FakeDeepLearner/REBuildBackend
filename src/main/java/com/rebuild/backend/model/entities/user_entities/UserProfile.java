@@ -1,10 +1,12 @@
 package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -20,7 +22,7 @@ import static jakarta.persistence.CascadeType.*;
         @Index(columnList = "user_id"),
         @Index(columnList = "picture_id")
 })
-public class UserProfile{
+public class UserProfile extends Auditable {
 
 
     //By default, no one other than the user themselves can see comments, posts and sensitive information.

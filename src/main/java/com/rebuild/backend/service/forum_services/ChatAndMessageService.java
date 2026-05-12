@@ -4,15 +4,12 @@ import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatInvitationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ChatAndMessageService {
+
+    private final WebsocketsService websocketsService;
 
     private final ChatRepository chatRepository;
 
@@ -37,17 +36,21 @@ public class ChatAndMessageService {
 
     private final ChatUtilService chatUtilService;
 
+    private final MessageRepository messageRepository;
+
     @Autowired
-    public ChatAndMessageService(ChatRepository chatRepository, UserRepository userRepository,
+    public ChatAndMessageService(WebsocketsService websocketsService, ChatRepository chatRepository, UserRepository userRepository,
                                  FriendRelationshipRepository friendRelationshipRepository,
                                  ChatParticipationRepository participationRepository,
-                                 ChatInvitationRepository chatInvitationRepository, ChatUtilService chatUtilService) {
+                                 ChatInvitationRepository chatInvitationRepository, ChatUtilService chatUtilService, MessageRepository messageRepository) {
+        this.websocketsService = websocketsService;
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.participationRepository = participationRepository;
         this.chatInvitationRepository = chatInvitationRepository;
         this.chatUtilService = chatUtilService;
+        this.messageRepository = messageRepository;
     }
 
 
@@ -125,7 +128,10 @@ public class ChatAndMessageService {
         //This cast is safe, since we already know that it isn't a private chat by this point. 
         ChatInvitation newInvitation = new ChatInvitation(sender, recipient, (GroupChat) foundChat);
 
-        return chatInvitationRepository.save(newInvitation);
+        ChatInvitation savedInvitation = chatInvitationRepository.save(newInvitation);
+
+        websocketsService.sendChatInvitationNotification(savedInvitation);
+        return savedInvitation;
     }
 
 
@@ -183,9 +189,11 @@ public class ChatAndMessageService {
             }
         }
 
-        
+        Message savedMessage = messageRepository.save(newMessage);
 
-        return new NewMessageDTO(chatRepository.save(associatedChat), newMessage);
+        websocketsService.sendNewMessageNotification(associatedChat, sender, savedMessage);
+
+        return new NewMessageDTO(chatRepository.save(associatedChat), savedMessage);
     }
 
 

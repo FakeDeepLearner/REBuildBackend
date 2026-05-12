@@ -34,5 +34,5 @@ public class Like {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false, name = "liking_timestamp")
-    private Instant likeTimestamp = Instant.now();
+    private Instant likeTimestamp;
 }

@@ -3,7 +3,9 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 import com.rebuild.backend.model.entities.user_entities.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -12,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class ChatInvitation {
+public class ChatInvitation{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,5 +38,8 @@ public class ChatInvitation {
     }, fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id", nullable = false, referencedColumnName = "id")
     private GroupChat associatedChat;
+
+    @CreationTimestamp
+    private Instant createdAt;
 
 }

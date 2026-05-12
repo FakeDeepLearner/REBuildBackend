@@ -8,7 +8,7 @@ import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.repository.user_repositories.RecoveryCodeRepository;
 import com.rebuild.backend.repository.user_repositories.TemporaryMFACredentialsRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.model.entities.user_entities.RecoveryCode;
+import com.rebuild.backend.model.entities.util_entitites.RecoveryCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

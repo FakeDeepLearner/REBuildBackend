@@ -1,13 +1,17 @@
 package com.rebuild.backend.config.other;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 
 @Configuration
 public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
+
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -30,7 +34,11 @@ public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
         The new_messages endpoint will be used to
         notify users of a new message to a chat that they are already a part of.
          */
-        registry.enableSimpleBroker("/new_chats", "/new_messages");
+
+        //The server will send a heartbeat every 5 seconds, and the client every 10 seconds
+        registry.enableSimpleBroker("/new_messages", "/new_chat_inviations",
+                        "/new_friend_invitations").
+                setHeartbeatValue(new long[] {5000, 10000});
 
         //This makes it possible to send a message to a specific user.
         registry.setUserDestinationPrefix("/user");
