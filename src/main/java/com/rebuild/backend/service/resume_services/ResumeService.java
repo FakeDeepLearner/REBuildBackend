@@ -96,16 +96,16 @@ public class ResumeService {
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
         YearMonth end = StringUtil.getYearMonth(experienceForm.endDate());
-        Experience newExperience = new Experience(experienceForm.companyName(),
+        ResumeExperience newResumeExperience = new ResumeExperience(experienceForm.companyName(),
                 experienceForm.technologies(), experienceForm.location(), experienceForm.experienceType(),
                 start, end, experienceForm.bullets());
-        newExperience.setResume(resume);
+        newResumeExperience.setResume(resume);
 
-        resume.getExperiences().add(newExperience);
+        resume.getResumeExperiences().add(newResumeExperience);
 
-        Experience savedExperience = experienceRepository.save(newExperience);
+        ResumeExperience savedResumeExperience = experienceRepository.save(newResumeExperience);
 
-        return savedExperience.toResponse();
+        return savedResumeExperience.toResponse();
 
     }
 
@@ -114,14 +114,14 @@ public class ResumeService {
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
         YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
         YearMonth end = StringUtil.getYearMonth(projectForm.endDate());
-        Project newProject = new Project(projectForm.projectName(), projectForm.technologyList(),
+        ResumeProject newResumeProject = new ResumeProject(projectForm.projectName(), projectForm.technologyList(),
                 start, end, projectForm.bullets());
-        newProject.setResume(resume);
-        resume.getProjects().add(newProject);
+        newResumeProject.setResume(resume);
+        resume.getResumeProjects().add(newResumeProject);
 
-        Project savedProject = projectRepository.save(newProject);
+        ResumeProject savedResumeProject = projectRepository.save(newResumeProject);
 
-        return savedProject.toResponse();
+        return savedResumeProject.toResponse();
 
     }
 
@@ -134,14 +134,14 @@ public class ResumeService {
     @Transactional
     public ResumeResponse deleteEducation(User changingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
-        resume.setEducation(null);
+        resume.setResumeEducation(null);
         return resumeRepository.save(resume).toResponse();
     }
 
     @Transactional
     public ResumeResponse deleteExperience(User changingUser, UUID resumeId, UUID experienceId){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
-        resume.getExperiences().removeIf(experience -> experience.getId().equals(experienceId));
+        resume.getResumeExperiences().removeIf(experience -> experience.getId().equals(experienceId));
         return resumeRepository.save(resume).toResponse();
     }
 
@@ -149,7 +149,7 @@ public class ResumeService {
     @Transactional
     public ResumeResponse deleteProject(User changingUser, UUID resumeId, UUID projectId){
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
-        resume.getProjects().removeIf(project -> project.getId().equals(projectId));
+        resume.getResumeProjects().removeIf(project -> project.getId().equals(projectId));
         return resumeRepository.save(resume).toResponse();
     }
 
@@ -157,7 +157,7 @@ public class ResumeService {
     @Transactional
     public ResumeResponse deleteHeader(User changingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
-        resume.setHeader(null);
+        resume.setResumeHeader(null);
         return resumeRepository.save(resume).toResponse();
     }
 
@@ -169,21 +169,21 @@ public class ResumeService {
 
         //We can't modify the resume's fields directly here, as that would also modify the variables that
         // we declared outside the try block, causing a bug.
-        Header newHeader = new Header(resumeForm.headerForm().number(),
+        ResumeHeader newResumeHeader = new ResumeHeader(resumeForm.headerForm().number(),
                 resumeForm.headerForm().name(), resumeForm.headerForm().email(),
                 resumeForm.headerForm().links());
-        resume.setHeader(newHeader);
+        resume.setResumeHeader(newResumeHeader);
 
-        Education newEducation = new Education(resumeForm.educationForm().schoolName(),
+        ResumeEducation newResumeEducation = new ResumeEducation(resumeForm.educationForm().schoolName(),
                 resumeForm.educationForm().relevantCoursework(),
                 resumeForm.educationForm().location(),
                 StringUtil.getYearMonth(resumeForm.educationForm().startDate()),
                 StringUtil.getYearMonth(resumeForm.educationForm().endDate()));
-        resume.setEducation(newEducation);
+        resume.setResumeEducation(newResumeEducation);
 
-        resume.setProjects(extractProjects(resumeForm.projects(), resume));
+        resume.setResumeProjects(extractProjects(resumeForm.projects(), resume));
 
-        resume.setExperiences(extractExperiences(resumeForm.experiences(), resume));
+        resume.setResumeExperiences(extractExperiences(resumeForm.experiences(), resume));
 
         return resumeRepository.save(resume).toResponse();
 
@@ -218,29 +218,29 @@ public class ResumeService {
 
     }
 
-    private List<Experience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
+    private List<ResumeExperience> extractExperiences(List<ExperienceForm> experienceForms, Resume associatedResume){
         return experienceForms.stream().map( rawForm -> {
-                    Experience newExperience = new Experience(rawForm.companyName(),
+                    ResumeExperience newResumeExperience = new ResumeExperience(rawForm.companyName(),
                             rawForm.technologies(), rawForm.location(), rawForm.experienceType(),
                             StringUtil.getYearMonth(rawForm.startDate()),
                             StringUtil.getYearMonth(rawForm.endDate()),
                             rawForm.bullets());
-                    newExperience.setResume(associatedResume);
-                    return newExperience;
+                    newResumeExperience.setResume(associatedResume);
+                    return newResumeExperience;
                 }
             ).toList();
 
     }
 
 
-    private List<Project> extractProjects(List<ProjectForm> projectForms, Resume resume){
+    private List<ResumeProject> extractProjects(List<ProjectForm> projectForms, Resume resume){
         return projectForms.stream().map(rawForm -> {
-                    Project newProject = new Project(rawForm.projectName(), rawForm.technologyList(),
+                    ResumeProject newResumeProject = new ResumeProject(rawForm.projectName(), rawForm.technologyList(),
                             StringUtil.getYearMonth(rawForm.startDate()),
                             StringUtil.getYearMonth(rawForm.endDate()),
                             rawForm.bullets());
-                    newProject.setResume(resume);
-                    return newProject;
+                    newResumeProject.setResume(resume);
+                    return newResumeProject;
                 }
         ).toList();
     }

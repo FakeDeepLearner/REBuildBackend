@@ -8,7 +8,7 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "napshot_nodes")
+@Table(name = "snapshot_nodes")
 @RequiredArgsConstructor
 @NoArgsConstructor
 @AllArgsConstructor

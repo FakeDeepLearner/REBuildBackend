@@ -5,10 +5,9 @@ import com.rebuild.backend.model.dtos.FriendRequestNotificationDTO;
 import com.rebuild.backend.model.dtos.NewMessageNotificationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 @Service
 public class WebsocketsService {

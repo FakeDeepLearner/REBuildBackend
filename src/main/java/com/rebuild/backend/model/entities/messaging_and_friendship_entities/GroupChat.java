@@ -1,13 +1,12 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
+import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static jakarta.persistence.CascadeType.ALL;
 
 @EqualsAndHashCode(callSuper = true)
 @DiscriminatorValue(value = "1")

@@ -19,8 +19,6 @@ public record SignupFinalizationForm(@Email(message = "Must be a valid email")
                                      @NotBlank(message = "Username is required")
                                      String forumUsername,
 
-                                     String phoneNumber,
-
                                      @NotBlank(message = "OTP is required")
                                      String enteredOTP,
 

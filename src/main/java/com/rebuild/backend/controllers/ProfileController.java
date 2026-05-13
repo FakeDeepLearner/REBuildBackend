@@ -60,10 +60,4 @@ public class ProfileController {
     public UserProfileResponse removeProfileImage(@AuthenticationPrincipal User user){
         return cloudinaryService.removeProfilePicture(user);
     }
-
-    @DeleteMapping("/delete_phone")
-    @ResponseStatus(NO_CONTENT)
-    public void removePhoneNumber(@AuthenticationPrincipal User authenticatedUser) {
-        userService.removePhoneOf(authenticatedUser);
-    }
 }

@@ -8,8 +8,6 @@ import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.io.Serializable;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,23 +42,23 @@ public class Resume extends Auditable {
     private String name;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
-    private Header header;
+    private ResumeHeader resumeHeader;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
-    private Education education;
+    private ResumeEducation resumeEducation;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "resume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<Experience> experiences = new ArrayList<>();
+    private List<ResumeExperience> resumeExperiences = new ArrayList<>();
 
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "resume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<Project> projects = new ArrayList<>();
+    private List<ResumeProject> resumeProjects = new ArrayList<>();
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -77,9 +75,9 @@ public class Resume extends Auditable {
 
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;
-        this.experiences = new ArrayList<>();
-        this.education = new Education();
-        this.header = new Header();
+        this.resumeExperiences = new ArrayList<>();
+        this.resumeEducation = new ResumeEducation();
+        this.resumeHeader = new ResumeHeader();
         this.name = resume_name;
     }
 
@@ -90,27 +88,27 @@ public class Resume extends Auditable {
         this.user = originalResume.getUser();
         // We are creating new objects here
         // because we do not want them to be a reference to the original ones.
-        this.education = Education.copy(originalResume.getEducation());
-        this.header = Header.copy(originalResume.getHeader());
-        this.experiences = originalResume.getExperiences().stream().map(
-                Experience::copy
+        this.resumeEducation = ResumeEducation.copy(originalResume.getResumeEducation());
+        this.resumeHeader = ResumeHeader.copy(originalResume.getResumeHeader());
+        this.resumeExperiences = originalResume.getResumeExperiences().stream().map(
+                ResumeExperience::copy
         ).peek(experience -> experience.setResume(this)).
                 collect(Collectors.toCollection(ArrayList::new));
-        this.projects = originalResume.getProjects().stream().map(
-                Project::copy
+        this.resumeProjects = originalResume.getResumeProjects().stream().map(
+                ResumeProject::copy
         ).peek(project -> project.setResume(this)).
                 collect(Collectors.toCollection(ArrayList::new));
         //Necessary in order for cascading to work properly
         this.user.getResumes().add(this);
-        this.education.setResume(this);
-        this.header.setResume(this);
+        this.resumeEducation.setResume(this);
+        this.resumeHeader.setResume(this);
     }
 
     public ResumeResponse toResponse()
     {
-        return new ResumeResponse(this.header.toResponse(), this.education.toResponse(),
-                this.experiences.stream().map(Experience::toResponse).toList(),
-                this.projects.stream().map(Project::toResponse).toList());
+        return new ResumeResponse(this.resumeHeader.toResponse(), this.resumeEducation.toResponse(),
+                this.resumeExperiences.stream().map(ResumeExperience::toResponse).toList(),
+                this.resumeProjects.stream().map(ResumeProject::toResponse).toList());
     }
 
 }

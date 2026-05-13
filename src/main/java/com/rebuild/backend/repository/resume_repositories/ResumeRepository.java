@@ -18,48 +18,48 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     @Query("""
         SELECT r FROM Resume r
-        JOIN FETCH r.header
-        JOIN FETCH r.education
-        JOIN FETCH r.projects
-        JOIN FETCH r.experiences
+        JOIN FETCH r.resumeHeader
+        JOIN FETCH r.resumeEducation
+        JOIN FETCH r.resumeProjects
+        JOIN FETCH r.resumeExperiences
         WHERE r.user=?1 AND r.id IN ?2
         """)
     List<Resume> findByUserAndIdIn(User user, Collection<UUID> ids);
 
     @Query(value = """
         SELECT r FROM Resume r
-        LEFT JOIN FETCH r.header
-        LEFT JOIN FETCH r.education
-        LEFT JOIN FETCH r.experiences
-        LEFT JOIN FETCH r.projects
+        LEFT JOIN FETCH r.resumeHeader
+        LEFT JOIN FETCH r.resumeEducation
+        LEFT JOIN FETCH r.resumeExperiences
+        LEFT JOIN FETCH r.resumeProjects
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithOtherData(UUID id, User user);
 
     @Query(value = """
         SELECT r FROM Resume r
-        LEFT JOIN FETCH r.header
+        LEFT JOIN FETCH r.resumeHeader
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithHeader(UUID id, User user);
 
     @Query(value = """
         SELECT r FROM Resume r
-        LEFT JOIN FETCH r.education
+        LEFT JOIN FETCH r.resumeEducation
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithEducation(UUID id, User user);
 
     @Query(value = """
         SELECT DISTINCT r FROM Resume r
-        LEFT JOIN FETCH r.experiences
+        LEFT JOIN FETCH r.resumeExperiences
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithExperiences(UUID id, User user);
 
     @Query(value = """
         SELECT DISTINCT r FROM Resume r
-        LEFT JOIN FETCH r.projects
+        LEFT JOIN FETCH r.resumeProjects
         WHERE r.id=?1 AND r.user=?2
        """)
     Optional<Resume> findByIdAndUserWithProjects(UUID id, User user);

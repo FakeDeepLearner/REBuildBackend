@@ -109,7 +109,7 @@ public class RecoveryCodeHelperService {
     @Transactional
     public boolean verifyRecoveryCode(String emailOrPhone, String enteredCode)
     {
-        User foundUser = userRepository.findByEmailOrPhoneWithRecoveryCodes(emailOrPhone).orElse(null);
+        User foundUser = userRepository.findByEmailWithRecoveryCodes(emailOrPhone).orElse(null);
         RecoveryCode inputCodeRepresentation = RecoveryCode.fromInput(enteredCode);
         assert foundUser != null;
 

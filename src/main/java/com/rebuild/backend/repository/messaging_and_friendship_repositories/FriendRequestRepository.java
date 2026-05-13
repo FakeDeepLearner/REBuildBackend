@@ -23,8 +23,8 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
 
 
     @Query(value = """
-            SELECT NEW com.rebuild.backend.model.forms.dtos.forum_dtos.UsernameSearchResultDTO(
-            s.id, COALESCE(s.forumUsername, s.backupForumUsername))
+            SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.FriendRequestDTO(
+            f.id, s.forumUsername, f.creationTimestamp)
             FROM FriendRequest f
             JOIN f.sender s
             WHERE f.recipient=?1

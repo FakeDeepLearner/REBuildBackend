@@ -17,7 +17,5 @@ public record SignupInitializationForm(
 
                          @NotBlank(message = "Username is required")
                          String forumUsername,
-
-                         String phoneNumber,
                          boolean remember) {
 }

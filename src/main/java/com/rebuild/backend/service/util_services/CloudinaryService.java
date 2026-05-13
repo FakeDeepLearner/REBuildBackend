@@ -162,7 +162,7 @@ public class CloudinaryService {
 
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(generateTimedUrlForPictureId(changedProfile.getPictureId()),
-                        changingUser.getEmail(), changingUser.getPhoneNumber()),
+                        changingUser.getEmail()),
 
                 changingUser.getForumUsername(), changingUser.getMadeComments(), changingUser.getMadePosts()
         );

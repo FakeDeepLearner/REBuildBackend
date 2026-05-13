@@ -36,12 +36,6 @@ public class UserService{
         this.encoder = encoder;
     }
 
-    @Transactional
-    public void removePhoneOf(User deletingUser){
-        deletingUser.setPhoneNumber(null);
-        repository.save(deletingUser);
-    }
-
     private String generateSaltValue(){
         SecureRandom random = new SecureRandom();
         //16 bytes = 128-bit salt, which is what is recommended
@@ -58,7 +52,7 @@ public class UserService{
         String pepper = dotenv.get("PEPPER_VALUE");
         String encodedPassword = encoder.encode(finalizationForm.password() + generatedSalt + pepper);
         User newUser = new User(encodedPassword, finalizationForm.email(),
-                finalizationForm.phoneNumber(), generatedSalt, mfaSecret);
+                 generatedSalt, mfaSecret);
 
         newUser.setForumUsername(finalizationForm.forumUsername());
 

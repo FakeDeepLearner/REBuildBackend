@@ -35,14 +35,14 @@ public class ResumePrefillService {
 
         Resume sampleResume = resumeObtainer.findByUserAndIdWithHeader(user, sampleResumeId);
 
-        Header newHeader = Header.copy(sampleResume.getHeader());
+        ResumeHeader newResumeHeader = ResumeHeader.copy(sampleResume.getResumeHeader());
 
-        newHeader.setResume(currentResume);
-        currentResume.setHeader(newHeader);
+        newResumeHeader.setResume(currentResume);
+        currentResume.setResumeHeader(newResumeHeader);
 
         resumeRepository.save(currentResume);
 
-        return newHeader.toResponse();
+        return newResumeHeader.toResponse();
     }
 
     @Transactional
@@ -52,14 +52,14 @@ public class ResumePrefillService {
 
         Resume sampleResume = resumeObtainer.findByUserAndIdWithEducation(user, sampleResumeId);
 
-        Education newEducation = Education.copy(sampleResume.getEducation());
+        ResumeEducation newResumeEducation = ResumeEducation.copy(sampleResume.getResumeEducation());
 
-        newEducation.setResume(currentResume);
-        currentResume.setEducation(newEducation);
+        newResumeEducation.setResume(currentResume);
+        currentResume.setResumeEducation(newResumeEducation);
 
         resumeRepository.save(currentResume);
 
-        return newEducation.toResponse();
+        return newResumeEducation.toResponse();
     }
 
     @Transactional
@@ -69,17 +69,17 @@ public class ResumePrefillService {
 
         Resume sampleResume = resumeObtainer.findByUserAndIdWithExperiences(user, sampleResumeId);
 
-        List<Experience> newExperiences = sampleResume.getExperiences().stream()
-                .map(Experience::copy).
+        List<ResumeExperience> newResumeExperiences = sampleResume.getResumeExperiences().stream()
+                .map(ResumeExperience::copy).
                 peek(experience -> experience.setResume(currentResume))
                 .toList();
 
-        currentResume.setExperiences(newExperiences);
+        currentResume.setResumeExperiences(newResumeExperiences);
 
         Resume savedResume = resumeRepository.save(currentResume);
 
-        return savedResume.getExperiences().stream()
-                .map(Experience::toResponse).toList();
+        return savedResume.getResumeExperiences().stream()
+                .map(ResumeExperience::toResponse).toList();
     }
 
     @Transactional
@@ -89,17 +89,17 @@ public class ResumePrefillService {
 
         Resume sampleResume = resumeObtainer.findByUserAndIdWithProjects(user, sampleResumeId);
 
-        List<Project> newProjects = sampleResume.getProjects().stream()
-                .map(Project::copy).
+        List<ResumeProject> newResumeProjects = sampleResume.getResumeProjects().stream()
+                .map(ResumeProject::copy).
                 peek(project -> project.setResume(currentResume))
                 .toList();
 
-        currentResume.setProjects(newProjects);
+        currentResume.setResumeProjects(newResumeProjects);
 
         Resume savedResume = resumeRepository.save(currentResume);
 
-        return savedResume.getProjects().stream()
-                .map(Project::toResponse).toList();
+        return savedResume.getResumeProjects().stream()
+                .map(ResumeProject::toResponse).toList();
     }
 
 }

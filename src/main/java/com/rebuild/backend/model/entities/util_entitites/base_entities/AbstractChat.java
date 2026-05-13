@@ -1,11 +1,11 @@
-package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
+package com.rebuild.backend.model.entities.util_entitites.base_entities;
 
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

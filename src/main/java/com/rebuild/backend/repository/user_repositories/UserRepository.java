@@ -1,7 +1,6 @@
 package com.rebuild.backend.repository.user_repositories;
 
 import com.rebuild.backend.model.entities.user_entities.User;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,18 +14,15 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    @Query(value = """
-        SELECT u FROM User u
-        WHERE u.email=?1 OR u.phoneNumber=?1
-       """)
-    Optional<User> findByEmailOrPhoneNumber(String emailOrPhone);
+
+    Optional<User> findByEmail(String email);
+
 
     @Query(value = """
         SELECT u FROM User u JOIN FETCH u.recoveryCodes
-        WHERE u.email=?1 OR u.phoneNumber=?1
+        WHERE u.email=?1
        """)
-    Optional<User> findByEmailOrPhoneWithRecoveryCodes(String emailOrPhone);
-
+    Optional<User> findByEmailWithRecoveryCodes(String emailOrPhone);
 
     @Query(value = """
     SELECT u FROM User u
@@ -34,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     """)
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 
-    Optional<User> findByEmailOrForumUsernameOrPhoneNumber(String email, String forumUsername, String phoneNumber);
+    Optional<User> findByEmailOrForumUsername(String email, String forumUsername);
 
 
 

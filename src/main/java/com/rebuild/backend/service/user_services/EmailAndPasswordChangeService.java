@@ -126,7 +126,7 @@ public class EmailAndPasswordChangeService {
     public boolean sendEmailChange(String currentEmail, String newEmail)
     {
         try {
-            Optional<User> foundUser = userRepository.findByEmailOrPhoneNumber(newEmail);
+            Optional<User> foundUser = userRepository.findByEmail(newEmail);
             if (foundUser.isPresent())
             {
                 throw new UserAuthException(HttpStatus.CONFLICT, "A user already exists with " +
@@ -227,7 +227,7 @@ public class EmailAndPasswordChangeService {
         Claims tokenClaims = extractTokenClaims(token);
         String email = tokenClaims.getSubject();
 
-        Optional<User> foundUser = userRepository.findByEmailOrPhoneNumber(email);
+        Optional<User> foundUser = userRepository.findByEmail(email);
 
         //For security reasons, we do not reveal whether the email address exists within the system
         if (foundUser.isEmpty()) {

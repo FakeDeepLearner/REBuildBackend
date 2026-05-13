@@ -3,10 +3,10 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)

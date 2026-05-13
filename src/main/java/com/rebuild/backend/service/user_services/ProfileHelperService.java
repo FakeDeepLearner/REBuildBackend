@@ -43,7 +43,7 @@ public class ProfileHelperService {
                     sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
                 return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(profile.getPictureId()),
-                        user.getEmail(), user.getPhoneNumber());
+                        user.getEmail());
             }
             //Otherwise, return the information masked
         }
@@ -54,13 +54,13 @@ public class ProfileHelperService {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
             {
                 return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(profile.getPictureId()),
-                        user.getEmail(), user.getPhoneNumber());
+                        user.getEmail());
             }
 
             //Otherwise, return the information masked
         }
         return new ProfileSensitiveInformationDTO(null,
-                StringUtil.maskString(user.getEmail()), StringUtil.maskString(user.getPhoneNumber()));
+                StringUtil.maskString(user.getEmail()));
     }
 
     private List<Comment> decideCommentList(User user, UserProfile profile, boolean thereIsFriendship)

@@ -107,7 +107,7 @@ public class UserAuthenticationHelperService {
     public CredentialValidationDTO validateLoginCredentials(LoginInitializationForm form) {
         String formField = form.emailOrPhone();
 
-        User foundUser = userRepository.findByEmailOrPhoneNumber(formField).orElse(null);
+        User foundUser = userRepository.findByEmail(formField).orElse(null);
 
         if (foundUser == null) {
             return null;
@@ -129,8 +129,8 @@ public class UserAuthenticationHelperService {
         {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Username cannot start with \"Anonymous\"");
         }
-        Optional<User> foundUser = userRepository.findByEmailOrForumUsernameOrPhoneNumber(form.email(),
-                form.forumUsername(), form.phoneNumber());
+        Optional<User> foundUser = userRepository.findByEmailOrForumUsername(form.email(),
+                form.forumUsername());
 
         if (foundUser.isPresent()) {
             throw new UserAuthException(HttpStatus.CONFLICT, "A user already exists with the same email, forum username, or phone number");
@@ -140,7 +140,7 @@ public class UserAuthenticationHelperService {
     }
 
     @Transactional
-    private boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
+    protected boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupInitializationForm.password().equals(signupInitializationForm.repeatedPassword())){
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");

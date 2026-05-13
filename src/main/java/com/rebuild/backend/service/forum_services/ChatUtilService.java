@@ -1,6 +1,6 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.PrivateChat;

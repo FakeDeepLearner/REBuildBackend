@@ -25,7 +25,7 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
           CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2) > 0
           THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
           FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentId=?1
-          ORDER BY c.creationDate ASC"""
+          ORDER BY c.createdAt ASC"""
     )
     List<CommentFetchDTO> loadParentCommentExpansion(UUID parentId, UUID userId);
 
@@ -37,7 +37,7 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
               CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2) > 0
               THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)\s
               FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE p=?1
-              ORDER BY c.creationDate ASC"""
+              ORDER BY c.createdAt ASC"""
     )
     Slice<CommentFetchDTO> loadAdditionalComments(ForumPost post, UUID userId, Pageable pageable);
 

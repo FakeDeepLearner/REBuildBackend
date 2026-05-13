@@ -1,11 +1,11 @@
 package com.rebuild.backend.repository.resume_repositories;
 
-import com.rebuild.backend.model.entities.resume_entities.Header;
+import com.rebuild.backend.model.entities.resume_entities.ResumeHeader;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
 @Repository
-public interface HeaderRepository extends JpaRepository<Header, UUID> {
+public interface HeaderRepository extends JpaRepository<ResumeHeader, UUID> {
 }

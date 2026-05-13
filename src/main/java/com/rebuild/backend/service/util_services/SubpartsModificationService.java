@@ -27,8 +27,6 @@ public class SubpartsModificationService {
 
     private final ResumeObtainer getUtility;
 
-    private final ResumeRepository resumeRepository;
-
     private final ExperienceRepository experienceRepository;
 
     private final ProjectRepository projectRepository;
@@ -38,12 +36,12 @@ public class SubpartsModificationService {
     private final EducationRepository educationRepository;
 
     @Autowired
-    public SubpartsModificationService(ResumeObtainer getUtility, ResumeRepository resumeRepository,
+    public SubpartsModificationService(ResumeObtainer getUtility,
                                        ExperienceRepository experienceRepository,
                                        ProjectRepository projectRepository,
-                                       HeaderRepository headerRepository, EducationRepository educationRepository) {
+                                       HeaderRepository headerRepository,
+                                       EducationRepository educationRepository) {
         this.getUtility = getUtility;
-        this.resumeRepository = resumeRepository;
         this.experienceRepository = experienceRepository;
         this.projectRepository = projectRepository;
         this.headerRepository = headerRepository;
@@ -55,50 +53,50 @@ public class SubpartsModificationService {
                                              UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
-        Header newHeader = new Header(headerForm.number(), headerForm.name(),
+        ResumeHeader newResumeHeader = new ResumeHeader(headerForm.number(), headerForm.name(),
                 headerForm.email(), headerForm.links());
 
-        changingResume.setHeader(newHeader);
-        newHeader.setResume(changingResume);
-        Header savedHeader = headerRepository.save(newHeader);
-        return savedHeader.toResponse();
+        changingResume.setResumeHeader(newResumeHeader);
+        newResumeHeader.setResume(changingResume);
+        ResumeHeader savedResumeHeader = headerRepository.save(newResumeHeader);
+        return savedResumeHeader.toResponse();
     }
 
     @Transactional
     public ExperienceResponse modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
                                                      UUID resumeId, User changingUser) {
-        Optional<Experience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
+        Optional<ResumeExperience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
                 resumeId, changingUser);
 
         if (changingExperience.isEmpty()) {
-            throw new BelongingException("Experience with this id either does " +
+            throw new BelongingException("ResumeExperience with this id either does " +
                     "not exist or does not belong to this resume");
         }
 
-        Experience experience = changingExperience.get();
+        ResumeExperience resumeExperience = changingExperience.get();
 
-        modifyExperience(experience, experienceForm);
-        Experience savedExperience = experienceRepository.save(experience);
-        return savedExperience.toResponse();
+        modifyExperience(resumeExperience, experienceForm);
+        ResumeExperience savedResumeExperience = experienceRepository.save(resumeExperience);
+        return savedResumeExperience.toResponse();
     }
 
     @Transactional
     public ProjectResponse modifyResumeProject(ProjectForm projectForm, UUID projectId,
                                                UUID resumeId, User changingUser) {
 
-        Optional<Project> changingProject = projectRepository.findByIdAndResume_IdAndResume_User(
+        Optional<ResumeProject> changingProject = projectRepository.findByIdAndResume_IdAndResume_User(
                 projectId, resumeId, changingUser
         );
 
         if (changingProject.isEmpty()) {
-            throw new BelongingException("Project with this id either does not " +
+            throw new BelongingException("ResumeProject with this id either does not " +
                     "exist or does not belong to this resume");
         }
 
-        Project project = changingProject.get();
-        modifyProject(project, projectForm);
-        Project savedProject = projectRepository.save(project);
-        return savedProject.toResponse();
+        ResumeProject resumeProject = changingProject.get();
+        modifyProject(resumeProject, projectForm);
+        ResumeProject savedResumeProject = projectRepository.save(resumeProject);
+        return savedResumeProject.toResponse();
     }
 
     @Transactional
@@ -106,40 +104,40 @@ public class SubpartsModificationService {
                                                    UUID resumeId, User changingUser) {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
-        Education newEducation = new Education(educationForm.schoolName(), educationForm.relevantCoursework(),
+        ResumeEducation newResumeEducation = new ResumeEducation(educationForm.schoolName(), educationForm.relevantCoursework(),
                 educationForm.location(), StringUtil.getYearMonth(educationForm.startDate()),
                 StringUtil.getYearMonth(educationForm.endDate()));
-        changingResume.setEducation(newEducation);
-        newEducation.setResume(changingResume);
+        changingResume.setResumeEducation(newResumeEducation);
+        newResumeEducation.setResume(changingResume);
 
-        Education savedEducation =  educationRepository.save(newEducation);
+        ResumeEducation savedResumeEducation =  educationRepository.save(newResumeEducation);
 
-        return savedEducation.toResponse();
+        return savedResumeEducation.toResponse();
     }
 
 
-    private void modifyExperience(Experience changingExperience, ExperienceForm experienceForm) {
+    private void modifyExperience(ResumeExperience changingResumeExperience, ExperienceForm experienceForm) {
         YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
         YearMonth end = StringUtil.getYearMonth(experienceForm.endDate());
-        changingExperience.setLocation(experienceForm.location());
-        changingExperience.setEndDate(end);
-        changingExperience.setStartDate(start);
-        changingExperience.setBullets(experienceForm.bullets());
-        changingExperience.setTechnologyList(experienceForm.technologies());
-        changingExperience.setCompanyName(experienceForm.companyName());
-        changingExperience.setExperienceType(experienceForm.experienceType());
+        changingResumeExperience.setLocation(experienceForm.location());
+        changingResumeExperience.setEndDate(end);
+        changingResumeExperience.setStartDate(start);
+        changingResumeExperience.setBullets(experienceForm.bullets());
+        changingResumeExperience.setTechnologyList(experienceForm.technologies());
+        changingResumeExperience.setCompanyName(experienceForm.companyName());
+        changingResumeExperience.setExperienceType(experienceForm.experienceType());
     }
 
 
-    private void modifyProject(Project changingProject, ProjectForm projectForm) {
+    private void modifyProject(ResumeProject changingResumeProject, ProjectForm projectForm) {
         YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
         YearMonth end = StringUtil.getYearMonth(projectForm.endDate());
-        changingProject.setStartDate(start);
-        changingProject.setEndDate(end);
+        changingResumeProject.setStartDate(start);
+        changingResumeProject.setEndDate(end);
 
-        changingProject.setBullets(projectForm.bullets());
-        changingProject.setProjectName(projectForm.projectName());
-        changingProject.setTechnologyList(projectForm.technologyList());
+        changingResumeProject.setBullets(projectForm.bullets());
+        changingResumeProject.setProjectName(projectForm.projectName());
+        changingResumeProject.setTechnologyList(projectForm.technologyList());
     }
 
 }

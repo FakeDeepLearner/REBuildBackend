@@ -6,7 +6,6 @@ import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,27 +29,25 @@ public class PostResume extends Auditable {
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "header_id", referencedColumnName = "id")
-    private Header header;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true,
+    mappedBy = "postResume")
+    private PostResumeHeader resumeHeader;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "education_id", referencedColumnName = "id")
-    private Education education;
-
-    @OneToMany(fetch = FetchType.LAZY, cascade = {
-            CascadeType.ALL
-    }, orphanRemoval = true)
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    @JoinColumn(name = "experience_id", referencedColumnName = "id")
-    private List<Experience> experiences;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true,
+    mappedBy = "postResume")
+    private PostResumeEducation resumeEducation;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
-    }, orphanRemoval = true)
+    }, orphanRemoval = true, mappedBy = "postResume")
     @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    @JoinColumn(name = "project_id", referencedColumnName = "id")
-    private List<Project> projects;
+    private List<PostResumeExperience> resumeExperiences;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.ALL
+    }, orphanRemoval = true, mappedBy = "postResume")
+    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
+    private List<PostResumeProject> resumeProjects;
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -63,16 +60,18 @@ public class PostResume extends Auditable {
     private ForumPost associatedPost;
 
     public PostResume(@NonNull Resume originalResume){
-        Education originalEducation = originalResume.getEducation();
-        Header originalHeader = originalResume.getHeader();
-        List<Experience> originalExperiences = originalResume.getExperiences();
-        List<Project> originalProjects = originalResume.getProjects();
+        ResumeEducation originalResumeEducation = originalResume.getResumeEducation();
+        ResumeHeader originalResumeHeader = originalResume.getResumeHeader();
+        List<ResumeExperience> originalResumeExperiences = originalResume.getResumeExperiences();
+        List<ResumeProject> originalResumeProjects = originalResume.getResumeProjects();
         // We are creating new objects here
         // because we do not want them to be a reference to the original ones.
-        this.education = Education.sensitiveCopy(originalEducation);
-        this.header = Header.sensitiveCopy(originalHeader);
-        this.experiences = originalExperiences.stream().map(
-                Experience::sensitiveCopy).toList();
-        this.projects = originalProjects.stream().map(Project::sensitiveCopy).toList();
+        this.resumeEducation = ResumeEducation.sensitiveCopy(originalResumeEducation, this);
+        this.resumeHeader = ResumeHeader.sensitiveCopy(originalResumeHeader, this);
+        this.resumeExperiences = originalResumeExperiences.stream().map(resumeExperience ->
+                ResumeExperience.sensitiveCopy(resumeExperience, this)).toList();
+        this.resumeProjects = originalResumeProjects.stream().map(resumeProject ->
+                        ResumeProject.sensitiveCopy(resumeProject, this)).
+                toList();
     }
 }

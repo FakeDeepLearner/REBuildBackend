@@ -48,7 +48,7 @@ public class ProfileService {
         UserProfile associatedProfile = user.getUserProfile();
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
-                        user.getEmail(), user.getPhoneNumber()),
+                        user.getEmail()),
                 user.getForumUsername(), user.getMadeComments(), user.getMadePosts()
         );
     }

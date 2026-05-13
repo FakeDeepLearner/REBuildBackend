@@ -11,6 +11,7 @@ import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -62,9 +63,6 @@ public class User implements UserDetails, Serializable {
     @Convert(converter = DatabaseEncryptor.class)
     private String email;
 
-    @Column(name = "phone_number", unique = true)
-    private String phoneNumber;
-
     @NonNull
     @Column(name = "salt_value", nullable = false, unique = true)
     private String saltValue;
@@ -81,10 +79,11 @@ public class User implements UserDetails, Serializable {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
-    @OrderBy("creationTime ASC")
+    @OrderBy("createdAt ASC")
     private List<Resume> resumes = new ArrayList<>();
 
     @Column(name = "mfa_secret_value", nullable = false)
+    @Convert(converter = DatabaseEncryptor.class)
     private String mfaSecretValue;
 
     @OneToMany(orphanRemoval = true, mappedBy = "user", cascade = ALL)
@@ -92,9 +91,11 @@ public class User implements UserDetails, Serializable {
     private List<MFARecoveryCodeEntity> recoveryCodes;
 
     @Column(name = "forum_username", unique = true)
+    @Convert(converter = DatabaseEncryptor.class)
     private String forumUsername;
 
     @Column(name = "backup_forum_username", nullable = false)
+    @Convert(converter = DatabaseEncryptor.class)
     private String anonymizedNameBase;
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
@@ -138,12 +139,10 @@ public class User implements UserDetails, Serializable {
 
     public User(@NonNull String encodedPassword,
                 @NonNull String email,
-                String phoneNumber,
                 @NonNull String saltValue,
                 @NonNull String mfaSecretValue) {
         this.password = encodedPassword;
         this.email = email;
-        this.phoneNumber = phoneNumber;
         this.saltValue = saltValue;
         this.mfaSecretValue = mfaSecretValue;
     }

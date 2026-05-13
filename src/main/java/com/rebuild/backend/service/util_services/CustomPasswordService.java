@@ -42,7 +42,7 @@ public class CustomPasswordService implements UserDetailsPasswordService {
     @Override
     @Transactional
     public UserDetails updatePassword(UserDetails user, String newPassword) {
-        User updatingUser = userRepository.findByEmailOrPhoneNumber(user.getUsername()).orElseThrow(
+        User updatingUser = userRepository.findByEmail(user.getUsername()).orElseThrow(
                 () -> new UsernameNotFoundException("User not found")
         );
 
@@ -113,10 +113,6 @@ public class CustomPasswordService implements UserDetailsPasswordService {
         if (signupInitializationForm.forumUsername() != null)
         {
             penalizedWords.add(signupInitializationForm.forumUsername());
-        }
-        if (signupInitializationForm.phoneNumber() != null)
-        {
-            penalizedWords.add(signupInitializationForm.phoneNumber());
         }
 
         Zxcvbn zxcvbn = new Zxcvbn();

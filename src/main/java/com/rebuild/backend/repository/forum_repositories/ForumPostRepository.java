@@ -37,7 +37,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
             THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
-            WHERE p.id=?1 AND c.parentId=?1 ORDER BY c.creationDate ASC
+            WHERE p.id=?1 AND c.parentId=?1 ORDER BY c.createdAt ASC
            """)
     Slice<CommentFetchDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
 
@@ -57,7 +57,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     FROM ForumPost fp WHERE
     (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
     AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
-    ORDER BY fp.creationDate DESC, fp.lastModificationDate DESC
+    ORDER BY fp.createdAt DESC, fp.lastModifiedAt DESC
     """)
     Slice<ForumPostSummaryDTO> findByTitleAndContent(String title, String content, UUID userID, Pageable pageable);
 
