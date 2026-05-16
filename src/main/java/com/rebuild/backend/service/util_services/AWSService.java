@@ -2,7 +2,6 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.ResumeFileUploadRecord;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -24,16 +23,13 @@ import java.util.concurrent.Executor;
 @Service
 public class AWSService {
 
-    private final Dotenv dotenv;
-
     private final S3AsyncClient s3AsyncClient;
 
     private final Executor executor;
 
     @Autowired
-    public AWSService(Dotenv dotenv, S3AsyncClient s3AsyncClient,
+    public AWSService(S3AsyncClient s3AsyncClient,
                       @Qualifier(value = "executor") Executor executor) {
-        this.dotenv = dotenv;
         this.s3AsyncClient = s3AsyncClient;
         this.executor = executor;
     }
@@ -42,7 +38,7 @@ public class AWSService {
     public CompletableFuture<Void> uploadFileToS3(ForumPost post,
                                                   byte[] fileBytes) {
         String objectKey = UUID.randomUUID().toString();
-        String bucketName = dotenv.get("AWS_S3_BUCKET_NAME");
+        String bucketName = System.getenv("AWS_S3_BUCKET_NAME");
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder().
                 bucket(bucketName).

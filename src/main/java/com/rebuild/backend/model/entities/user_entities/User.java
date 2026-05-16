@@ -7,11 +7,9 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.resume_entities.reviews_entities.ResumeReview;
 import com.rebuild.backend.model.entities.resume_entities.reviews_entities.ResumeSnapshot;
-import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -60,7 +58,6 @@ public class User implements UserDetails, Serializable {
             unique = true
     )
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String email;
 
     @NonNull
@@ -83,7 +80,6 @@ public class User implements UserDetails, Serializable {
     private List<Resume> resumes = new ArrayList<>();
 
     @Column(name = "mfa_secret_value", nullable = false)
-    @Convert(converter = DatabaseEncryptor.class)
     private String mfaSecretValue;
 
     @OneToMany(orphanRemoval = true, mappedBy = "user", cascade = ALL)
@@ -91,11 +87,9 @@ public class User implements UserDetails, Serializable {
     private List<MFARecoveryCodeEntity> recoveryCodes;
 
     @Column(name = "forum_username", unique = true)
-    @Convert(converter = DatabaseEncryptor.class)
     private String forumUsername;
 
     @Column(name = "backup_forum_username", nullable = false)
-    @Convert(converter = DatabaseEncryptor.class)
     private String anonymizedNameBase;
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",

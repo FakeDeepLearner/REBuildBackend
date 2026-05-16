@@ -3,7 +3,6 @@ package com.rebuild.backend.model.entities.forum_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
-import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,7 +45,6 @@ public class Comment extends Auditable {
     private int repliesCount = 0;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String content;
 
     @Column(name = "likes_count", nullable = false)

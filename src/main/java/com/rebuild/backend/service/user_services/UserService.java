@@ -6,7 +6,6 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.SignupFinalizationForm;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,16 +21,13 @@ public class UserService{
 
     private final PasswordEncoder encoder;
 
-    private final Dotenv dotenv;
-
     private final CloudinaryService cloudinaryService;
 
 
     @Autowired
     public UserService(UserRepository repository, PasswordEncoder encoder,
-                       Dotenv dotenv, CloudinaryService cloudinaryService) {
+                       CloudinaryService cloudinaryService) {
         this.repository = repository;
-        this.dotenv = dotenv;
         this.cloudinaryService = cloudinaryService;
         this.encoder = encoder;
     }
@@ -49,7 +45,7 @@ public class UserService{
     public User createNewUser(SignupFinalizationForm finalizationForm, String mfaSecret){
 
         String generatedSalt = generateSaltValue();
-        String pepper = dotenv.get("PEPPER_VALUE");
+        String pepper = System.getenv("PEPPER_VALUE");
         String encodedPassword = encoder.encode(finalizationForm.password() + generatedSalt + pepper);
         User newUser = new User(encodedPassword, finalizationForm.email(),
                  generatedSalt, mfaSecret);

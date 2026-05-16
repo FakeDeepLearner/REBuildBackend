@@ -1,7 +1,5 @@
 package com.rebuild.backend.config.other;
 
-import io.github.cdimascio.dotenv.Dotenv;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,10 +26,9 @@ public class RememberMeConfig {
 
     @Bean
     public RememberMeServices rememberMeServices(UserDetailsService userDetailsService,
-                                                 PersistentTokenRepository persistentTokenRepository,
-                                                 Dotenv dotenv) {
+                                                 PersistentTokenRepository persistentTokenRepository) {
         PersistentTokenBasedRememberMeServices services = new PersistentTokenBasedRememberMeServices(
-                dotenv.get("REMEMBER_ME_KEY"),
+                System.getenv("REMEMBER_ME_KEY"),
                 userDetailsService, persistentTokenRepository);
         services.setTokenValiditySeconds(86400 * 7);
         services.setParameter("remember-me");
@@ -49,8 +46,8 @@ public class RememberMeConfig {
 
 
     @Bean
-    public RememberMeAuthenticationProvider rememberMeAuthenticationProvider(Dotenv dotenv) {
-        return new RememberMeAuthenticationProvider(dotenv.get("REMEMBER_ME_KEY"));
+    public RememberMeAuthenticationProvider rememberMeAuthenticationProvider() {
+        return new RememberMeAuthenticationProvider(System.getenv("REMEMBER_ME_KEY"));
 
     }
 

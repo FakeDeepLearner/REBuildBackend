@@ -1,6 +1,5 @@
 package com.rebuild.backend.config.aws;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
@@ -10,10 +9,10 @@ public class S3ClientConfig {
 
 
     @Bean
-    public S3AsyncClient s3Client(Dotenv dotenv, CustomCredentialsProvider customCredentialsProvider) {
+    public S3AsyncClient s3Client(CustomCredentialsProvider customCredentialsProvider) {
 
         return S3AsyncClient.builder().credentialsProvider(customCredentialsProvider).
-                region(Region.of(dotenv.get("AWS_REGION"))).build();
+                region(Region.of(System.getenv("AWS_REGION"))).build();
 
     }
 }

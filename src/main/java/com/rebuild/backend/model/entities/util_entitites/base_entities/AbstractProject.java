@@ -3,7 +3,7 @@ package com.rebuild.backend.model.entities.util_entitites.base_entities;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
 import com.rebuild.backend.utils.StringUtil;
-import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
+import com.rebuild.backend.utils.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 

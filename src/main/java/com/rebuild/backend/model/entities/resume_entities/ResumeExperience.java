@@ -5,16 +5,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostResumeExperience;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractExperience;
-import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
 import com.rebuild.backend.utils.StringUtil;
-import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
-import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
 import java.util.List;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity

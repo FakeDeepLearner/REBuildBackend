@@ -45,6 +45,13 @@ public class CloudinaryService {
 
 
     public String generateTimedUrlForPictureId(String pictureId){
+
+        //Return early if picture id is null, there is no point in wasting time trying to download
+        //an asset that obviously doesn't exist
+        if (pictureId == null)
+        {
+            return null;
+        }
         try {
 
             long expiryTimestamp = Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond();

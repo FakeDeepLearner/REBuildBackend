@@ -2,11 +2,9 @@ package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
-import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -37,7 +35,6 @@ public class UserProfile extends Auditable {
     private UUID id;
 
     @Column(name = "profile_picture_id")
-    @Convert(converter = DatabaseEncryptor.class)
     private String pictureId = null;
 
     @Column(name = "post_history_setting")

@@ -1,8 +1,6 @@
 package com.rebuild.backend.config.redis;
 
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import io.github.cdimascio.dotenv.Dotenv;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -18,20 +16,13 @@ import java.time.Duration;
 @Configuration
 public class RedisCachesConfig {
 
-    private final Dotenv dotenv;
-
-    @Autowired
-    public RedisCachesConfig(Dotenv dotenv) {
-        this.dotenv = dotenv;
-    }
-
     @Bean
     public LettuceConnectionFactory connectionFactory(){
         RedisStandaloneConfiguration standaloneConfiguration =
-                new RedisStandaloneConfiguration(dotenv.get("REDIS_DATABASE_URL"),
-                        Integer.parseInt(dotenv.get("REDIS_DATABASE_PORT")));
+                new RedisStandaloneConfiguration(System.getenv("REDIS_DATABASE_URL"),
+                        Integer.parseInt(System.getenv("REDIS_DATABASE_PORT")));
 
-        standaloneConfiguration.setPassword(dotenv.get("REDIS_DATABASE_PASSWORD"));
+        standaloneConfiguration.setPassword(System.getenv("REDIS_DATABASE_PASSWORD"));
 
         LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder().
                 commandTimeout(Duration.ofSeconds(10))

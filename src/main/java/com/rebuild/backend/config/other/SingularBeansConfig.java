@@ -2,7 +2,6 @@ package com.rebuild.backend.config.other;
 
 import com.cloudinary.Cloudinary;
 import com.sendgrid.SendGrid;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -17,22 +16,15 @@ import java.util.concurrent.Executors;
 
 @Configuration
 public class SingularBeansConfig {
-
     @Bean
-    public Dotenv dotenv()
+    public SendGrid sendGrid()
     {
-        return Dotenv.load();
+        return new SendGrid(System.getenv("TWILIO_SENDGRID_KEY"));
     }
 
     @Bean
-    public SendGrid sendGrid(Dotenv dotenv)
-    {
-        return new SendGrid(dotenv.get("TWILIO_SENDGRID_KEY"));
-    }
-
-    @Bean
-    public Cloudinary cloudinary(Dotenv dotenv) {
-        return new Cloudinary(dotenv.get("CLOUDINARY_URL"));
+    public Cloudinary cloudinary() {
+        return new Cloudinary(System.getenv("CLOUDINARY_URL"));
     }
 
     @Bean

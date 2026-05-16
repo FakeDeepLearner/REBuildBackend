@@ -16,7 +16,6 @@ import com.rebuild.backend.service.util_services.CustomPasswordService;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,8 +29,6 @@ public class UserAuthenticationHelperService {
 
     private final UserRepository userRepository;
 
-    private final Dotenv dotenv;
-
     private final PasswordEncoder encoder;
 
     private final CustomPasswordService passwordService;
@@ -42,13 +39,11 @@ public class UserAuthenticationHelperService {
 
 
     public UserAuthenticationHelperService(UserRepository userRepository,
-                                           Dotenv dotenv,
                                            PasswordEncoder encoder,
                                            CustomPasswordService passwordService,
                                            ProxyManager<String> proxyManager,
                                            BucketConfiguration bucketConfiguration) {
         this.userRepository = userRepository;
-        this.dotenv = dotenv;
         this.encoder = encoder;
         this.passwordService = passwordService;
         this.proxyManager = proxyManager;
@@ -89,7 +84,7 @@ public class UserAuthenticationHelperService {
     public boolean captchaFailed(String userResponse, String userIp) {
 
         try {
-            Assessment assessment = createAssessment(dotenv.get("GOOGLE_CAPTCHA_PROJECT_ID"), "6Lel3s0sAAAAAFBcui1DEbyHP99ydRlS6XHnaqlz",
+            Assessment assessment = createAssessment(System.getenv("GOOGLE_CAPTCHA_PROJECT_ID"), "6Lel3s0sAAAAAFBcui1DEbyHP99ydRlS6XHnaqlz",
                     userResponse, userIp, "");
 
             float assessmentScore = assessment.getRiskAnalysis().getScore();
@@ -115,7 +110,7 @@ public class UserAuthenticationHelperService {
 
 
         String userSalt = foundUser.getSaltValue();
-        String pepper = dotenv.get("PEPPER_VALUE");
+        String pepper = System.getenv("PEPPER_VALUE");
 
         return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
                 foundUser.getPassword()), foundUser);

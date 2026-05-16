@@ -3,8 +3,7 @@ package com.rebuild.backend.model.entities.util_entitites.base_entities;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
 import com.rebuild.backend.utils.StringUtil;
-import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
-import com.rebuild.backend.utils.database_utils.YearMonthDatabaseConverter;
+import com.rebuild.backend.utils.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,7 +24,6 @@ public abstract class AbstractEducation extends Auditable {
     private UUID id;
 
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     protected String schoolName;
 
     @NonNull

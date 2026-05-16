@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
-import com.rebuild.backend.utils.database_utils.DatabaseEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,7 +37,6 @@ public class Resume extends Auditable {
 
     @Column(name = "name", nullable = false)
     @NonNull
-    @Convert(converter = DatabaseEncryptor.class)
     private String name;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")

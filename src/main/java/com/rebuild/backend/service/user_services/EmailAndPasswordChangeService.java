@@ -15,7 +15,6 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -34,8 +33,6 @@ import java.util.Optional;
 @Service
 public class EmailAndPasswordChangeService {
 
-    private final Dotenv dotenv;
-
     private final UserAuthenticationHelperService authenticationHelperService;
 
     private final PasswordEncoder encoder;
@@ -48,22 +45,21 @@ public class EmailAndPasswordChangeService {
 
     private final static int EMAIL_EXPIRY_MINUTES = 10;
 
-    public EmailAndPasswordChangeService(Dotenv dotenv, UserAuthenticationHelperService authenticationHelperService,
+    public EmailAndPasswordChangeService(UserAuthenticationHelperService authenticationHelperService,
                                          PasswordEncoder encoder,
                                          UserRepository userRepository, SendGrid sendGrid) {
-        this.dotenv = dotenv;
         this.authenticationHelperService = authenticationHelperService;
         this.encoder = encoder;
         this.userRepository = userRepository;
         this.sendGrid = sendGrid;
-        this.jwtSigningKey = Keys.hmacShaKeyFor(dotenv.get("JWT_SIGNING_KEY").
+        this.jwtSigningKey = Keys.hmacShaKeyFor(System.getenv("JWT_SIGNING_KEY").
                 getBytes(StandardCharsets.UTF_8));
     }
 
 
     private void changePassword(User changingUser, String newRawPassword){
         String userSalt = changingUser.getSaltValue();
-        String pepper = dotenv.get("PEPPER_VALUE");
+        String pepper = System.getenv("PEPPER_VALUE");
         String newHashedPassword = encoder.encode(newRawPassword + userSalt + pepper);
 
         assert newHashedPassword != null;
@@ -135,8 +131,8 @@ public class EmailAndPasswordChangeService {
 
 
             Mail mailToSend = new Mail();
-            mailToSend.setTemplateId(dotenv.get("SENDGRID_EMAIL_CHANGE_TEMPLATE_ID"));
-            mailToSend.setFrom(new Email(dotenv.get("TWILIO_EMAIL")));
+            mailToSend.setTemplateId(System.getenv("SENDGRID_EMAIL_CHANGE_TEMPLATE_ID"));
+            mailToSend.setFrom(new Email(System.getenv("TWILIO_EMAIL")));
 
             //Create the personalization settings
             Personalization personalization = new Personalization();
@@ -178,8 +174,8 @@ public class EmailAndPasswordChangeService {
     {
         try {
             Mail mailToSend = new Mail();
-            mailToSend.setTemplateId(dotenv.get("SENDGRID_PASSWORD_TEMPLATE_ID"));
-            mailToSend.setFrom(new Email(dotenv.get("TWILIO_EMAIL")));
+            mailToSend.setTemplateId(System.getenv("SENDGRID_PASSWORD_TEMPLATE_ID"));
+            mailToSend.setFrom(new Email(System.getenv("TWILIO_EMAIL")));
 
             //Create the personalization settings
             Personalization personalization = new Personalization();
