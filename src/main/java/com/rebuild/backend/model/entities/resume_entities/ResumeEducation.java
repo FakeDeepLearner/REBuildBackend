@@ -40,9 +40,9 @@ public class ResumeEducation extends AbstractEducation {
                 other.location, other.startDate, other.endDate);
     }
 
-    public static PostResumeEducation sensitiveCopy(ResumeEducation other, PostResume postResume)
+    public static PostResumeEducation copy(ResumeEducation other, PostResume postResume)
     {
-        return new PostResumeEducation(StringUtil.maskString(other.getSchoolName()),
+        return new PostResumeEducation(other.getSchoolName(),
                 other.getRelevantCoursework(), other.getLocation(), other.getStartDate(),
                 other.getEndDate(), postResume);
     }

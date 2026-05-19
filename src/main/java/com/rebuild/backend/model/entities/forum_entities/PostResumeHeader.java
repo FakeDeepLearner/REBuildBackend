@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractHeader;
 import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
+import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+
+import static com.rebuild.backend.utils.StringUtil.*;
 
 import java.util.List;
 
@@ -29,5 +32,11 @@ public class PostResumeHeader extends AbstractHeader {
                         PostResume postResume) {
         super(number, name, email, links);
         this.postResume = postResume;
+    }
+
+    @Override
+    public HeaderResponse toResponse() {
+        return new HeaderResponse(maskString(this.number), maskString(this.name),
+                maskString(this.email), this.links.stream().map(StringUtil::maskString).toList());
     }
 }

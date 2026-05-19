@@ -236,13 +236,13 @@ public class PostsService {
         Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
                 likingUser.getId());
 
-        //If the user has already liked this comment, remove the like.
+        //If the user has already liked this post, remove the like.
         foundLike.ifPresent(like -> {
             likeRepository.delete(like);
             post.setLikeCount(post.getLikeCount() - 1);
         });
 
-        //If the user has not liked this comment, simply add a like for this comment for this user.
+        //If the user has not liked this post, simply add a like for this comment for this user.
 
         Like newLike = new Like(likingUser.getId(), comment_id);
 

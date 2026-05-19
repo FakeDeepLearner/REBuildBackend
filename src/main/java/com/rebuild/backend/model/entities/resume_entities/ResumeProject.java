@@ -37,12 +37,10 @@ public class ResumeProject extends AbstractProject {
                 other.startDate, other.endDate, other.bullets);
     }
 
-    public static PostResumeProject sensitiveCopy(ResumeProject other, PostResume postResume)
+    public static PostResumeProject copy(ResumeProject other, PostResume postResume)
     {
         return new PostResumeProject(other.projectName, other.technologyList,
                 other.startDate, other.endDate, other.bullets, postResume);
     }
-
-
 
 }

@@ -66,12 +66,12 @@ public class PostResume extends Auditable {
         List<ResumeProject> originalResumeProjects = originalResume.getResumeProjects();
         // We are creating new objects here
         // because we do not want them to be a reference to the original ones.
-        this.resumeEducation = ResumeEducation.sensitiveCopy(originalResumeEducation, this);
-        this.resumeHeader = ResumeHeader.sensitiveCopy(originalResumeHeader, this);
+        this.resumeEducation = ResumeEducation.copy(originalResumeEducation, this);
+        this.resumeHeader = ResumeHeader.copy(originalResumeHeader, this);
         this.resumeExperiences = originalResumeExperiences.stream().map(resumeExperience ->
-                ResumeExperience.sensitiveCopy(resumeExperience, this)).toList();
+                ResumeExperience.copy(resumeExperience, this)).toList();
         this.resumeProjects = originalResumeProjects.stream().map(resumeProject ->
-                        ResumeProject.sensitiveCopy(resumeProject, this)).
+                        ResumeProject.copy(resumeProject, this)).
                 toList();
     }
 }

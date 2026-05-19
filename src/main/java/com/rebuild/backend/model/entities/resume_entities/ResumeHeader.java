@@ -36,10 +36,10 @@ public class ResumeHeader extends AbstractHeader {
         return new ResumeHeader(other.number, other.name, other.email, other.links);
     }
 
-    public static PostResumeHeader sensitiveCopy(ResumeHeader other, PostResume postResume)
+    public static PostResumeHeader copy(ResumeHeader other, PostResume postResume)
     {
-        return new PostResumeHeader(StringUtil.maskString(other.number), StringUtil.maskString(other.name),
-                StringUtil.maskString(other.email), other.links, postResume);
+        return new PostResumeHeader(other.number, other.name,
+            other.email, other.links, postResume);
     }
 
 

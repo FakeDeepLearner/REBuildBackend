@@ -5,8 +5,6 @@ import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
-import com.rebuild.backend.model.entities.resume_entities.reviews_entities.ResumeReview;
-import com.rebuild.backend.model.entities.resume_entities.reviews_entities.ResumeSnapshot;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -105,12 +103,6 @@ public class User implements UserDetails, Serializable {
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,
             mappedBy = "user", fetch = FetchType.LAZY)
     private List<Comment> madeComments = new ArrayList<>();
-
-    @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "associatedUser")
-    private List<ResumeSnapshot> snapshots = new ArrayList<>();
-
-    @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "reviewingUser")
-    private List<ResumeReview> reviews = new ArrayList<>();
 
     @JsonIgnore
     private int numberOfResumes = 0;

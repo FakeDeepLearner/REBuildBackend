@@ -2,6 +2,8 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractEducation;
+import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
+import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,5 +30,12 @@ public class PostResumeEducation extends AbstractEducation {
         super(schoolName, relevantCoursework, location, startDate);
         this.endDate = endDate;
         this.postResume = postResume;
+    }
+
+    @Override
+    public EducationResponse toResponse() {
+        return new EducationResponse(StringUtil.maskString(this.schoolName),
+                this.relevantCoursework, this.location,
+                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate));
     }
 }

@@ -2,6 +2,8 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractProject;
+import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
+import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +33,10 @@ public class PostResumeProject extends AbstractProject {
         this.postResume = postResume;
     }
 
-
-
+    @Override
+    public ProjectResponse toResponse() {
+        return new ProjectResponse(null, this.projectName, this.technologyList,
+                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate),
+                this.bullets);
+    }
 }

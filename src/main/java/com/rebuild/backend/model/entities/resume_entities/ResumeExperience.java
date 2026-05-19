@@ -40,10 +40,11 @@ public class ResumeExperience extends AbstractExperience {
 
     }
 
-    public static PostResumeExperience sensitiveCopy(ResumeExperience other, PostResume postResume)
+    public static PostResumeExperience copy(ResumeExperience other, PostResume postResume)
     {
-        return new PostResumeExperience(StringUtil.maskString(other.companyName),
+        return new PostResumeExperience(other.companyName,
                 other.technologyList, other.location, other.experienceType,
                 other.startDate, other.endDate, other.bullets, postResume);
+
     }
 }
