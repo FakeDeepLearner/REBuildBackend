@@ -3,7 +3,6 @@ package com.rebuild.backend.controllers;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.*;
-import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
 import com.rebuild.backend.service.auth_services.RecoveryCodeHelperService;
 import com.rebuild.backend.service.auth_services.TOTPCodeService;
@@ -64,22 +63,16 @@ public class AuthenticationController {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
-        CredentialValidationDTO credentialValidationDTO = authenticationHelperService.validateLoginCredentials(loginInitializationForm);
-        if (credentialValidationDTO == null)
+        User foundUser = authenticationHelperService.matchLoginCredentialsWithUser(loginInitializationForm);
+        if (foundUser == null)
         {
-            throw new UserAuthException(HttpStatus.NOT_FOUND, "No user with this email or phone number exists");
+            throw new UserAuthException(HttpStatus.NOT_FOUND, "Invalid email or password");
         }
-        Bucket userBucket = authenticationHelperService.returnUserBucket(credentialValidationDTO.foundUser());
+        Bucket userBucket = authenticationHelperService.returnUserBucket(foundUser);
 
         ConsumptionProbe probe = userBucket.tryConsumeAndReturnRemaining(1L);
 
         if (probe.isConsumed()){
-
-            boolean userCanLogin = credentialValidationDTO.canLogin();
-            if (!userCanLogin){
-                throw new UserAuthException(HttpStatus.CONFLICT, "Invalid username or password");
-            }
-
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Please open your " +
                     "authenticator app and enter the code there");
         }

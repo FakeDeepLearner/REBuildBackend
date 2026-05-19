@@ -110,10 +110,9 @@ public class CustomPasswordService implements UserDetailsPasswordService {
         List<String> penalizedWords = new ArrayList<>();
         penalizedWords.add(signupInitializationForm.email());
         penalizedWords.add(signupInitializationForm.forumUsername());
-        if (signupInitializationForm.forumUsername() != null)
-        {
-            penalizedWords.add(signupInitializationForm.forumUsername());
-        }
+        penalizedWords.add("rerebuild");
+        penalizedWords.add(signupInitializationForm.email().split("@")[0]);
+        penalizedWords.add("2026");
 
         Zxcvbn zxcvbn = new Zxcvbn();
 

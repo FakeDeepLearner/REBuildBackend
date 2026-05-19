@@ -1,6 +1,5 @@
 package com.rebuild.backend.service.user_services;
 
-import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.EmailChangeConfirmationForm;
@@ -154,19 +153,17 @@ public class EmailAndPasswordChangeService {
 
         Claims tokenClaims = extractTokenClaims(token);
 
-        CredentialValidationDTO validationResult = authenticationHelperService.
-                validateLoginCredentials(new LoginInitializationForm(confirmationForm.oldEmail(), confirmationForm.password()));
+        User foundUser = authenticationHelperService.
+                matchLoginCredentialsWithUser(new LoginInitializationForm(confirmationForm.oldEmail(), confirmationForm.password()));
 
-        if (validationResult == null || !validationResult.canLogin())
+        if (foundUser == null)
         {
             throw new UserAuthException(HttpStatus.NOT_FOUND, "Invalid credentials");
         }
 
         String newEmail = tokenClaims.get("new_subject").toString();
-        User foundUser = validationResult.foundUser();
         changeEmail(foundUser, newEmail);
         return true;
-
     }
 
 

@@ -9,7 +9,6 @@ import com.rebuild.backend.model.entities.user_entities.*;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.LoginInitializationForm;
 import com.rebuild.backend.model.forms.auth_forms.SignupInitializationForm;
-import com.rebuild.backend.model.dtos.CredentialValidationDTO;
 import com.rebuild.backend.model.dtos.PasswordFeedbackDTO;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CustomPasswordService;
@@ -26,6 +25,8 @@ import java.util.Optional;
 
 @Service
 public class UserAuthenticationHelperService {
+
+    private final int PASSWORD_MIN_LENGTH = 12;
 
     private final UserRepository userRepository;
 
@@ -99,7 +100,7 @@ public class UserAuthenticationHelperService {
 
 
 
-    public CredentialValidationDTO validateLoginCredentials(LoginInitializationForm form) {
+    public User matchLoginCredentialsWithUser(LoginInitializationForm form) {
         String formField = form.emailOrPhone();
 
         User foundUser = userRepository.findByEmail(formField).orElse(null);
@@ -112,8 +113,12 @@ public class UserAuthenticationHelperService {
         String userSalt = foundUser.getSaltValue();
         String pepper = System.getenv("PEPPER_VALUE");
 
-        return new CredentialValidationDTO(encoder.matches(form.password() + userSalt + pepper,
-                foundUser.getPassword()), foundUser);
+        if (!encoder.matches(form.password() + userSalt + pepper, foundUser.getPassword()))
+        {
+            return null;
+        }
+
+        return foundUser;
 
     }
 
@@ -141,16 +146,17 @@ public class UserAuthenticationHelperService {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");
         }
 
-        if (signupInitializationForm.password().length() < 8)
+        if (signupInitializationForm.password().length() < PASSWORD_MIN_LENGTH)
         {
             throw new UserAuthException(HttpStatus.BAD_REQUEST,
-                    "Password is too short, please ensure it has a length of at least 8 characters");
+                    "Password is too short, please ensure it has a length of at least " +
+                            PASSWORD_MIN_LENGTH + " characters");
         }
 
         if (passwordService.passwordFoundInDataBreach(signupInitializationForm.password()))
         {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "The password you entered was found in a data breach." +
-                    "We strongly recommend that you choose a different one.");
+                    "Please choose a different one.");
         }
 
         PasswordFeedbackDTO feedbackResponse = passwordService.evaluateUserPassword(signupInitializationForm);
@@ -165,8 +171,8 @@ public class UserAuthenticationHelperService {
                 builder.append(suggestion);
                 builder.append("\n");
             }
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, "This password is not recommended due to " +
-                    "the following reason:\n " + feedbackResponse.warning() + "\n" +
+            throw new UserAuthException(HttpStatus.BAD_REQUEST, "This password is not usable due to " +
+                    "the following reason(s):\n " + feedbackResponse.warning() + "\n" +
                     "We recommend the following:\n" + builder);
         }
 
