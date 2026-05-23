@@ -6,6 +6,8 @@ import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -30,7 +32,8 @@ public abstract class AbstractExperience extends Auditable {
     @ElementCollection
     @CollectionTable(name = "experience_technologies",
             joinColumns = @JoinColumn(name = "experience_id", referencedColumnName = "id"))
-    @NonNull
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     protected List<String> technologyList;
 
     @Column(name = "location", nullable = false)
@@ -52,8 +55,9 @@ public abstract class AbstractExperience extends Auditable {
 
     @ElementCollection
     @CollectionTable(name = "experience_bullets", joinColumns = @JoinColumn(name = "experience_id"))
-    @Column(name = "bullets", nullable = false)
+    @Column(nullable = false, columnDefinition = "jsonb")
     @NonNull
+    @JdbcTypeCode(SqlTypes.JSON)
     protected List<String> bullets;
 
     public ExperienceResponse toResponse() {

@@ -28,8 +28,9 @@ public class ResumeExperience extends AbstractExperience {
     public ResumeExperience(String companyName, List<String> technologyList, String location,
                             String experienceType, YearMonth startDate, YearMonth endDate,
                             List<String> bullets) {
-        super(companyName, technologyList, location, experienceType, startDate, bullets);
+        super(companyName, location, experienceType, startDate, bullets);
         this.endDate = endDate;
+        this.technologyList = technologyList;
     }
 
 

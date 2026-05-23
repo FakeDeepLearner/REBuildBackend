@@ -27,8 +27,9 @@ public class ResumeProject extends AbstractProject {
     public ResumeProject(String projectName, List<String> technologyList,
                          YearMonth startDate, YearMonth endDate, List<String> bullets)
     {
-        super(projectName, technologyList, startDate, bullets);
+        super(projectName, startDate, bullets);
         this.endDate = endDate;
+        this.technologyList = technologyList;
     }
 
     public static ResumeProject copy(ResumeProject other)

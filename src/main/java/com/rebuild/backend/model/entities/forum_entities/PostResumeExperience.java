@@ -27,9 +27,10 @@ public class PostResumeExperience extends AbstractExperience {
     public PostResumeExperience(String companyName, List<String> technologyList, String location,
                             String experienceType, YearMonth startDate, YearMonth endDate,
                             List<String> bullets, PostResume postResume) {
-        super(companyName, technologyList, location, experienceType, startDate, bullets);
+        super(companyName, location, experienceType, startDate, bullets);
         this.endDate = endDate;
         this.postResume = postResume;
+        this.technologyList = technologyList;
     }
 
     @Override

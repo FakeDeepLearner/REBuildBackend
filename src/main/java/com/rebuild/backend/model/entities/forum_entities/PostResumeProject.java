@@ -28,9 +28,10 @@ public class PostResumeProject extends AbstractProject {
                          YearMonth startDate, YearMonth endDate, List<String> bullets,
                              PostResume postResume)
     {
-        super(projectName, technologyList, startDate, bullets);
+        super(projectName, startDate, bullets);
         this.endDate = endDate;
         this.postResume = postResume;
+        this.technologyList = technologyList;
     }
 
     @Override
