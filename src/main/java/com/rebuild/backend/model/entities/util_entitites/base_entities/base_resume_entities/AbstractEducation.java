@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.util_entitites.base_entities;
+package com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities;
 
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
@@ -8,10 +8,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
-import java.util.List;
 import java.util.UUID;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "abstract_educations")
 @Getter
 @Setter
 @RequiredArgsConstructor

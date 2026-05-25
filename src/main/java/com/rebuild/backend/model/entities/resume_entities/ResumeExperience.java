@@ -4,13 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostResumeExperience;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractExperience;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -28,17 +31,23 @@ public class ResumeExperience extends AbstractExperience {
     public ResumeExperience(String companyName, String technologyList, String location,
                             String experienceType, YearMonth startDate, YearMonth endDate,
                             List<String> bullets) {
-        super(companyName, location, experienceType, startDate, bullets);
+        super(companyName, location, experienceType, startDate);
         this.endDate = endDate;
         this.technologyList = technologyList;
+        this.bullets = StringUtil.createExperienceBullets(bullets, this);
     }
 
 
-    public static ResumeExperience copy(ResumeExperience other)
+    public ResumeExperience(ResumeExperience other, Resume resume)
     {
-        return new ResumeExperience(other.companyName, other.technologyList, other.location, other.experienceType,
-                other.startDate, other.endDate, other.bullets);
-
+        super(other.companyName, other.location, other.experienceType, other.startDate);
+        this.endDate = other.endDate;
+        this.technologyList = other.technologyList;
+        this.bullets = other.bullets.stream().map(
+                experienceBulletPoint ->  new ExperienceBulletPoint(experienceBulletPoint.getText(),
+                        this)
+        ).collect(Collectors.toList());
+        this.resume = resume;
     }
 
     public static PostResumeExperience copy(ResumeExperience other, PostResume postResume)

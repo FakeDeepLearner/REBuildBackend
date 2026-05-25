@@ -70,9 +70,8 @@ public class ResumePrefillService {
         Resume sampleResume = resumeObtainer.findByUserAndIdWithExperiences(user, sampleResumeId);
 
         List<ResumeExperience> newResumeExperiences = sampleResume.getResumeExperiences().stream()
-                .map(ResumeExperience::copy).
-                peek(experience -> experience.setResume(currentResume))
-                .toList();
+                .map(resumeExperience -> new ResumeExperience(resumeExperience, currentResume)).
+                toList();
 
         currentResume.setResumeExperiences(newResumeExperiences);
 
@@ -90,7 +89,7 @@ public class ResumePrefillService {
         Resume sampleResume = resumeObtainer.findByUserAndIdWithProjects(user, sampleResumeId);
 
         List<ResumeProject> newResumeProjects = sampleResume.getResumeProjects().stream()
-                .map(ResumeProject::copy).
+                .map(ResumeProject::new).
                 peek(project -> project.setResume(currentResume))
                 .toList();
 

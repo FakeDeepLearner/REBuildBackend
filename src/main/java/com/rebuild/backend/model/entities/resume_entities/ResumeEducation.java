@@ -5,14 +5,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostResumeEducation;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractEducation;
-import com.rebuild.backend.utils.StringUtil;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractEducation;
 import jakarta.persistence.*;
 import lombok.*;
 
 
 import java.time.YearMonth;
-import java.util.List;
 
 
 @EqualsAndHashCode(callSuper = true)

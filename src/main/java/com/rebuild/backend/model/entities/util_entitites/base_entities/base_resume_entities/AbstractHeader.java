@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.util_entitites.base_entities;
+package com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities;
 
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
@@ -8,7 +8,9 @@ import lombok.*;
 import java.util.List;
 import java.util.UUID;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "abstract_headers")
 @Getter
 @Setter
 @RequiredArgsConstructor

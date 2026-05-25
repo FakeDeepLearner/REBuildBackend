@@ -122,7 +122,8 @@ public class SubpartsModificationService {
         changingResumeExperience.setLocation(experienceForm.location());
         changingResumeExperience.setEndDate(end);
         changingResumeExperience.setStartDate(start);
-        changingResumeExperience.setBullets(experienceForm.bullets());
+        changingResumeExperience.setBullets(StringUtil.createExperienceBullets(experienceForm.bullets(),
+                changingResumeExperience));
         changingResumeExperience.setTechnologyList(experienceForm.technologies());
         changingResumeExperience.setCompanyName(experienceForm.companyName());
         changingResumeExperience.setExperienceType(experienceForm.experienceType());
@@ -135,7 +136,7 @@ public class SubpartsModificationService {
         changingResumeProject.setStartDate(start);
         changingResumeProject.setEndDate(end);
 
-        changingResumeProject.setBullets(projectForm.bullets());
+        changingResumeProject.setBullets(StringUtil.createProjectBullets(projectForm.bullets(), changingResumeProject));
         changingResumeProject.setProjectName(projectForm.projectName());
         changingResumeProject.setTechnologyList(projectForm.technologyList());
     }

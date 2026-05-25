@@ -1,10 +1,17 @@
 package com.rebuild.backend.utils;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
 
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 public class StringUtil {
@@ -84,5 +91,21 @@ public class StringUtil {
 
     public static String generateResumeCacheKey(User user, UUID resumeId) {
         return user.getId() + ":" + resumeId;
+    }
+
+    public static List<ProjectBulletPoint> createProjectBullets(List<String> texts, AbstractProject associatedProject)
+    {
+        return texts.stream().map(
+                text -> new ProjectBulletPoint(text, associatedProject)
+        ).collect(Collectors.toList());
+    }
+
+
+    public static List<ExperienceBulletPoint> createExperienceBullets(List<String> texts,
+                                                                      AbstractExperience abstractExperience)
+    {
+        return texts.stream().map(
+                text -> new ExperienceBulletPoint(text, abstractExperience)
+        ).collect(Collectors.toList());
     }
 }

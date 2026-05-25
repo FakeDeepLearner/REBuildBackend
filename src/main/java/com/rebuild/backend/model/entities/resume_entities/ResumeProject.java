@@ -3,12 +3,15 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostResumeProject;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractProject;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
+import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -27,15 +30,21 @@ public class ResumeProject extends AbstractProject {
     public ResumeProject(String projectName, String technologyList,
                          YearMonth startDate, YearMonth endDate, List<String> bullets)
     {
-        super(projectName, startDate, bullets);
+        super(projectName, startDate);
         this.endDate = endDate;
         this.technologyList = technologyList;
+        this.bullets = StringUtil.createProjectBullets(bullets, this);
     }
 
-    public static ResumeProject copy(ResumeProject other)
+    public ResumeProject(ResumeProject other)
     {
-        return new ResumeProject(other.projectName, other.technologyList,
-                other.startDate, other.endDate, other.bullets);
+        super(other.projectName, other.startDate);
+        this.endDate = other.endDate;
+        this.technologyList = other.technologyList;
+        this.bullets = other.bullets.stream().map(
+                projectBulletPoint -> new ProjectBulletPoint(projectBulletPoint.getText(),
+                        this)
+        ).collect(Collectors.toList());
     }
 
     public static PostResumeProject copy(ResumeProject other, PostResume postResume)

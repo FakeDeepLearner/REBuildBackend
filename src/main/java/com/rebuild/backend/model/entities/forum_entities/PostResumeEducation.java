@@ -1,7 +1,7 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractEducation;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractEducation;
 import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
@@ -10,7 +10,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.YearMonth;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity

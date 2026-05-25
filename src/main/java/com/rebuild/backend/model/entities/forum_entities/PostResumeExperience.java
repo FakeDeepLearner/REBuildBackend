@@ -1,7 +1,9 @@
 package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractExperience;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractBulletPoint;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
 import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -26,11 +29,15 @@ public class PostResumeExperience extends AbstractExperience {
 
     public PostResumeExperience(String companyName, String technologyList, String location,
                             String experienceType, YearMonth startDate, YearMonth endDate,
-                            List<String> bullets, PostResume postResume) {
-        super(companyName, location, experienceType, startDate, bullets);
+                            List<ExperienceBulletPoint> bullets, PostResume postResume) {
+        super(companyName, location, experienceType, startDate);
+        List<ExperienceBulletPoint> bulletPoints = bullets.stream().map(experienceBulletPoint ->
+                new ExperienceBulletPoint(experienceBulletPoint.getText(), this)).
+                collect(Collectors.toList());
         this.endDate = endDate;
         this.postResume = postResume;
         this.technologyList = technologyList;
+        this.bullets = bulletPoints;
     }
 
     @Override
@@ -38,6 +45,8 @@ public class PostResumeExperience extends AbstractExperience {
         return new ExperienceResponse(null, StringUtil.maskString(this.companyName),
                 this.technologyList, this.location, this.experienceType,
                 StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate),
-                this.bullets);
+                this.bullets.stream().map(
+                        AbstractBulletPoint::getText
+                ).toList());
     }
 }

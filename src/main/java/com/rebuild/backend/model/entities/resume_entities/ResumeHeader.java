@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostResumeHeader;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractHeader;
-import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
-import com.rebuild.backend.utils.StringUtil;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractHeader;
 import jakarta.persistence.*;
 import lombok.*;
 

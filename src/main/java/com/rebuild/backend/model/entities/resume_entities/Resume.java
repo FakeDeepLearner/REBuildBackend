@@ -89,11 +89,10 @@ public class Resume extends Auditable {
         this.resumeEducation = ResumeEducation.copy(originalResume.getResumeEducation());
         this.resumeHeader = ResumeHeader.copy(originalResume.getResumeHeader());
         this.resumeExperiences = originalResume.getResumeExperiences().stream().map(
-                ResumeExperience::copy
-        ).peek(experience -> experience.setResume(this)).
-                collect(Collectors.toCollection(ArrayList::new));
+                resumeExperience -> new ResumeExperience(resumeExperience, this)
+        ).collect(Collectors.toCollection(ArrayList::new));
         this.resumeProjects = originalResume.getResumeProjects().stream().map(
-                ResumeProject::copy
+                ResumeProject::new
         ).peek(project -> project.setResume(this)).
                 collect(Collectors.toCollection(ArrayList::new));
         //Necessary in order for cascading to work properly

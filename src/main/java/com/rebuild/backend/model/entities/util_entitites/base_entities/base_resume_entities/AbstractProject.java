@@ -1,6 +1,7 @@
-package com.rebuild.backend.model.entities.util_entitites.base_entities;
+package com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities;
 
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
 import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
 import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.YearMonthDatabaseConverter;
@@ -13,7 +14,9 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "abstract_projects")
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -29,7 +32,6 @@ public abstract class AbstractProject extends Auditable {
     @Column(name = "project_name")
     protected String projectName;
 
-
     @Column(name = "technology_list")
     protected String technologyList;
 
@@ -42,17 +44,20 @@ public abstract class AbstractProject extends Auditable {
     @Convert(converter = YearMonthDatabaseConverter.class)
     protected YearMonth endDate;
 
-    @ElementCollection
-    @CollectionTable(name = "project_bullets", joinColumns = @JoinColumn(name = "project_id",
-            referencedColumnName = "id"))
-    @Column(nullable = false, columnDefinition = "jsonb")
-    @NonNull
-    @JdbcTypeCode(SqlTypes.JSON)
-    protected List<String> bullets;
+    @OneToMany(mappedBy = "associatedProject", fetch = FetchType.LAZY, orphanRemoval = true,
+            cascade = {
+                    CascadeType.REMOVE,
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            })
+    protected List<ProjectBulletPoint> bullets;
+
 
     public ProjectResponse toResponse(){
         return new ProjectResponse(this.id, this.projectName, this.technologyList,
                 StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate),
-                this.bullets);
+                bullets.stream().map(
+                        AbstractBulletPoint::getText
+                ).toList());
     }
 }
