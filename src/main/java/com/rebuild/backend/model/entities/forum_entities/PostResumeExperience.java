@@ -24,7 +24,7 @@ public class PostResumeExperience extends AbstractExperience {
     @JsonIgnore
     private PostResume postResume;
 
-    public PostResumeExperience(String companyName, List<String> technologyList, String location,
+    public PostResumeExperience(String companyName, String technologyList, String location,
                             String experienceType, YearMonth startDate, YearMonth endDate,
                             List<String> bullets, PostResume postResume) {
         super(companyName, location, experienceType, startDate, bullets);

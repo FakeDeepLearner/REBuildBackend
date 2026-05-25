@@ -24,7 +24,7 @@ public class ResumeProject extends AbstractProject {
     private Resume resume;
 
 
-    public ResumeProject(String projectName, List<String> technologyList,
+    public ResumeProject(String projectName, String technologyList,
                          YearMonth startDate, YearMonth endDate, List<String> bullets)
     {
         super(projectName, startDate, bullets);

@@ -27,9 +27,7 @@ public abstract class AbstractEducation extends Auditable {
     protected String schoolName;
 
     @NonNull
-    @ElementCollection
-    @CollectionTable(name = "courses", joinColumns = @JoinColumn(name = "education_id", referencedColumnName = "id"))
-    protected List<String> relevantCoursework;
+    protected String relevantCoursework;
 
     @Column(name = "location", nullable = false)
     @NonNull

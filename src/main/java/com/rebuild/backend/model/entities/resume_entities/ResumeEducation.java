@@ -28,7 +28,7 @@ public class ResumeEducation extends AbstractEducation {
     @JsonIgnore
     private Resume resume;
 
-    public ResumeEducation(String schoolName, List<String> relevantCoursework, String location,
+    public ResumeEducation(String schoolName, String relevantCoursework, String location,
                            YearMonth startDate, YearMonth endDate) {
         super(schoolName, relevantCoursework, location, startDate);
         this.setEndDate(endDate);

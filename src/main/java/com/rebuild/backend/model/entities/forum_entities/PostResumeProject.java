@@ -24,7 +24,7 @@ public class PostResumeProject extends AbstractProject {
     @JsonIgnore
     private PostResume postResume;
 
-    public PostResumeProject(String projectName, List<String> technologyList,
+    public PostResumeProject(String projectName, String technologyList,
                          YearMonth startDate, YearMonth endDate, List<String> bullets,
                              PostResume postResume)
     {

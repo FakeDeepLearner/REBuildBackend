@@ -15,7 +15,7 @@ import java.util.UUID;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "is_group_chat", discriminatorType = DiscriminatorType.INTEGER)
 @Data
-public class AbstractChat extends Auditable {
+public abstract class AbstractChat extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

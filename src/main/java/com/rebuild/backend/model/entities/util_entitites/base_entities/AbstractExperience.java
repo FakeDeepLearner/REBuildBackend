@@ -29,12 +29,8 @@ public abstract class AbstractExperience extends Auditable {
     @NonNull
     protected String companyName;
 
-    @ElementCollection
-    @CollectionTable(name = "experience_technologies",
-            joinColumns = @JoinColumn(name = "experience_id", referencedColumnName = "id"))
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    protected List<String> technologyList;
+    @Column(name = "technology_list")
+    protected String technologyList;
 
     @Column(name = "location", nullable = false)
     @NonNull

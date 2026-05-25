@@ -24,7 +24,7 @@ public class PostResumeEducation extends AbstractEducation {
     @JsonIgnore
     private PostResume postResume;
 
-    public PostResumeEducation(String schoolName, List<String> relevantCoursework, String location,
+    public PostResumeEducation(String schoolName, String relevantCoursework, String location,
                            YearMonth startDate, YearMonth endDate,
                                PostResume postResume) {
         super(schoolName, relevantCoursework, location, startDate);

@@ -29,12 +29,9 @@ public abstract class AbstractProject extends Auditable {
     @Column(name = "project_name")
     protected String projectName;
 
-    @ElementCollection
-    @CollectionTable(name = "project_technologies",
-            joinColumns = @JoinColumn(name = "project_id", referencedColumnName = "id"))
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    protected List<String> technologyList;
+
+    @Column(name = "technology_list")
+    protected String technologyList;
 
     @NonNull
     @Column(name = "start_date")
