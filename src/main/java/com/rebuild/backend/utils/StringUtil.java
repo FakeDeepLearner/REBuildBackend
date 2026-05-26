@@ -3,7 +3,6 @@ package com.rebuild.backend.utils;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
 
@@ -18,7 +17,7 @@ public class StringUtil {
 
     private static final DateTimeFormatter yearMonthFormatter = DateTimeFormatter.ofPattern("uuuu-MM");
 
-    public static YearMonth getYearMonth(String yearMonth)
+    public static YearMonth generateYearMonthValue(String yearMonth)
     {
         if (yearMonth.equals("Present"))
         {
@@ -72,7 +71,7 @@ public class StringUtil {
     }
 
 
-    public static String transformYearMonth(YearMonth yearMonth)
+    public static String getYearMonthDisplayValue(YearMonth yearMonth)
     {
         if (yearMonth == null)
         {
@@ -93,19 +92,4 @@ public class StringUtil {
         return user.getId() + ":" + resumeId;
     }
 
-    public static List<ProjectBulletPoint> createProjectBullets(List<String> texts, AbstractProject associatedProject)
-    {
-        return texts.stream().map(
-                text -> new ProjectBulletPoint(text, associatedProject)
-        ).collect(Collectors.toList());
-    }
-
-
-    public static List<ExperienceBulletPoint> createExperienceBullets(List<String> texts,
-                                                                      AbstractExperience abstractExperience)
-    {
-        return texts.stream().map(
-                text -> new ExperienceBulletPoint(text, abstractExperience)
-        ).collect(Collectors.toList());
-    }
 }

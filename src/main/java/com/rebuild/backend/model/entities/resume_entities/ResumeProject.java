@@ -5,6 +5,7 @@ import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.entities.forum_entities.PostResumeProject;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
+import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,7 +34,7 @@ public class ResumeProject extends AbstractProject {
         super(projectName, startDate);
         this.endDate = endDate;
         this.technologyList = technologyList;
-        this.bullets = StringUtil.createProjectBullets(bullets, this);
+        this.bullets = BulletsUtil.createProjectBullets(bullets, this);
     }
 
     public ResumeProject(ResumeProject other)
@@ -41,10 +42,8 @@ public class ResumeProject extends AbstractProject {
         super(other.projectName, other.startDate);
         this.endDate = other.endDate;
         this.technologyList = other.technologyList;
-        this.bullets = other.bullets.stream().map(
-                projectBulletPoint -> new ProjectBulletPoint(projectBulletPoint.getText(),
-                        this)
-        ).collect(Collectors.toList());
+        this.bullets = BulletsUtil.copyProjectBullets(other.bullets, this);
+
     }
 
     public static PostResumeProject copy(ResumeProject other, PostResume postResume)

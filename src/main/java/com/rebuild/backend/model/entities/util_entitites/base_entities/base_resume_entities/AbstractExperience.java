@@ -2,14 +2,11 @@ package com.rebuild.backend.model.entities.util_entitites.base_entities.base_res
 
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
 import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
 import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -61,12 +58,17 @@ public abstract class AbstractExperience extends Auditable {
             })
     protected List<ExperienceBulletPoint> bullets;
 
+    protected List<String> getBulletsDisplayValues()
+    {
+        return bullets.stream().map(
+                AbstractBulletPoint::getText
+        ).toList();
+    }
+
     public ExperienceResponse toResponse() {
         return new ExperienceResponse(this.id, this.companyName, this.technologyList,
-                this.location, this.experienceType, StringUtil.transformYearMonth(this.startDate),
-                StringUtil.transformYearMonth(this.endDate),
-                bullets.stream().map(
-                        AbstractBulletPoint::getText
-                ).toList());
+                this.location, this.experienceType, StringUtil.getYearMonthDisplayValue(this.startDate),
+                StringUtil.getYearMonthDisplayValue(this.endDate),
+                getBulletsDisplayValues());
     }
 }

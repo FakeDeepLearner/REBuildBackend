@@ -36,6 +36,6 @@ public class PostResumeHeader extends AbstractHeader {
     @Override
     public HeaderResponse toResponse() {
         return new HeaderResponse(maskString(this.number), maskString(this.name),
-                maskString(this.email), this.links.stream().map(StringUtil::maskString).toList());
+                maskString(this.email), null);
     }
 }

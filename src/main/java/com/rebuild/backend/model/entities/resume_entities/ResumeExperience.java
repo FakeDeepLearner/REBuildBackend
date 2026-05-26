@@ -7,11 +7,13 @@ import com.rebuild.backend.model.entities.forum_entities.PostResumeExperience;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
+import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.YearMonth;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +36,7 @@ public class ResumeExperience extends AbstractExperience {
         super(companyName, location, experienceType, startDate);
         this.endDate = endDate;
         this.technologyList = technologyList;
-        this.bullets = StringUtil.createExperienceBullets(bullets, this);
+        this.bullets = BulletsUtil.createExperienceBullets(bullets, this);
     }
 
 
@@ -43,10 +45,7 @@ public class ResumeExperience extends AbstractExperience {
         super(other.companyName, other.location, other.experienceType, other.startDate);
         this.endDate = other.endDate;
         this.technologyList = other.technologyList;
-        this.bullets = other.bullets.stream().map(
-                experienceBulletPoint ->  new ExperienceBulletPoint(experienceBulletPoint.getText(),
-                        this)
-        ).collect(Collectors.toList());
+        this.bullets = BulletsUtil.copyExperienceBullets(other.bullets, this);
         this.resume = resume;
     }
 

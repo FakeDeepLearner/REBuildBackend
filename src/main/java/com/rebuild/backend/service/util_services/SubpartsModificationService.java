@@ -2,6 +2,7 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
@@ -105,8 +106,8 @@ public class SubpartsModificationService {
         Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
 
         ResumeEducation newResumeEducation = new ResumeEducation(educationForm.schoolName(), educationForm.relevantCoursework(),
-                educationForm.location(), StringUtil.getYearMonth(educationForm.startDate()),
-                StringUtil.getYearMonth(educationForm.endDate()));
+                educationForm.location(), StringUtil.generateYearMonthValue(educationForm.startDate()),
+                StringUtil.generateYearMonthValue(educationForm.endDate()));
         changingResume.setResumeEducation(newResumeEducation);
         newResumeEducation.setResume(changingResume);
 
@@ -117,12 +118,12 @@ public class SubpartsModificationService {
 
 
     private void modifyExperience(ResumeExperience changingResumeExperience, ExperienceForm experienceForm) {
-        YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
-        YearMonth end = StringUtil.getYearMonth(experienceForm.endDate());
+        YearMonth start = StringUtil.generateYearMonthValue(experienceForm.startDate());
+        YearMonth end = StringUtil.generateYearMonthValue(experienceForm.endDate());
         changingResumeExperience.setLocation(experienceForm.location());
         changingResumeExperience.setEndDate(end);
         changingResumeExperience.setStartDate(start);
-        changingResumeExperience.setBullets(StringUtil.createExperienceBullets(experienceForm.bullets(),
+        changingResumeExperience.setBullets(BulletsUtil.createExperienceBullets(experienceForm.bullets(),
                 changingResumeExperience));
         changingResumeExperience.setTechnologyList(experienceForm.technologies());
         changingResumeExperience.setCompanyName(experienceForm.companyName());
@@ -131,12 +132,12 @@ public class SubpartsModificationService {
 
 
     private void modifyProject(ResumeProject changingResumeProject, ProjectForm projectForm) {
-        YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
-        YearMonth end = StringUtil.getYearMonth(projectForm.endDate());
+        YearMonth start = StringUtil.generateYearMonthValue(projectForm.startDate());
+        YearMonth end = StringUtil.generateYearMonthValue(projectForm.endDate());
         changingResumeProject.setStartDate(start);
         changingResumeProject.setEndDate(end);
 
-        changingResumeProject.setBullets(StringUtil.createProjectBullets(projectForm.bullets(), changingResumeProject));
+        changingResumeProject.setBullets(BulletsUtil.createProjectBullets(projectForm.bullets(), changingResumeProject));
         changingResumeProject.setProjectName(projectForm.projectName());
         changingResumeProject.setTechnologyList(projectForm.technologyList());
     }

@@ -94,8 +94,8 @@ public class ResumeService {
     public ExperienceResponse createNewExperience(User changingUser, UUID resumeId,
                                       ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
-        YearMonth start = StringUtil.getYearMonth(experienceForm.startDate());
-        YearMonth end = StringUtil.getYearMonth(experienceForm.endDate());
+        YearMonth start = StringUtil.generateYearMonthValue(experienceForm.startDate());
+        YearMonth end = StringUtil.generateYearMonthValue(experienceForm.endDate());
         ResumeExperience newResumeExperience = new ResumeExperience(experienceForm.companyName(),
                 experienceForm.technologies(), experienceForm.location(), experienceForm.experienceType(),
                 start, end, experienceForm.bullets());
@@ -112,8 +112,8 @@ public class ResumeService {
     public ProjectResponse createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
 
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
-        YearMonth start = StringUtil.getYearMonth(projectForm.startDate());
-        YearMonth end = StringUtil.getYearMonth(projectForm.endDate());
+        YearMonth start = StringUtil.generateYearMonthValue(projectForm.startDate());
+        YearMonth end = StringUtil.generateYearMonthValue(projectForm.endDate());
         ResumeProject newResumeProject = new ResumeProject(projectForm.projectName(), projectForm.technologyList(),
                 start, end, projectForm.bullets());
         newResumeProject.setResume(resume);
@@ -177,8 +177,8 @@ public class ResumeService {
         ResumeEducation newResumeEducation = new ResumeEducation(resumeForm.educationForm().schoolName(),
                 resumeForm.educationForm().relevantCoursework(),
                 resumeForm.educationForm().location(),
-                StringUtil.getYearMonth(resumeForm.educationForm().startDate()),
-                StringUtil.getYearMonth(resumeForm.educationForm().endDate()));
+                StringUtil.generateYearMonthValue(resumeForm.educationForm().startDate()),
+                StringUtil.generateYearMonthValue(resumeForm.educationForm().endDate()));
         resume.setResumeEducation(newResumeEducation);
 
         resume.setResumeProjects(extractProjects(resumeForm.projects(), resume));
@@ -222,8 +222,8 @@ public class ResumeService {
         return experienceForms.stream().map( rawForm -> {
                     ResumeExperience newResumeExperience = new ResumeExperience(rawForm.companyName(),
                             rawForm.technologies(), rawForm.location(), rawForm.experienceType(),
-                            StringUtil.getYearMonth(rawForm.startDate()),
-                            StringUtil.getYearMonth(rawForm.endDate()),
+                            StringUtil.generateYearMonthValue(rawForm.startDate()),
+                            StringUtil.generateYearMonthValue(rawForm.endDate()),
                             rawForm.bullets());
                     newResumeExperience.setResume(associatedResume);
                     return newResumeExperience;
@@ -236,8 +236,8 @@ public class ResumeService {
     private List<ResumeProject> extractProjects(List<ProjectForm> projectForms, Resume resume){
         return projectForms.stream().map(rawForm -> {
                     ResumeProject newResumeProject = new ResumeProject(rawForm.projectName(), rawForm.technologyList(),
-                            StringUtil.getYearMonth(rawForm.startDate()),
-                            StringUtil.getYearMonth(rawForm.endDate()),
+                            StringUtil.generateYearMonthValue(rawForm.startDate()),
+                            StringUtil.generateYearMonthValue(rawForm.endDate()),
                             rawForm.bullets());
                     newResumeProject.setResume(resume);
                     return newResumeProject;

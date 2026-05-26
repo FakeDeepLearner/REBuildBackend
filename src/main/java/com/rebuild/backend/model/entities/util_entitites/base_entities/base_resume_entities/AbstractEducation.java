@@ -45,6 +45,6 @@ public abstract class AbstractEducation extends Auditable {
 
     public EducationResponse toResponse(){
         return new EducationResponse(this.schoolName, this.relevantCoursework, this.location,
-                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate));
+                StringUtil.getYearMonthDisplayValue(this.startDate), StringUtil.getYearMonthDisplayValue(this.endDate));
     }
 }

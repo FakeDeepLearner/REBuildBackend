@@ -7,8 +7,6 @@ import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.YearMonthDatabaseConverter;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -52,12 +50,16 @@ public abstract class AbstractProject extends Auditable {
             })
     protected List<ProjectBulletPoint> bullets;
 
+    protected List<String> getBulletsDisplayValues()
+    {
+        return bullets.stream().map(
+                AbstractBulletPoint::getText
+        ).toList();
+    }
 
     public ProjectResponse toResponse(){
         return new ProjectResponse(this.id, this.projectName, this.technologyList,
-                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate),
-                bullets.stream().map(
-                        AbstractBulletPoint::getText
-                ).toList());
+                StringUtil.getYearMonthDisplayValue(this.startDate), StringUtil.getYearMonthDisplayValue(this.endDate),
+                getBulletsDisplayValues());
     }
 }

@@ -35,6 +35,6 @@ public class PostResumeEducation extends AbstractEducation {
     public EducationResponse toResponse() {
         return new EducationResponse(StringUtil.maskString(this.schoolName),
                 this.relevantCoursework, this.location,
-                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate));
+                StringUtil.getYearMonthDisplayValue(this.startDate), StringUtil.getYearMonthDisplayValue(this.endDate));
     }
 }

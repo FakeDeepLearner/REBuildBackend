@@ -2,9 +2,9 @@ package com.rebuild.backend.model.entities.forum_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
 import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
+import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.YearMonth;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -32,10 +31,7 @@ public class PostResumeProject extends AbstractProject {
                              PostResume postResume)
     {
         super(projectName, startDate);
-        List<ProjectBulletPoint> copiedBullets = bullets.stream().map(
-                projectBulletPoint -> new ProjectBulletPoint(projectBulletPoint.getText(),
-                        this)
-        ).collect(Collectors.toList());
+        List<ProjectBulletPoint> copiedBullets = BulletsUtil.copyProjectBullets(bullets, this);
         this.endDate = endDate;
         this.postResume = postResume;
         this.technologyList = technologyList;
@@ -45,7 +41,7 @@ public class PostResumeProject extends AbstractProject {
     @Override
     public ProjectResponse toResponse() {
         return new ProjectResponse(null, this.projectName, this.technologyList,
-                StringUtil.transformYearMonth(this.startDate), StringUtil.transformYearMonth(this.endDate),
-                this.bullets.stream().map(AbstractBulletPoint::getText).toList());
+                StringUtil.getYearMonthDisplayValue(this.startDate), StringUtil.getYearMonthDisplayValue(this.endDate),
+                getBulletsDisplayValues());
     }
 }
