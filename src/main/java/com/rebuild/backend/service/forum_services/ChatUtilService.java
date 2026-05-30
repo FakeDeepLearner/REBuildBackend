@@ -21,7 +21,9 @@ public class ChatUtilService {
 
     public User determineOtherChatUser(PrivateChat chat, User loadingUser)
     {
-        return loadingUser.equals(chat.getRecipient()) ? chat.getRecipient() : chat.getSender();
+        return chat.getParticipations().stream().filter(chatParticipation ->
+                !chatParticipation.getParticipatingUser().equals(loadingUser)).findFirst()
+                .map(ChatParticipation::getParticipatingUser).orElse(null);
     }
 
     public String determineChatDisplayName(AbstractChat chat, User loadingUser)
@@ -70,28 +72,10 @@ public class ChatUtilService {
 
     public int determineUnreadMessageCount(AbstractChat abstractChat, User user)
     {
-        if (abstractChat instanceof GroupChat groupChat)
-        {
-            return groupChat.getParticipations().stream().
-                    dropWhile(participation ->
-                            !participation.getParticipatingUser().equals(user)).findFirst()
-                    .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
-        }
+        return abstractChat.getParticipations().stream().
+                dropWhile(participation ->
+                        !participation.getParticipatingUser().equals(user)).findFirst()
+                .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
 
-        if (abstractChat instanceof PrivateChat privateChat)
-        {
-            if (privateChat.getSender().equals(user))
-            {
-                return privateChat.getSenderUnreadMessages();
-            }
-
-            if (privateChat.getRecipient().equals(user))
-            {
-                return privateChat.getRecipientUnreadMessages();
-            }
-
-        }
-
-        return 0;
     }
 }

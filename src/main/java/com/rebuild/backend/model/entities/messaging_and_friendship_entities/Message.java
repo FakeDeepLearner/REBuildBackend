@@ -40,4 +40,13 @@ public class Message extends Auditable {
     @NonNull
     @Column(name = "content", nullable = false)
     private String content;
+
+    @Column(name = "is_deleted")
+    private boolean isRemoved = false;
+
+
+    public String getDisplayedContent()
+    {
+        return isRemoved ? "This message has been removed" : content;
+    }
 }

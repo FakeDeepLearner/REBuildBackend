@@ -6,38 +6,30 @@ import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractC
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @DiscriminatorValue(value = "0")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@RequiredArgsConstructor
 public class PrivateChat extends AbstractChat {
 
-    @NonNull
-    @ManyToOne
-    @JoinColumn(name = "recipient_id", referencedColumnName = "id")
-    private User sender;
-
-    @NonNull
-    @ManyToOne
-    @JoinColumn(name = "recipient_id", referencedColumnName = "id")
-    private User recipient;
-
-    @Column(name = "sender_unreads")
-    private int senderUnreadMessages = 0;
-
-    @Column(name = "recipient_unreads")
-    private int recipientUnreadMessages = 0;
-
-    public void addSenderUnread()
+    public PrivateChat(User sender, User recipient)
     {
-        this.senderUnreadMessages++;
+        ChatParticipation senderParticipation = new ChatParticipation(sender, this);
+        senderParticipation.setParticipatingUser(sender);
+        sender.addChatParticipation(senderParticipation);
+
+        ChatParticipation recipientParticipation = new ChatParticipation(recipient, this);
+        recipientParticipation.setParticipatingUser(sender);
+        recipient.addChatParticipation(recipientParticipation);
+        recipientParticipation.setUnreadMessagesCount(1);
+
+        this.setParticipations(new ArrayList<>(List.of(senderParticipation, recipientParticipation)));
     }
 
-    public void addRecipientUnread()
-    {
-        this.recipientUnreadMessages++;
-    }
 }

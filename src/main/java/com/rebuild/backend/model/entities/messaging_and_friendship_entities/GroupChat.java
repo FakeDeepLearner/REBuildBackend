@@ -16,10 +16,6 @@ import java.util.List;
 @Entity
 public class GroupChat extends AbstractChat {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY)
-    @NonNull
-    private List<ChatParticipation> participations = new ArrayList<>();
-
     @Column(name = "chat_name")
     @NonNull
     private String chatName;

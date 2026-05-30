@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
+import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -43,7 +44,7 @@ public class ChatParticipation extends Auditable {
     @JoinColumn(name = "participated_chat_id", referencedColumnName = "id")
     @JsonIgnore
     @NonNull
-    private GroupChat participatedChat;
+    private AbstractChat participatedChat;
 
 
     // Indicates whether this user has muted this chat or not.

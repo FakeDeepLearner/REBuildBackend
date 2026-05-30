@@ -136,24 +136,15 @@ public class ChatAndMessageService {
         return savedInvitation;
     }
 
-
-    private PrivateChat createChatBetween(User sender, User recipient)
-    {
-        PrivateChat newChat = new PrivateChat(sender, recipient);
-        
-        return chatRepository.save(newChat);
-    }
-
     private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
         //If we enter this method, we know that we will have to create a new chat.
-        PrivateChat createdChat = createChatBetween(sender, recipient);
+        PrivateChat createdChat = new PrivateChat(sender, recipient);
 
         Message newMessage = new Message(sender, messageContent);
         newMessage.setAssociatedChat(createdChat);
         createdChat.getMessages().add(newMessage);
         createdChat.setLastMessage(messageContent);
-        
-        createdChat.addRecipientUnread();
+
 
         return new NewMessageDTO(chatRepository.save(createdChat), newMessage);
     }
@@ -166,30 +157,15 @@ public class ChatAndMessageService {
         newMessage.setAssociatedChat(associatedChat);
         associatedChat.getMessages().add(newMessage);
         associatedChat.setLastMessage(content);
-        
-        if (associatedChat instanceof GroupChat groupChat)
-        {
-            List<ChatParticipation> otherChatParticipations = groupChat.getParticipations().stream().
-                    filter(participation -> !sender.equals(participation.getParticipatingUser())).
-                    collect(Collectors.toCollection(ArrayList::new));
 
-            // For every other user participating in this chat except for the
-            // sender of the message, they will have 1 more unread message
-            otherChatParticipations.forEach(participation ->
-                    participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1));
-        }
+        List<ChatParticipation> otherChatParticipations = associatedChat.getParticipations().stream().
+                filter(participation -> !sender.equals(participation.getParticipatingUser())).
+                collect(Collectors.toCollection(ArrayList::new));
 
-        if (associatedChat instanceof PrivateChat privateChat)
-        {
-            User otherUser = chatUtilService.determineOtherChatUser(privateChat, sender);
-            if (otherUser.equals(sender))
-            {
-                privateChat.addSenderUnread();
-            }
-            else {
-                privateChat.addRecipientUnread();
-            }
-        }
+        // For every other user participating in this chat except for the
+        // sender of the message, they will have 1 more unread message
+        otherChatParticipations.forEach(participation ->
+                participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1));
 
         Message savedMessage = messageRepository.save(newMessage);
 
@@ -254,7 +230,7 @@ public class ChatAndMessageService {
         //We have to use the collect method at the very end, because using toList() returns an unmodifiable list.
         List<DisplayChatResponse> groupChatResponses = groupChatParticipation.stream()
                 .map(participation -> {
-                    GroupChat participatedChat = participation.getParticipatedChat();
+                    AbstractChat participatedChat = participation.getParticipatedChat();
 
                     int unreadMessageCount = chatUtilService.determineUnreadMessageCount(participatedChat, displayingUser);
 
@@ -270,29 +246,26 @@ public class ChatAndMessageService {
         groupChatResponses.addAll(privateChatResponses);
 
         return groupChatResponses;
-
-
     }
-
-
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
     {
         AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElseThrow(
                 () -> new NotFoundException("Chat with this id not found")
         );
-        String chatDisplay = chatUtilService.determineChatDisplayName(chat, loadingUser);
+        String chatDisplayName = chatUtilService.determineChatDisplayName(chat, loadingUser);
         String chatPictureUrl = chatUtilService.determineChatPictureUrl(chat, loadingUser);
 
         List<MessageDisplayDTO> messages = chat.getMessages()
                 .stream().
                 map(message -> {
                     boolean displayOnTheRight = message.getSender().equals(loadingUser);
-                    return new MessageDisplayDTO(message.getContent(), message.getCreatedAt(),
+                    return new MessageDisplayDTO(message.getDisplayedContent(),
+                            message.getCreatedAt(),
                             displayOnTheRight);
                 }).toList();
 
-        return new LoadChatResponse(chatDisplay, chat.getId(), messages, chatPictureUrl);
+        return new LoadChatResponse(chatDisplayName, chat.getId(), messages, chatPictureUrl);
     }
 
 
