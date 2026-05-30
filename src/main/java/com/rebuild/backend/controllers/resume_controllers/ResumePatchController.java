@@ -15,18 +15,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/api/resume/put", method = RequestMethod.PUT)
+@RequestMapping(value = "/api/resume/put", method = RequestMethod.PATCH)
 @ResponseStatus(HttpStatus.OK)
 @CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
-public class ResumePutController {
+public class ResumePatchController {
     private final ResumeService resumeService;
 
     @Autowired
-    public ResumePutController(ResumeService resumeService) {
+    public ResumePatchController(ResumeService resumeService) {
         this.resumeService = resumeService;
     }
 
-    @PutMapping("/header/{resume_id}/")
+    @PatchMapping("/header/{resume_id}/")
     @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public HeaderResponse modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                        @AuthenticationPrincipal User user,
@@ -35,7 +35,7 @@ public class ResumePutController {
 
     }
 
-    @PutMapping("/experience/{resume_id}/{experience_id}")
+    @PatchMapping("/experience/{resume_id}/{experience_id}")
     @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public ExperienceResponse modifyExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                                @AuthenticationPrincipal User user,
@@ -45,7 +45,7 @@ public class ResumePutController {
                 resume_id, user);
     }
 
-    @PutMapping("/education/{resume_id}")
+    @PatchMapping("/education/{resume_id}")
     @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     @ResponseStatus(HttpStatus.OK)
     public EducationResponse modifyEducation(@Valid @RequestBody EducationForm educationForm,
@@ -56,17 +56,7 @@ public class ResumePutController {
 
     }
 
-    @PutMapping("/{resume_id}")
-    @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
-    public ResumeResponse updateFullResume(@Valid @RequestBody FullInformationForm fullInformationForm,
-                                           @PathVariable UUID resume_id,
-                                           @AuthenticationPrincipal User user) {
-        return resumeService.fullUpdate(user, resume_id, fullInformationForm);
-
-    }
-
-    @PutMapping("/experience/{resume_id}/{project_id}")
+    @PatchMapping("/experience/{resume_id}/{project_id}")
     @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public ProjectResponse modifyProject(@Valid @RequestBody ProjectForm projectForm,
                                          @AuthenticationPrincipal User user,

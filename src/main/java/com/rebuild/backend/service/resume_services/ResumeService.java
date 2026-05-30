@@ -162,34 +162,6 @@ public class ResumeService {
     }
 
     @Transactional
-    public ResumeResponse fullUpdate(User updatingUser, UUID resumeID,
-                             FullInformationForm resumeForm) {
-        Resume resume = getUtility.findByUserResumeId(updatingUser, resumeID);
-
-
-        //We can't modify the resume's fields directly here, as that would also modify the variables that
-        // we declared outside the try block, causing a bug.
-        ResumeHeader newResumeHeader = new ResumeHeader(resumeForm.headerForm().number(),
-                resumeForm.headerForm().name(), resumeForm.headerForm().email(),
-                resumeForm.headerForm().links());
-        resume.setResumeHeader(newResumeHeader);
-
-        ResumeEducation newResumeEducation = new ResumeEducation(resumeForm.educationForm().schoolName(),
-                resumeForm.educationForm().relevantCoursework(),
-                resumeForm.educationForm().location(),
-                StringUtil.generateYearMonthValue(resumeForm.educationForm().startDate()),
-                StringUtil.generateYearMonthValue(resumeForm.educationForm().endDate()));
-        resume.setResumeEducation(newResumeEducation);
-
-        resume.setResumeProjects(extractProjects(resumeForm.projects(), resume));
-
-        resume.setResumeExperiences(extractExperiences(resumeForm.experiences(), resume));
-
-        return resumeRepository.save(resume).toResponse();
-
-    }
-
-    @Transactional
     public Resume changeName(User changingUser, UUID resumeId, String newName){
         Optional<Resume> foundResume = resumeRepository.findByUserAndName(changingUser, newName);
         if (foundResume.isPresent())

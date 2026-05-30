@@ -154,13 +154,6 @@ public class CloudinaryService {
         return profileRepository.save(newProfile);
     }
 
-    public UserProfile modifyProfilePictureOf(User changingUser, MultipartFile pictureFile)
-    {
-
-        return modifyPicture(changingUser, pictureFile);
-    }
-
-
     public UserProfileResponse changeProfilePicture(User changingUser, MultipartFile pictureFile)
     {
 

@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
 import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
@@ -59,5 +60,14 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.OK)
     public UserProfileResponse removeProfileImage(@AuthenticationPrincipal User user){
         return cloudinaryService.removeProfilePicture(user);
+    }
+
+
+    @PatchMapping("/update_privacy_settings")
+    @ResponseStatus(HttpStatus.OK)
+    public UserProfileResponse updateProfilePrivacy(@AuthenticationPrincipal User user,
+                                                    @RequestBody ProfilePrivacySettingsForm privacySettingsForm)
+    {
+        return profileService.changeProfilePrivacySettings(user, privacySettingsForm);
     }
 }

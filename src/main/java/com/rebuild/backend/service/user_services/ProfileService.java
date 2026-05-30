@@ -2,8 +2,11 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
+import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
+import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.UserProfileResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
@@ -11,6 +14,7 @@ import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +47,7 @@ public class ProfileService {
 
 
 
+    @Transactional
     public UserProfileResponse loadSelfProfile(User user)
     {
         UserProfile associatedProfile = user.getUserProfile();
@@ -73,5 +78,39 @@ public class ProfileService {
                 loadOtherUserProfile(foundUser, foundUser.getUserProfile(), foundRelationship.isPresent());
 
     }
+
+    private InformationVisibility mapStringToVisibility(String input)
+    {
+        return switch (input){
+            case "Everyone" -> InformationVisibility.EVERYONE;
+            case "Friends Only" -> InformationVisibility.FRIENDS_ONLY;
+            case "No One" -> InformationVisibility.NO_ONE;
+            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid input");
+        };
+    }
+
+
+    @Transactional
+    public UserProfileResponse changeProfilePrivacySettings(User user,
+                                                            ProfilePrivacySettingsForm privacySettingsForm)
+    {
+        InformationVisibility postsVisibility = mapStringToVisibility(privacySettingsForm.postsVisibilityValue());
+        InformationVisibility commentsVisibility = mapStringToVisibility(privacySettingsForm.commentsVisibilityValue());
+        InformationVisibility sensitiveInfoVisibility = mapStringToVisibility(privacySettingsForm.sensitiveInfoVisibilityValue());
+
+        UserProfile profile = user.getUserProfile();
+
+        profile.setPostsVisibility(postsVisibility);
+        profile.setCommentsVisibility(commentsVisibility);
+        profile.setSensitiveInfoVisibility(sensitiveInfoVisibility);
+        profile.setMessagesFromFriendsOnly(privacySettingsForm.messagesFromFriends());
+
+
+        profileRepository.save(profile);
+
+        return loadSelfProfile(user);
+    }
+
+
 
 }

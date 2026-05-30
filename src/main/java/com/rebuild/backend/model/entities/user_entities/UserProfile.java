@@ -1,7 +1,9 @@
 package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
+import com.rebuild.backend.model.responses.UserProfileResponse;
 import jakarta.persistence.*;
 import lombok.*;
 
