@@ -80,6 +80,7 @@ public class ChatAndMessageService {
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient,
                 associatedChat);
+        recipientParticipation.setLastMessage(associatedChat.getLastMessage());
 
         associatedChat.getParticipations().add(recipientParticipation);
         recipient.addChatParticipation(recipientParticipation);
@@ -138,7 +139,7 @@ public class ChatAndMessageService {
 
     private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
         //If we enter this method, we know that we will have to create a new chat.
-        PrivateChat createdChat = new PrivateChat(sender, recipient);
+        PrivateChat createdChat = new PrivateChat(sender, recipient, messageContent);
 
         Message newMessage = new Message(sender, messageContent);
         newMessage.setAssociatedChat(createdChat);
@@ -158,14 +159,27 @@ public class ChatAndMessageService {
         associatedChat.getMessages().add(newMessage);
         associatedChat.setLastMessage(content);
 
-        List<ChatParticipation> otherChatParticipations = associatedChat.getParticipations().stream().
-                filter(participation -> !sender.equals(participation.getParticipatingUser())).
-                collect(Collectors.toCollection(ArrayList::new));
+        List<ChatParticipation> newParticipations = associatedChat.getParticipations().stream().
+                peek(participation -> {
+            //For the participation of the sender of the message in this chat,
+            // we only update the last message of the participation
+            if (sender.equals(participation.getParticipatingUser()) && !participation.isMuted())
+            {
+                participation.setLastMessage(content);
+            }
+            //For participations that do not belong to the sender, we increase their unread count and
+            // update their last message only if the chat has not been muted
+            else
+            {
+                if (!participation.isMuted())
+                {
+                    participation.setLastMessage(content);
+                    participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1);
+                }
+            }
 
-        // For every other user participating in this chat except for the
-        // sender of the message, they will have 1 more unread message
-        otherChatParticipations.forEach(participation ->
-                participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1));
+        }).collect(Collectors.toCollection(ArrayList::new));
+        associatedChat.setParticipations(newParticipations);
 
         Message savedMessage = messageRepository.save(newMessage);
 
@@ -192,7 +206,7 @@ public class ChatAndMessageService {
                 return sendMessageTo(sender, receivingUser, messageContent);
             }
 
-
+            //Otherwise, only send a message if the 2 users are friends with each other.
             Optional<FriendRelationship> foundRelationship =
                     friendRelationshipRepository.findByTwoUsers(sender, receivingUser);
             if (foundRelationship.isPresent()) {
@@ -202,7 +216,7 @@ public class ChatAndMessageService {
 
         // If the provided identifier is instead the id of a chat,
         // then send a message to the chat identified by it.
-        Optional<AbstractChat> recipientChat = chatRepository.findById(receivingObjectId);
+        Optional<AbstractChat> recipientChat = chatRepository.findByIdWithParticipations(receivingObjectId);
 
         return recipientChat.map(chat ->
                 sendMessageTo(sender, messageContent, chat)).orElse(null);
@@ -211,24 +225,12 @@ public class ChatAndMessageService {
 
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<ChatParticipation> groupChatParticipation = participationRepository.findByParticipatingUser(displayingUser);
-        List<PrivateChat> userChats = chatRepository.findPrivateChatsByUser(displayingUser);
+        List<ChatParticipation> allChatParticipations = participationRepository.findByParticipatingUser(displayingUser);
 
-        List<DisplayChatResponse> privateChatResponses = userChats.stream()
-                .map(abstractChat -> {
-                    int unreadMessageCount = chatUtilService.determineUnreadMessageCount(abstractChat, displayingUser);
+        // We have to use the collect method at the very end,
+        // because using toList() returns an unmodifiable list.
 
-                    String chatDisplayName = chatUtilService.determineChatDisplayName(abstractChat, displayingUser);
-
-                    String chatPictureUrl = chatUtilService.determineChatPictureUrl(abstractChat, displayingUser);
-
-                    return new DisplayChatResponse(abstractChat.getId(), chatDisplayName,
-                            chatPictureUrl, abstractChat.getLastMessage(),
-                            unreadMessageCount);
-                }).toList();
-
-        //We have to use the collect method at the very end, because using toList() returns an unmodifiable list.
-        List<DisplayChatResponse> groupChatResponses = groupChatParticipation.stream()
+        return allChatParticipations.stream()
                 .map(participation -> {
                     AbstractChat participatedChat = participation.getParticipatedChat();
 
@@ -239,13 +241,10 @@ public class ChatAndMessageService {
                     String chatPictureUrl = chatUtilService.determineChatPictureUrl(participatedChat, displayingUser);
 
                     return new DisplayChatResponse(participatedChat.getId(), chatDisplayName,
-                            chatPictureUrl, participatedChat.getLastMessage(),
-                            unreadMessageCount);
+                            chatPictureUrl, Objects.requireNonNullElse(participation.getLastMessage(),
+                            participatedChat.getLastMessage()),
+                            unreadMessageCount, participation.isMuted());
                 }).collect(Collectors.toCollection(ArrayList::new));
-
-        groupChatResponses.addAll(privateChatResponses);
-
-        return groupChatResponses;
     }
 
     public LoadChatResponse loadChat(UUID chatId, User loadingUser)
@@ -278,5 +277,24 @@ public class ChatAndMessageService {
         //Just add up the 2 lists together.
         return Stream.of(groupChatIds, privateChatIds).flatMap(Collection::stream).
                 toList();
+    }
+
+    public boolean toggleChatMute(User togglingUser, UUID chatId)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(
+                () -> new NotFoundException("A chat with the specified id does not exist")
+        );
+
+        ChatParticipation foundParticipation = participationRepository.
+                findByParticipatingUserAndParticipatedChat(togglingUser, foundChat).
+                orElseThrow(() -> new BelongingException("You cannot mute or unmute a chat you are not participating in"));
+
+        boolean muted = foundParticipation.isMuted();
+
+        foundParticipation.setMuted(!muted);
+        participationRepository.save(foundParticipation);
+
+        return !muted;
+
     }
 }

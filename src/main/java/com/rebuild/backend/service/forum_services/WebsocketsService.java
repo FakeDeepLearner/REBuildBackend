@@ -46,7 +46,7 @@ public class WebsocketsService {
         //Only take the first 50 characters of a message if it is longer than that
         String contentPreview = determineContentPreview(fullContent);
 
-        String chatName =  determineChatName(chat);
+        String chatName = determineChatName(chat);
 
         NewMessageNotificationDTO newMessageNotificationDTO =
                 new NewMessageNotificationDTO(chat.getId(), sender.getId(), sentMessage.getId(),

@@ -14,7 +14,10 @@ import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "chat_participations")
+@Table(name = "chat_participations", indexes = {
+        @Index(columnList = "participating_user_id, participating_chat_id"),
+        @Index(columnList = "participating_user_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -53,6 +56,9 @@ public class ChatParticipation extends Auditable {
 
     @Column(name = "num_unread_messages")
     private int unreadMessagesCount = 0;
+
+    @Column(name = "last_message")
+    private String lastMessage;
 
 
 

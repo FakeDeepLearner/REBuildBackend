@@ -99,5 +99,12 @@ public class ChatsController {
     {
         return chatAndMessageService.findAllChatIdsByUser(user);
     }
+
+    @PostMapping("/toggle_chat_mute/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean toggleChatMute(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
+    {
+        return chatAndMessageService.toggleChatMute(user, chat_id);
+    }
     
 }

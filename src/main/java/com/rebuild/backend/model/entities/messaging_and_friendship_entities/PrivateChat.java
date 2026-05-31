@@ -18,16 +18,18 @@ import java.util.List;
 @Entity
 public class PrivateChat extends AbstractChat {
 
-    public PrivateChat(User sender, User recipient)
+    public PrivateChat(User sender, User recipient, String initialMessageContent)
     {
         ChatParticipation senderParticipation = new ChatParticipation(sender, this);
         senderParticipation.setParticipatingUser(sender);
         sender.addChatParticipation(senderParticipation);
+        senderParticipation.setLastMessage(initialMessageContent);
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient, this);
         recipientParticipation.setParticipatingUser(sender);
         recipient.addChatParticipation(recipientParticipation);
         recipientParticipation.setUnreadMessagesCount(1);
+        recipientParticipation.setLastMessage(initialMessageContent);
 
         this.setParticipations(new ArrayList<>(List.of(senderParticipation, recipientParticipation)));
     }
