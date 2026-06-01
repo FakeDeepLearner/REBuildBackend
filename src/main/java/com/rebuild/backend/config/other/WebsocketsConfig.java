@@ -26,7 +26,7 @@ public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
 
         //This is used to capture messages sent from the client to the server. It is unnecessary for now,
         //but it is here in case we need it later
-        //registry.setApplicationDestinationPrefixes("/app");
+        registry.setApplicationDestinationPrefixes("/app");
 
         /*
         These are the topics that the client will subscribe to.
@@ -37,7 +37,7 @@ public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
 
         //The server will send a heartbeat every 5 seconds, and the client every 10 seconds
         registry.enableSimpleBroker("/new_messages", "/new_chat_inviations",
-                        "/new_friend_invitations", "/new_chat_notifications").
+                        "/new_friend_invitations", "/new_chat_notifications", "/typing").
                 setHeartbeatValue(new long[] {5000, 10000});
 
         //This makes it possible to send a message to a specific user.

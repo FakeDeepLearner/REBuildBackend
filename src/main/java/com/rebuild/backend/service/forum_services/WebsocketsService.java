@@ -7,7 +7,10 @@ import com.rebuild.backend.model.dtos.websocket_dtos.NewMessageNotificationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,7 +63,6 @@ public class WebsocketsService {
 
     }
 
-
     public void sendNewChatNotification(AbstractChat newChat, User sender, Message sentMessage, User recipient){
         String fullContent = sentMessage.getContent();
 
@@ -73,7 +75,6 @@ public class WebsocketsService {
                 "user/new_chat_notifications",
                 newChatDTO);
     }
-
 
     public void sendChatInvitationNotification(ChatInvitation sentInvitation)
     {
