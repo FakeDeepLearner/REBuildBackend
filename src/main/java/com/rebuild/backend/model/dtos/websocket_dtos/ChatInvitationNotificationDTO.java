@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.dtos;
+package com.rebuild.backend.model.dtos.websocket_dtos;
 
 import java.time.Instant;
 import java.util.UUID;

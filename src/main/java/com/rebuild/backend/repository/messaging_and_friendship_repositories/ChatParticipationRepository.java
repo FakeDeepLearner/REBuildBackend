@@ -16,13 +16,6 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
 
     List<ChatParticipation> findByParticipatingUser(User participatingUser);
 
-    @Query(value = """
-        SELECT c.id FROM ChatParticipation cp
-        JOIN cp.participatedChat c
-        WHERE cp.participatingUser=?1
-        """)
-    List<UUID> findIdsByParticipatingUser(User participatingUser);
-
 
     Optional<ChatParticipation> findByParticipatingUserAndParticipatedChat(User participatingUser,
                                                                            AbstractChat participatedChat);

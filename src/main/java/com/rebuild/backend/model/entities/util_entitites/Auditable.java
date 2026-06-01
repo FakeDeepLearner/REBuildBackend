@@ -14,9 +14,9 @@ public abstract class Auditable {
 
     @CreationTimestamp
     @Column(nullable = false)
-    private Instant createdAt;
+    protected Instant createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private Instant lastModifiedAt;
+    protected Instant lastModifiedAt;
 }

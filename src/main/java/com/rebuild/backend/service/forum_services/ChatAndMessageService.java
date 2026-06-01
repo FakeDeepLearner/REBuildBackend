@@ -1,11 +1,11 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
@@ -137,7 +137,7 @@ public class ChatAndMessageService {
         return savedInvitation;
     }
 
-    private NewMessageDTO sendMessageTo(User sender, User recipient, String messageContent){
+    private MessageDisplayDTO sendMessageTo(User sender, User recipient, String messageContent){
         //If we enter this method, we know that we will have to create a new chat.
         PrivateChat createdChat = new PrivateChat(sender, recipient, messageContent);
 
@@ -146,11 +146,16 @@ public class ChatAndMessageService {
         createdChat.getMessages().add(newMessage);
         createdChat.setLastMessage(messageContent);
 
+        //Here, we do need to save both the message and the chat, since the chat itself is also a brand-new entity
+        chatRepository.save(createdChat);
+        Message savedMessage = messageRepository.save(newMessage);
 
-        return new NewMessageDTO(chatRepository.save(createdChat), newMessage);
+        websocketsService.sendNewChatNotification(createdChat, sender, savedMessage, recipient);
+
+        return savedMessage.toDTo(true);
     }
 
-    private NewMessageDTO sendMessageTo(User sender, String content,
+    private MessageDisplayDTO sendMessageTo(User sender, String content,
                                         AbstractChat associatedChat)
     {
 
@@ -185,11 +190,11 @@ public class ChatAndMessageService {
 
         websocketsService.sendNewMessageNotification(associatedChat, sender, savedMessage);
 
-        return new NewMessageDTO(chatRepository.save(associatedChat), savedMessage);
+        return savedMessage.toDTo(true);
     }
 
 
-    public NewMessageDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
+    public MessageDisplayDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
         Optional<User> recipient = userRepository.findById(receivingObjectId);
 
@@ -219,7 +224,8 @@ public class ChatAndMessageService {
         Optional<AbstractChat> recipientChat = chatRepository.findByIdWithParticipations(receivingObjectId);
 
         return recipientChat.map(chat ->
-                sendMessageTo(sender, messageContent, chat)).orElse(null);
+                sendMessageTo(sender, messageContent, chat)).
+                orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "You are not authorized to send messages to this user or channel"));
 
     }
 
@@ -252,6 +258,15 @@ public class ChatAndMessageService {
         AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElseThrow(
                 () -> new NotFoundException("Chat with this id not found")
         );
+
+        ChatParticipation userParticipation = participationRepository.
+                findByParticipatingUserAndParticipatedChat(loadingUser, chat).
+                orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not participating in this chat, you can't load it"));
+        //Update the participation of this user in this chat.
+        userParticipation.setUnreadMessagesCount(0);
+        userParticipation.setLastMessage(chat.getLastMessage());
+        participationRepository.save(userParticipation);
+
         String chatDisplayName = chatUtilService.determineChatDisplayName(chat, loadingUser);
         String chatPictureUrl = chatUtilService.determineChatPictureUrl(chat, loadingUser);
 
@@ -259,9 +274,7 @@ public class ChatAndMessageService {
                 .stream().
                 map(message -> {
                     boolean displayOnTheRight = message.getSender().equals(loadingUser);
-                    return new MessageDisplayDTO(message.getDisplayedContent(),
-                            message.getCreatedAt(),
-                            displayOnTheRight);
+                    return message.toDTo(displayOnTheRight);
                 }).toList();
 
         return new LoadChatResponse(chatDisplayName, chat.getId(), messages, chatPictureUrl);
@@ -270,13 +283,7 @@ public class ChatAndMessageService {
 
     public List<UUID> findAllChatIdsByUser(User user)
     {
-        List<UUID> groupChatIds = participationRepository.findIdsByParticipatingUser(user);
-
-        List<UUID> privateChatIds = chatRepository.findIdsByUser(user);
-
-        //Just add up the 2 lists together.
-        return Stream.of(groupChatIds, privateChatIds).flatMap(Collection::stream).
-                toList();
+        return chatRepository.findIdsByUser(user);
     }
 
     public boolean toggleChatMute(User togglingUser, UUID chatId)
@@ -294,7 +301,23 @@ public class ChatAndMessageService {
         foundParticipation.setMuted(!muted);
         participationRepository.save(foundParticipation);
 
+        //Return the new mute status of the chat
         return !muted;
+    }
 
+
+    public MessageDisplayDTO removeMessage(User removingUser, UUID messageId)
+    {
+        Message foundMessage = messageRepository.findByIdAndSender(messageId, removingUser).
+                orElseThrow(() -> new BelongingException("Message with this id either does not exist or " +
+                        "does not belong to you"));
+
+        foundMessage.setRemoved(true);
+
+        Message savedMessage = messageRepository.save(foundMessage);
+
+        // The message should always be displayed on the right,
+        // because the user can only remove their own messages anyway
+        return savedMessage.toDTo(true);
     }
 }

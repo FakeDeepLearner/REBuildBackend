@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.dtos.forum_dtos.NewMessageDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -9,10 +9,10 @@ import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.service.forum_services.ChatAndMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.service.annotation.DeleteExchange;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,17 +23,14 @@ public class ChatsController {
 
     private final ChatAndMessageService chatAndMessageService;
 
-    private final SimpMessagingTemplate simpMessagingTemplate;
-
     @Autowired
-    public ChatsController(ChatAndMessageService chatAndMessageService,
-                           SimpMessagingTemplate simpMessagingTemplate) {
+    public ChatsController(ChatAndMessageService chatAndMessageService) {
         this.chatAndMessageService = chatAndMessageService;
-        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
 
     @GetMapping("/all_chats")
+    @ResponseStatus(HttpStatus.OK)
     public List<DisplayChatResponse> showAllChats(@AuthenticationPrincipal User authenticatedUser) {
         return chatAndMessageService.displayAllChats(authenticatedUser);
     }
@@ -46,19 +43,12 @@ public class ChatsController {
     }
 
     @PostMapping("/send_message/{receiving_object_id}")
-    public ResponseEntity<?> sendMessage(@PathVariable UUID receiving_object_id,
+    @ResponseStatus(HttpStatus.CREATED)
+    public MessageDisplayDTO sendMessage(@PathVariable UUID receiving_object_id,
                                          @RequestBody String messageContent,
                                          @AuthenticationPrincipal User authenticatedUser) {
-        NewMessageDTO newMessageDTO = chatAndMessageService.
+        return chatAndMessageService.
                 createMessage(authenticatedUser, receiving_object_id, messageContent);
-        if (newMessageDTO == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
-                    body("You are not authorized to send messages to this usr or channel");
-        }
-        simpMessagingTemplate.convertAndSendToUser(receiving_object_id.toString(),
-                "/messages", newMessageDTO.newMessage());
-        return ResponseEntity.ok(newMessageDTO.newChat());
-
     }
 
     @PostMapping("/create")
@@ -105,6 +95,13 @@ public class ChatsController {
     public boolean toggleChatMute(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
     {
         return chatAndMessageService.toggleChatMute(user, chat_id);
+    }
+    
+
+    @DeleteMapping("/remove_message/{message_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public MessageDisplayDTO removeMessage(@AuthenticationPrincipal User user, @PathVariable UUID message_id){
+        return chatAndMessageService.removeMessage(user, message_id);
     }
     
 }

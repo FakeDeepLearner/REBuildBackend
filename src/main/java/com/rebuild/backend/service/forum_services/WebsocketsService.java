@@ -1,8 +1,9 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.ChatInvitationNotificationDTO;
-import com.rebuild.backend.model.dtos.FriendRequestNotificationDTO;
-import com.rebuild.backend.model.dtos.NewMessageNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.ChatInvitationNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.FriendRequestNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.NewChatDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.NewMessageNotificationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -43,7 +44,6 @@ public class WebsocketsService {
     public void sendNewMessageNotification(AbstractChat chat, User sender, Message sentMessage) {
         String fullContent = sentMessage.getContent();
 
-        //Only take the first 50 characters of a message if it is longer than that
         String contentPreview = determineContentPreview(fullContent);
 
         String chatName = determineChatName(chat);
@@ -58,6 +58,20 @@ public class WebsocketsService {
                 newMessageNotificationDTO
         );
 
+    }
+
+
+    public void sendNewChatNotification(AbstractChat newChat, User sender, Message sentMessage, User recipient){
+        String fullContent = sentMessage.getContent();
+
+        String contentPreview = determineContentPreview(fullContent);
+
+        NewChatDTO newChatDTO = new NewChatDTO(newChat.getId(), sender.getId(), sentMessage.getId(),
+                contentPreview, sender.getForumUsername());
+
+        simpMessagingTemplate.convertAndSendToUser(recipient.getUsername(),
+                "user/new_chat_notifications",
+                newChatDTO);
     }
 
 

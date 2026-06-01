@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -32,7 +33,7 @@ public class Message extends Auditable {
     @NonNull
     private User sender;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "associated_chat_id")
     @JsonIgnore
     private AbstractChat associatedChat;
@@ -45,8 +46,14 @@ public class Message extends Auditable {
     private boolean isRemoved = false;
 
 
-    public String getDisplayedContent()
+    private String getDisplayedContent()
     {
         return isRemoved ? "This message has been removed" : content;
+    }
+
+    public MessageDisplayDTO toDTo(boolean displayOnTheRight)
+    {
+        return new MessageDisplayDTO(id, sender.getForumUsername(), getDisplayedContent(),
+                createdAt, displayOnTheRight, isRemoved);
     }
 }
