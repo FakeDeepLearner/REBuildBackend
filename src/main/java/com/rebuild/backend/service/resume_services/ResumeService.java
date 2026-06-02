@@ -50,8 +50,32 @@ public class ResumeService {
     }
 
     @Transactional
-    public HeaderResponse changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
-        return modificationUtility.modifyResumeHeader(headerForm, resumeID, user);
+    public ResumeResponse changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
+        Resume changingResume = getUtility.findByUserResumeId(user, resumeID);
+
+        ResumeHeader newResumeHeader = new ResumeHeader(headerForm.number(), headerForm.name(),
+                headerForm.email(), headerForm.links());
+
+        changingResume.setResumeHeader(newResumeHeader);
+        newResumeHeader.setResume(changingResume);
+        Resume savedResume  = resumeRepository.save(changingResume);
+        return savedResume.toResponse();
+    }
+
+    @Transactional
+    public ResumeResponse changeEducationInfo(EducationForm educationForm,
+                                                 UUID resumeID, User user){
+        Resume changingResume = getUtility.findByUserResumeId(user, resumeID);
+
+        ResumeEducation newResumeEducation = new ResumeEducation(educationForm.schoolName(), educationForm.relevantCoursework(),
+                educationForm.location(), StringUtil.generateStartDate(educationForm.startDate()),
+                StringUtil.generateEndDate(educationForm.endDate()));
+        changingResume.setResumeEducation(newResumeEducation);
+        newResumeEducation.setResume(changingResume);
+
+        Resume savedResume = resumeRepository.save(changingResume);
+
+        return savedResume.toResponse();
     }
 
     @Transactional
@@ -74,28 +98,26 @@ public class ResumeService {
     }
 
     @Transactional
-    public ExperienceResponse changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
+    public ResumeResponse changeExperienceInfo(ExperienceForm experienceForm, UUID experienceID, UUID resumeId,
                                                    User user){
         return modificationUtility.modifyResumeExperience(experienceForm, experienceID, resumeId, user);
 
     }
 
-    public ProjectResponse changeProjectInfo(ProjectForm projectForm, UUID projectID, UUID resumeID, User user){
+    @Transactional
+    public ResumeResponse changeProjectInfo(ProjectForm projectForm,
+                                             UUID projectID, UUID resumeID, User user){
         return modificationUtility.modifyResumeProject(projectForm, projectID, resumeID, user);
     }
 
-    @Transactional
-    public EducationResponse changeEducationInfo(EducationForm educationForm,
-                                                 UUID resumeID, User user){
-       return modificationUtility.modifyResumeEducation(educationForm, resumeID, user);
-    }
+
 
     @Transactional
-    public ExperienceResponse createNewExperience(User changingUser, UUID resumeId,
+    public ResumeResponse createNewExperience(User changingUser, UUID resumeId,
                                       ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
-        YearMonth start = StringUtil.generateYearMonthValue(experienceForm.startDate());
-        YearMonth end = StringUtil.generateYearMonthValue(experienceForm.endDate());
+        YearMonth start = StringUtil.generateStartDate(experienceForm.startDate());
+        YearMonth end = StringUtil.generateEndDate(experienceForm.endDate());
         ResumeExperience newResumeExperience = new ResumeExperience(experienceForm.companyName(),
                 experienceForm.technologies(), experienceForm.location(), experienceForm.experienceType(),
                 start, end, experienceForm.bullets());
@@ -103,25 +125,25 @@ public class ResumeService {
 
         resume.getResumeExperiences().add(newResumeExperience);
 
-        ResumeExperience savedResumeExperience = experienceRepository.save(newResumeExperience);
+        Resume savedResume = resumeRepository.save(resume);
 
-        return savedResumeExperience.toResponse();
-
+        return savedResume.toResponse();
     }
 
-    public ProjectResponse createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
+    @Transactional
+    public ResumeResponse createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
 
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
-        YearMonth start = StringUtil.generateYearMonthValue(projectForm.startDate());
-        YearMonth end = StringUtil.generateYearMonthValue(projectForm.endDate());
+        YearMonth start = StringUtil.generateStartDate(projectForm.startDate());
+        YearMonth end = StringUtil.generateEndDate(projectForm.endDate());
         ResumeProject newResumeProject = new ResumeProject(projectForm.projectName(), projectForm.technologyList(),
                 start, end, projectForm.bullets());
         newResumeProject.setResume(resume);
         resume.getResumeProjects().add(newResumeProject);
 
-        ResumeProject savedResumeProject = projectRepository.save(newResumeProject);
+        Resume savedResume = resumeRepository.save(resume);
 
-        return savedResumeProject.toResponse();
+        return savedResume.toResponse();
 
     }
 
@@ -162,6 +184,20 @@ public class ResumeService {
     }
 
     @Transactional
+    public ResumeResponse deleteAllExperiences(User deletingUser, UUID resumeId){
+        Resume resume = getUtility.findByUserResumeId(deletingUser, resumeId);
+        resume.setResumeExperiences(null);
+        return resumeRepository.save(resume).toResponse();
+    }
+
+    @Transactional
+    public ResumeResponse deleteAllProjects(User deletingUser, UUID resumeId){
+        Resume resume = getUtility.findByUserResumeId(deletingUser, resumeId);
+        resume.setResumeProjects(null);
+        return resumeRepository.save(resume).toResponse();
+    }
+
+    @Transactional
     public Resume changeName(User changingUser, UUID resumeId, String newName){
         Optional<Resume> foundResume = resumeRepository.findByUserAndName(changingUser, newName);
         if (foundResume.isPresent())
@@ -194,8 +230,8 @@ public class ResumeService {
         return experienceForms.stream().map( rawForm -> {
                     ResumeExperience newResumeExperience = new ResumeExperience(rawForm.companyName(),
                             rawForm.technologies(), rawForm.location(), rawForm.experienceType(),
-                            StringUtil.generateYearMonthValue(rawForm.startDate()),
-                            StringUtil.generateYearMonthValue(rawForm.endDate()),
+                            StringUtil.generateStartDate(rawForm.startDate()),
+                            StringUtil.generateEndDate(rawForm.endDate()),
                             rawForm.bullets());
                     newResumeExperience.setResume(associatedResume);
                     return newResumeExperience;
@@ -208,8 +244,8 @@ public class ResumeService {
     private List<ResumeProject> extractProjects(List<ProjectForm> projectForms, Resume resume){
         return projectForms.stream().map(rawForm -> {
                     ResumeProject newResumeProject = new ResumeProject(rawForm.projectName(), rawForm.technologyList(),
-                            StringUtil.generateYearMonthValue(rawForm.startDate()),
-                            StringUtil.generateYearMonthValue(rawForm.endDate()),
+                            StringUtil.generateStartDate(rawForm.startDate()),
+                            StringUtil.generateEndDate(rawForm.endDate()),
                             rawForm.bullets());
                     newResumeProject.setResume(resume);
                     return newResumeProject;

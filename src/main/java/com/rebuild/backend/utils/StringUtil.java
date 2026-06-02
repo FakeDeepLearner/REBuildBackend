@@ -5,9 +5,12 @@ import com.rebuild.backend.model.entities.util_entitites.base_entities.Experienc
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
+import com.rebuild.backend.utils.exceptions.ApiException;
+import org.springframework.http.HttpStatus;
 
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -17,13 +20,38 @@ public class StringUtil {
 
     private static final DateTimeFormatter yearMonthFormatter = DateTimeFormatter.ofPattern("uuuu-MM");
 
-    public static YearMonth generateYearMonthValue(String yearMonth)
+    private static YearMonth generateYearMonthValue(String yearMonth, boolean isStartDate)
     {
-        if (yearMonth.equals("Present"))
+        boolean nullOrBlank = yearMonth == null || yearMonth.isBlank();
+        if (isStartDate && nullOrBlank)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "A start date must be provided");
+        }
+        // If it is not a start date (so it is an end date)
+        // and it is left empty, we treat the end date as empty
+        //If we enter this branch, we know that isStartDate is false, so we can safely do this
+        if (nullOrBlank)
         {
             return null;
         }
-        return YearMonth.parse(yearMonth, yearMonthFormatter);
+        try {
+            return YearMonth.parse(yearMonth, yearMonthFormatter);
+        }
+        catch (DateTimeParseException e)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "This date value cannot be parsed");
+        }
+    }
+
+
+    public static YearMonth generateStartDate(String input)
+    {
+        return generateYearMonthValue(input, true);
+    }
+
+    public static YearMonth generateEndDate(String input)
+    {
+        return generateYearMonthValue(input, false);
     }
 
     public static String maskString(String s) {

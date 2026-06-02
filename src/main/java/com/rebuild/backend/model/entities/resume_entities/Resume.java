@@ -3,7 +3,7 @@ package com.rebuild.backend.model.entities.resume_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
-import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
+import com.rebuild.backend.model.responses.resume_responses.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,10 +40,10 @@ public class Resume extends Auditable {
     private String name;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
-    private ResumeHeader resumeHeader;
+    private ResumeHeader resumeHeader = null;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
-    private ResumeEducation resumeEducation;
+    private ResumeEducation resumeEducation = null;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
@@ -77,11 +77,10 @@ public class Resume extends Auditable {
         this.resumeEducation = new ResumeEducation();
         this.resumeHeader = new ResumeHeader();
         this.name = resume_name;
+        user.getResumes().add(this);
     }
 
     public Resume(@NonNull Resume originalResume, @NonNull String newName){
-
-
         this.name = newName;
         this.user = originalResume.getUser();
         // We are creating new objects here
@@ -103,9 +102,20 @@ public class Resume extends Auditable {
 
     public ResumeResponse toResponse()
     {
-        return new ResumeResponse(this.resumeHeader.toResponse(), this.resumeEducation.toResponse(),
-                this.resumeExperiences.stream().map(ResumeExperience::toResponse).toList(),
-                this.resumeProjects.stream().map(ResumeProject::toResponse).toList());
+        HeaderResponse headerResponse = this.resumeHeader == null ? null : this.resumeHeader.toResponse();
+        EducationResponse educationResponse = this.resumeEducation == null ? null : this.resumeEducation.toResponse();
+
+        List<ExperienceResponse> experienceResponses = this.resumeExperiences == null ||
+                this.resumeExperiences.isEmpty() ? null :
+                this.resumeExperiences.stream().map(ResumeExperience::toResponse).toList();
+
+
+        List<ProjectResponse> projectResponses = this.resumeProjects == null ||
+                this.resumeProjects.isEmpty() ? null :
+                this.resumeProjects.stream().map(ResumeProject::toResponse).toList();
+
+        return new ResumeResponse(headerResponse, educationResponse,
+                experienceResponses, projectResponses);
     }
 
 }

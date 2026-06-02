@@ -2,16 +2,13 @@ package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.responses.resume_responses.*;
 import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
-import com.rebuild.backend.model.responses.resume_responses.EducationResponse;
-import com.rebuild.backend.model.responses.resume_responses.ExperienceResponse;
-import com.rebuild.backend.model.responses.resume_responses.HeaderResponse;
-import com.rebuild.backend.model.responses.resume_responses.ProjectResponse;
 import com.rebuild.backend.repository.resume_repositories.*;
 import com.rebuild.backend.service.resume_services.ResumeObtainer;
 import com.rebuild.backend.utils.StringUtil;
@@ -32,39 +29,17 @@ public class SubpartsModificationService {
 
     private final ProjectRepository projectRepository;
 
-    private final HeaderRepository headerRepository;
-
-    private final EducationRepository educationRepository;
-
     @Autowired
     public SubpartsModificationService(ResumeObtainer getUtility,
                                        ExperienceRepository experienceRepository,
-                                       ProjectRepository projectRepository,
-                                       HeaderRepository headerRepository,
-                                       EducationRepository educationRepository) {
+                                       ProjectRepository projectRepository) {
         this.getUtility = getUtility;
         this.experienceRepository = experienceRepository;
         this.projectRepository = projectRepository;
-        this.headerRepository = headerRepository;
-        this.educationRepository = educationRepository;
     }
 
     @Transactional
-    public HeaderResponse modifyResumeHeader(HeaderForm headerForm,
-                                             UUID resumeId, User changingUser) {
-        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
-
-        ResumeHeader newResumeHeader = new ResumeHeader(headerForm.number(), headerForm.name(),
-                headerForm.email(), headerForm.links());
-
-        changingResume.setResumeHeader(newResumeHeader);
-        newResumeHeader.setResume(changingResume);
-        ResumeHeader savedResumeHeader = headerRepository.save(newResumeHeader);
-        return savedResumeHeader.toResponse();
-    }
-
-    @Transactional
-    public ExperienceResponse modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
+    public ResumeResponse modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
                                                      UUID resumeId, User changingUser) {
         Optional<ResumeExperience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
                 resumeId, changingUser);
@@ -78,12 +53,15 @@ public class SubpartsModificationService {
 
         modifyExperience(resumeExperience, experienceForm);
         ResumeExperience savedResumeExperience = experienceRepository.save(resumeExperience);
-        return savedResumeExperience.toResponse();
+
+        Resume savedResume = savedResumeExperience.getResume();
+
+        return savedResume.toResponse();
     }
 
     @Transactional
-    public ProjectResponse modifyResumeProject(ProjectForm projectForm, UUID projectId,
-                                               UUID resumeId, User changingUser) {
+    public ResumeResponse modifyResumeProject(ProjectForm projectForm, UUID projectId,
+                                              UUID resumeId, User changingUser) {
 
         Optional<ResumeProject> changingProject = projectRepository.findByIdAndResume_IdAndResume_User(
                 projectId, resumeId, changingUser
@@ -97,29 +75,15 @@ public class SubpartsModificationService {
         ResumeProject resumeProject = changingProject.get();
         modifyProject(resumeProject, projectForm);
         ResumeProject savedResumeProject = projectRepository.save(resumeProject);
-        return savedResumeProject.toResponse();
-    }
 
-    @Transactional
-    public EducationResponse modifyResumeEducation(EducationForm educationForm,
-                                                   UUID resumeId, User changingUser) {
-        Resume changingResume = getUtility.findByUserResumeId(changingUser, resumeId);
-
-        ResumeEducation newResumeEducation = new ResumeEducation(educationForm.schoolName(), educationForm.relevantCoursework(),
-                educationForm.location(), StringUtil.generateYearMonthValue(educationForm.startDate()),
-                StringUtil.generateYearMonthValue(educationForm.endDate()));
-        changingResume.setResumeEducation(newResumeEducation);
-        newResumeEducation.setResume(changingResume);
-
-        ResumeEducation savedResumeEducation =  educationRepository.save(newResumeEducation);
-
-        return savedResumeEducation.toResponse();
+        Resume savedResume = savedResumeProject.getResume();
+        return savedResume.toResponse();
     }
 
 
     private void modifyExperience(ResumeExperience changingResumeExperience, ExperienceForm experienceForm) {
-        YearMonth start = StringUtil.generateYearMonthValue(experienceForm.startDate());
-        YearMonth end = StringUtil.generateYearMonthValue(experienceForm.endDate());
+        YearMonth start = StringUtil.generateStartDate(experienceForm.startDate());
+        YearMonth end = StringUtil.generateEndDate(experienceForm.endDate());
         changingResumeExperience.setLocation(experienceForm.location());
         changingResumeExperience.setEndDate(end);
         changingResumeExperience.setStartDate(start);
@@ -132,8 +96,8 @@ public class SubpartsModificationService {
 
 
     private void modifyProject(ResumeProject changingResumeProject, ProjectForm projectForm) {
-        YearMonth start = StringUtil.generateYearMonthValue(projectForm.startDate());
-        YearMonth end = StringUtil.generateYearMonthValue(projectForm.endDate());
+        YearMonth start = StringUtil.generateStartDate(projectForm.startDate());
+        YearMonth end = StringUtil.generateEndDate(projectForm.endDate());
         changingResumeProject.setStartDate(start);
         changingResumeProject.setEndDate(end);
 

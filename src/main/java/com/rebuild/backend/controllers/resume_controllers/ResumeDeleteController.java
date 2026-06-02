@@ -52,6 +52,18 @@ public class ResumeDeleteController {
         return resumeService.deleteProject(user, project_id, resume_id);
     }
 
+    @DeleteMapping("/experiences/{resume_id}")
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
+    public ResumeResponse deleteAllExperiences(@AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
+        return resumeService.deleteAllExperiences(user, resume_id);
+    }
+
+    @DeleteMapping("/projects/{resume_id}")
+    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
+    public ResumeResponse deleteAllProjects(@AuthenticationPrincipal User user, @PathVariable UUID resume_id) {
+        return resumeService.deleteAllProjects(user, resume_id);
+    }
+
     @DeleteMapping("/{resume_id}")
     @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
