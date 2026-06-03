@@ -6,6 +6,7 @@ import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
 import com.rebuild.backend.model.responses.resume_responses.*;
+import com.rebuild.backend.service.resume_services.ResumePostService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,12 @@ import java.util.UUID;
 @ResponseStatus(HttpStatus.CREATED)
 @CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
 public class ResumePostController {
-    private final ResumeService resumeService;
+
+    private final ResumePostService resumePostService;
 
     @Autowired
-    public ResumePostController(ResumeService resumeService) {
-        this.resumeService = resumeService;
+    public ResumePostController(ResumePostService resumePostService) {
+        this.resumePostService = resumePostService;
     }
 
 
@@ -36,7 +38,7 @@ public class ResumePostController {
                                               @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user){
 
-        return resumeService.createNewExperience(user, resume_id, experienceForm);
+        return resumePostService.createNewExperience(user, resume_id, experienceForm);
 
     }
 
@@ -45,6 +47,6 @@ public class ResumePostController {
     public ResumeResponse createNewProject(@Valid @RequestBody ProjectForm projectForm,
                                             @PathVariable UUID resume_id,
                                             @AuthenticationPrincipal User user){
-        return resumeService.createNewProject(user, resume_id, projectForm);
+        return resumePostService.createNewProject(user, resume_id, projectForm);
     }
 }

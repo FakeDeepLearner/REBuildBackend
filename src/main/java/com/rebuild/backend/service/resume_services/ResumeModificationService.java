@@ -1,46 +1,80 @@
-package com.rebuild.backend.service.util_services;
+package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.responses.resume_responses.*;
-import com.rebuild.backend.utils.BulletsUtil;
-import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.model.forms.resume_forms.EducationForm;
 import com.rebuild.backend.model.forms.resume_forms.ExperienceForm;
 import com.rebuild.backend.model.forms.resume_forms.HeaderForm;
 import com.rebuild.backend.model.forms.resume_forms.ProjectForm;
-import com.rebuild.backend.repository.resume_repositories.*;
-import com.rebuild.backend.service.resume_services.ResumeObtainer;
+import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
+import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
+import com.rebuild.backend.repository.resume_repositories.ProjectRepository;
+import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
+import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.StringUtil;
+import com.rebuild.backend.utils.exceptions.BelongingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
-public class SubpartsModificationService {
-
-    private final ResumeObtainer getUtility;
+@Service
+public class ResumeModificationService {
 
     private final ExperienceRepository experienceRepository;
 
     private final ProjectRepository projectRepository;
 
+    private final ResumeRepository resumeRepository;
+
+    private final ResumeObtainer getUtility;
+
     @Autowired
-    public SubpartsModificationService(ResumeObtainer getUtility,
-                                       ExperienceRepository experienceRepository,
-                                       ProjectRepository projectRepository) {
-        this.getUtility = getUtility;
+    public ResumeModificationService(ExperienceRepository experienceRepository,
+                                     ProjectRepository projectRepository,
+                                     ResumeRepository resumeRepository, ResumeObtainer getUtility) {
         this.experienceRepository = experienceRepository;
         this.projectRepository = projectRepository;
+        this.resumeRepository = resumeRepository;
+        this.getUtility = getUtility;
+    }
+
+
+    @Transactional
+    public ResumeResponse changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
+        Resume changingResume = getUtility.findByUserResumeId(user, resumeID);
+
+        ResumeHeader newResumeHeader = new ResumeHeader(headerForm.number(), headerForm.name(),
+                headerForm.email(), headerForm.links());
+
+        changingResume.setResumeHeader(newResumeHeader);
+        newResumeHeader.setResume(changingResume);
+        Resume savedResume  = resumeRepository.save(changingResume);
+        return savedResume.toResponse();
+    }
+
+    @Transactional
+    public ResumeResponse changeEducationInfo(EducationForm educationForm,
+                                              UUID resumeID, User user){
+        Resume changingResume = getUtility.findByUserResumeId(user, resumeID);
+
+        ResumeEducation newResumeEducation = new ResumeEducation(educationForm.schoolName(), educationForm.relevantCoursework(),
+                educationForm.location(), StringUtil.generateStartDate(educationForm.startDate()),
+                StringUtil.generateEndDate(educationForm.endDate()));
+        changingResume.setResumeEducation(newResumeEducation);
+        newResumeEducation.setResume(changingResume);
+
+        Resume savedResume = resumeRepository.save(changingResume);
+
+        return savedResume.toResponse();
     }
 
     @Transactional
     public ResumeResponse modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
-                                                     UUID resumeId, User changingUser) {
+                                                 UUID resumeId, User changingUser) {
         Optional<ResumeExperience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
                 resumeId, changingUser);
 
@@ -105,5 +139,4 @@ public class SubpartsModificationService {
         changingResumeProject.setProjectName(projectForm.projectName());
         changingResumeProject.setTechnologyList(projectForm.technologyList());
     }
-
 }

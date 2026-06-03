@@ -3,6 +3,7 @@ package com.rebuild.backend.controllers.resume_controllers;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.resume_forms.*;
 import com.rebuild.backend.model.responses.resume_responses.*;
+import com.rebuild.backend.service.resume_services.ResumeModificationService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +20,12 @@ import java.util.UUID;
 @ResponseStatus(HttpStatus.OK)
 @CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
 public class ResumePutController {
-    private final ResumeService resumeService;
+
+    private final ResumeModificationService modificationService;
 
     @Autowired
-    public ResumePutController(ResumeService resumeService) {
-        this.resumeService = resumeService;
+    public ResumePutController(ResumeModificationService modificationService) {
+        this.modificationService = modificationService;
     }
 
     @PutMapping("/header/{resume_id}/")
@@ -31,7 +33,7 @@ public class ResumePutController {
     public ResumeResponse modifyHeader(@Valid @RequestBody HeaderForm headerForm,
                                        @AuthenticationPrincipal User user,
                                        @PathVariable UUID resume_id){
-        return resumeService.changeHeaderInfo(headerForm, resume_id, user);
+        return modificationService.changeHeaderInfo(headerForm, resume_id, user);
 
     }
 
@@ -41,7 +43,7 @@ public class ResumePutController {
                                                @AuthenticationPrincipal User user,
                                                @PathVariable UUID experience_id, @PathVariable UUID resume_id){
 
-        return resumeService.changeExperienceInfo(experienceForm, experience_id,
+        return modificationService.modifyResumeExperience(experienceForm, experience_id,
                 resume_id, user);
     }
 
@@ -51,7 +53,7 @@ public class ResumePutController {
     public ResumeResponse modifyEducation(@Valid @RequestBody EducationForm educationForm,
                                              @AuthenticationPrincipal User user,
                                              @PathVariable UUID resume_id){
-        return resumeService.changeEducationInfo(educationForm,
+        return modificationService.changeEducationInfo(educationForm,
                 resume_id, user);
 
     }
@@ -61,7 +63,7 @@ public class ResumePutController {
     public ResumeResponse modifyProject(@Valid @RequestBody ProjectForm projectForm,
                                          @AuthenticationPrincipal User user,
                                          @PathVariable UUID project_id, @PathVariable UUID resume_id){
-        return resumeService.changeProjectInfo(projectForm, project_id,
+        return modificationService.modifyResumeProject(projectForm, project_id,
                 resume_id, user);
     }
 }

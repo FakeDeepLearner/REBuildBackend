@@ -140,7 +140,7 @@ public class PostsService {
         /*
         This function takes care of all possible errors that can arise early,
          so we never begin the upload process if we don't have to. If everything is ok with the files,
-         it returns the byte arrays of all files in a sanitized (i.e. stripped from its metadata) manner
+         it returns the byte arrays of all files in a sanitized (i.e., stripped from its metadata) manner
         */
         List<byte[]> allSanitizedFileBytes = doFilePreprocessing(resumeFiles);
 

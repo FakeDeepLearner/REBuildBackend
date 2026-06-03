@@ -4,6 +4,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.responses.HomePageData;
 import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
+import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserHomePageService;
@@ -29,7 +30,7 @@ public class HomePageController {
 
     @Autowired
     public HomePageController(ResumeService resumeService, FriendshipService friendshipService,
-                               UserHomePageService homePageService) {
+                              UserHomePageService homePageService) {
         this.resumeService = resumeService;
         this.friendshipService = friendshipService;
         this.homePageService = homePageService;
