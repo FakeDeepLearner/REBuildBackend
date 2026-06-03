@@ -24,7 +24,7 @@ public abstract class AbstractChat extends Auditable {
     private UUID id;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY)
-    @OrderBy(value = "createdAt ASC")
+    @OrderBy(value = "createdAt DESC")
     private List<Message> messages = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY)

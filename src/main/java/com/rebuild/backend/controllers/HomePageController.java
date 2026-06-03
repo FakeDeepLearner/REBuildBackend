@@ -2,9 +2,8 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
-import com.rebuild.backend.model.responses.HomePageData;
+import com.rebuild.backend.model.responses.HomePageResponse;
 import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
-import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import com.rebuild.backend.service.user_services.UserHomePageService;
@@ -14,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -45,20 +43,18 @@ public class HomePageController {
 
     @PostMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public HomePageData getHomePageWithForm(@AuthenticationPrincipal User authenticatedUser,
-                                     @RequestParam(defaultValue = "0", name = "page") int pageNumber,
-                                     @RequestParam(defaultValue = "10", name = "size") int pageSize,
-                                     @RequestBody String nameToSearch) {
+    public HomePageResponse getHomePageWithForm(@AuthenticationPrincipal User authenticatedUser,
+                                                @RequestParam(defaultValue = "0", name = "page") int pageNumber,
+                                                @RequestBody String nameToSearch) {
         return homePageService.getSearchResult(nameToSearch,
-                authenticatedUser, pageNumber, pageSize);
+                authenticatedUser, pageNumber);
     }
 
     @GetMapping("/")
     @ResponseStatus(HttpStatus.OK)
-    public HomePageData getDefaultHomePage(@AuthenticationPrincipal User authenticatedUser,
-                                     @RequestParam(defaultValue = "0", name = "page") int pageNumber,
-                                     @RequestParam(defaultValue = "10", name = "size") int pageSize) {
-        return homePageService.getHomePageData(authenticatedUser, pageNumber, pageSize);
+    public HomePageResponse getDefaultHomePage(@AuthenticationPrincipal User authenticatedUser,
+                                               @RequestParam(defaultValue = "0", name = "page") int pageNumber) {
+        return homePageService.getHomePageData(authenticatedUser, pageNumber);
     }
 
     @PostMapping("/create")

@@ -38,8 +38,9 @@ public class ChatsController {
     @GetMapping("/load/{chat_id}")
     @ResponseStatus(HttpStatus.OK)
     public LoadChatResponse loadChat(@PathVariable UUID chat_id,
-                                     @AuthenticationPrincipal User authenticatedUser) {
-        return chatAndMessageService.loadChat(chat_id, authenticatedUser);
+                                     @AuthenticationPrincipal User authenticatedUser,
+                                     @RequestParam(name = "page", defaultValue = "0") int pageNumber) {
+        return chatAndMessageService.loadChat(chat_id, authenticatedUser, pageNumber);
     }
 
     @PostMapping("/send_message/{receiving_object_id}")

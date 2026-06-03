@@ -39,6 +39,9 @@ public class Resume extends Auditable {
     @NonNull
     private String name;
 
+    @Column(name = "preview_url")
+    private String previewUrl = null;
+
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "resume")
     private ResumeHeader resumeHeader = null;
 

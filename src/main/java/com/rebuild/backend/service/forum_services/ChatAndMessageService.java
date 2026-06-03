@@ -13,6 +13,10 @@ import com.rebuild.backend.model.responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.LoadChatResponse;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +59,7 @@ public class ChatAndMessageService {
         this.messageRepository = messageRepository;
     }
 
-
+    @Transactional
     public GroupChat createNewGroupChat(User creatingUser, String chatName)
     {
         GroupChat newChat = new GroupChat();
@@ -91,6 +95,7 @@ public class ChatAndMessageService {
 
     }
 
+    @Transactional
     public void declineChatInvitation(User recipient, UUID invitationId)
     {
         ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
@@ -194,6 +199,7 @@ public class ChatAndMessageService {
     }
 
 
+    @Transactional
     public MessageDisplayDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
         Optional<User> recipient = userRepository.findById(receivingObjectId);
@@ -229,6 +235,7 @@ public class ChatAndMessageService {
 
     }
 
+    @Transactional
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
         List<ChatParticipation> allChatParticipations = participationRepository.findByParticipatingUser(displayingUser);
@@ -253,8 +260,13 @@ public class ChatAndMessageService {
                 }).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public LoadChatResponse loadChat(UUID chatId, User loadingUser)
+    @Transactional
+    public LoadChatResponse loadChat(UUID chatId, User loadingUser, int pageNumber)
     {
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to 0.");
+        }
         AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElseThrow(
                 () -> new NotFoundException("Chat with this id not found")
         );
@@ -270,14 +282,19 @@ public class ChatAndMessageService {
         String chatDisplayName = chatUtilService.determineChatDisplayName(chat, loadingUser);
         String chatPictureUrl = chatUtilService.determineChatPictureUrl(chat, loadingUser);
 
-        List<MessageDisplayDTO> messages = chat.getMessages()
+        Pageable request = PageRequest.of(pageNumber, 30, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Slice<Message> currentMessages = messageRepository.findByAssociatedChat(chat, request);
+
+        List<MessageDisplayDTO> messages = currentMessages.getContent()
                 .stream().
                 map(message -> {
                     boolean displayOnTheRight = message.getSender().equals(loadingUser);
                     return message.toDTo(displayOnTheRight);
                 }).toList();
 
-        return new LoadChatResponse(chatDisplayName, chat.getId(), messages, chatPictureUrl);
+        return new LoadChatResponse(chatDisplayName, chat.getId(), messages,
+                chatPictureUrl, currentMessages.hasNext());
     }
 
 

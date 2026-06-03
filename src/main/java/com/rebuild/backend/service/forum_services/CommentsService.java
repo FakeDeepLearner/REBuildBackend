@@ -142,11 +142,15 @@ public class CommentsService {
     }
 
 
-    public LoadCommentsResponse loadMoreComments(UUID postId, User user, int pageNumber, int pageSize)
+    public LoadCommentsResponse loadMoreComments(UUID postId, User user, int pageNumber)
     {
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to zero");
+        }
         ForumPost foundPost = postRepository.findById(postId).orElseThrow(() ->
                 new NotFoundException("Post with this id is not found"));
-        Pageable request = PageRequest.of(pageNumber, pageSize);
+        Pageable request = PageRequest.of(pageNumber, 20);
 
         Slice<CommentFetchDTO> loadedComments = commentRepository.loadAdditionalComments(foundPost,
                 user.getId(), request);

@@ -6,5 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record LoadChatResponse(String displayName, UUID chatId,
-                               List<MessageDisplayDTO> messages, String profilePictureUrl) {
+                               List<MessageDisplayDTO> messages, String profilePictureUrl,
+                               boolean hasNext) {
 }

@@ -48,12 +48,9 @@ public class ForumHomePageController {
     public UsernameSearchResponse searchUsernames(@RequestBody String username,
                                                   @AuthenticationPrincipal User user,
                                                   @RequestParam(defaultValue = "0", name = "page", required = false)
-                                                      int pageNumber,
-
-                                                  @RequestParam(defaultValue = "10", name = "size", required = false)
-                                                      int pageSize)
+                                                      int pageNumber)
     {
-        return homePageService.getUsernameSearchResults(username, user, pageNumber, pageSize);
+        return homePageService.getUsernameSearchResults(username, user, pageNumber);
     }
 
     @PostMapping("/get_posts")
@@ -61,21 +58,17 @@ public class ForumHomePageController {
     public ForumPostPageResponse loadForumWithSpecsForm(@RequestParam(defaultValue = "0", name = "page", required = false)
                                           int pageNumber,
 
-                                          @RequestParam(defaultValue = "50", name = "size", required = false)
-                                          int pageSize,
-
                                           @RequestBody ForumSpecsForm forumSpecsForm,
                                           @AuthenticationPrincipal User user) {
 
-        return homePageService.getPagedResult(pageNumber, pageSize, forumSpecsForm, user);
+        return homePageService.getPagedResult(pageNumber, forumSpecsForm, user);
     }
 
     @GetMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page", required = false) int pageNumber,
-                                          @RequestParam(defaultValue = "50", name = "size", required = false) int pageSize,
                                           @AuthenticationPrincipal User user) {
-        return homePageService.serveGetRequest(pageNumber, pageSize, user);
+        return homePageService.serveGetRequest(pageNumber, user);
     }
 
     @GetMapping("/get_posts/{post_id}")

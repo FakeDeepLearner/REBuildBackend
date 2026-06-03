@@ -44,10 +44,9 @@ public class CommentController {
     @GetMapping("/load-comments/{post_id}")
     @ResponseStatus(HttpStatus.OK)
     public LoadCommentsResponse loadMorePostComments(@PathVariable UUID post_id, @AuthenticationPrincipal User user,
-                                                     @RequestParam(defaultValue = "1") int pageNumber,
-                                                     @RequestParam(defaultValue = "30", required = false) int pageSize)
+                                                     @RequestParam(defaultValue = "1") int pageNumber)
     {
-        return commentsService.loadMoreComments(post_id, user, pageNumber, pageSize);
+        return commentsService.loadMoreComments(post_id, user, pageNumber);
     }
 
 
