@@ -22,24 +22,24 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
         """
         SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
           u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
-          CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2) > 0
+          CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2)
           THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
           FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentId=?1
           ORDER BY c.createdAt ASC"""
     )
-    List<CommentFetchDTO> loadParentCommentExpansion(UUID parentId, UUID userId);
+    Slice<CommentFetchDTO> loadParentCommentExpansion(UUID parentId, UUID userId, Pageable pageable);
 
 
     @Query(
             """
             SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
               u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
-              CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2) > 0
+              CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2)
               THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)\s
-              FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE p=?1
+              FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentId=?1
               ORDER BY c.createdAt ASC"""
     )
-    Slice<CommentFetchDTO> loadAdditionalComments(ForumPost post, UUID userId, Pageable pageable);
+    Slice<CommentFetchDTO> loadAdditionalComments(UUID postId, UUID userId, Pageable pageable);
 
 
     @Query("""

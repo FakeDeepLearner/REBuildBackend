@@ -141,18 +141,27 @@ public class CommentsService {
                 associatedPost.getUser().equals(creatingUser), false, false);
     }
 
+    public LoadCommentsResponse obtainMoreComments(UUID postId, UUID parentCommentId, User user,
+                                                   int pageNumber)
+    {
+        if (parentCommentId == null)
+        {
+            return loadMoreTopLevelComments(postId, user, pageNumber);
+        }
+        else return loadRepliesToComment(postId, parentCommentId, user, pageNumber);
+    }
 
-    public LoadCommentsResponse loadMoreComments(UUID postId, User user, int pageNumber)
+    private LoadCommentsResponse loadMoreTopLevelComments(UUID postId, User user, int pageNumber)
     {
         if (pageNumber < 0)
         {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to zero");
         }
-        ForumPost foundPost = postRepository.findById(postId).orElseThrow(() ->
+        ForumPost foundPost = postRepository.findByIdWithUser(postId).orElseThrow(() ->
                 new NotFoundException("Post with this id is not found"));
         Pageable request = PageRequest.of(pageNumber, 20);
 
-        Slice<CommentFetchDTO> loadedComments = commentRepository.loadAdditionalComments(foundPost,
+        Slice<CommentFetchDTO> loadedComments = commentRepository.loadAdditionalComments(postId,
                 user.getId(), request);
 
         List<CommentDisplayDTO> displayedList = loadedComments.stream().map(commentFetchDTO ->
@@ -163,13 +172,24 @@ public class CommentsService {
                 loadedComments.hasNext());
     }
 
-    public List<CommentDisplayDTO> getCommentExpansionInfo(UUID parent_id, User user)
+    private LoadCommentsResponse loadRepliesToComment(UUID postId, UUID parent_id, User user, int pageNumber)
     {
-        List<CommentFetchDTO> fetchedList = commentRepository.loadParentCommentExpansion(parent_id, user.getId());
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to zero");
+        }
+        ForumPost foundPost = postRepository.findByIdWithUser(postId).orElseThrow(() ->
+                new NotFoundException("Post with this id is not found"));
+        Pageable request = PageRequest.of(pageNumber, 20);
+        Slice<CommentFetchDTO> fetchedList = commentRepository.
+                loadParentCommentExpansion(parent_id, user.getId(), request);
 
-        return fetchedList.stream().map(commentFetchDTO ->
-                commentFetchDTO.toDisplayDto(commentFetchDTO.associatedPostId().equals(commentFetchDTO.authorId())))
-                .toList();
+        List<CommentDisplayDTO> displayList = fetchedList.stream().map(commentFetchDTO ->
+                        commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(foundPost.getUser().getId()))).
+                toList();
+
+        return new LoadCommentsResponse(displayList, fetchedList.getNumber(),
+                fetchedList.hasNext());
 
     }
 

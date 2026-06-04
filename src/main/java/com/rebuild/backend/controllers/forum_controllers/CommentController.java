@@ -33,20 +33,22 @@ public class CommentController {
         return commentsService.createComment(commentForm, parent_id, creatingUser);
     }
 
-    @GetMapping("/{parent_comment_id}/replies")
+    @GetMapping("/{post_id}/{parent_comment_id}/replies")
     @ResponseStatus(HttpStatus.OK)
-    public List<CommentDisplayDTO> getReplies(@PathVariable UUID parent_comment_id,
-                                              @AuthenticationPrincipal User user){
-        return commentsService.getCommentExpansionInfo(parent_comment_id, user);
+    public LoadCommentsResponse getReplies(@PathVariable UUID post_id,
+                                           @PathVariable UUID parent_comment_id,
+                                           @RequestParam(defaultValue = "0", name = "page") int pageNumber,
+                                           @AuthenticationPrincipal User user){
+        return commentsService.obtainMoreComments(post_id, parent_comment_id, user, pageNumber);
     }
 
 
     @GetMapping("/load-comments/{post_id}")
     @ResponseStatus(HttpStatus.OK)
     public LoadCommentsResponse loadMorePostComments(@PathVariable UUID post_id, @AuthenticationPrincipal User user,
-                                                     @RequestParam(defaultValue = "1") int pageNumber)
+                                                     @RequestParam(defaultValue = "0", name = "page") int pageNumber)
     {
-        return commentsService.loadMoreComments(post_id, user, pageNumber);
+        return commentsService.obtainMoreComments(post_id, null, user, pageNumber);
     }
 
 
