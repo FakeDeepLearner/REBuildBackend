@@ -59,4 +59,10 @@ public class CommentController {
         commentsService.deleteComment(comment_id, deletingUser);
     }
 
+    @PatchMapping("/flip-anonymization/{commentId}")
+    public String changeCommentAnonymization(@AuthenticationPrincipal User user,
+                                             @PathVariable UUID commentId){
+        return commentsService.changeCommentAnonymization(commentId, user);
+    }
+
 }

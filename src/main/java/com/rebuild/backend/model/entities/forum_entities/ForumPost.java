@@ -56,6 +56,6 @@ public class ForumPost extends Auditable {
     @Column(name = "comments_count", nullable = false)
     private int commentCount = 0;
 
-    private boolean isAnonymized;
+    private boolean isAnonymized = false;
 
 }

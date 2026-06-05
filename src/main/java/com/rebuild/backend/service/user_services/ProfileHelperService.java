@@ -1,5 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
+import com.rebuild.backend.model.dtos.ProfileHistoryCommentDTO;
+import com.rebuild.backend.model.dtos.ProfileHistoryPostDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
@@ -33,6 +35,21 @@ public class ProfileHelperService {
         this.forumPostRepository = forumPostRepository;
     }
 
+    public List<ProfileHistoryCommentDTO> loadCommentDTOsForUser(User user)
+    {
+        List<Comment> madeComments = commentRepository.findByUserUnAnonymizedAndNotDeleted(user);
+        return madeComments.stream().map(comment ->
+                new ProfileHistoryCommentDTO(comment.getContent(), comment.getCreatedAt())).toList();
+    }
+
+
+    public List<ProfileHistoryPostDTO> loadPostDTOsForUser(User user)
+    {
+        List<ForumPost> userPosts = forumPostRepository.findByUserUnAnonymized(user);
+        return userPosts.stream().map(forumPost -> new ProfileHistoryPostDTO(forumPost.getTitle(), forumPost.getContent(),
+                forumPost.getCreatedAt())).toList();
+    }
+
     private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, UserProfile profile, boolean thereIsFriendship)
     {
         InformationVisibility sensitiveInfoVisibility = profile.getSensitiveInfoVisibility();
@@ -63,7 +80,7 @@ public class ProfileHelperService {
                 StringUtil.maskString(user.getEmail()));
     }
 
-    private List<Comment> decideCommentList(User user, UserProfile profile, boolean thereIsFriendship)
+    private List<ProfileHistoryCommentDTO> decideCommentList(User user, UserProfile profile, boolean thereIsFriendship)
     {
         InformationVisibility commentsVisibility = profile.getCommentsVisibility();
         if (thereIsFriendship)
@@ -72,7 +89,7 @@ public class ProfileHelperService {
             if (commentsVisibility.equals(InformationVisibility.EVERYONE) ||
                     commentsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return commentRepository.findByUserUnAnonymized(user);
+                return loadCommentDTOsForUser(user);
             }
             //Otherwise, return the information masked
         }
@@ -82,7 +99,7 @@ public class ProfileHelperService {
         {
             if (commentsVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return commentRepository.findByUserUnAnonymized(user);
+                return loadCommentDTOsForUser(user);
             }
 
             //Otherwise, return the information masked
@@ -90,15 +107,16 @@ public class ProfileHelperService {
         return null;
     }
 
-    private List<ForumPost> decidePostsList(User user, UserProfile profile, boolean thereIsFriendship)
+    private List<ProfileHistoryPostDTO> decidePostsList(User user, UserProfile profile, boolean thereIsFriendship)
     {
+
         InformationVisibility postsVisibility = profile.getPostsVisibility();
         if (thereIsFriendship)
         {
             if (postsVisibility.equals(InformationVisibility.EVERYONE) ||
                     postsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return forumPostRepository.findByUserUnAnonymized(user);
+                return loadPostDTOsForUser(user);
             }
         }
 
@@ -106,7 +124,7 @@ public class ProfileHelperService {
         {
             if (postsVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return forumPostRepository.findByUserUnAnonymized(user);
+               return loadPostDTOsForUser(user);
             }
         }
         return null;
@@ -115,8 +133,8 @@ public class ProfileHelperService {
 
     public UserProfileResponse loadOtherUserProfile(User otherUser, UserProfile profile, boolean thereIsFriendship)
     {
-        List<ForumPost> postsList = decidePostsList(otherUser, profile, thereIsFriendship);
-        List<Comment> commentsList = decideCommentList(otherUser, profile, thereIsFriendship);
+        List<ProfileHistoryPostDTO> postsList = decidePostsList(otherUser, profile, thereIsFriendship);
+        List<ProfileHistoryCommentDTO> commentsList = decideCommentList(otherUser, profile, thereIsFriendship);
 
         ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser,
                 profile, thereIsFriendship);

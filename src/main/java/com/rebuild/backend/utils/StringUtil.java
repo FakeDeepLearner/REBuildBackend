@@ -110,10 +110,22 @@ public class StringUtil {
     }
 
 
-    public static String getAnonymizedName(String userBaseName, UUID associatedPostId)
+    private static String getAnonymizedName(String userBaseName, UUID associatedPostId)
     {
         return "Anonymous" + "-" + userBaseName + "-" + associatedPostId.toString().substring(0, 8);
     }
+
+    public static String determineDisplayedCommentName(boolean commentIsAnonymized, String defaultName,
+                                                       String anonymousBase, UUID associatedPostId)
+    {
+        if (!commentIsAnonymized)
+        {
+            return defaultName;
+        }
+        return getAnonymizedName(anonymousBase, associatedPostId);
+    }
+
+
 
 
     public static String generateResumeCacheKey(User user, UUID resumeId) {

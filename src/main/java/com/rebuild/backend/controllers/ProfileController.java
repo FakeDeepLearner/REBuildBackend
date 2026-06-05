@@ -48,9 +48,9 @@ public class ProfileController {
         return profileService.loadUserProfile(user, clicked_user_id);
     }
 
-    @PutMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PatchMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.OK)
-    public UserProfileResponse changeImage(@AuthenticationPrincipal User changingUser,
+    public String changeImage(@AuthenticationPrincipal User changingUser,
                                    @RequestPart(name = "file") MultipartFile pictureFile)
     {
         return cloudinaryService.changeProfilePicture(changingUser, pictureFile);

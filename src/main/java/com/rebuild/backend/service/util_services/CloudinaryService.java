@@ -154,17 +154,11 @@ public class CloudinaryService {
         return profileRepository.save(newProfile);
     }
 
-    public UserProfileResponse changeProfilePicture(User changingUser, MultipartFile pictureFile)
+    public String changeProfilePicture(User changingUser, MultipartFile pictureFile)
     {
 
         UserProfile changedProfile = modifyPicture(changingUser, pictureFile);
 
-
-        return new UserProfileResponse(
-                new ProfileSensitiveInformationDTO(generateTimedUrlForPictureId(changedProfile.getPictureId()),
-                        changingUser.getEmail()),
-
-                changingUser.getForumUsername(), changingUser.getMadeComments(), changingUser.getMadePosts()
-        );
+        return generateTimedUrlForPictureId(changedProfile.getPictureId());
     }
 }

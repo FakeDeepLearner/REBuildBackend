@@ -2,7 +2,6 @@ package com.rebuild.backend.repository.forum_repositories;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
 import lombok.NonNull;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +49,8 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
 
     @Query("""
     SELECT c FROM Comment c
-    WHERE c.user=?1 AND c.isAnonymized=false
+    WHERE c.user=?1 AND c.isAnonymized=false AND c.isDeleted=false
+    ORDER BY c.createdAt DESC
     """)
-    List<Comment> findByUserUnAnonymized(User user);
+    List<Comment> findByUserUnAnonymizedAndNotDeleted(User user);
 }

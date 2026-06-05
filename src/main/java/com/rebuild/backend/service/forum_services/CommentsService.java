@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.DocFlavor;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,33 +45,26 @@ public class CommentsService {
     }
 
     @Transactional
+    public String changeCommentAnonymization(UUID commentId, User anonymizingUser)
+    {
+        Comment commentToAnonymize = commentRepository.findByIdAndAuthor(commentId, anonymizingUser).orElseThrow(
+                () -> new BelongingException("This comment does not belong to you")
+        );
+        commentToAnonymize.setAnonymized(!commentToAnonymize.isAnonymized());
+        Comment savedComment = commentRepository.save(commentToAnonymize);
+
+        return StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), anonymizingUser.getForumUsername(),
+                anonymizingUser.getAnonymizedNameBase(), savedComment.getAssociatedPost().getId());
+
+    }
+
+    @Transactional
     public void deleteComment(UUID commentID, User deletingUser){
         Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
                 () -> new BelongingException("This comment does not belong to you")
         );
-        ForumPost associatedPost = commentToDelete.getAssociatedPost();
-        associatedPost.setCommentCount(associatedPost.getCommentCount() - 1);
-
-        if(commentToDelete.getParentId() != null){
-            Comment parentComment = commentRepository.findById(commentToDelete.getParentId()).orElseThrow(
-                    () -> new NotFoundException("Parent comment with this id not found")
-            );
-            parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
-        }
-        //Comments are "soft-deleted"
         commentToDelete.setDeleted(true);
         commentRepository.save(commentToDelete);
-    }
-
-
-    private String determineCommentDisplayName(Comment createdComment, User creatingUser, ForumPost associatedPost)
-    {
-        if (createdComment.isAnonymized())
-        {
-            return StringUtil.getAnonymizedName(creatingUser.getAnonymizedNameBase(),
-                    associatedPost.getId());
-        }
-        return creatingUser.getForumUsername();
     }
 
     private void configureComment(Comment comment, ForumPost associatedPost, User user,
@@ -89,7 +83,6 @@ public class CommentsService {
     {
         //Try to find a post that corresponds to this id. If we find one, create a top-level comment
         Optional<ForumPost> foundPost = postRepository.findByIdWithComments(parentId);
-
 
         if (foundPost.isPresent())
         {
@@ -114,8 +107,11 @@ public class CommentsService {
         configureComment(newComment, post, creatingUser, post.getId(), commentForm.remainAnonymous());
 
         Comment savedComment =  commentRepository.save(newComment);
+
+        String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
+                creatingUser.getAnonymizedNameBase(), post.getId());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                determineCommentDisplayName(savedComment, creatingUser, post), 0, post.getUser().equals(creatingUser),
+                displayName, 0, post.getUser().equals(creatingUser),
                 false, false);
 
     }
@@ -136,8 +132,10 @@ public class CommentsService {
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
 
         Comment savedComment = commentRepository.save(newComment);
+        String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
+                creatingUser.getAnonymizedNameBase(), associatedPost.getId());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                determineCommentDisplayName(savedComment, creatingUser, associatedPost), 0,
+                displayName, 0,
                 associatedPost.getUser().equals(creatingUser), false, false);
     }
 
@@ -198,6 +196,11 @@ public class CommentsService {
     {
         Comment comment = commentRepository.findById(comment_id).orElseThrow(
                 () -> new NotFoundException("Comment with this id is not found"));
+
+        if (comment.isDeleted())
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Deleted comments cannot be tampered with");
+        }
 
         Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
                 likingUser.getId());

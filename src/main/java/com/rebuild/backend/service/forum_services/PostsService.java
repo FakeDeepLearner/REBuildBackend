@@ -5,6 +5,7 @@ import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.FileUploadException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
@@ -185,13 +186,15 @@ public class PostsService {
         postRepository.delete(postToDelete);
     }
 
-    private String determinePostDisplayedUsername(ForumPost post, User user)
-    {
-        if (post.isAnonymized())
-        {
-            return StringUtil.getAnonymizedName(user.getAnonymizedNameBase(), post.getId());
-        }
-        return post.getUser().getForumUsername();
+    @Transactional
+    public String changePostAnonymization(UUID postID, User anonymizingUser){
+        ForumPost postToAnonymize = postRepository.findByIdWithFiles(postID, anonymizingUser).
+                orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
+
+        postToAnonymize.setAnonymized(!postToAnonymize.isAnonymized());
+        ForumPost savedPost = postRepository.save(postToAnonymize);
+        return StringUtil.determineDisplayedCommentName(savedPost.isAnonymized(),
+                anonymizingUser.getForumUsername(), anonymizingUser.getAnonymizedNameBase(), savedPost.getId());
     }
 
     public PostDisplayDTO loadPost(UUID postID, User loadingUser, int pageSize){
@@ -216,8 +219,10 @@ public class PostsService {
                 awsService.createPresignedGetUrl(resumeFileUploadRecord.getBucketName(),
                         resumeFileUploadRecord.getObjectKey())).toList();
 
+        String displayedName = StringUtil.determineDisplayedCommentName(forumPost.isAnonymized(),
+                postUser.getForumUsername(), postUser.getAnonymizedNameBase(), forumPost.getId());
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
-                determinePostDisplayedUsername(forumPost, postUser),
+                displayedName,
                 forumPost.getResumes(),
                 displayedComments, fetchedComments.getNumber(), fetchedComments.hasNext(),
                 presignedUrls,

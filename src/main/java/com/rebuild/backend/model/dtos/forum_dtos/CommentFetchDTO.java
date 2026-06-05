@@ -17,18 +17,19 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
         return "Comment has been removed";
     }
 
-    private String determineDisplayedUsername()
+    private String determineDisplayedAuthor()
     {
-        if (!this.commentIsAnonymized)
+        if (commentIsDeleted)
         {
-            return this.authorUsername;
+            return "[Removed]";
         }
-        return StringUtil.getAnonymizedName(this.anonymizedBaseName, this.associatedPostId);
+        return StringUtil.determineDisplayedCommentName(commentIsAnonymized, authorUsername,
+                anonymizedBaseName, associatedPostId);
     }
 
     public CommentDisplayDTO toDisplayDto(boolean isUserOriginalPoster){
-        return new CommentDisplayDTO(this.commentID,
-                determineDisplayedContent(), determineDisplayedUsername(),
+        return new CommentDisplayDTO(commentIsDeleted ? null : commentID,
+                determineDisplayedContent(), determineDisplayedAuthor(),
                 this.replyCount, isUserOriginalPoster, this.userHasLikedComment, this.commentIsDeleted);
     }
 }

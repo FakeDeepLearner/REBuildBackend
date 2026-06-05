@@ -54,7 +54,8 @@ public class ProfileService {
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
                         user.getEmail()),
-                user.getForumUsername(), user.getMadeComments(), user.getMadePosts()
+                user.getForumUsername(), helperService.loadCommentDTOsForUser(user),
+                helperService.loadPostDTOsForUser(user)
         );
     }
 

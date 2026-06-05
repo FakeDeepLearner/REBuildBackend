@@ -48,4 +48,11 @@ public class PostController {
                            @AuthenticationPrincipal User creatingUser) {
         postsService.deletePost(post_id, creatingUser);
     }
+
+
+    @PatchMapping("/flip-anonymization/{post_id}")
+    public String changePostAnonymization(@AuthenticationPrincipal User user,
+                                             @PathVariable UUID post_id) {
+        return postsService.changePostAnonymization(post_id, user);
+    }
 }

@@ -65,6 +65,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query("""
     SELECT fp FROM ForumPost fp
     WHERE fp.user=?1 AND fp.isAnonymized=false
+    ORDER BY fp.createdAt DESC
     """)
     List<ForumPost> findByUserUnAnonymized(User user);
 
