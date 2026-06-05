@@ -18,7 +18,7 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     Optional<Resume> findByIdAndUser(UUID id, User user);
 
     @Query("""
-        SELECT r FROM Resume r
+        SELECT DISTINCT r FROM Resume r
         JOIN FETCH r.resumeHeader
         JOIN FETCH r.resumeEducation
         JOIN FETCH r.resumeProjects
@@ -28,7 +28,7 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     List<Resume> findByUserAndIdIn(User user, Collection<UUID> ids);
 
     @Query(value = """
-        SELECT r FROM Resume r
+        SELECT DISTINCT r FROM Resume r
         LEFT JOIN FETCH r.resumeHeader
         LEFT JOIN FETCH r.resumeEducation
         LEFT JOIN FETCH r.resumeExperiences

@@ -7,9 +7,7 @@ import com.rebuild.backend.model.responses.resume_responses.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -51,15 +49,13 @@ public class Resume extends Auditable {
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "resume")
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<ResumeExperience> resumeExperiences = new ArrayList<>();
+    private Set<ResumeExperience> resumeExperiences = new HashSet<>();
 
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "resume")
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<ResumeProject> resumeProjects = new ArrayList<>();
+    private Set<ResumeProject> resumeProjects = new HashSet<>();
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -76,7 +72,7 @@ public class Resume extends Auditable {
 
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;
-        this.resumeExperiences = new ArrayList<>();
+        this.resumeExperiences = new HashSet<>();
         this.resumeEducation = new ResumeEducation();
         this.resumeHeader = new ResumeHeader();
         this.name = resume_name;
@@ -92,15 +88,51 @@ public class Resume extends Auditable {
         this.resumeHeader = ResumeHeader.copy(originalResume.getResumeHeader());
         this.resumeExperiences = originalResume.getResumeExperiences().stream().map(
                 resumeExperience -> new ResumeExperience(resumeExperience, this)
-        ).collect(Collectors.toCollection(ArrayList::new));
+        ).collect(Collectors.toCollection(HashSet::new));
         this.resumeProjects = originalResume.getResumeProjects().stream().map(
                 ResumeProject::new
         ).peek(project -> project.setResume(this)).
-                collect(Collectors.toCollection(ArrayList::new));
+                collect(Collectors.toCollection(HashSet::new));
         //Necessary in order for cascading to work properly
         this.user.getResumes().add(this);
         this.resumeEducation.setResume(this);
         this.resumeHeader.setResume(this);
+    }
+
+    private List<ExperienceResponse> determineExperienceResponses(){
+
+        if (this.resumeExperiences == null || this.resumeExperiences.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        List<ResumeExperience> experienceList = new ArrayList<>(this.getResumeExperiences());
+
+        Comparator<ResumeExperience> resumeExperienceComparator =
+                Comparator.comparing(ResumeExperience::getEndDate,
+                        Comparator.nullsFirst(Comparator.reverseOrder()))
+                        .thenComparing(ResumeExperience::getStartDate, Comparator.reverseOrder());
+
+        experienceList.sort(resumeExperienceComparator);
+
+        return experienceList.stream().map(ResumeExperience::toResponse).toList();
+
+
+
+    }
+
+    private List<ProjectResponse> determineProjectResponses(){
+        if (this.resumeProjects == null || this.resumeProjects.isEmpty()){
+            return Collections.emptyList();
+        }
+        List<ResumeProject> resumeProjectList = new ArrayList<>(this.getResumeProjects());
+
+        Comparator<ResumeProject> projectComparator =
+                Comparator.comparing(ResumeProject::getEndDate,
+                                Comparator.nullsFirst(Comparator.reverseOrder()))
+                        .thenComparing(ResumeProject::getStartDate, Comparator.reverseOrder());
+
+        resumeProjectList.sort(projectComparator);
+        return resumeProjectList.stream().map(ResumeProject::toResponse).toList();
     }
 
     public ResumeResponse toResponse()
@@ -108,17 +140,8 @@ public class Resume extends Auditable {
         HeaderResponse headerResponse = this.resumeHeader == null ? null : this.resumeHeader.toResponse();
         EducationResponse educationResponse = this.resumeEducation == null ? null : this.resumeEducation.toResponse();
 
-        List<ExperienceResponse> experienceResponses = this.resumeExperiences == null ||
-                this.resumeExperiences.isEmpty() ? null :
-                this.resumeExperiences.stream().map(ResumeExperience::toResponse).toList();
-
-
-        List<ProjectResponse> projectResponses = this.resumeProjects == null ||
-                this.resumeProjects.isEmpty() ? null :
-                this.resumeProjects.stream().map(ResumeProject::toResponse).toList();
-
         return new ResumeResponse(headerResponse, educationResponse,
-                experienceResponses, projectResponses);
+                determineExperienceResponses(), determineProjectResponses());
     }
 
 }

@@ -3,11 +3,12 @@ package com.rebuild.backend.model.entities.forum_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
+import com.rebuild.backend.model.responses.resume_responses.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "post_resumes", indexes = {
@@ -40,14 +41,12 @@ public class PostResume extends Auditable {
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "postResume")
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<PostResumeExperience> resumeExperiences;
+    private Set<PostResumeExperience> resumeExperiences;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {
             CascadeType.ALL
     }, orphanRemoval = true, mappedBy = "postResume")
-    @OrderBy("endDate DESC NULLS FIRST, startDate DESC")
-    private List<PostResumeProject> resumeProjects;
+    private Set<PostResumeProject> resumeProjects;
 
     @ManyToOne(cascade = {
             CascadeType.REFRESH,
@@ -62,16 +61,61 @@ public class PostResume extends Auditable {
     public PostResume(@NonNull Resume originalResume){
         ResumeEducation originalResumeEducation = originalResume.getResumeEducation();
         ResumeHeader originalResumeHeader = originalResume.getResumeHeader();
-        List<ResumeExperience> originalResumeExperiences = originalResume.getResumeExperiences();
-        List<ResumeProject> originalResumeProjects = originalResume.getResumeProjects();
+        Set<ResumeExperience> originalResumeExperiences = originalResume.getResumeExperiences();
+        Set<ResumeProject> originalResumeProjects = originalResume.getResumeProjects();
         // We are creating new objects here
         // because we do not want them to be a reference to the original ones.
         this.resumeEducation = ResumeEducation.copy(originalResumeEducation, this);
         this.resumeHeader = ResumeHeader.copy(originalResumeHeader, this);
         this.resumeExperiences = originalResumeExperiences.stream().map(resumeExperience ->
-                ResumeExperience.copy(resumeExperience, this)).toList();
+                ResumeExperience.copy(resumeExperience, this)).collect(Collectors.toSet());
         this.resumeProjects = originalResumeProjects.stream().map(resumeProject ->
-                        ResumeProject.copy(resumeProject, this)).
-                toList();
+                        ResumeProject.copy(resumeProject, this)).collect(Collectors.toSet());
+    }
+
+    private List<ExperienceResponse> determineExperienceResponses(){
+
+        if (this.resumeExperiences == null || this.resumeExperiences.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        List<PostResumeExperience> experienceList = new ArrayList<>(this.getResumeExperiences());
+
+        Comparator<PostResumeExperience> resumeExperienceComparator =
+                Comparator.comparing(PostResumeExperience::getEndDate,
+                                Comparator.nullsFirst(Comparator.reverseOrder()))
+                        .thenComparing(PostResumeExperience::getStartDate, Comparator.reverseOrder());
+
+        experienceList.sort(resumeExperienceComparator);
+
+        return experienceList.stream().map(PostResumeExperience::toResponse).toList();
+
+
+
+    }
+
+    private List<ProjectResponse> determineProjectResponses(){
+        if (this.resumeProjects == null || this.resumeProjects.isEmpty()){
+            return Collections.emptyList();
+        }
+        List<PostResumeProject> resumeProjectList = new ArrayList<>(this.getResumeProjects());
+
+        Comparator<PostResumeProject> projectComparator =
+                Comparator.comparing(PostResumeProject::getEndDate,
+                                Comparator.nullsFirst(Comparator.reverseOrder()))
+                        .thenComparing(PostResumeProject::getStartDate, Comparator.reverseOrder());
+
+        resumeProjectList.sort(projectComparator);
+        return resumeProjectList.stream().map(PostResumeProject::toResponse).toList();
+    }
+
+
+    public ResumeResponse toResponse()
+    {
+        HeaderResponse headerResponse = this.resumeHeader == null ? null : this.resumeHeader.toResponse();
+        EducationResponse educationResponse = this.resumeEducation == null ? null : this.resumeEducation.toResponse();
+
+        return new ResumeResponse(headerResponse, educationResponse,
+                determineExperienceResponses(), determineProjectResponses());
     }
 }
