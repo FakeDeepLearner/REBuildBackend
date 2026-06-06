@@ -33,13 +33,12 @@ public class PostController {
         this.postsService = postsService;
     }
 
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.OK)
-    public ForumPost createNewPost(@Valid @RequestPart(name = "form") NewPostForm postForm,
-                                        @RequestPart(name = "files") List<MultipartFile> resumeFiles,
+    public ForumPost createNewPost(@Valid @RequestBody NewPostForm postForm,
                                         @AuthenticationPrincipal User creatingUser) {
         return postsService.createNewPost(postForm,
-                creatingUser, resumeFiles);
+                creatingUser);
     }
 
     @DeleteMapping("/delete/{post_id}")

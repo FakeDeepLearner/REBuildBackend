@@ -58,6 +58,9 @@ public class PostResume extends Auditable {
     @JsonIgnore
     private ForumPost associatedPost;
 
+    @Column(name = "preview_url")
+    private String previewUrl = null;
+
     public PostResume(@NonNull Resume originalResume){
         ResumeEducation originalResumeEducation = originalResume.getResumeEducation();
         ResumeHeader originalResumeHeader = originalResume.getResumeHeader();

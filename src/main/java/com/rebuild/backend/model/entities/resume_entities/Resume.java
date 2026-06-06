@@ -30,7 +30,6 @@ public class Resume extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @Column(name = "name", nullable = false)
@@ -66,9 +65,6 @@ public class Resume extends Auditable {
             foreignKey = @ForeignKey(name = "fk_user_id"))
     @JsonIgnore
     private User user;
-
-    @Column(name = "version_count", nullable = false)
-    private int versionCount = 0;
 
     public Resume(@NonNull String resume_name, @NonNull User user){
         this.user = user;

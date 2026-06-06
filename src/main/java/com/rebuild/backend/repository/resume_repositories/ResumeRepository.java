@@ -2,7 +2,7 @@ package com.rebuild.backend.repository.resume_repositories;
 
 import com.rebuild.backend.model.entities.resume_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.responses.resume_responses.HomeScreenResumeResponse;
+import com.rebuild.backend.model.responses.resume_responses.ResumePreviewResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -72,7 +72,7 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     WHERE (?2 IS NULL OR (LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%"))))
     AND r.user=?1
     """)
-    Slice<HomeScreenResumeResponse> findByUserAndNameContaining(User user, String name, Pageable pageable);
+    Slice<ResumePreviewResponse> findByUserAndNameContaining(User user, String name, Pageable pageable);
 
 
     Optional<Resume> findByUserAndName(User user, String name);

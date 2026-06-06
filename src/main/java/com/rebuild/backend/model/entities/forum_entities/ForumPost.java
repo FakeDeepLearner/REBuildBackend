@@ -25,7 +25,6 @@ public class ForumPost extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false)
     private UUID id;
 
     @NonNull
@@ -36,9 +35,6 @@ public class ForumPost extends Auditable {
 
     @OneToMany(mappedBy = "associatedPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostResume> resumes;
-
-    @OneToMany(mappedBy = "associatedPost", cascade =  CascadeType.ALL, orphanRemoval = true)
-    private List<ResumeFileUploadRecord> uploadedFiles;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
