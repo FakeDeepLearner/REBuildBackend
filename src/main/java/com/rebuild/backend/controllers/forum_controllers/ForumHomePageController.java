@@ -4,8 +4,8 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Frie
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
-import com.rebuild.backend.model.responses.ForumPostPageResponse;
-import com.rebuild.backend.model.responses.UsernameSearchResponse;
+import com.rebuild.backend.model.responses.forum_responses.ForumPostPageResponse;
+import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse;
 import com.rebuild.backend.service.forum_services.ForumHomePageService;
 import com.rebuild.backend.service.forum_services.PostsService;
 import com.rebuild.backend.service.forum_services.FriendshipService;

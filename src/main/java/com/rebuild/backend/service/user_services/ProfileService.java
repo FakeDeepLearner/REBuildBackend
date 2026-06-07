@@ -8,7 +8,7 @@ import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
-import com.rebuild.backend.model.responses.UserProfileResponse;
+import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;

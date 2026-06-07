@@ -42,6 +42,7 @@ public class Comment extends Auditable {
     @Column(name = "parent_comment_id")
     private UUID parentId;
 
+    @Column(name = "replies_count")
     private int repliesCount = 0;
 
     @NonNull
@@ -50,7 +51,14 @@ public class Comment extends Auditable {
     @Column(name = "likes_count", nullable = false)
     private int likeCount = 0;
 
+    @Column(name = "is_deleted")
     private boolean isDeleted = false;
 
-    private boolean isAnonymized;
+    @Column(name = "is_anonymized")
+    private boolean isAnonymized = false;
+
+    @Column(name = "is_edited")
+    private boolean isEdited = false;
+
+
 }

@@ -8,7 +8,7 @@ import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.responses.UserProfileResponse;
+import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.service.util_services.CloudinaryService;

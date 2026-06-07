@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.responses;
+package com.rebuild.backend.model.responses.forum_responses;
 
 import java.util.UUID;
 

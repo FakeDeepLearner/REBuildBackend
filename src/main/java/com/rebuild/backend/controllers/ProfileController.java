@@ -2,7 +2,7 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
-import com.rebuild.backend.model.responses.UserProfileResponse;
+import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.service.user_services.ProfileService;
 import com.rebuild.backend.service.user_services.UserService;
 import com.rebuild.backend.service.util_services.CloudinaryService;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
-
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/api/profile")

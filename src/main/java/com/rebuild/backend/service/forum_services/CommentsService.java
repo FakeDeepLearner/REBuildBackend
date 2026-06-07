@@ -2,8 +2,9 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
+import com.rebuild.backend.model.responses.forum_responses.EditCommentResponse;
 import com.rebuild.backend.utils.exceptions.ApiException;
-import com.rebuild.backend.model.responses.LoadCommentsResponse;
+import com.rebuild.backend.model.responses.forum_responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.forum_entities.Like;
@@ -23,7 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.DocFlavor;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,7 +48,7 @@ public class CommentsService {
     public String changeCommentAnonymization(UUID commentId, User anonymizingUser)
     {
         Comment commentToAnonymize = commentRepository.findByIdAndAuthor(commentId, anonymizingUser).orElseThrow(
-                () -> new BelongingException("This comment does not belong to you")
+                () -> new BelongingException("This comment does not belong to you, or it has already been deleted")
         );
         commentToAnonymize.setAnonymized(!commentToAnonymize.isAnonymized());
         Comment savedComment = commentRepository.save(commentToAnonymize);
@@ -61,7 +61,7 @@ public class CommentsService {
     @Transactional
     public void deleteComment(UUID commentID, User deletingUser){
         Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
-                () -> new BelongingException("This comment does not belong to you")
+                () -> new BelongingException("This comment does not belong to you, or it has already been deleted")
         );
         commentToDelete.setDeleted(true);
         commentRepository.save(commentToDelete);
@@ -111,7 +111,7 @@ public class CommentsService {
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
                 creatingUser.getAnonymizedNameBase(), post.getId());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, 0, post.getUser().equals(creatingUser),
+                displayName, savedComment.getCreatedAt(), 0, post.getUser().equals(creatingUser),
                 false, false);
 
     }
@@ -135,7 +135,7 @@ public class CommentsService {
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
                 creatingUser.getAnonymizedNameBase(), associatedPost.getId());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, 0,
+                displayName, savedComment.getCreatedAt(), 0,
                 associatedPost.getUser().equals(creatingUser), false, false);
     }
 
@@ -220,5 +220,22 @@ public class CommentsService {
         comment.setLikeCount(comment.getLikeCount() + 1);
 
         return commentRepository.save(comment);
+    }
+
+    public EditCommentResponse editComment(UUID comment_id, User editingUser, String newContent)
+    {
+        if (newContent.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Content cannot be blank");
+        }
+        Comment foundComment = commentRepository.findByIdAndAuthor(comment_id, editingUser).
+                orElseThrow(() -> new BelongingException("Comment with this id either not found, " +
+                        "or it does not belong to you, or it has been deleted previously"));
+
+        foundComment.setContent(newContent);
+        Comment savedComment =  commentRepository.save(foundComment);
+
+        return new EditCommentResponse(savedComment.getContent(), savedComment.getLastModifiedAt());
+
     }
 }

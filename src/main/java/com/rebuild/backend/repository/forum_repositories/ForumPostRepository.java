@@ -19,10 +19,11 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(value = """
             SELECT fp FROM ForumPost fp
             LEFT JOIN FETCH fp.resumes
-            LEFT JOIN FETCH fp.uploadedFiles
-                        JOIN fp.user u WHERE fp.id=?1
+            JOIN fp.user u WHERE fp.id=?1
            """)
     Optional<ForumPost> findByIdWithMoreInfo(UUID id);
+
+    Optional<ForumPost> findByIdAndUser(UUID id, User user);
 
     @Query(value = """
             SELECT fp FROM ForumPost fp
@@ -35,18 +36,12 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
             SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
             u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
             CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
-            THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase)
+            THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase, c.createdAt,
+            c.lastModifiedAt, c.isDeleted)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
             WHERE p.id=?1 AND c.parentId=?1 ORDER BY c.createdAt ASC
            """)
     Slice<CommentFetchDTO> loadCommentsById(UUID id, UUID userId, Pageable pageable);
-
-    @Query(value = """
-            SELECT fp FROM ForumPost fp
-            LEFT JOIN FETCH fp.uploadedFiles
-            JOIN fp.user u WHERE fp.id=?1 AND u=?2
-           """)
-    Optional<ForumPost> findByIdWithFiles(UUID id, User creatingUser);
 
     @Query(
     value = """

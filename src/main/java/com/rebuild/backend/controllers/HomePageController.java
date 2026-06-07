@@ -2,7 +2,7 @@ package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
-import com.rebuild.backend.model.responses.HomePageResponse;
+import com.rebuild.backend.model.responses.user_responses.HomePageResponse;
 import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import com.rebuild.backend.service.resume_services.ResumeService;

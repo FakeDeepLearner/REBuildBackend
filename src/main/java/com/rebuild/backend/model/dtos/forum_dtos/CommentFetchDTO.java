@@ -2,11 +2,13 @@ package com.rebuild.backend.model.dtos.forum_dtos;
 
 import com.rebuild.backend.utils.StringUtil;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID commentID, String content, String authorUsername, int replyCount,
                               boolean userHasLikedComment, boolean commentIsDeleted, boolean commentIsAnonymized,
-                              String anonymizedBaseName) {
+                              String anonymizedBaseName, Instant creationTime, Instant modificationTime,
+                              boolean commentIsEdited) {
 
     private String determineDisplayedContent()
     {
@@ -30,6 +32,7 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
     public CommentDisplayDTO toDisplayDto(boolean isUserOriginalPoster){
         return new CommentDisplayDTO(commentIsDeleted ? null : commentID,
                 determineDisplayedContent(), determineDisplayedAuthor(),
+                commentIsEdited ? modificationTime : creationTime,
                 this.replyCount, isUserOriginalPoster, this.userHasLikedComment, this.commentIsDeleted);
     }
 }

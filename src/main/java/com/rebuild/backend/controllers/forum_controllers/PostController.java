@@ -2,7 +2,9 @@ package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
+import com.rebuild.backend.model.forms.forum_forms.EditPostForm;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
+import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
 import com.rebuild.backend.service.forum_services.PostsService;
 import com.rebuild.backend.service.resume_services.ResumeService;
 import jakarta.validation.Valid;
@@ -50,8 +52,17 @@ public class PostController {
 
 
     @PatchMapping("/flip-anonymization/{post_id}")
+    @ResponseStatus(HttpStatus.OK)
     public String changePostAnonymization(@AuthenticationPrincipal User user,
                                              @PathVariable UUID post_id) {
         return postsService.changePostAnonymization(post_id, user);
+    }
+
+
+    @PatchMapping("edit-post/{post_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EditPostResponse editPost(@AuthenticationPrincipal User user, @PathVariable UUID post_id,
+                                     @Valid @RequestBody EditPostForm editPostForm) {
+        return postsService.editPost(post_id, user, editPostForm);
     }
 }

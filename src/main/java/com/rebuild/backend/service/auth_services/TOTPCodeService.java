@@ -6,7 +6,7 @@ import com.rebuild.backend.model.entities.user_entities.TemporaryMFACredentials;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.*;
-import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
+import com.rebuild.backend.model.responses.user_responses.MFAEnrolmentResponse;
 import com.rebuild.backend.repository.user_repositories.TemporaryMFACredentialsRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.user_services.UserService;

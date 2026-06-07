@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.responses.HomePageResponse;
+import com.rebuild.backend.model.responses.user_responses.HomePageResponse;
 import com.rebuild.backend.model.responses.resume_responses.ResumePreviewResponse;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.utils.exceptions.ApiException;

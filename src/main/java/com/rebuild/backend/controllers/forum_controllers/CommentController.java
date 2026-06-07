@@ -1,8 +1,10 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.responses.LoadCommentsResponse;
+import com.rebuild.backend.model.forms.forum_forms.EditPostForm;
+import com.rebuild.backend.model.responses.forum_responses.EditCommentResponse;
+import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
+import com.rebuild.backend.model.responses.forum_responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.service.forum_services.CommentsService;
@@ -12,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -63,6 +64,13 @@ public class CommentController {
     public String changeCommentAnonymization(@AuthenticationPrincipal User user,
                                              @PathVariable UUID commentId){
         return commentsService.changeCommentAnonymization(commentId, user);
+    }
+
+    @PatchMapping("edit-post/{post_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EditCommentResponse editComment(@AuthenticationPrincipal User user, @PathVariable UUID post_id,
+                                        @RequestBody String newContent) {
+        return commentsService.editComment(post_id, user, newContent);
     }
 
 }

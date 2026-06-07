@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.responses;
+package com.rebuild.backend.model.responses.user_responses;
 
 import java.util.List;
 

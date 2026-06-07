@@ -1,10 +1,8 @@
-package com.rebuild.backend.model.responses;
+package com.rebuild.backend.model.responses.user_responses;
 
 import com.rebuild.backend.model.dtos.ProfileHistoryCommentDTO;
 import com.rebuild.backend.model.dtos.ProfileHistoryPostDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
-import com.rebuild.backend.model.entities.forum_entities.Comment;
-import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 
 import java.util.List;
 

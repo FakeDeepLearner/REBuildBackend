@@ -5,6 +5,8 @@ import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.forms.forum_forms.EditPostForm;
+import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
 import com.rebuild.backend.model.responses.resume_responses.ResumePreviewResponse;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.FileUploadException;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +78,7 @@ public class PostsService {
 
     @Transactional
     public void deletePost(UUID postID, User deletingUser){
-        ForumPost postToDelete = postRepository.findByIdWithFiles(postID, deletingUser).
+        ForumPost postToDelete = postRepository.findByIdAndUser(postID, deletingUser).
                 orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
 
 
@@ -84,7 +87,7 @@ public class PostsService {
 
     @Transactional
     public String changePostAnonymization(UUID postID, User anonymizingUser){
-        ForumPost postToAnonymize = postRepository.findByIdWithFiles(postID, anonymizingUser).
+        ForumPost postToAnonymize = postRepository.findByIdAndUser(postID, anonymizingUser).
                 orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
 
         postToAnonymize.setAnonymized(!postToAnonymize.isAnonymized());
@@ -117,10 +120,11 @@ public class PostsService {
                         null, postResume.getPreviewUrl())
         ).toList();
 
+        Instant postedTime = forumPost.isEdited() ? forumPost.getLastModifiedAt() : forumPost.getCreatedAt();
         boolean userHasLikedPost = likeRepository.findByLikedObjectIdAndLikingUserId(postID,
                 loadingUser.getId()).isPresent();
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
-                displayedName, previews, displayedComments,
+                displayedName, postedTime, previews, displayedComments,
                 fetchedComments.getNumber(), fetchedComments.hasNext(),
                 userHasLikedPost);
 
@@ -129,12 +133,12 @@ public class PostsService {
 
 
 
-    public ForumPost likePost(UUID comment_id, User likingUser)
+    public ForumPost likePost(UUID post_id, User likingUser)
     {
-        ForumPost post = postRepository.findById(comment_id).orElseThrow(
+        ForumPost post = postRepository.findById(post_id).orElseThrow(
                 () -> new NotFoundException("Post with this id is not found"));
 
-        Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
+        Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(post_id,
                 likingUser.getId());
 
         //If the user has already liked this post, remove the like.
@@ -143,14 +147,28 @@ public class PostsService {
             post.setLikeCount(post.getLikeCount() - 1);
         });
 
-        //If the user has not liked this post, simply add a like for this comment for this user.
+        //If the user has not liked this post, simply add a like for this post for this user.
 
-        Like newLike = new Like(likingUser.getId(), comment_id);
+        Like newLike = new Like(likingUser.getId(), post_id);
 
         likeRepository.save(newLike);
         post.setLikeCount(post.getLikeCount() + 1);
 
         return postRepository.save(post);
+    }
+
+    public EditPostResponse editPost(UUID postId, User editingUser, EditPostForm editPostForm)
+    {
+        ForumPost postToEdit = postRepository.findByIdAndUser(postId, editingUser).
+                orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
+
+        postToEdit.setContent(editPostForm.newContent());
+        postToEdit.setTitle(editPostForm.newTitle());
+
+        postToEdit.setEdited(true);
+
+        ForumPost savedPost = postRepository.save(postToEdit);
+        return new EditPostResponse(savedPost.getTitle(), savedPost.getContent(), savedPost.getLastModifiedAt());
     }
 
 }

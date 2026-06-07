@@ -3,7 +3,7 @@ package com.rebuild.backend.controllers;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.*;
-import com.rebuild.backend.model.responses.MFAEnrolmentResponse;
+import com.rebuild.backend.model.responses.user_responses.MFAEnrolmentResponse;
 import com.rebuild.backend.service.auth_services.RecoveryCodeHelperService;
 import com.rebuild.backend.service.auth_services.TOTPCodeService;
 import com.rebuild.backend.service.auth_services.UserAuthenticationHelperService;

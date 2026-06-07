@@ -9,8 +9,8 @@ import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
-import com.rebuild.backend.model.responses.DisplayChatResponse;
-import com.rebuild.backend.model.responses.LoadChatResponse;
+import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
+import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class ChatAndMessageService {

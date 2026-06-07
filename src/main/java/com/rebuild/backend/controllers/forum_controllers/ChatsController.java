@@ -4,15 +4,13 @@ import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.responses.DisplayChatResponse;
-import com.rebuild.backend.model.responses.LoadChatResponse;
+import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
+import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.service.forum_services.ChatAndMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.service.annotation.DeleteExchange;
 
 import java.util.List;
 import java.util.UUID;
