@@ -6,7 +6,9 @@ import java.util.UUID;
 public record CommentDisplayDTO(UUID commentID, String content, String displayedName,
                                 Instant displayedTime,
                                 int replyCount,
+                                int likesCount,
                                 boolean authorIsPostingUser,
                                 boolean userHasLikedComment,
-                                boolean isDeleted) {
+                                boolean isDeleted,
+                                boolean isEdited) {
 }

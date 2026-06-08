@@ -111,8 +111,9 @@ public class CommentsService {
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
                 creatingUser.getAnonymizedNameBase(), post.getId());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, savedComment.getCreatedAt(), 0, post.getUser().equals(creatingUser),
-                false, false);
+                displayName, savedComment.getCreatedAt(), 0, 0,
+                post.getUser().equals(creatingUser),
+                false, false, false);
 
     }
 
@@ -135,8 +136,9 @@ public class CommentsService {
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
                 creatingUser.getAnonymizedNameBase(), associatedPost.getId());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, savedComment.getCreatedAt(), 0,
-                associatedPost.getUser().equals(creatingUser), false, false);
+                displayName, savedComment.getCreatedAt(), 0, 0,
+                associatedPost.getUser().equals(creatingUser), false, false,
+                false);
     }
 
     public LoadCommentsResponse obtainMoreComments(UUID postId, UUID parentCommentId, User user,
