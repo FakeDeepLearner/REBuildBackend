@@ -17,5 +17,15 @@ public record SignupInitializationForm(
 
                          @NotBlank(message = "Username is required")
                          String forumUsername,
-                         boolean remember) {
+                         boolean remember) implements EmailAndPasswordForm {
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
 }

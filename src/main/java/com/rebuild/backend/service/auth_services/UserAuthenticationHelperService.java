@@ -97,11 +97,9 @@ public class UserAuthenticationHelperService {
         }
     }
 
-
-
-
+    @Transactional
     public User matchLoginCredentialsWithUser(LoginInitializationForm form) {
-        String formField = form.emailOrPhone();
+        String formField = form.email();
 
         User foundUser = userRepository.findByEmail(formField).orElse(null);
 
@@ -124,7 +122,7 @@ public class UserAuthenticationHelperService {
 
 
     @Transactional
-    public boolean signupCredentialsAreFree(SignupInitializationForm form) {
+    public void verifySignupCredentials(SignupInitializationForm form) {
         if (form.forumUsername().startsWith("Anonymous"))
         {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Username cannot start with \"Anonymous\"");
@@ -135,12 +133,12 @@ public class UserAuthenticationHelperService {
         if (foundUser.isPresent()) {
             throw new UserAuthException(HttpStatus.CONFLICT, "A user already exists with the same email, forum username, or phone number");
         }
-        return doPreliminaryPasswordChecks(form);
+        doPreliminaryPasswordChecks(form);
 
     }
 
     @Transactional
-    protected boolean doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
+    protected void doPreliminaryPasswordChecks(SignupInitializationForm signupInitializationForm) {
         //Do preliminary checks. If any of them fail, abort the signup immediately
         if (!signupInitializationForm.password().equals(signupInitializationForm.repeatedPassword())){
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Passwords do not match");
@@ -175,8 +173,6 @@ public class UserAuthenticationHelperService {
                     "the following reason(s):\n " + feedbackResponse.warning() + "\n" +
                     "We recommend the following:\n" + builder);
         }
-
-        return true;
     }
 
     public Bucket returnUserBucket(User user){

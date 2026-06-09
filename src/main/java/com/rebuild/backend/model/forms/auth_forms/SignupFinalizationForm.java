@@ -23,5 +23,15 @@ public record SignupFinalizationForm(@Email(message = "Must be a valid email")
                                      String enteredOTP,
 
                                      boolean codesUnretrievableConfirmation,
-                                     boolean remember) {
+                                     boolean remember) implements EmailAndPasswordForm {
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
 }

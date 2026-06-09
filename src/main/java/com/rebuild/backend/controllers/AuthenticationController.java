@@ -1,6 +1,8 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.responses.user_responses.HomePageResponse;
+import com.rebuild.backend.service.user_services.UserHomePageService;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import com.rebuild.backend.model.forms.auth_forms.*;
 import com.rebuild.backend.model.responses.user_responses.MFAEnrolmentResponse;
@@ -41,18 +43,21 @@ public class AuthenticationController {
 
     private final EmailAndPasswordChangeService emailAndPasswordChangeService;
 
+    private final UserHomePageService homePageService;
+
     @Autowired
     public AuthenticationController(AuthenticationManager authManager,
                                     UserService userService,
                                     UserAuthenticationHelperService authenticationHelperService,
                                     TOTPCodeService totpCodeService,
-                                    RecoveryCodeHelperService recoveryCodeHelperService, EmailAndPasswordChangeService emailAndPasswordChangeService) {
+                                    RecoveryCodeHelperService recoveryCodeHelperService, EmailAndPasswordChangeService emailAndPasswordChangeService, UserHomePageService homePageService) {
         this.authManager = authManager;
         this.userService = userService;
         this.authenticationHelperService = authenticationHelperService;
         this.totpCodeService = totpCodeService;
         this.recoveryCodeHelperService = recoveryCodeHelperService;
         this.emailAndPasswordChangeService = emailAndPasswordChangeService;
+        this.homePageService = homePageService;
     }
 
     @PostMapping("/login/initialize")
@@ -123,7 +128,7 @@ public class AuthenticationController {
                                                         HttpServletRequest request)
     {
         boolean codeVerified =
-                recoveryCodeHelperService.verifyRecoveryCode(form.emailOrPhone(), form.enteredCode());
+                recoveryCodeHelperService.verifyRecoveryCode(form.email(), form.enteredCode());
 
         if (codeVerified)
         {
@@ -139,7 +144,7 @@ public class AuthenticationController {
     private void loginHelper(LoginFinalizationForm form, HttpServletRequest request){
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        form.emailOrPhone(), form.password())
+                        form.email(), form.password())
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
         request.getSession(true);
@@ -155,25 +160,18 @@ public class AuthenticationController {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
 
-        boolean credentialsAreFree = authenticationHelperService.signupCredentialsAreFree(signupInitializationForm);
+        authenticationHelperService.verifySignupCredentials(signupInitializationForm);
 
-        if (credentialsAreFree)
-        {
-            return totpCodeService.startMFAEnrolment(signupInitializationForm);
-        }
-
-        // Will never get here, since the credential check will fail with an exception
-        // if the password is not strong enough or if any of the credentials are taken already.
-        return null;
+        return totpCodeService.startMFAEnrolment(signupInitializationForm);
 
     }
 
 
     @PostMapping(value = "/signup/finalize")
     @ResponseStatus(HttpStatus.CREATED)
-    public User finalizeSignup(@Valid @RequestBody SignupFinalizationForm signupFinalizationForm,
-                                                 HttpServletRequest request,
-                                                 @RequestParam(name = "g-recaptcha-response") String userResponse) {
+    public HomePageResponse finalizeSignup(@Valid @RequestBody SignupFinalizationForm signupFinalizationForm,
+                                           HttpServletRequest request,
+                                           @RequestParam(name = "g-recaptcha-response") String userResponse) {
         if (authenticationHelperService.captchaFailed(userResponse, request.getRemoteAddr())) {
             throw new UserAuthException(HttpStatus.BAD_REQUEST, "Verification failed, please try again");
         }
@@ -187,7 +185,7 @@ public class AuthenticationController {
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
         request.getSession(true);
-        return createdUser;
+        return homePageService.getHomePageData(createdUser, 0);
 
     }
 

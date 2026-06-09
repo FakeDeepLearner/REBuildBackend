@@ -108,7 +108,7 @@ public class TOTPCodeService {
     @Transactional
     public boolean otpMatches(LoginFinalizationForm form)
     {
-        User foundUser = userRepository.findByEmail(form.emailOrPhone()).orElse(null);
+        User foundUser = userRepository.findByEmail(form.email()).orElse(null);
 
         assert foundUser != null;
 
