@@ -23,7 +23,6 @@ import static jakarta.persistence.CascadeType.ALL;
 @Table(name = "users", indexes = {
         @Index(columnList = "lastLoginTime"),
         @Index(columnList = "email"),
-        @Index(columnList = "phone_number")
 })
 @RequiredArgsConstructor
 @Getter

@@ -25,9 +25,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailWithRecoveryCodes(String emailOrPhone);
 
     @Query(value = """
-    SELECT u FROM User u
-    WHERE one_word_fts(u.forumUsername, ?1)
-    """)
+    SELECT u FROM users u
+    WHERE to_tsvector('english', u.forum_username) @@ websearch_to_tsquery('english', ?1)
+    """, nativeQuery = true)
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 
     Optional<User> findByEmailOrForumUsername(String email, String forumUsername);

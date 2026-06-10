@@ -27,7 +27,7 @@ public class ChatInvitation{
 
     @NonNull
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "recipient_id", referencedColumnName = "id", nullable = false)
     private User recipient;
 
     @NonNull

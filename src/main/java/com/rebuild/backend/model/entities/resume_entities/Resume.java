@@ -32,7 +32,7 @@ public class Resume extends Auditable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "resume_name", nullable = false)
     @NonNull
     private String name;
 
