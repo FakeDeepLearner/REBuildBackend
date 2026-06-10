@@ -67,9 +67,9 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     @Query(value = """
     SELECT NEW com.rebuild.backend.model.responses.
-        resume_responses.HomeScreenResumeResponse(r.id, r.name, r.previewUrl)
+        resume_responses.ResumePreviewResponse(r.id, r.name, r.previewUrl)
     FROM Resume r
-    WHERE (?2 IS NULL OR (LOWER(r.name) LIKE LOWER(CONCAT("%", ?2, "%"))))
+    WHERE (?2 IS NULL OR one_word_fts(r.name, ?2))
     AND r.user=?1
     """)
     Slice<ResumePreviewResponse> findByUserAndNameContaining(User user, String name, Pageable pageable);

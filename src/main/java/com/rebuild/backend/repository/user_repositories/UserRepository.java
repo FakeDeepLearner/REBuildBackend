@@ -26,7 +26,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query(value = """
     SELECT u FROM User u
-    WHERE u.forumUsername LIKE LOWER(CONCAT('%', ?1, '%'))
+    WHERE one_word_fts(u.forumUsername, ?1)
     """)
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 

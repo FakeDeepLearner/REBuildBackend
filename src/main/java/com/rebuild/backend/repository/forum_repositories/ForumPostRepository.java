@@ -35,7 +35,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
             u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount, c.likeCount,
-            CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2) > 0
+            CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2)
             THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedNameBase, c.createdAt,
             c.lastModifiedAt, c.isDeleted)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
@@ -47,11 +47,11 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     value = """
     SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO(
     fp.id, fp.title, fp.content, fp.likeCount, fp.commentCount,
-    CASE WHEN (SELECT COUNT(l) FROM Like l WHERE l.likedObjectId=fp.id AND l.likingUserId=?3) > 0
+    CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=fp.id AND l.likingUserId=?3)
     THEN true ELSE false END)
     FROM ForumPost fp WHERE
-    (?1 IS NULL OR fp.title LIKE CONCAT('%', ?1, '%'))
-    AND (?2 IS NULL OR fp.content LIKE CONCAT('%', ?2, '%'))
+    (?1 IS NULL OR one_word_fts(fp.title, ?1))
+    AND (?2 IS NULL OR one_word_fts(fp.content, ?2))
     ORDER BY fp.createdAt DESC, fp.lastModifiedAt DESC
     """)
     Slice<ForumPostSummaryDTO> findByTitleAndContent(String title, String content, UUID userID, Pageable pageable);
