@@ -259,6 +259,7 @@ public class ChatAndMessageService {
                 }).collect(Collectors.toCollection(ArrayList::new));
     }
 
+
     @Transactional
     public LoadChatResponse loadChat(UUID chatId, User loadingUser, int pageNumber)
     {

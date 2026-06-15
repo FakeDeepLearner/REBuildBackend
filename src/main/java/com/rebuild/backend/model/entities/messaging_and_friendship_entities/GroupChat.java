@@ -20,8 +20,8 @@ public class GroupChat extends AbstractChat {
     @NonNull
     private String chatName;
 
-    @Column(name = "profile_picture_id")
-    private String pictureId = null;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "associatedChat")
+    private GroupChatPicture picture;
 
     @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)

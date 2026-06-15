@@ -4,8 +4,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.service.user_services.ProfileService;
-import com.rebuild.backend.service.user_services.UserService;
-import com.rebuild.backend.service.util_services.CloudinaryService;
+import com.rebuild.backend.service.util_services.AWSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,16 +20,12 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    private final UserService userService;
-
-    private final CloudinaryService cloudinaryService;
+    private final AWSService awsService;
 
     @Autowired
-    public ProfileController(ProfileService profileService, UserService userService,
-                             CloudinaryService cloudinaryService) {
+    public ProfileController(ProfileService profileService, AWSService awsService) {
         this.profileService = profileService;
-        this.userService = userService;
-        this.cloudinaryService = cloudinaryService;
+        this.awsService = awsService;
     }
 
 
@@ -51,13 +46,13 @@ public class ProfileController {
     public String changeImage(@AuthenticationPrincipal User changingUser,
                                    @RequestPart(name = "file") MultipartFile pictureFile)
     {
-        return cloudinaryService.changeProfilePicture(changingUser, pictureFile);
+        return null;
     }
 
     @DeleteMapping("/remove_image")
     @ResponseStatus(HttpStatus.OK)
     public UserProfileResponse removeProfileImage(@AuthenticationPrincipal User user){
-        return cloudinaryService.removeProfilePicture(user);
+        return awsService.removeProfilePicture(user);
     }
 
 

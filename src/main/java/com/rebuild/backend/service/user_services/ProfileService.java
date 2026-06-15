@@ -6,13 +6,13 @@ import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
+import com.rebuild.backend.service.util_services.AWSService;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
 import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,18 +31,18 @@ public class ProfileService {
 
     private final FriendRelationshipRepository friendRelationshipRepository;
 
-    private final CloudinaryService cloudinaryService;
-
     private final ProfileHelperService helperService;
+
+    private final AWSService awsService;
 
     @Autowired
     public ProfileService(ProfileRepository profileRepository, UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository,
-                          CloudinaryService cloudinaryService, ProfileHelperService helperService) {
+                         ProfileHelperService helperService, AWSService awsService) {
         this.profileRepository = profileRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
-        this.cloudinaryService = cloudinaryService;
         this.helperService = helperService;
+        this.awsService = awsService;
     }
 
 
@@ -52,7 +52,7 @@ public class ProfileService {
     {
         UserProfile associatedProfile = user.getUserProfile();
         return new UserProfileResponse(
-                new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(associatedProfile.getPictureId()),
+                new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(associatedProfile.getPicture()),
                         user.getEmail()),
                 user.getForumUsername(), helperService.loadCommentDTOsForUser(user),
                 helperService.loadPostDTOsForUser(user)

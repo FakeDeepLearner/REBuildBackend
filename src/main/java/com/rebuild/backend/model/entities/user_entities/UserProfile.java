@@ -34,8 +34,8 @@ public class UserProfile extends Auditable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "profile_picture_id")
-    private String pictureId = null;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "associatedProfile")
+    private UserProfilePicture picture;
 
     @Column(name = "post_history_setting")
     @Enumerated(EnumType.STRING)

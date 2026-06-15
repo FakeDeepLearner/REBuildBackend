@@ -1,22 +1,24 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChatPicture;
+import com.rebuild.backend.model.entities.user_entities.UserProfilePicture;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.service.util_services.CloudinaryService;
+import com.rebuild.backend.service.util_services.AWSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ChatUtilService {
 
-    private final CloudinaryService cloudinaryService;
+    private final AWSService awsService;
 
     @Autowired
-    public ChatUtilService(CloudinaryService cloudinaryService) {
-        this.cloudinaryService = cloudinaryService;
+    public ChatUtilService(AWSService awsService) {
+        this.awsService = awsService;
     }
 
     public User determineOtherChatUser(PrivateChat chat, User loadingUser)
@@ -47,23 +49,23 @@ public class ChatUtilService {
     {
         if (chat instanceof GroupChat groupChat)
         {
-            String chatPictureId = groupChat.getPictureId();
-            if (chatPictureId == null)
+            GroupChatPicture picture = groupChat.getPicture();
+            if (picture == null)
             {
                 return null;
             }
-            return cloudinaryService.generateTimedUrlForPictureId(chatPictureId);
+            return awsService.generateDownloadUrlForPicture(picture);
         }
 
         if (chat instanceof PrivateChat privateChat)
         {
             User otherUser = determineOtherChatUser(privateChat, loadingUser);
-            String pictureUrl = otherUser.getUserProfile().getPictureId();
-            if (pictureUrl == null)
+            UserProfilePicture picture = otherUser.getUserProfile().getPicture();
+            if (picture == null)
             {
                 return null;
             }
-            return cloudinaryService.generateTimedUrlForPictureId(pictureUrl);
+            return awsService.generateDownloadUrlForPicture(picture);
         }
 
         //Should never get here.

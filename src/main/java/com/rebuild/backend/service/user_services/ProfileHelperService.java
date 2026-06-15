@@ -11,7 +11,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
-import com.rebuild.backend.service.util_services.CloudinaryService;
+import com.rebuild.backend.service.util_services.AWSService;
 import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,18 +21,17 @@ import java.util.List;
 @Component
 public class ProfileHelperService {
 
-    private final CloudinaryService cloudinaryService;
-
     private final CommentRepository commentRepository;
 
     private final ForumPostRepository forumPostRepository;
 
+    private final AWSService awsService;
+
     @Autowired
-    public ProfileHelperService(CloudinaryService cloudinaryService,
-                                CommentRepository commentRepository, ForumPostRepository forumPostRepository) {
-        this.cloudinaryService = cloudinaryService;
+    public ProfileHelperService(CommentRepository commentRepository, ForumPostRepository forumPostRepository, AWSService awsService) {
         this.commentRepository = commentRepository;
         this.forumPostRepository = forumPostRepository;
+        this.awsService = awsService;
     }
 
     public List<ProfileHistoryCommentDTO> loadCommentDTOsForUser(User user)
@@ -59,7 +58,7 @@ public class ProfileHelperService {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE) ||
                     sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
-                return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(profile.getPictureId()),
+                return new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(profile.getPicture()),
                         user.getEmail());
             }
             //Otherwise, return the information masked
@@ -70,7 +69,7 @@ public class ProfileHelperService {
         {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
             {
-                return new ProfileSensitiveInformationDTO(cloudinaryService.generateTimedUrlForPictureId(profile.getPictureId()),
+                return new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(profile.getPicture()),
                         user.getEmail());
             }
 

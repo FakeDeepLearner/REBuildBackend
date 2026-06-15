@@ -5,7 +5,6 @@ import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.auth_forms.SignupFinalizationForm;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
-import com.rebuild.backend.service.util_services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,14 +20,10 @@ public class UserService{
 
     private final PasswordEncoder encoder;
 
-    private final CloudinaryService cloudinaryService;
-
 
     @Autowired
-    public UserService(UserRepository repository, PasswordEncoder encoder,
-                       CloudinaryService cloudinaryService) {
+    public UserService(UserRepository repository, PasswordEncoder encoder) {
         this.repository = repository;
-        this.cloudinaryService = cloudinaryService;
         this.encoder = encoder;
     }
 
