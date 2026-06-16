@@ -1,16 +1,10 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.websocket_dtos.ChatInvitationNotificationDTO;
-import com.rebuild.backend.model.dtos.websocket_dtos.FriendRequestNotificationDTO;
-import com.rebuild.backend.model.dtos.websocket_dtos.NewChatDTO;
-import com.rebuild.backend.model.dtos.websocket_dtos.NewMessageNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.*;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.annotation.SendToUser;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,8 +12,11 @@ public class WebsocketsService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    public WebsocketsService(SimpMessagingTemplate simpMessagingTemplate) {
+    private final ChatUtilService chatUtilService;
+
+    public WebsocketsService(SimpMessagingTemplate simpMessagingTemplate, ChatUtilService chatUtilService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.chatUtilService = chatUtilService;
     }
 
 
@@ -68,12 +65,12 @@ public class WebsocketsService {
 
         String contentPreview = determineContentPreview(fullContent);
 
-        NewChatDTO newChatDTO = new NewChatDTO(newChat.getId(), sender.getId(), sentMessage.getId(),
+        NewChatNotificationDTO newChatNotificationDTO = new NewChatNotificationDTO(newChat.getId(), sender.getId(), sentMessage.getId(),
                 contentPreview, sender.getForumUsername());
 
         simpMessagingTemplate.convertAndSendToUser(recipient.getUsername(),
                 "user/new_chat_notifications",
-                newChatDTO);
+                newChatNotificationDTO);
     }
 
     public void sendChatInvitationNotification(ChatInvitation sentInvitation)
@@ -106,6 +103,20 @@ public class WebsocketsService {
                 sentFriendRequest.getRecipient().getUsername(),
                 "/user/new_chat_invitations",
                 notificationDTO
+        );
+    }
+
+    public void sendKickNotification(GroupChat chat, ChatParticipation recipientParticipation)
+    {
+        User recipient = recipientParticipation.getParticipatingUser();
+
+        KickedNotificationDTO kickedNotificationDTO = new KickedNotificationDTO(chat.getChatName(),
+                chat.getId());
+
+        simpMessagingTemplate.convertAndSendToUser(
+                recipient.getUsername(),
+                "user/kick_notifications",
+                kickedNotificationDTO
         );
     }
 }

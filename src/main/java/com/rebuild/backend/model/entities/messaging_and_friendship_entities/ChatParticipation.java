@@ -6,13 +6,11 @@ import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
-import javax.print.attribute.standard.MediaSize;
-import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
-@EqualsAndHashCode(callSuper = true)
+
 @Entity
 @Table(name = "chat_participations", indexes = {
         @Index(columnList = "participating_user_id, participating_chat_id"),
@@ -60,6 +58,30 @@ public class ChatParticipation extends Auditable {
     @Column(name = "last_message")
     private String lastMessage;
 
+    // Only the creator of the group chat is permanently an admin.
+    // While these fields will also exist for private chats, they will have no meaning there.
+    @Column(name = "is_admin")
+    @NonNull
+    private Boolean isAdmin;
+
+    @NonNull
+    @Column(name = "is_permanent_admin")
+    private Boolean isGroupOwner;
 
 
+    public boolean hasNoAdminPrivileges()
+    {
+        return !isAdmin && !isGroupOwner;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ChatParticipation that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

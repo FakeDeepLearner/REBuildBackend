@@ -34,5 +34,4 @@ public interface ChatRepository extends JpaRepository<AbstractChat, UUID> {
     """)
     List<UUID> findIdsByUser(User user);
 
-
 }

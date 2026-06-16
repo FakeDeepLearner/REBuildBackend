@@ -102,5 +102,54 @@ public class ChatsController {
     public MessageDisplayDTO removeMessage(@AuthenticationPrincipal User user, @PathVariable UUID message_id){
         return chatAndMessageService.removeMessage(user, message_id);
     }
-    
+
+    @PatchMapping("/edit_message/{message_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public MessageDisplayDTO editMessage(@AuthenticationPrincipal User user,
+                                         @PathVariable UUID message_id,
+                                         @RequestBody String newMessage){
+        return chatAndMessageService.editMessage(user, message_id, newMessage);
+    }
+
+    @PatchMapping("/toggle_admin/{chat_id}/{user_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean toggleUserAdmin(@AuthenticationPrincipal User user,
+                                   @PathVariable UUID chat_id, @PathVariable UUID user_id)
+    {
+        return chatAndMessageService.toggleUserAdmin(user, chat_id, user_id);
+    }
+
+    @DeleteMapping("/kick_user/{chat_id}/{user_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void kickUser(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
+                         @PathVariable UUID user_id)
+    {
+        chatAndMessageService.kickUserFromChat(user, chat_id, user_id);
+    }
+
+    @DeleteMapping("/delete_chat/{chat_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
+    {
+        chatAndMessageService.deleteChat(user, chat_id);
+    }
+
+    @DeleteMapping("/kick_user/{chat_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void leaveChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
+    {
+        chatAndMessageService.leaveChat(user, chat_id);
+    }
+
+    @DeleteMapping("/kick_user/{chat_id}/{user_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void transferChatOwnership(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
+                         @PathVariable UUID user_id)
+    {
+        chatAndMessageService.transferChatOwnership(user, chat_id, user_id);
+    }
+
+
+
+
 }

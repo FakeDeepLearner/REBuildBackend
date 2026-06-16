@@ -37,7 +37,8 @@ public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
 
         //The server will send a heartbeat every 5 seconds, and the client every 10 seconds
         registry.enableSimpleBroker("/new_messages", "/new_chat_inviations",
-                        "/new_friend_invitations", "/new_chat_notifications", "/typing").
+                        "/new_friend_invitations", "/new_chat_notifications", "/typing",
+                        "/kicked_notifications").
                 setHeartbeatValue(new long[] {5000, 10000});
 
         //This makes it possible to send a message to a specific user.

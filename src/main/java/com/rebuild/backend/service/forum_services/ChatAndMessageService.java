@@ -63,7 +63,8 @@ public class ChatAndMessageService {
     {
         GroupChat newChat = new GroupChat();
 
-        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat);
+        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true,
+                true);
         creatingUser.addChatParticipation(userParticipation);
 
         newChat.setChatName(chatName);
@@ -82,7 +83,7 @@ public class ChatAndMessageService {
         GroupChat associatedChat = foundInvitation.getAssociatedChat();
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient,
-                associatedChat);
+                associatedChat, false, false);
         recipientParticipation.setLastMessage(associatedChat.getLastMessage());
 
         associatedChat.getParticipations().add(recipientParticipation);
@@ -114,6 +115,13 @@ public class ChatAndMessageService {
                 "Chat with the specified id not found"
         ));
 
+        //If this user is not an administrator in this chat, they can't send any invites
+        if (chatUtilService.userIsNotAdminInChat(foundChat, sender))
+        {
+            throw new ChatException(HttpStatus.UNAUTHORIZED, "You can't invite anyone to this chat " +
+                    "because you are not an administrator in this chat.");
+        }
+
         if (!(foundChat instanceof GroupChat))
         {
             throw new ChatException(HttpStatus.FORBIDDEN,
@@ -139,6 +147,170 @@ public class ChatAndMessageService {
 
         websocketsService.sendChatInvitationNotification(savedInvitation);
         return savedInvitation;
+    }
+
+    @Transactional
+    public boolean toggleUserAdmin(User administratingUser, UUID chatId, UUID userId)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(
+                "Chat with the specified id not found"
+        ));
+
+        if (!(foundChat instanceof GroupChat))
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN,
+                    "This chat is not a group chat, that operation cannot be done");
+        }
+
+        ChatParticipation recipientParticipation = participationRepository.
+                findByParticipatingUser_IdAndParticipatedChat(userId, foundChat).orElseThrow(()
+                -> new NotFoundException("User with this ID is not found, or is not a member of this chat"));
+
+        if (chatUtilService.userIsNotAdminInChat(foundChat, administratingUser))
+        {
+            throw new ChatException(HttpStatus.UNAUTHORIZED, "Only administrators are able to do this operation");
+        }
+
+        if (recipientParticipation.getIsGroupOwner())
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN, "The owner of the chat must remain an administrator");
+        }
+
+        boolean currentStatus = recipientParticipation.getIsAdmin();
+
+        recipientParticipation.setIsAdmin(!currentStatus);
+
+        ChatParticipation savedParticipation = participationRepository.save(recipientParticipation);
+
+        return savedParticipation.getIsAdmin();
+
+    }
+
+    @Transactional
+    public void kickUserFromChat(User kickingUser, UUID chatId, UUID userId)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(
+                "Chat with the specified id not found"
+        ));
+
+        if (!(foundChat instanceof GroupChat))
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN,
+                    "This chat is not a group chat, that operation cannot be done");
+        }
+
+        ChatParticipation userParticipation =
+                participationRepository.findByParticipatingUserAndParticipatedChat(kickingUser, foundChat)
+                        .orElseThrow(() -> new NotFoundException("You are not a member in this chat"));
+
+        ChatParticipation recipientParticipation = participationRepository.
+                findByParticipatingUser_IdAndParticipatedChat(userId, foundChat).orElseThrow(()
+                        -> new NotFoundException("User with this ID is not found, or is not a member of this chat"));
+
+
+        if(userParticipation.hasNoAdminPrivileges())
+        {
+            throw new ChatException(HttpStatus.UNAUTHORIZED, "Only administrators or owners can kick users");
+        }
+
+        if (recipientParticipation.getIsGroupOwner()) {
+                throw new ChatException(HttpStatus.FORBIDDEN, "The group owner cannot be kicked");
+        }
+
+        foundChat.getParticipations().remove(userParticipation);
+
+        chatRepository.save(foundChat);
+
+        //Once again, this is a safe cast, since we know that the chat cannot be a private chat by the time we get here.
+        websocketsService.sendKickNotification((GroupChat) foundChat, recipientParticipation);
+    }
+
+    @Transactional
+    public void deleteChat(User deletingUser, UUID chatId)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(
+                "Chat with the specified id not found"
+        ));
+
+        if (!(foundChat instanceof GroupChat))
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN,
+                    "This chat is not a group chat, that operation cannot be done");
+        }
+
+        ChatParticipation userParticipation =
+                participationRepository.findByParticipatingUserAndParticipatedChat(deletingUser, foundChat)
+                        .orElseThrow(() -> new NotFoundException("You are not a member in this chat"));
+
+        if (!userParticipation.getIsGroupOwner())
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN, "Only the group owner can disband the group");
+        }
+
+        foundChat.setMessages(null);
+        foundChat.setParticipations(null);
+        chatRepository.delete(foundChat);
+    }
+
+    @Transactional
+    public void leaveChat(User leavingUser, UUID chatId)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(
+                "Chat with the specified id not found"
+        ));
+
+        if (!(foundChat instanceof GroupChat))
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN,
+                    "This chat is not a group chat, that operation cannot be done");
+        }
+
+        ChatParticipation userParticipation =
+                participationRepository.findByParticipatingUserAndParticipatedChat(leavingUser, foundChat)
+                        .orElseThrow(() -> new NotFoundException("You are not a member in this chat"));
+
+        if (userParticipation.getIsGroupOwner())
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN, "You must transfer ownership to another user before leaving");
+        }
+
+        foundChat.getParticipations().remove(userParticipation);
+        leavingUser.getChatParticipations().remove(userParticipation);
+        participationRepository.delete(userParticipation);
+    }
+
+    @Transactional
+    public void transferChatOwnership(User transferingUser, UUID chatId, UUID userId) {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(
+                "Chat with the specified id not found"
+        ));
+
+        if (!(foundChat instanceof GroupChat)) {
+            throw new ChatException(HttpStatus.FORBIDDEN,
+                    "This chat is not a group chat, that operation cannot be done");
+        }
+
+        ChatParticipation userParticipation =
+                participationRepository.findByParticipatingUserAndParticipatedChat(transferingUser, foundChat)
+                        .orElseThrow(() -> new NotFoundException("You are not a member in this chat"));
+
+        ChatParticipation recipientParticipation = participationRepository.
+                findByParticipatingUser_IdAndParticipatedChat(userId, foundChat).orElseThrow(()
+                        -> new NotFoundException("User with this ID is not found, or is not a member of this chat"));
+
+        if (!userParticipation.getIsGroupOwner())
+        {
+            throw new ChatException(HttpStatus.UNAUTHORIZED, "You are not the owner of this chat");
+        }
+
+        // The user becomes the owner, and thus an admin, and the user that transfers ownership loses it
+        // but still retains being an admin
+        recipientParticipation.setIsGroupOwner(true);
+        recipientParticipation.setIsAdmin(true);
+        userParticipation.setIsGroupOwner(false);
+
+        participationRepository.save(userParticipation);
+        participationRepository.save(recipientParticipation);
     }
 
     private MessageDisplayDTO sendMessageTo(User sender, User recipient, String messageContent){
@@ -201,6 +373,10 @@ public class ChatAndMessageService {
     @Transactional
     public MessageDisplayDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
+        if (messageContent.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Message content cannot be blank");
+        }
         Optional<User> recipient = userRepository.findById(receivingObjectId);
 
         //If we find a user with the given id, the recipient will receive a message from this user for the first time
@@ -337,4 +513,24 @@ public class ChatAndMessageService {
         // because the user can only remove their own messages anyway
         return savedMessage.toDTo(true);
     }
+
+    public MessageDisplayDTO editMessage(User editingUser, UUID messageId, String newContent)
+    {
+        if (newContent.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Message content cannot be blank");
+        }
+        Message foundMessage = messageRepository.findByIdAndSender(messageId, editingUser).orElseThrow(
+                () -> new BelongingException("Message with this id does not exist or " +
+                        "does not belong to you")
+        );
+
+        foundMessage.setContent(newContent);
+        foundMessage.setEdited(true);
+
+        Message savedMessage = messageRepository.save(foundMessage);
+
+        return savedMessage.toDTo(true);
+    }
+
 }

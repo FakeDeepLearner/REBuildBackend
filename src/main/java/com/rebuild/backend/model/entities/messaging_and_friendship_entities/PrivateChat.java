@@ -20,12 +20,14 @@ public class PrivateChat extends AbstractChat {
 
     public PrivateChat(User sender, User recipient, String initialMessageContent)
     {
-        ChatParticipation senderParticipation = new ChatParticipation(sender, this);
+        ChatParticipation senderParticipation = new ChatParticipation(sender, this,
+                true, true);
         senderParticipation.setParticipatingUser(sender);
         sender.addChatParticipation(senderParticipation);
         senderParticipation.setLastMessage(initialMessageContent);
 
-        ChatParticipation recipientParticipation = new ChatParticipation(recipient, this);
+        ChatParticipation recipientParticipation = new ChatParticipation(recipient, this,
+                true, false);
         recipientParticipation.setParticipatingUser(sender);
         recipient.addChatParticipation(recipientParticipation);
         recipientParticipation.setUnreadMessagesCount(1);

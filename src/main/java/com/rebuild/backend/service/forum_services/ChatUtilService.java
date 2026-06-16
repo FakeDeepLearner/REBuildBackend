@@ -7,7 +7,9 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.service.util_services.AWSService;
+import com.rebuild.backend.utils.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,9 +18,12 @@ public class ChatUtilService {
 
     private final AWSService awsService;
 
+    private final ChatParticipationRepository participationRepository;
+
     @Autowired
-    public ChatUtilService(AWSService awsService) {
+    public ChatUtilService(AWSService awsService, ChatParticipationRepository participationRepository) {
         this.awsService = awsService;
+        this.participationRepository = participationRepository;
     }
 
     public User determineOtherChatUser(PrivateChat chat, User loadingUser)
@@ -79,5 +84,14 @@ public class ChatUtilService {
                         !participation.getParticipatingUser().equals(user)).findFirst()
                 .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
 
+    }
+
+    public boolean userIsNotAdminInChat(AbstractChat chat, User user)
+    {
+        ChatParticipation userParticipation =
+                participationRepository.findByParticipatingUserAndParticipatedChat(user, chat)
+                        .orElseThrow(() -> new NotFoundException("You are not a member in this chat"));
+
+        return userParticipation.hasNoAdminPrivileges();
     }
 }

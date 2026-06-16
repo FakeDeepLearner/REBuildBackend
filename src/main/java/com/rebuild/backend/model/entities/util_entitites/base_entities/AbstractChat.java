@@ -23,11 +23,13 @@ public abstract class AbstractChat extends Auditable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY,
+    orphanRemoval = true)
     @OrderBy(value = "createdAt DESC")
     private List<Message> messages = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY,
+    orphanRemoval = true)
     @NonNull
     private List<ChatParticipation> participations = new ArrayList<>();
 

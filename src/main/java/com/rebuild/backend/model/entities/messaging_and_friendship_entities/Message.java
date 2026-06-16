@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractC
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -45,15 +46,23 @@ public class Message extends Auditable {
     @Column(name = "is_deleted")
     private boolean isRemoved = false;
 
+    @Column(name = "is_edited")
+    private boolean isEdited = false;
+
 
     private String getDisplayedContent()
     {
         return isRemoved ? "This message has been removed" : content;
     }
 
+    private Instant getDisplayedDate()
+    {
+        return isEdited ? lastModifiedAt : createdAt;
+    }
+
     public MessageDisplayDTO toDTo(boolean displayOnTheRight)
     {
         return new MessageDisplayDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                createdAt, displayOnTheRight, isRemoved);
+                getDisplayedDate(), displayOnTheRight, isRemoved);
     }
 }
