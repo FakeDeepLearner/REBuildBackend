@@ -3,6 +3,8 @@ package com.rebuild.backend.repository.messaging_and_friendship_repositories;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,6 +18,11 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
 
     List<ChatParticipation> findByParticipatingUser(User participatingUser);
 
+    @Query(value = """
+    SELECT cp FROM ChatParticipation cp
+    JOIN FETCH cp.participatingUser WHERE cp.participatedChat.id=?1
+    """)
+    Slice<ChatParticipation> findByChatIdWithUser(UUID chatId, Pageable pageable);
 
     Optional<ChatParticipation> findByParticipatingUserAndParticipatedChat(User participatingUser,
                                                                            AbstractChat participatedChat);
@@ -23,6 +30,7 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
     Optional<ChatParticipation> findByParticipatingUser_IdAndParticipatedChat_Id(UUID participatingUserId,
                                                                                  UUID participatedChatId);
 
+    Optional<ChatParticipation> findByParticipatedChat_IdAndParticipatingUser(UUID participatedChatId, User participatingUser);
     boolean existsByParticipatedChat_IdAndParticipatingUser(UUID participatedChatId, User participatingUser);
 
     @Query(value = """
