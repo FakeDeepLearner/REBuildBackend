@@ -4,8 +4,8 @@ import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
-import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
+import com.rebuild.backend.model.forms.forum_forms.LoadMoreMessagesForm;
+import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.service.forum_services.ChatAndMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -149,7 +149,30 @@ public class ChatsController {
         chatAndMessageService.transferChatOwnership(user, chat_id, user_id);
     }
 
+    @GetMapping("/search_messages/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public SearchMessagesResponse doMessageSearch(@AuthenticationPrincipal User user,
+                                                  @PathVariable UUID chat_id,
+                                                  @RequestBody String searchString,
+                                                  @RequestParam(name = "page", defaultValue = "0") int pageNumber){
+        return chatAndMessageService.searchForMessages(user, chat_id, searchString, pageNumber);
+    }
 
+    @GetMapping("jump_to_message/{chat_id}/{message_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public MessageJumpResponse jumpToMessage(@AuthenticationPrincipal User user,
+                                             @PathVariable UUID chat_id, @PathVariable UUID message_id){
+        return chatAndMessageService.jumpToMessage(user, chat_id, message_id);
+    }
 
+    @GetMapping("jump_to_message/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LoadMoreMessagesResponse loadMoreMessages(@AuthenticationPrincipal User user,
+                                                     @PathVariable UUID chat_id,
+                                                     @RequestBody LoadMoreMessagesForm moreMessagesForm)
+    {
+        return chatAndMessageService.loadMoreMessagesWithTimestamp(user, chat_id,
+                moreMessagesForm.lastTimestamp(),  moreMessagesForm.loadFromAbove());
+    }
 
 }

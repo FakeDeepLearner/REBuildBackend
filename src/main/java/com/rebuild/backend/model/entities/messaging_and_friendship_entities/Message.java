@@ -2,6 +2,7 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.MessageSearchDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -60,9 +61,20 @@ public class Message extends Auditable {
         return isEdited ? lastModifiedAt : createdAt;
     }
 
-    public MessageDisplayDTO toDTo(boolean displayOnTheRight)
+    private boolean getDisplayOnTheRight(User loadingUser)
+    {
+        return sender.equals(loadingUser);
+    }
+
+    public MessageDisplayDTO toDTo(User loadingUser)
     {
         return new MessageDisplayDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), displayOnTheRight, isRemoved);
+                getDisplayedDate(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited);
+    }
+
+    public MessageSearchDTO toSearchDTO()
+    {
+        return new MessageSearchDTO(id, sender.getForumUsername(), getDisplayedContent(),
+                getDisplayedDate(), isEdited);
     }
 }

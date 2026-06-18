@@ -1,28 +1,29 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.MessageSearchDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
-import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
-import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class ChatAndMessageService {
@@ -247,6 +248,7 @@ public class ChatAndMessageService {
             throw new ChatException(HttpStatus.FORBIDDEN, "Only the group owner can disband the group");
         }
 
+        //This will automatically delete all the messages and participations as well, because of orphan removal
         foundChat.setMessages(null);
         foundChat.setParticipations(null);
         chatRepository.delete(foundChat);
@@ -328,7 +330,7 @@ public class ChatAndMessageService {
 
         websocketsService.sendNewChatNotification(createdChat, sender, savedMessage, recipient);
 
-        return savedMessage.toDTo(true);
+        return savedMessage.toDTo(sender);
     }
 
     private MessageDisplayDTO sendMessageTo(User sender, String content,
@@ -366,7 +368,7 @@ public class ChatAndMessageService {
 
         websocketsService.sendNewMessageNotification(associatedChat, sender, savedMessage);
 
-        return savedMessage.toDTo(true);
+        return savedMessage.toDTo(sender);
     }
 
 
@@ -464,10 +466,7 @@ public class ChatAndMessageService {
 
         List<MessageDisplayDTO> messages = currentMessages.getContent()
                 .stream().
-                map(message -> {
-                    boolean displayOnTheRight = message.getSender().equals(loadingUser);
-                    return message.toDTo(displayOnTheRight);
-                }).toList();
+                map(message -> message.toDTo(loadingUser)).toList();
 
         return new LoadChatResponse(chatDisplayName, chat.getId(), messages,
                 chatPictureUrl, currentMessages.hasNext());
@@ -511,7 +510,7 @@ public class ChatAndMessageService {
 
         // The message should always be displayed on the right,
         // because the user can only remove their own messages anyway
-        return savedMessage.toDTo(true);
+        return savedMessage.toDTo(removingUser);
     }
 
     public MessageDisplayDTO editMessage(User editingUser, UUID messageId, String newContent)
@@ -530,7 +529,193 @@ public class ChatAndMessageService {
 
         Message savedMessage = messageRepository.save(foundMessage);
 
-        return savedMessage.toDTo(true);
+        return savedMessage.toDTo(editingUser);
     }
 
+    private List<Message> getMaximumSize(List<Message> original, int maxSize)
+    {
+        if (maxSize >= original.size())
+        {
+            return original;
+        }
+        return original.subList(0, maxSize);
+    }
+
+    @Transactional
+    public SearchMessagesResponse searchForMessages(User searchingUser, UUID chatId, String query,
+                                                    int pageNumber)
+    {
+        if (query.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Search query cannot be blank");
+        }
+
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to 0.");
+        }
+
+        boolean userIsInChat =
+                participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
+
+        if (!userIsInChat)
+        {
+            throw new BelongingException("You are not a member of this chat");
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber, 25,
+                Sort.by(Sort.Direction.ASC, "createdAt"));
+
+        Slice<Message> foundMessages = messageRepository.findByChatAndSimilarContent(chatId, query, pageable);
+
+        List<MessageSearchDTO> displayedSearchDTOs = foundMessages.stream().map(Message::toSearchDTO)
+                .toList();
+
+        return new SearchMessagesResponse(displayedSearchDTOs, foundMessages.hasNext());
+    }
+
+    public MessageJumpResponse jumpToMessage(User user, UUID chatId, UUID messageId)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException("Chat with this id does not exist"));
+
+        boolean userIsInChat = participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, user);
+
+        if (!userIsInChat)
+        {
+            throw new BelongingException("You are not a member of this chat");
+        }
+
+        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
+        // so that we can easily check if we have more data in either direction
+        int fetchSize = 25;
+
+        Message foundMessage = messageRepository.findByIdAndAssociatedChat(messageId, foundChat).
+                orElseThrow(() -> new NotFoundException("Message with this id does not exist"));
+
+        Limit messageFetchLimit = Limit.of(fetchSize + 1);
+
+        List<Message> messagesBefore = messageRepository.findByAssociatedChatAndCreatedAtBefore(
+                foundChat, foundMessage.getCreatedAt(),
+                Sort.by(Sort.Direction.ASC, "createdAt"),
+                messageFetchLimit
+        );
+
+        List<Message> messagesAfter = messageRepository.findByAssociatedChatAndCreatedAtAfter(
+                foundChat, foundMessage.getCreatedAt(),
+                Sort.by(Sort.Direction.ASC, "createdAt"),
+                messageFetchLimit
+        );
+
+        //If we fetched more messages than our actual fetch size, then we have more messages in that direction
+        boolean hasMoreFromBefore = messagesBefore.size() > fetchSize;
+        boolean hasMoreFromAfter = messagesAfter.size() > fetchSize;
+
+        List<Message> actualBeforeMessages = getMaximumSize(messagesBefore, fetchSize);
+        List<Message> actualAfterMessages = getMaximumSize(messagesAfter, fetchSize);
+
+        Instant lastBeforeTimestamp = actualBeforeMessages.getFirst().getCreatedAt();
+        Instant lastAfterTimestamp = actualAfterMessages.getLast().getCreatedAt();
+
+        Stream<Message> combinedStream = Stream.concat(actualBeforeMessages.stream(),
+                Stream.concat(Stream.of(foundMessage), actualAfterMessages.stream()));
+
+        List<MessageDisplayDTO> displayedMessages =
+                combinedStream.map(message -> message.toDTo(user)).toList();
+
+        return new MessageJumpResponse(displayedMessages, hasMoreFromBefore, hasMoreFromAfter, lastBeforeTimestamp, lastAfterTimestamp);
+
+    }
+
+    @Transactional
+    public LoadMoreMessagesResponse loadMoreMessagesWithTimestamp(User searchingUser, UUID chatId,
+                                                                  String lastTimestamp, boolean loadFromAbove)
+    {
+        try {
+            Instant timestamp = Instant.parse(lastTimestamp);
+            if (loadFromAbove) {
+                return loadMoreFromAbove(searchingUser, chatId, timestamp);
+            }
+
+            return loadMoreFromBelow(searchingUser, chatId, timestamp);
+        }
+        catch (DateTimeParseException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid timestamp format");
+        }
+    }
+
+    @Transactional
+    protected LoadMoreMessagesResponse loadMoreFromAbove(User searchingUser, UUID chatId,
+                                                         Instant lastTimestamp)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException("Chat with this id does not exist"));
+
+        boolean userIsInChat = participationRepository.
+                existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
+
+        if (!userIsInChat)
+        {
+            throw new BelongingException("You are not a member of this chat");
+        }
+
+        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
+        // so that we can easily check if we have more data in either direction
+        int fetchSize = 25;
+
+        Limit messageFetchLimit = Limit.of(fetchSize + 1);
+
+        List<Message> messagesBefore = messageRepository.findByAssociatedChatAndCreatedAtBefore(
+                foundChat, lastTimestamp,
+                Sort.by(Sort.Direction.ASC, "createdAt"),
+                messageFetchLimit
+        );
+
+        boolean hasMore =  messagesBefore.size() > fetchSize;
+        List<Message> actualBeforeMessages = getMaximumSize(messagesBefore, fetchSize);
+
+        Instant lastBeforeTimestamp = actualBeforeMessages.getFirst().getCreatedAt();
+
+
+        List<MessageDisplayDTO> displayedMessages =
+                actualBeforeMessages.stream().map(message -> message.toDTo(searchingUser)).toList();
+
+        return new LoadMoreMessagesResponse(displayedMessages, hasMore, lastBeforeTimestamp);
+    }
+
+
+    @Transactional
+    protected LoadMoreMessagesResponse loadMoreFromBelow(User searchingUser, UUID chatId,
+                                                         Instant lastTimestamp)
+    {
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException("Chat with this id does not exist"));
+
+        boolean userIsInChat = participationRepository.
+                existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
+
+        if (!userIsInChat)
+        {
+            throw new BelongingException("You are not a member of this chat");
+        }
+
+        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
+        // so that we can easily check if we have more data in either direction
+        int fetchSize = 25;
+
+        Limit messageFetchLimit = Limit.of(fetchSize + 1);
+
+        List<Message> messagesAfter = messageRepository.findByAssociatedChatAndCreatedAtAfter(
+                foundChat, lastTimestamp,
+                Sort.by(Sort.Direction.ASC, "createdAt"),
+                messageFetchLimit
+        );
+
+        boolean hasMore =  messagesAfter.size() > fetchSize;
+        List<Message> actualBeforeMessages = getMaximumSize(messagesAfter, fetchSize);
+
+        Instant lastAfter = actualBeforeMessages.getLast().getCreatedAt();
+
+        List<MessageDisplayDTO> displayedMessages =
+                actualBeforeMessages.stream().map(message -> message.toDTo(searchingUser)).toList();
+
+        return new LoadMoreMessagesResponse(displayedMessages, hasMore, lastAfter);
+    }
 }

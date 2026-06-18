@@ -5,6 +5,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record MessageDisplayDTO(UUID messageId, String senderUsername, String messageContent, Instant messageTime,
-                                boolean displayOnTheRight, boolean messageIsRemoved) {
+                                boolean displayOnTheRight, boolean messageIsRemoved, boolean messageIsEdited) {
 }
 
