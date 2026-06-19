@@ -79,9 +79,6 @@ public class User implements UserDetails, Serializable {
     @Column(name = "mfa_secret_value", nullable = false)
     private String mfaSecretValue;
 
-    @OneToMany(orphanRemoval = true, mappedBy = "user", cascade = ALL)
-    @JsonIgnore
-    private List<MFARecoveryCodeEntity> recoveryCodes;
 
     @Column(name = "forum_username", unique = true)
     private String forumUsername;

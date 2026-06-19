@@ -3,7 +3,6 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.auth_forms.SignupFinalizationForm;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +35,7 @@ public class UserService{
         return Base64.getEncoder().encodeToString(salt);
     }
 
+    /*
     @Transactional
     public User createNewUser(SignupFinalizationForm finalizationForm, String mfaSecret){
 
@@ -55,6 +55,7 @@ public class UserService{
 
         return newUser;
     }
+    */
 
     private UserProfile createNewProfile(User newUser){
 

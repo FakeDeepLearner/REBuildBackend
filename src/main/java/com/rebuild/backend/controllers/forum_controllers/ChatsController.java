@@ -6,7 +6,8 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Grou
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.LoadMoreMessagesForm;
 import com.rebuild.backend.model.responses.forum_responses.*;
-import com.rebuild.backend.service.forum_services.ChatAndMessageService;
+import com.rebuild.backend.service.forum_services.MessageService;
+import com.rebuild.backend.service.forum_services.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,18 +20,21 @@ import java.util.UUID;
 @RequestMapping("/chats")
 public class ChatsController {
 
-    private final ChatAndMessageService chatAndMessageService;
+    private final MessageService messageService;
+
+    private final ChatService chatService;
 
     @Autowired
-    public ChatsController(ChatAndMessageService chatAndMessageService) {
-        this.chatAndMessageService = chatAndMessageService;
+    public ChatsController(MessageService messageService, ChatService chatService) {
+        this.messageService = messageService;
+        this.chatService = chatService;
     }
 
 
     @GetMapping("/all_chats")
     @ResponseStatus(HttpStatus.OK)
     public List<DisplayChatResponse> showAllChats(@AuthenticationPrincipal User authenticatedUser) {
-        return chatAndMessageService.displayAllChats(authenticatedUser);
+        return chatService.displayAllChats(authenticatedUser);
     }
 
     @GetMapping("/load/{chat_id}")
@@ -38,7 +42,7 @@ public class ChatsController {
     public LoadChatResponse loadChat(@PathVariable UUID chat_id,
                                      @AuthenticationPrincipal User authenticatedUser,
                                      @RequestParam(name = "page", defaultValue = "0") int pageNumber) {
-        return chatAndMessageService.loadChat(chat_id, authenticatedUser, pageNumber);
+        return chatService.loadChat(chat_id, authenticatedUser, pageNumber);
     }
 
     @PostMapping("/send_message/{receiving_object_id}")
@@ -46,28 +50,28 @@ public class ChatsController {
     public MessageDisplayDTO sendMessage(@PathVariable UUID receiving_object_id,
                                          @RequestBody String messageContent,
                                          @AuthenticationPrincipal User authenticatedUser) {
-        return chatAndMessageService.
+        return messageService.
                 createMessage(authenticatedUser, receiving_object_id, messageContent);
     }
 
     @PostMapping("/create")
     public GroupChat createGroupChat(@AuthenticationPrincipal User creatingUser, @RequestBody String name)
     {
-        return chatAndMessageService.createNewGroupChat(creatingUser, name);
+        return chatService.createNewGroupChat(creatingUser, name);
     }
 
 
     @PostMapping("/reject_invite/{invitation_id}")
     public void rejectChatInvitation(@AuthenticationPrincipal User rejectingUser, @PathVariable UUID invitation_id)
     {
-        chatAndMessageService.declineChatInvitation(rejectingUser, invitation_id);
+        chatService.declineChatInvitation(rejectingUser, invitation_id);
     }
 
     @PostMapping("/accept_invite/{invitation_id}")
     @ResponseStatus(HttpStatus.OK)
     public GroupChat acceptChatInvitation(@AuthenticationPrincipal User acceptingUser,
                                                           @PathVariable UUID invitation_id) {
-        return chatAndMessageService.acceptChatInvitation(acceptingUser, invitation_id);
+        return chatService.acceptChatInvitation(acceptingUser, invitation_id);
     }
 
 
@@ -77,7 +81,7 @@ public class ChatsController {
                                                  @PathVariable UUID user_id,
                                                  @PathVariable UUID chat_id)
     {
-        return chatAndMessageService.sendGroupChatInvitation(user, user_id, chat_id);
+        return chatService.sendGroupChatInvitation(user, user_id, chat_id);
 
     }
 
@@ -86,21 +90,21 @@ public class ChatsController {
     @ResponseStatus(HttpStatus.OK)
     public List<UUID> gatherChatIds(@AuthenticationPrincipal User user)
     {
-        return chatAndMessageService.findAllChatIdsByUser(user);
+        return chatService.findAllChatIdsByUser(user);
     }
 
     @PostMapping("/toggle_chat_mute/{chat_id}")
     @ResponseStatus(HttpStatus.OK)
     public boolean toggleChatMute(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
     {
-        return chatAndMessageService.toggleChatMute(user, chat_id);
+        return chatService.toggleChatMute(user, chat_id);
     }
     
 
     @DeleteMapping("/remove_message/{message_id}")
     @ResponseStatus(HttpStatus.OK)
     public MessageDisplayDTO removeMessage(@AuthenticationPrincipal User user, @PathVariable UUID message_id){
-        return chatAndMessageService.removeMessage(user, message_id);
+        return messageService.removeMessage(user, message_id);
     }
 
     @PatchMapping("/edit_message/{message_id}")
@@ -108,7 +112,7 @@ public class ChatsController {
     public MessageDisplayDTO editMessage(@AuthenticationPrincipal User user,
                                          @PathVariable UUID message_id,
                                          @RequestBody String newMessage){
-        return chatAndMessageService.editMessage(user, message_id, newMessage);
+        return messageService.editMessage(user, message_id, newMessage);
     }
 
     @PatchMapping("/toggle_admin/{chat_id}/{user_id}")
@@ -116,7 +120,7 @@ public class ChatsController {
     public boolean toggleUserAdmin(@AuthenticationPrincipal User user,
                                    @PathVariable UUID chat_id, @PathVariable UUID user_id)
     {
-        return chatAndMessageService.toggleUserAdmin(user, chat_id, user_id);
+        return chatService.toggleUserAdmin(user, chat_id, user_id);
     }
 
     @DeleteMapping("/kick_user/{chat_id}/{user_id}")
@@ -124,21 +128,21 @@ public class ChatsController {
     public void kickUser(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
                          @PathVariable UUID user_id)
     {
-        chatAndMessageService.kickUserFromChat(user, chat_id, user_id);
+        chatService.kickUserFromChat(user, chat_id, user_id);
     }
 
     @DeleteMapping("/delete_chat/{chat_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
     {
-        chatAndMessageService.deleteChat(user, chat_id);
+        chatService.deleteChat(user, chat_id);
     }
 
     @DeleteMapping("/kick_user/{chat_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void leaveChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
     {
-        chatAndMessageService.leaveChat(user, chat_id);
+        chatService.leaveChat(user, chat_id);
     }
 
     @DeleteMapping("/kick_user/{chat_id}/{user_id}")
@@ -146,7 +150,7 @@ public class ChatsController {
     public void transferChatOwnership(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
                          @PathVariable UUID user_id)
     {
-        chatAndMessageService.transferChatOwnership(user, chat_id, user_id);
+        chatService.transferChatOwnership(user, chat_id, user_id);
     }
 
     @GetMapping("/search_messages/{chat_id}")
@@ -155,14 +159,14 @@ public class ChatsController {
                                                   @PathVariable UUID chat_id,
                                                   @RequestBody String searchString,
                                                   @RequestParam(name = "page", defaultValue = "0") int pageNumber){
-        return chatAndMessageService.searchForMessages(user, chat_id, searchString, pageNumber);
+        return messageService.searchForMessages(user, chat_id, searchString, pageNumber);
     }
 
     @GetMapping("jump_to_message/{chat_id}/{message_id}")
     @ResponseStatus(HttpStatus.OK)
     public MessageJumpResponse jumpToMessage(@AuthenticationPrincipal User user,
                                              @PathVariable UUID chat_id, @PathVariable UUID message_id){
-        return chatAndMessageService.jumpToMessage(user, chat_id, message_id);
+        return messageService.jumpToMessage(user, chat_id, message_id);
     }
 
     @GetMapping("jump_to_message/{chat_id}")
@@ -171,7 +175,7 @@ public class ChatsController {
                                                      @PathVariable UUID chat_id,
                                                      @RequestBody LoadMoreMessagesForm moreMessagesForm)
     {
-        return chatAndMessageService.loadMoreMessagesWithTimestamp(user, chat_id,
+        return messageService.loadMoreMessagesWithTimestamp(user, chat_id,
                 moreMessagesForm.lastTimestamp(),  moreMessagesForm.loadFromAbove());
     }
 

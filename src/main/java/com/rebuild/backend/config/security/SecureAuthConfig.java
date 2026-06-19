@@ -55,9 +55,7 @@ public class SecureAuthConfig {
     @Bean
     @Order(3)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
-                                                         RememberMeServices rememberMeServices,
-                                                         RememberMeAuthenticationFilter rememberMeAuthenticationFilter,
-                                                         CsrfTokenRepository tokenRepository) throws Exception {
+                                                         CsrfTokenRepository tokenRepository) {
         security
                 //Form login is disabled because it expects everything to be done in one endpoint.
                 //However, our standard login flow has 2 separate endpoints that need to be called.
@@ -68,10 +66,6 @@ public class SecureAuthConfig {
                     logoutSuccessUrl("logged-out").
                     addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(COOKIES))).
                         permitAll())
-                .rememberMe(rememberMe ->
-                        rememberMe.rememberMeServices(rememberMeServices).useSecureCookie(true).
-                                rememberMeCookieName("REMEMBERED_USER_COOKIE"))
-                .addFilterAfter(rememberMeAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf ->
                         csrf.csrfTokenRepository(tokenRepository)).
                 sessionManagement(session ->
