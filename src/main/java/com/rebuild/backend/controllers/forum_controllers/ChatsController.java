@@ -6,6 +6,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Grou
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.LoadMoreMessagesForm;
 import com.rebuild.backend.model.responses.forum_responses.*;
+import com.rebuild.backend.service.forum_services.ChatAdministrationService;
 import com.rebuild.backend.service.forum_services.MessageService;
 import com.rebuild.backend.service.forum_services.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,13 @@ public class ChatsController {
 
     private final ChatService chatService;
 
+    private final ChatAdministrationService administrationService;
+
     @Autowired
-    public ChatsController(MessageService messageService, ChatService chatService) {
+    public ChatsController(MessageService messageService, ChatService chatService, ChatAdministrationService administrationService) {
         this.messageService = messageService;
         this.chatService = chatService;
+        this.administrationService = administrationService;
     }
 
 
@@ -81,7 +85,7 @@ public class ChatsController {
                                                  @PathVariable UUID user_id,
                                                  @PathVariable UUID chat_id)
     {
-        return chatService.sendGroupChatInvitation(user, user_id, chat_id);
+        return administrationService.sendGroupChatInvitation(user, user_id, chat_id);
 
     }
 
@@ -120,7 +124,7 @@ public class ChatsController {
     public boolean toggleUserAdmin(@AuthenticationPrincipal User user,
                                    @PathVariable UUID chat_id, @PathVariable UUID user_id)
     {
-        return chatService.toggleUserAdmin(user, chat_id, user_id);
+        return administrationService.toggleUserAdmin(user, chat_id, user_id);
     }
 
     @DeleteMapping("/kick_user/{chat_id}/{user_id}")
@@ -128,14 +132,15 @@ public class ChatsController {
     public void kickUser(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
                          @PathVariable UUID user_id)
     {
-        chatService.kickUserFromChat(user, chat_id, user_id);
+        administrationService.kickUserFromChat(user, chat_id, user_id);
     }
 
     @DeleteMapping("/delete_chat/{chat_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
     {
-        chatService.deleteChat(user, chat_id);
+
+        administrationService.deleteChat(user, chat_id);
     }
 
     @DeleteMapping("/kick_user/{chat_id}")
@@ -150,7 +155,7 @@ public class ChatsController {
     public void transferChatOwnership(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
                          @PathVariable UUID user_id)
     {
-        chatService.transferChatOwnership(user, chat_id, user_id);
+        administrationService.transferChatOwnership(user, chat_id, user_id);
     }
 
     @GetMapping("/search_messages/{chat_id}")
@@ -177,6 +182,14 @@ public class ChatsController {
     {
         return messageService.loadMoreMessagesWithTimestamp(user, chat_id,
                 moreMessagesForm.lastTimestamp(),  moreMessagesForm.loadFromAbove());
+    }
+
+    @GetMapping("/load_users/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LoadChatUsersResponse loadUsers(@AuthenticationPrincipal User user,
+                                           @PathVariable UUID chat_id)
+    {
+        return chatService.loadChatUsers(user, chat_id);
     }
 
 }

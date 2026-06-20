@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public record PostDisplayDTO(UUID postId, String title, String content,
                              String authorUsername, Instant postTime, List<ResumePreviewResponse> resumes,
-                             List<CommentDisplayDTO> displayedComments, int currentCommentPage,
+                             List<CommentDisplayDTO> displayedComments,
                              boolean hasMoreComments,
                              boolean userHasLikedPost) {
 }

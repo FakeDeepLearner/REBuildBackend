@@ -47,6 +47,10 @@ public class ChatParticipation extends Auditable {
     @NonNull
     private AbstractChat participatedChat;
 
+    @NonNull
+    @Column(name = "is_group_chat")
+    private Boolean isGroupChat;
+
 
     // Indicates whether this user has muted this chat or not.
     @Column(name = "is_muted")

@@ -125,7 +125,7 @@ public class PostsService {
                 loadingUser.getId()).isPresent();
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
                 displayedName, postedTime, previews, displayedComments,
-                fetchedComments.getNumber(), fetchedComments.hasNext(),
+                fetchedComments.hasNext(),
                 userHasLikedPost);
 
     }

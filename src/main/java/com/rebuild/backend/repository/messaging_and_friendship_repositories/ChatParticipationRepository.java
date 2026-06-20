@@ -20,8 +20,28 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
     Optional<ChatParticipation> findByParticipatingUserAndParticipatedChat(User participatingUser,
                                                                            AbstractChat participatedChat);
 
-    Optional<ChatParticipation> findByParticipatingUser_IdAndParticipatedChat(UUID participatingUserId,
-                                                                              AbstractChat participatedChat);
+    Optional<ChatParticipation> findByParticipatingUser_IdAndParticipatedChat_Id(UUID participatingUserId,
+                                                                                 UUID participatedChatId);
 
     boolean existsByParticipatedChat_IdAndParticipatingUser(UUID participatedChatId, User participatingUser);
+
+    @Query(value = """
+    SELECT cp FROM ChatParticipation cp
+    JOIN FETCH cp.participatedChat ch
+    WHERE ch.id=?1 AND cp.participatingUser=?2 AND cp.isGroupChat=?3
+    """)
+    Optional<ChatParticipation> findByChatIdAndUserAndGroupChatStatus(UUID chatId,
+                                                                      User user,
+                                                                      boolean groupChatStatus);
+
+
+    @Query(value = """
+    SELECT cp FROM ChatParticipation cp
+    JOIN FETCH cp.participatedChat ch
+    JOIN FETCH ch.participations
+    WHERE ch.id=?1 AND cp.participatingUser=?2
+    """)
+    Optional<ChatParticipation> findByChatIdAndUserWithParticipations(UUID chatId,
+                                                                      User user);
+
 }

@@ -76,10 +76,6 @@ public class User implements UserDetails, Serializable {
     @OrderBy("createdAt ASC")
     private List<Resume> resumes = new ArrayList<>();
 
-    @Column(name = "mfa_secret_value", nullable = false)
-    private String mfaSecretValue;
-
-
     @Column(name = "forum_username", unique = true)
     private String forumUsername;
 
@@ -118,16 +114,6 @@ public class User implements UserDetails, Serializable {
 
     @JsonIgnore
     private Instant lastLoginTime = signUpTime;
-
-    public User(@NonNull String encodedPassword,
-                @NonNull String email,
-                @NonNull String saltValue,
-                @NonNull String mfaSecretValue) {
-        this.password = encodedPassword;
-        this.email = email;
-        this.saltValue = saltValue;
-        this.mfaSecretValue = mfaSecretValue;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

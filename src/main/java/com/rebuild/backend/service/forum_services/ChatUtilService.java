@@ -85,13 +85,4 @@ public class ChatUtilService {
                 .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
 
     }
-
-    public boolean userIsNotAdminInChat(AbstractChat chat, User user)
-    {
-        ChatParticipation userParticipation =
-                participationRepository.findByParticipatingUserAndParticipatedChat(user, chat)
-                        .orElseThrow(() -> new NotFoundException("You are not a member in this chat"));
-
-        return userParticipation.hasNoAdminPrivileges();
-    }
 }
