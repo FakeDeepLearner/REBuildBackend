@@ -2,6 +2,7 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageSearchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.PinnedMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -9,6 +10,7 @@ import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
+import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,7 +157,9 @@ public class MessageService {
                 orElseThrow(() -> new BelongingException("Message with this id either does not exist or " +
                         "does not belong to you"));
 
+        //Removing a message also unpins it if it is pinned.
         foundMessage.setRemoved(true);
+        foundMessage.setPinned(false);
 
         Message savedMessage = messageRepository.save(foundMessage);
 
@@ -227,8 +231,6 @@ public class MessageService {
 
     public MessageJumpResponse jumpToMessage(User user, UUID chatId, UUID messageId)
     {
-        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException("Chat with this id does not exist"));
-
         boolean userIsInChat = participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, user);
 
         if (!userIsInChat)
@@ -240,19 +242,21 @@ public class MessageService {
         // so that we can easily check if we have more data in either direction
         int fetchSize = 25;
 
-        Message foundMessage = messageRepository.findByIdAndAssociatedChat(messageId, foundChat).
-                orElseThrow(() -> new NotFoundException("Message with this id does not exist"));
+        Message foundMessage = messageRepository.findByIdAndAssociatedChat_Id(messageId, chatId).
+                orElseThrow(() ->
+                        new ChatException(HttpStatus.NOT_FOUND,
+                                "Message with this id does not exist, or is not in this chat"));
 
         Limit messageFetchLimit = Limit.of(fetchSize + 1);
 
-        List<Message> messagesBefore = messageRepository.findByAssociatedChatAndCreatedAtBefore(
-                foundChat, foundMessage.getCreatedAt(),
+        List<Message> messagesBefore = messageRepository.findByAssociatedChat_IdAndCreatedAtBefore(
+                chatId, foundMessage.getCreatedAt(),
                 Sort.by(Sort.Direction.ASC, "createdAt"),
                 messageFetchLimit
         );
 
-        List<Message> messagesAfter = messageRepository.findByAssociatedChatAndCreatedAtAfter(
-                foundChat, foundMessage.getCreatedAt(),
+        List<Message> messagesAfter = messageRepository.findByAssociatedChat_IdAndCreatedAtAfter(
+                chatId, foundMessage.getCreatedAt(),
                 Sort.by(Sort.Direction.ASC, "createdAt"),
                 messageFetchLimit
         );
@@ -298,14 +302,12 @@ public class MessageService {
     protected LoadMoreMessagesResponse loadMoreFromAbove(User searchingUser, UUID chatId,
                                                          Instant lastTimestamp)
     {
-        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException("Chat with this id does not exist"));
-
         boolean userIsInChat = participationRepository.
                 existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
 
         if (!userIsInChat)
         {
-            throw new BelongingException("You are not a member of this chat");
+            throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
         }
 
         //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
@@ -314,8 +316,8 @@ public class MessageService {
 
         Limit messageFetchLimit = Limit.of(fetchSize + 1);
 
-        List<Message> messagesBefore = messageRepository.findByAssociatedChatAndCreatedAtBefore(
-                foundChat, lastTimestamp,
+        List<Message> messagesBefore = messageRepository.findByAssociatedChat_IdAndCreatedAtBefore(
+                chatId, lastTimestamp,
                 Sort.by(Sort.Direction.ASC, "createdAt"),
                 messageFetchLimit
         );
@@ -337,14 +339,13 @@ public class MessageService {
     protected LoadMoreMessagesResponse loadMoreFromBelow(User searchingUser, UUID chatId,
                                                          Instant lastTimestamp)
     {
-        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException("Chat with this id does not exist"));
 
         boolean userIsInChat = participationRepository.
                 existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
 
         if (!userIsInChat)
         {
-            throw new BelongingException("You are not a member of this chat");
+            throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
         }
 
         //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
@@ -353,8 +354,8 @@ public class MessageService {
 
         Limit messageFetchLimit = Limit.of(fetchSize + 1);
 
-        List<Message> messagesAfter = messageRepository.findByAssociatedChatAndCreatedAtAfter(
-                foundChat, lastTimestamp,
+        List<Message> messagesAfter = messageRepository.findByAssociatedChat_IdAndCreatedAtAfter(
+                chatId, lastTimestamp,
                 Sort.by(Sort.Direction.ASC, "createdAt"),
                 messageFetchLimit
         );
@@ -368,5 +369,29 @@ public class MessageService {
                 actualBeforeMessages.stream().map(message -> message.toDTo(searchingUser)).toList();
 
         return new LoadMoreMessagesResponse(displayedMessages, hasMore, lastAfter);
+    }
+
+    public PinnedMessagesResponse getPinnedMessages(User user, UUID chatId, int pageNumber)
+    {
+        if (pageNumber < 0)
+        {
+            throw new ChatException(HttpStatus.BAD_REQUEST, "Page number cannot be negative");
+        }
+        boolean userIsInChat = participationRepository.
+                existsByParticipatedChat_IdAndParticipatingUser(chatId, user);
+
+        if (!userIsInChat)
+        {
+            throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber, 20,  Sort.by(Sort.Direction.ASC, "createdAt"));
+        Slice<Message> allPinnedMessages = messageRepository.findPinnedMessagesByChatId(chatId, pageable);
+
+        List<PinnedMessageDTO> pinnedMessageDTOS = allPinnedMessages.stream().map(
+                Message::toPinnedDTO
+        ).toList();
+
+        return new PinnedMessagesResponse(pinnedMessageDTOS, allPinnedMessages.hasNext());
     }
 }

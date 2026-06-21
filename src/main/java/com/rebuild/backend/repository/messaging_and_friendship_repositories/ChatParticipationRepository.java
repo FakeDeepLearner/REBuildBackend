@@ -28,11 +28,10 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
     @Query(value = """
     SELECT cp FROM ChatParticipation cp
     JOIN FETCH cp.participatedChat ch
-    WHERE ch.id=?1 AND cp.participatingUser=?2 AND cp.isGroupChat=?3
+    WHERE ch.id=?1 AND cp.participatingUser=?2
     """)
-    Optional<ChatParticipation> findByChatIdAndUserAndGroupChatStatus(UUID chatId,
-                                                                      User user,
-                                                                      boolean groupChatStatus);
+    Optional<ChatParticipation> findByChatIdAndUser(UUID chatId,
+                                                    User user);
 
 
     @Query(value = """

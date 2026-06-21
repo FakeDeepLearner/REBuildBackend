@@ -28,15 +28,21 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     """)
     Slice<Message> findByChatAndSimilarContent(UUID chatId, String query, Pageable pageable);
 
-    Optional<Message> findByIdAndAssociatedChat(UUID id, AbstractChat associatedChat);
+    Optional<Message> findByIdAndAssociatedChat_Id(UUID id, UUID associatedChatId);
 
-    List<Message> findByAssociatedChatAndCreatedAtBefore(AbstractChat associatedChat,
+    List<Message> findByAssociatedChat_IdAndCreatedAtBefore(UUID chatId,
                                                          Instant createdAtBefore,
                                                          Sort sort, Limit limit);
 
-    List<Message> findByAssociatedChatAndCreatedAtAfter(AbstractChat associatedChat,
+    List<Message> findByAssociatedChat_IdAndCreatedAtAfter(UUID chatId,
                                                         Instant createdAtAfter,
                                                         Sort sort, Limit limit);
+
+    @Query(value = """
+    SELECT m FROM Message m
+    WHERE m.associatedChat.id=?1 AND m.isPinned=true
+    """)
+    Slice<Message> findPinnedMessagesByChatId(UUID chatId, Pageable pageable);
 
 
 }

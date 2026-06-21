@@ -192,4 +192,22 @@ public class ChatsController {
         return chatService.loadChatUsers(user, chat_id);
     }
 
+    @PatchMapping("/pin_or_unpin/{chat_id}/{message_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean changePinnedStatus(@AuthenticationPrincipal User user,
+                                      @PathVariable UUID chat_id, @PathVariable UUID message_id)
+    {
+        return administrationService.pinOrUnpinMessage(user, chat_id, message_id);
+    }
+
+    @GetMapping("/pinned_messages/{chat_id}")
+    public PinnedMessagesResponse getPinnedMessages(@AuthenticationPrincipal User user,
+                                                    @PathVariable UUID chat_id,
+                                                    @RequestParam(name = "page", defaultValue = "0")  int pageNumber)
+    {
+        return messageService.getPinnedMessages(user, chat_id, pageNumber);
+    }
+
+
+
 }

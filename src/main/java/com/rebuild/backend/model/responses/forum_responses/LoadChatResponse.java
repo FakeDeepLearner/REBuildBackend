@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public record LoadChatResponse(String displayName, UUID chatId,
                                List<MessageDisplayDTO> messages, String profilePictureUrl,
-                               boolean hasNext) {
+                               boolean hasNext, boolean userIsAdministrator) {
 }

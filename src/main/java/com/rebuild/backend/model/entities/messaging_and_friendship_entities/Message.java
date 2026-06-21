@@ -3,6 +3,7 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.MessageSearchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.PinnedMessageDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -50,6 +51,9 @@ public class Message extends Auditable {
     @Column(name = "is_edited")
     private boolean isEdited = false;
 
+    @Column(name = "is_pinned")
+    private boolean isPinned = false;
+
 
     private String getDisplayedContent()
     {
@@ -69,12 +73,18 @@ public class Message extends Auditable {
     public MessageDisplayDTO toDTo(User loadingUser)
     {
         return new MessageDisplayDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited);
+                getDisplayedDate(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited, isPinned);
     }
 
     public MessageSearchDTO toSearchDTO()
     {
         return new MessageSearchDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), isEdited);
+                getDisplayedDate(), isEdited, isPinned);
+    }
+
+    public PinnedMessageDTO toPinnedDTO()
+    {
+        return new PinnedMessageDTO(id, sender.getForumUsername(), content,
+                createdAt);
     }
 }

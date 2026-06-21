@@ -15,7 +15,6 @@ import com.rebuild.backend.repository.messaging_and_friendship_repositories.Chat
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
-import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
@@ -109,10 +108,15 @@ public class ChatService {
     public void leaveChat(User leavingUser, UUID chatId)
     {
 
-        ChatParticipation leavingUserParticipation = participationRepository.findByChatIdAndUserAndGroupChatStatus(
-                chatId, leavingUser, true
+        ChatParticipation leavingUserParticipation = participationRepository.findByChatIdAndUser(
+                chatId, leavingUser
         ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
                 "or you are not a member in this chat, or this chat is not a group chat"));
+
+        if (!leavingUserParticipation.getIsGroupChat())
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
+        }
 
         if (leavingUserParticipation.getIsGroupOwner())
         {
@@ -181,7 +185,7 @@ public class ChatService {
                 map(message -> message.toDTo(loadingUser)).toList();
 
         return new LoadChatResponse(chatDisplayName, chat.getId(), messages,
-                chatPictureUrl, currentMessages.hasNext());
+                chatPictureUrl, currentMessages.hasNext(), !userParticipation.hasNoAdminPrivileges());
     }
 
 
