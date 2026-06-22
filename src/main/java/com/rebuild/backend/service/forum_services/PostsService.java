@@ -9,32 +9,20 @@ import com.rebuild.backend.model.forms.forum_forms.EditPostForm;
 import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
 import com.rebuild.backend.model.responses.resume_responses.ResumePreviewResponse;
 import com.rebuild.backend.utils.exceptions.BelongingException;
-import com.rebuild.backend.utils.exceptions.FileUploadException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.utils.StringUtil;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -93,7 +81,7 @@ public class PostsService {
         postToAnonymize.setAnonymized(!postToAnonymize.isAnonymized());
         ForumPost savedPost = postRepository.save(postToAnonymize);
         return StringUtil.determineDisplayedCommentName(savedPost.isAnonymized(),
-                anonymizingUser.getForumUsername(), anonymizingUser.getAnonymizedNameBase(), savedPost.getId());
+                anonymizingUser.getForumUsername(), anonymizingUser.getAnonymizedName());
     }
 
     public PostDisplayDTO loadPost(UUID postID, User loadingUser, int pageSize){
@@ -109,12 +97,12 @@ public class PostsService {
 
 
         List<CommentDisplayDTO> displayedComments = fetchedComments.stream().map(commentFetchDTO ->
-                commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(postUser.getId()))).
+                commentFetchDTO.toDisplayDto(postUser.getForumUsername())).
                 toList();
 
 
         String displayedName = StringUtil.determineDisplayedCommentName(forumPost.isAnonymized(),
-                postUser.getForumUsername(), postUser.getAnonymizedNameBase(), forumPost.getId());
+                postUser.getForumUsername(), postUser.getAnonymizedName());
         List<ResumePreviewResponse> previews = forumPost.getResumes().stream().map(
                 postResume -> new ResumePreviewResponse(postResume.getId(),
                         null, postResume.getPreviewUrl())

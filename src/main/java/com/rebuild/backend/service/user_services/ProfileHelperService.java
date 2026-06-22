@@ -59,7 +59,7 @@ public class ProfileHelperService {
                     sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
                 return new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(profile.getPicture()),
-                        user.getEmail());
+                        user.getEmail(), user.getForumUsername());
             }
             //Otherwise, return the information masked
         }
@@ -70,13 +70,13 @@ public class ProfileHelperService {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
             {
                 return new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(profile.getPicture()),
-                        user.getEmail());
+                        user.getEmail(), user.getForumUsername());
             }
 
             //Otherwise, return the information masked
         }
         return new ProfileSensitiveInformationDTO(null,
-                StringUtil.maskString(user.getEmail()));
+                StringUtil.maskString(user.getEmail()), user.getAnonymizedName());
     }
 
     private List<ProfileHistoryCommentDTO> decideCommentList(User user, UserProfile profile, boolean thereIsFriendship)
@@ -138,6 +138,6 @@ public class ProfileHelperService {
         ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser,
                 profile, thereIsFriendship);
 
-        return new UserProfileResponse(sensitiveInformationDTO, otherUser.getForumUsername(), commentsList, postsList);
+        return new UserProfileResponse(sensitiveInformationDTO, commentsList, postsList);
     }
 }

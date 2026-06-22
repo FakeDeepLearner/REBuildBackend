@@ -55,27 +55,17 @@ public class SecureAuthConfig {
     @Bean
     @Order(3)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
-                                                         CsrfTokenRepository tokenRepository) {
+                                                         CsrfTokenRepository tokenRepository,
+                                                         ClerkAuthenticationFilter authenticationFilter) {
         security
-                //Form login is disabled because it expects everything to be done in one endpoint.
-                //However, our standard login flow has 2 separate endpoints that need to be called.
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(config -> config.
-                    logoutUrl("/logout").
-                    logoutSuccessUrl("logged-out").
-                    addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(COOKIES))).
-                        permitAll())
+                .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement(AbstractHttpConfigurer::disable)
+                .oauth2Login(AbstractHttpConfigurer::disable)
+                .addFilter(authenticationFilter)
                 .csrf(csrf ->
-                        csrf.csrfTokenRepository(tokenRepository)).
-                sessionManagement(session ->
-                        session.invalidSessionUrl("invalid-session").
-                                sessionFixation().migrateSession().
-                        sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                                .maximumSessions(1).maxSessionsPreventsLogin(true).
-                                sessionRegistry(sessionRegistry()).
-                                expiredUrl("expired-session"));
-
+                        csrf.csrfTokenRepository(tokenRepository));
         return security.build();
 
 

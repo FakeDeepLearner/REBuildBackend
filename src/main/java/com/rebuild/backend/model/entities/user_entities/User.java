@@ -7,47 +7,35 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
 @Table(name = "users", indexes = {
-        @Index(columnList = "lastLoginTime"),
-        @Index(columnList = "email"),
+        @Index(columnList = "clerk_id"),
+        @Index(columnList = "backup_username")
 })
 @RequiredArgsConstructor
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements UserDetails, Serializable {
+public class User implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 8L;
 
-    private static final int MONTHS_ALLOWED_BEFORE_EXPIRY = 6;
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
-
-    @Column(
-            nullable = false,
-            name = "password"
-    )
-    @NonNull
-    @JsonIgnore
-    private String password;
 
     @Column(
             nullable = false,
@@ -57,9 +45,21 @@ public class User implements UserDetails, Serializable {
     @NonNull
     private String email;
 
+    @Column(name = "clerk_id")
     @NonNull
-    @Column(name = "salt_value", nullable = false, unique = true)
-    private String saltValue;
+    private String clerkId;
+
+    @Column(name = "image_url")
+    @NonNull
+    private String imageUrl;
+
+    @Column(name = "forum_username", unique = true)
+    @NonNull
+    private String forumUsername;
+
+    @Column(name = "backup_username")
+    @NonNull
+    private String anonymizedName;
 
     @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
             CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
@@ -75,12 +75,6 @@ public class User implements UserDetails, Serializable {
     })
     @OrderBy("createdAt ASC")
     private List<Resume> resumes = new ArrayList<>();
-
-    @Column(name = "forum_username", unique = true)
-    private String forumUsername;
-
-    @Column(name = "backup_forum_username", nullable = false)
-    private String anonymizedNameBase;
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)
@@ -99,52 +93,6 @@ public class User implements UserDetails, Serializable {
     @JsonIgnore
     private int numberOfResumes = 0;
 
-    @JsonIgnore
-    private boolean accountNonLocked = true;
-
-    @JsonIgnore
-    private boolean credentialsNonExpired = true;
-
-    @JsonIgnore
-    private boolean enabled = false;
-
-    @JsonIgnore
-    @CreationTimestamp
-    private Instant signUpTime;
-
-    @JsonIgnore
-    private Instant lastLoginTime = signUpTime;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.NO_AUTHORITIES;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return lastLoginTime.isAfter(Instant.now().minus(MONTHS_ALLOWED_BEFORE_EXPIRY, ChronoUnit.MONTHS));
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return accountNonLocked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return credentialsNonExpired;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
@@ -159,10 +107,5 @@ public class User implements UserDetails, Serializable {
     public void addChatParticipation(ChatParticipation participation)
     {
         this.chatParticipations.add(participation);
-    }
-
-    public String getForumUsername() {
-        if  (forumUsername == null) return anonymizedNameBase;
-        return forumUsername;
     }
 }

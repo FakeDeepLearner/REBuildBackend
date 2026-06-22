@@ -54,7 +54,7 @@ public class CommentsService {
         Comment savedComment = commentRepository.save(commentToAnonymize);
 
         return StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), anonymizingUser.getForumUsername(),
-                anonymizingUser.getAnonymizedNameBase(), savedComment.getAssociatedPost().getId());
+                anonymizingUser.getAnonymizedName());
 
     }
 
@@ -109,7 +109,7 @@ public class CommentsService {
         Comment savedComment =  commentRepository.save(newComment);
 
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
-                creatingUser.getAnonymizedNameBase(), post.getId());
+                creatingUser.getAnonymizedName());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
                 displayName, savedComment.getCreatedAt(), 0, 0,
                 post.getUser().equals(creatingUser),
@@ -134,7 +134,7 @@ public class CommentsService {
 
         Comment savedComment = commentRepository.save(newComment);
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
-                creatingUser.getAnonymizedNameBase(), associatedPost.getId());
+                creatingUser.getAnonymizedName());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
                 displayName, savedComment.getCreatedAt(), 0, 0,
                 associatedPost.getUser().equals(creatingUser), false, false,
@@ -165,7 +165,7 @@ public class CommentsService {
                 user.getId(), request);
 
         List<CommentDisplayDTO> displayedList = loadedComments.stream().map(commentFetchDTO ->
-                commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(foundPost.getUser().getId()))).
+                commentFetchDTO.toDisplayDto(foundPost.getUser().getForumUsername())).
                 toList();
 
         return new LoadCommentsResponse(displayedList, loadedComments.getNumber(),
@@ -185,7 +185,7 @@ public class CommentsService {
                 loadParentCommentExpansion(parent_id, user.getId(), request);
 
         List<CommentDisplayDTO> displayList = fetchedList.stream().map(commentFetchDTO ->
-                        commentFetchDTO.toDisplayDto(commentFetchDTO.authorId().equals(foundPost.getUser().getId()))).
+                        commentFetchDTO.toDisplayDto(foundPost.getUser().getForumUsername())).
                 toList();
 
         return new LoadCommentsResponse(displayList, fetchedList.getNumber(),

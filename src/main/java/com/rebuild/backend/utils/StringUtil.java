@@ -110,19 +110,14 @@ public class StringUtil {
     }
 
 
-    private static String getAnonymizedName(String userBaseName, UUID associatedPostId)
-    {
-        return "Anonymous" + "-" + userBaseName + "-" + associatedPostId.toString().substring(0, 8);
-    }
-
     public static String determineDisplayedCommentName(boolean commentIsAnonymized, String defaultName,
-                                                       String anonymousBase, UUID associatedPostId)
+                                                       String anonymizedName)
     {
         if (!commentIsAnonymized)
         {
             return defaultName;
         }
-        return getAnonymizedName(anonymousBase, associatedPostId);
+        return "Anonymous#" + anonymizedName;
     }
 
 

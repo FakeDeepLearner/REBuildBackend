@@ -7,7 +7,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import java.util.List;
 
 public record UserProfileResponse(ProfileSensitiveInformationDTO sensitiveInformationDTO,
-                                  String forumUsername,
                                   List<ProfileHistoryCommentDTO> madeComments,
                                   List<ProfileHistoryPostDTO> madePosts) {
 }

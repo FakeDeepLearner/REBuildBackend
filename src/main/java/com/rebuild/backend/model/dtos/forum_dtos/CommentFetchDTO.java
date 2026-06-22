@@ -27,7 +27,7 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
             return "[Removed]";
         }
         return StringUtil.determineDisplayedCommentName(commentIsAnonymized, authorUsername,
-                anonymizedBaseName, associatedPostId);
+                anonymizedBaseName);
     }
 
     private Instant determineDisplayedCreationTime()
@@ -40,14 +40,23 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
         return commentIsEdited ? modificationTime : creationTime;
     }
 
+    private boolean determineUserIsOriginalPoster(String postAuthorName)
+    {
+        if (commentIsAnonymized || commentIsDeleted)
+        {
+            return false;
+        }
+        return postAuthorName.equals(authorUsername);
+    }
 
-    public CommentDisplayDTO toDisplayDto(boolean isUserOriginalPoster){
+
+    public CommentDisplayDTO toDisplayDto(String postAuthorUsername){
         boolean editedDisplay = !commentIsDeleted && commentIsEdited;
         UUID displayedId = commentIsDeleted ? null : commentID;
         return new CommentDisplayDTO(displayedId,
                 determineDisplayedContent(), determineDisplayedAuthor(),
                 determineDisplayedCreationTime(),
-                replyCount, likesCount, isUserOriginalPoster,
+                replyCount, likesCount, determineUserIsOriginalPoster(postAuthorUsername),
                 userHasLikedComment, commentIsDeleted,
                 editedDisplay);
     }

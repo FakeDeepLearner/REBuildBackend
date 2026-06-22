@@ -23,8 +23,8 @@ public class ApiSecurityConfig {
                 requestMatchers(HttpMethod.POST, "/api/**", "/home/**").authenticated().
                 requestMatchers(HttpMethod.PUT,  "/api/**", "/home/**").authenticated().
                 requestMatchers(HttpMethod.DELETE,  "/api/**", "/home/**").authenticated().
-                requestMatchers(HttpMethod.PATCH,  "/api/**", "/home/**").authenticated().
-                        requestMatchers("/auth/**").permitAll())
+                requestMatchers(HttpMethod.PATCH,  "/api/**", "/home/**").authenticated()
+                        .requestMatchers("/webhooks").permitAll())
                 .redirectToHttps(Customizer.withDefaults());
         return security.build();
 

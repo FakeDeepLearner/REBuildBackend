@@ -53,8 +53,8 @@ public class ProfileService {
         UserProfile associatedProfile = user.getUserProfile();
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(associatedProfile.getPicture()),
-                        user.getEmail()),
-                user.getForumUsername(), helperService.loadCommentDTOsForUser(user),
+                        user.getEmail(), user.getForumUsername()),
+                helperService.loadCommentDTOsForUser(user),
                 helperService.loadPostDTOsForUser(user)
         );
     }
