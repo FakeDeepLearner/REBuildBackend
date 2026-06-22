@@ -78,26 +78,6 @@ public class ForumHomePageController {
         return postAndCommentService.loadPost(post_id, user, pageSize);
     }
 
-    @PostMapping("/change_username")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> changeUsername(@AuthenticationPrincipal User authenticatedUser,
-                                            @RequestBody String newUsername) {
-        try {
-            User changedUser = userService.modifyForumUsername(authenticatedUser, newUsername);
-            return ResponseEntity.ok(changedUser);
-        } catch (DataIntegrityViolationException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException violationException) {
-                if (Objects.equals(violationException.getConstraintName(), "uk_forum_username")) {
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body("This username is taken");
-                }
-            }
-
-        }
-        return null;
-    }
-
-
     @PostMapping("/accept_request/{request_id}")
     public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
                                                                    @AuthenticationPrincipal User acceptingUser) {

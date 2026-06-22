@@ -20,9 +20,6 @@ public class GroupChat extends AbstractChat {
     @NonNull
     private String chatName;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "associatedChat")
-    private GroupChatPicture picture;
-
     @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatInvitation> invitations = new ArrayList<>();

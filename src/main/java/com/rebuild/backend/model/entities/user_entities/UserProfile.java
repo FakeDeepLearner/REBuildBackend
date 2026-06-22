@@ -34,9 +34,6 @@ public class UserProfile extends Auditable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "associatedProfile")
-    private UserProfilePicture picture;
-
     @Column(name = "post_history_setting")
     @Enumerated(EnumType.STRING)
     private InformationVisibility postsVisibility = DEFAULT_POSTS_VISIBILITY;

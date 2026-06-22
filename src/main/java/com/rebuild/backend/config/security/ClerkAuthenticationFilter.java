@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Configuration
-@Order(1)
+@Order(2)
 public class ClerkAuthenticationFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;

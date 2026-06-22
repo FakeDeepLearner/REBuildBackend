@@ -6,7 +6,6 @@ import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
-import com.rebuild.backend.service.util_services.AWSService;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
@@ -33,16 +32,13 @@ public class ProfileService {
 
     private final ProfileHelperService helperService;
 
-    private final AWSService awsService;
-
     @Autowired
     public ProfileService(ProfileRepository profileRepository, UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository,
-                         ProfileHelperService helperService, AWSService awsService) {
+                         ProfileHelperService helperService) {
         this.profileRepository = profileRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.helperService = helperService;
-        this.awsService = awsService;
     }
 
 
@@ -50,9 +46,8 @@ public class ProfileService {
     @Transactional
     public UserProfileResponse loadSelfProfile(User user)
     {
-        UserProfile associatedProfile = user.getUserProfile();
         return new UserProfileResponse(
-                new ProfileSensitiveInformationDTO(awsService.generateDownloadUrlForPicture(associatedProfile.getPicture()),
+                new ProfileSensitiveInformationDTO(user.getImageUrl(),
                         user.getEmail(), user.getForumUsername()),
                 helperService.loadCommentDTOsForUser(user),
                 helperService.loadPostDTOsForUser(user)

@@ -4,7 +4,6 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.service.user_services.ProfileService;
-import com.rebuild.backend.service.util_services.AWSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,12 +19,10 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    private final AWSService awsService;
 
     @Autowired
-    public ProfileController(ProfileService profileService, AWSService awsService) {
+    public ProfileController(ProfileService profileService) {
         this.profileService = profileService;
-        this.awsService = awsService;
     }
 
 
@@ -40,21 +37,6 @@ public class ProfileController {
     {
         return profileService.loadUserProfile(user, clicked_user_id);
     }
-
-    @PatchMapping(value = "/update_image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @ResponseStatus(HttpStatus.OK)
-    public String changeImage(@AuthenticationPrincipal User changingUser,
-                                   @RequestPart(name = "file") MultipartFile pictureFile)
-    {
-        return null;
-    }
-
-    @DeleteMapping("/remove_image")
-    @ResponseStatus(HttpStatus.OK)
-    public UserProfileResponse removeProfileImage(@AuthenticationPrincipal User user){
-        return awsService.removeProfilePicture(user);
-    }
-
 
     @PatchMapping("/update_privacy_settings")
     @ResponseStatus(HttpStatus.OK)

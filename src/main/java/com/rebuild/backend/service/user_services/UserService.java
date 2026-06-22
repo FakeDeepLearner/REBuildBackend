@@ -17,22 +17,10 @@ public class UserService{
 
     private final UserRepository repository;
 
-    private final PasswordEncoder encoder;
-
 
     @Autowired
-    public UserService(UserRepository repository, PasswordEncoder encoder) {
+    public UserService(UserRepository repository) {
         this.repository = repository;
-        this.encoder = encoder;
-    }
-
-    private String generateSaltValue(){
-        SecureRandom random = new SecureRandom();
-        //16 bytes = 128-bit salt, which is what is recommended
-        int saltByteLength = 16;
-        byte[] salt = new byte[saltByteLength];
-        random.nextBytes(salt);
-        return Base64.getEncoder().encodeToString(salt);
     }
 
     /*
@@ -64,13 +52,6 @@ public class UserService{
         newProfile.setUser(newUser);
 
         return newProfile;
-
-    }
-
-    @Transactional
-    public User modifyForumUsername(User modifyingUser, String newUsername){
-        modifyingUser.setForumUsername(newUsername);
-        return repository.save(modifyingUser);
 
     }
 }

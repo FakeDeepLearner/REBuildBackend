@@ -21,6 +21,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.filter.UrlHandlerFilter;
 
 import static org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter.Directive.COOKIES;
 
@@ -56,13 +57,15 @@ public class SecureAuthConfig {
     @Order(3)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
                                                          CsrfTokenRepository tokenRepository,
-                                                         ClerkAuthenticationFilter authenticationFilter) {
+                                                         ClerkAuthenticationFilter authenticationFilter,
+                                                         UrlHandlerFilter urlHandlerFilter) {
         security
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(AbstractHttpConfigurer::disable)
                 .oauth2Login(AbstractHttpConfigurer::disable)
+                .addFilter(urlHandlerFilter)
                 .addFilter(authenticationFilter)
                 .csrf(csrf ->
                         csrf.csrfTokenRepository(tokenRepository));
