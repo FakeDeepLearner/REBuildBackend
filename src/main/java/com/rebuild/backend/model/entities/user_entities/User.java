@@ -1,10 +1,13 @@
 package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rebuild.backend.model.dtos.ClerkEmail;
+import com.rebuild.backend.model.dtos.ClerkInformation;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
+import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
 import org.jspecify.annotations.Nullable;
@@ -97,6 +100,26 @@ public class User implements Serializable {
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
         return Objects.equals(getId(), user.getId());
+    }
+
+    public void update(ClerkInformation clerkInformation)
+    {
+        this.email = StringUtil.findPrimaryEmail(clerkInformation);
+        this.forumUsername = clerkInformation.username();
+        this.imageUrl = clerkInformation.imageUrl();
+    }
+
+    public User(ClerkInformation clerkInformation)
+    {
+        String primaryEmail = StringUtil.findPrimaryEmail(clerkInformation);
+
+
+        this(primaryEmail, clerkInformation.id(), clerkInformation.imageUrl(), clerkInformation.username(),
+                UUID.randomUUID().toString().substring(0, 24));
+
+        UserProfile newProfile = new UserProfile();
+        this.userProfile = newProfile;
+        newProfile.setUser(this);
     }
 
     @Override

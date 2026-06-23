@@ -1,5 +1,7 @@
 package com.rebuild.backend.utils;
 
+import com.rebuild.backend.model.dtos.ClerkEmail;
+import com.rebuild.backend.model.dtos.ClerkInformation;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
@@ -121,10 +123,17 @@ public class StringUtil {
     }
 
 
-
-
     public static String generateResumeCacheKey(User user, UUID resumeId) {
         return user.getId() + ":" + resumeId;
+    }
+
+    public static String findPrimaryEmail(ClerkInformation information)
+    {
+        String primaryEmailId = information.primaryEmailAddressId();
+
+        return information.emailAddresses()
+                .stream().filter(clerkEmail -> clerkEmail.id().equals(primaryEmailId))
+                .map(ClerkEmail::emailAddress).findFirst().orElse(null);
     }
 
 }

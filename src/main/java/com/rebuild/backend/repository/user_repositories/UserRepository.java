@@ -22,6 +22,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     """, nativeQuery = true)
     Slice<User> findBySimilarUsername(String username, Pageable pageable);
 
+    void deleteByClerkId(String clerkId);
+
 
 
 

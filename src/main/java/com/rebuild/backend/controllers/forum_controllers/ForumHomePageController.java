@@ -9,17 +9,13 @@ import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse
 import com.rebuild.backend.service.forum_services.ForumHomePageService;
 import com.rebuild.backend.service.forum_services.PostsService;
 import com.rebuild.backend.service.forum_services.FriendshipService;
-import com.rebuild.backend.service.user_services.UserService;
 import lombok.NonNull;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -29,17 +25,14 @@ public class ForumHomePageController {
 
     private final PostsService postAndCommentService;
 
-    private final UserService userService;
-
     private final FriendshipService friendshipService;
 
     private final ForumHomePageService homePageService;
 
     @Autowired
     public ForumHomePageController(PostsService postAndCommentService,
-                                   UserService userService, FriendshipService friendshipService, ForumHomePageService homePageService) {
+                                   FriendshipService friendshipService, ForumHomePageService homePageService) {
         this.postAndCommentService = postAndCommentService;
-        this.userService = userService;
         this.friendshipService = friendshipService;
         this.homePageService = homePageService;
     }
