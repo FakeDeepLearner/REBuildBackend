@@ -7,14 +7,12 @@ import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.model.responses.forum_responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
-import com.rebuild.backend.model.entities.forum_entities.Like;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
-import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -35,13 +33,10 @@ public class CommentsService {
 
     private final ForumPostRepository postRepository;
 
-    private final LikeRepository likeRepository;
-
     @Autowired
-    public CommentsService(CommentRepository commentRepository, ForumPostRepository postRepository, LikeRepository likeRepository) {
+    public CommentsService(CommentRepository commentRepository, ForumPostRepository postRepository) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
-        this.likeRepository = likeRepository;
     }
 
     @Transactional
@@ -111,9 +106,9 @@ public class CommentsService {
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
                 creatingUser.getAnonymizedName());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, savedComment.getCreatedAt(), 0, 0,
+                displayName, savedComment.getCreatedAt(), 0,
                 post.getUser().equals(creatingUser),
-                false, false, false);
+                false, false);
 
     }
 
@@ -136,9 +131,8 @@ public class CommentsService {
         String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
                 creatingUser.getAnonymizedName());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, savedComment.getCreatedAt(), 0, 0,
-                associatedPost.getUser().equals(creatingUser), false, false,
-                false);
+                displayName, savedComment.getCreatedAt(), 0,
+                associatedPost.getUser().equals(creatingUser), false, false);
     }
 
     public LoadCommentsResponse obtainMoreComments(UUID postId, UUID parentCommentId, User user,
@@ -191,37 +185,6 @@ public class CommentsService {
         return new LoadCommentsResponse(displayList, fetchedList.getNumber(),
                 fetchedList.hasNext());
 
-    }
-
-
-    public Comment likeComment(UUID comment_id, User likingUser)
-    {
-        Comment comment = commentRepository.findById(comment_id).orElseThrow(
-                () -> new NotFoundException("Comment with this id is not found"));
-
-        if (comment.isDeleted())
-        {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Deleted comments cannot be tampered with");
-        }
-
-        Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(comment_id,
-                likingUser.getId());
-
-        //If the user has already liked this comment, remove the like.
-        foundLike.ifPresent(like -> {
-            likeRepository.delete(like);
-            comment.setLikeCount(comment.getLikeCount() - 1);
-            
-        });
-
-        //If the user has not liked this comment, simply add a like for this comment for this user.
-
-        Like newLike = new Like(likingUser.getId(), comment_id);
-
-        likeRepository.save(newLike);
-        comment.setLikeCount(comment.getLikeCount() + 1);
-
-        return commentRepository.save(comment);
     }
 
     public EditCommentResponse editComment(UUID comment_id, User editingUser, String newContent)

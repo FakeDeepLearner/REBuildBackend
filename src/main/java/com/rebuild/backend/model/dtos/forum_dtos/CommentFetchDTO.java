@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID commentID, String content, String authorUsername, int replyCount,
-                              int likesCount, boolean userHasLikedComment, boolean commentIsDeleted,
+                              boolean commentIsDeleted,
                               boolean commentIsAnonymized, String anonymizedBaseName,
                               Instant creationTime, Instant modificationTime,
                               boolean commentIsEdited) {
@@ -56,8 +56,7 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
         return new CommentDisplayDTO(displayedId,
                 determineDisplayedContent(), determineDisplayedAuthor(),
                 determineDisplayedCreationTime(),
-                replyCount, likesCount, determineUserIsOriginalPoster(postAuthorUsername),
-                userHasLikedComment, commentIsDeleted,
+                replyCount, determineUserIsOriginalPoster(postAuthorUsername), commentIsDeleted,
                 editedDisplay);
     }
 }

@@ -12,7 +12,6 @@ import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
-import com.rebuild.backend.repository.forum_repositories.LikeRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,16 +34,12 @@ public class PostsService {
 
     private final ResumeRepository resumeRepository;
 
-    private final LikeRepository likeRepository;
-
 
     @Autowired
     public PostsService(ResumeRepository resumeRepository,
-                        ForumPostRepository postRepository,
-                        LikeRepository likeRepository) {
+                        ForumPostRepository postRepository) {
         this.postRepository = postRepository;
         this.resumeRepository = resumeRepository;
-        this.likeRepository = likeRepository;
     }
 
     @Transactional
@@ -109,40 +104,10 @@ public class PostsService {
         ).toList();
 
         Instant postedTime = forumPost.isEdited() ? forumPost.getLastModifiedAt() : forumPost.getCreatedAt();
-        boolean userHasLikedPost = likeRepository.findByLikedObjectIdAndLikingUserId(postID,
-                loadingUser.getId()).isPresent();
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
                 displayedName, postedTime, previews, displayedComments,
-                fetchedComments.hasNext(),
-                userHasLikedPost);
+                fetchedComments.hasNext());
 
-    }
-
-
-
-
-    public ForumPost likePost(UUID post_id, User likingUser)
-    {
-        ForumPost post = postRepository.findById(post_id).orElseThrow(
-                () -> new NotFoundException("Post with this id is not found"));
-
-        Optional<Like> foundLike = likeRepository.findByLikedObjectIdAndLikingUserId(post_id,
-                likingUser.getId());
-
-        //If the user has already liked this post, remove the like.
-        foundLike.ifPresent(like -> {
-            likeRepository.delete(like);
-            post.setLikeCount(post.getLikeCount() - 1);
-        });
-
-        //If the user has not liked this post, simply add a like for this post for this user.
-
-        Like newLike = new Like(likingUser.getId(), post_id);
-
-        likeRepository.save(newLike);
-        post.setLikeCount(post.getLikeCount() + 1);
-
-        return postRepository.save(post);
     }
 
     public EditPostResponse editPost(UUID postId, User editingUser, EditPostForm editPostForm)

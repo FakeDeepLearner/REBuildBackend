@@ -34,9 +34,8 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
-            u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount, c.likeCount,
-            CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=?1 AND l.likingUserId=?2)
-            THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
+            u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
+            c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
             c.lastModifiedAt, c.isDeleted)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
             WHERE p.id=?1 AND c.parentId=?1 ORDER BY c.createdAt ASC

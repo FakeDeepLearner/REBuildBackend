@@ -48,9 +48,6 @@ public class Comment extends Auditable {
     @NonNull
     private String content;
 
-    @Column(name = "likes_count", nullable = false)
-    private int likeCount = 0;
-
     @Column(name = "is_deleted")
     private boolean isDeleted = false;
 

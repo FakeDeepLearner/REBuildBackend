@@ -20,9 +20,8 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
     @Query(
         """
         SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
-          u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount, c.likeCount,
-          CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2)
-          THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
+          u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
+          c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
           c.lastModifiedAt, c.isDeleted)
           FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentId=?1
           ORDER BY c.createdAt ASC"""
@@ -33,9 +32,8 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
     @Query(
             """
             SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
-              u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount, c.likeCount,
-              CASE WHEN EXISTS (SELECT 1 FROM Like l WHERE l.likedObjectId=c.id AND l.likingUserId=?2)
-              THEN true ELSE false END, c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
+              u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
+              c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
               c.lastModifiedAt, c.isDeleted)
               FROM Comment c JOIN c.user u JOIN c.associatedPost p WHERE c.parentId=?1
               ORDER BY c.createdAt ASC"""
