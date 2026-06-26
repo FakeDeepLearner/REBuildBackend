@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.*;
 
 @Configuration
-@Order(2)
 public class ClerkAuthenticationFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
@@ -66,7 +65,7 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
 
     }
 
-    public static String getClerkId(HttpServletRequest request)
+    private String getClerkId(HttpServletRequest request)
     {
         Map<String, List<String>> headers = new HashMap<>();
 

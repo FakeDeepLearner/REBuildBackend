@@ -226,11 +226,11 @@ public class ChatService {
         List<ChatParticipation> allParticipations = userChat.getParticipations();
         List<ChatUserDisplayDTO> userDisplayDTOS = allParticipations.stream().map(
                 chatParticipation -> {
-                    User pariticipatingUser = chatParticipation.getParticipatingUser();
-                    return new ChatUserDisplayDTO(pariticipatingUser.getId(),
-                            pariticipatingUser.getForumUsername(), chatParticipation.getCreatedAt(),
+                    User participatingUser = chatParticipation.getParticipatingUser();
+                    return new ChatUserDisplayDTO(participatingUser.getId(),
+                            participatingUser.getForumUsername(), chatParticipation.getCreatedAt(),
                             chatParticipation.getIsAdmin(), chatParticipation.getIsGroupOwner(),
-                            pariticipatingUser.equals(loadingUser));
+                            participatingUser.equals(loadingUser), participatingUser.getImageUrl());
                 }
         ).toList();
 

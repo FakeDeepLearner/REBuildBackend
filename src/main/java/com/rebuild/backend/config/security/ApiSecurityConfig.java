@@ -1,6 +1,5 @@
 package com.rebuild.backend.config.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,7 +16,7 @@ public class ApiSecurityConfig {
 
     @Bean
     @Order(4)
-    public SecurityFilterChain apiSecurityChain(HttpSecurity security) throws Exception {
+    public SecurityFilterChain apiSecurityChain(HttpSecurity security){
         security.authorizeHttpRequests(config -> config.
                 requestMatchers(HttpMethod.GET, "/api/**", "/home/**").authenticated().
                 requestMatchers(HttpMethod.POST, "/api/**", "/home/**").authenticated().

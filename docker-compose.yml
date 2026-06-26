@@ -5,8 +5,3 @@ services:
     build: .
     env_file:
       - /.env
-  redis:
-    image: "redis:alpine"
-    container_name: "session-data"
-    ports:
-      - "6379:6379"

@@ -19,17 +19,6 @@ public class SingularBeansConfig {
         return new PersistenceExceptionTranslationPostProcessor();
     }
 
-    //This will redirect to the original endpoint if there is a trailing slash at the end of the request's URL.
-    @Bean
-    @Order(1)
-    public UrlHandlerFilter handlerFilter()
-    {
-        return UrlHandlerFilter
-                .trailingSlashHandler("/api/**", "/home/**").redirect(HttpStatus.PERMANENT_REDIRECT)
-                .build();
-    }
-
-
     @Bean(name = "processor")
     public MethodValidationPostProcessor processor(){
         return new MethodValidationPostProcessor();

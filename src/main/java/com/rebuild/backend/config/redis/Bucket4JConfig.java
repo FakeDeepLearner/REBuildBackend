@@ -1,7 +1,5 @@
 package com.rebuild.backend.config.redis;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
 import io.lettuce.core.RedisClient;
@@ -13,8 +11,6 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.time.Duration;
 
 @Configuration
 public class Bucket4JConfig {
@@ -38,13 +34,5 @@ public class Bucket4JConfig {
 
         return LettuceBasedProxyManager.builderFor(asyncCommands).build();
 
-    }
-
-    @Bean
-    public BucketConfiguration bucketConfiguration(){
-        Bandwidth bandwidth = Bandwidth.builder().
-                capacity(10).refillIntervally(5, Duration.ofMinutes(2)).build();
-
-        return BucketConfiguration.builder().addLimit(bandwidth).build();
     }
 }

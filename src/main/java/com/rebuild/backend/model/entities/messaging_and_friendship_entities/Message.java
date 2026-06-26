@@ -17,7 +17,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "messages", indexes = {
         @Index(columnList = "sender_id"),
-        @Index(columnList = "recipient_id"),
         @Index(columnList = "associated_chat_id")
 })
 @NoArgsConstructor
@@ -28,11 +27,10 @@ public class Message extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
 
     @ManyToOne(fetch =  FetchType.LAZY)
-    @JoinColumn(name = "recipient_id")
+    @JoinColumn(name = "sender_id")
     @NonNull
     private User sender;
 
@@ -73,18 +71,19 @@ public class Message extends Auditable {
     public MessageDisplayDTO toDTo(User loadingUser)
     {
         return new MessageDisplayDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited, isPinned);
+                getDisplayedDate(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited, isPinned,
+                sender.getImageUrl());
     }
 
     public MessageSearchDTO toSearchDTO()
     {
         return new MessageSearchDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), isEdited, isPinned);
+                getDisplayedDate(), isEdited, isPinned, sender.getImageUrl());
     }
 
     public PinnedMessageDTO toPinnedDTO()
     {
         return new PinnedMessageDTO(id, sender.getForumUsername(), content,
-                createdAt);
+                createdAt, sender.getImageUrl());
     }
 }
