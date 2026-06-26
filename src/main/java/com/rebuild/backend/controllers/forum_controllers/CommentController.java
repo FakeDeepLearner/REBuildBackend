@@ -6,7 +6,6 @@ import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
-import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.service.forum_services.CommentsService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +28,9 @@ public class CommentController {
 
     @PostMapping("/new_comment/{parent_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentDisplayDTO createComment(@PathVariable UUID parent_id, @RequestBody @Valid CommentForm commentForm,
+    public CommentDisplayDTO createComment(@PathVariable UUID parent_id, @RequestBody String content,
                                            @AuthenticationPrincipal User creatingUser){
-        return commentsService.createComment(commentForm, parent_id, creatingUser);
+        return commentsService.createComment(content, parent_id, creatingUser);
     }
 
     @GetMapping("/{post_id}/{parent_comment_id}/replies")
@@ -58,12 +57,6 @@ public class CommentController {
     public void deleteComment(@PathVariable UUID comment_id,
                               @AuthenticationPrincipal User deletingUser){
         commentsService.deleteComment(comment_id, deletingUser);
-    }
-
-    @PatchMapping("/flip-anonymization/{commentId}")
-    public String changeCommentAnonymization(@AuthenticationPrincipal User user,
-                                             @PathVariable UUID commentId){
-        return commentsService.changeCommentAnonymization(commentId, user);
     }
 
     @PatchMapping("edit-post/{post_id}")

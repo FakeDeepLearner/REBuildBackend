@@ -10,10 +10,8 @@ import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
-import com.rebuild.backend.model.forms.forum_forms.CommentForm;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
-import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,20 +38,6 @@ public class CommentsService {
     }
 
     @Transactional
-    public String changeCommentAnonymization(UUID commentId, User anonymizingUser)
-    {
-        Comment commentToAnonymize = commentRepository.findByIdAndAuthor(commentId, anonymizingUser).orElseThrow(
-                () -> new BelongingException("This comment does not belong to you, or it has already been deleted")
-        );
-        commentToAnonymize.setAnonymized(!commentToAnonymize.isAnonymized());
-        Comment savedComment = commentRepository.save(commentToAnonymize);
-
-        return StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), anonymizingUser.getForumUsername(),
-                anonymizingUser.getAnonymizedName());
-
-    }
-
-    @Transactional
     public void deleteComment(UUID commentID, User deletingUser){
         Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
                 () -> new BelongingException("This comment does not belong to you, or it has already been deleted")
@@ -63,8 +47,7 @@ public class CommentsService {
     }
 
     private void configureComment(Comment comment, ForumPost associatedPost, User user,
-                                  UUID commentParentId, boolean isAnonymized){
-        comment.setAnonymized(isAnonymized);
+                                  UUID commentParentId){
         associatedPost.getComments().add(comment);
         associatedPost.setCommentCount(associatedPost.getCommentCount() + 1);
         comment.setAssociatedPost(associatedPost);
@@ -74,14 +57,18 @@ public class CommentsService {
     }
 
     @Transactional
-    public CommentDisplayDTO createComment(CommentForm commentForm, UUID parentId, User creatingUser)
+    public CommentDisplayDTO createComment(String content, UUID parentId, User creatingUser)
     {
+        if (content.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Content cannot be empty");
+        }
         //Try to find a post that corresponds to this id. If we find one, create a top-level comment
         Optional<ForumPost> foundPost = postRepository.findByIdWithComments(parentId);
 
         if (foundPost.isPresent())
         {
-            return makeTopLevelComment(commentForm, foundPost.get(), creatingUser);
+            return makeTopLevelComment(content, foundPost.get(), creatingUser);
         }
 
         //Otherwise, try to find a comment that corresponds to this id. If we find one, create a reply to it.
@@ -91,22 +78,21 @@ public class CommentsService {
             Comment parentComment = commentRepository.findById(parentId).
                     orElseThrow(() -> new NotFoundException("Comment or post with the specified id not found"));
 
-            return createReplyTo(parentComment, creatingUser, commentForm);
+            return createReplyTo(parentComment, creatingUser, content);
         }
 
     }
 
 
-    private CommentDisplayDTO makeTopLevelComment(CommentForm commentForm, ForumPost post, User creatingUser){
-        Comment newComment = new Comment(commentForm.content());
-        configureComment(newComment, post, creatingUser, post.getId(), commentForm.remainAnonymous());
+    private CommentDisplayDTO makeTopLevelComment(String content, ForumPost post, User creatingUser){
+        Comment newComment = new Comment(content);
+        configureComment(newComment, post, creatingUser, post.getId());
 
         Comment savedComment =  commentRepository.save(newComment);
 
-        String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
-                creatingUser.getAnonymizedName());
+
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, savedComment.getCreatedAt(), 0,
+                creatingUser.getForumUsername(), savedComment.getCreatedAt(), 0,
                 post.getUser().equals(creatingUser),
                 false, false);
 
@@ -114,7 +100,7 @@ public class CommentsService {
 
 
     private CommentDisplayDTO createReplyTo(Comment parentComment, User creatingUser,
-                                 CommentForm commentForm){
+                                 String content){
 
         if (parentComment.isDeleted())
         {
@@ -122,16 +108,14 @@ public class CommentsService {
         }
 
         ForumPost associatedPost = parentComment.getAssociatedPost();
-        Comment newComment = new Comment(commentForm.content());
-        configureComment(newComment, associatedPost, creatingUser, parentComment.getId(), commentForm.remainAnonymous());
+        Comment newComment = new Comment(content);
+        configureComment(newComment, associatedPost, creatingUser, parentComment.getId());
 
         parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
 
         Comment savedComment = commentRepository.save(newComment);
-        String displayName = StringUtil.determineDisplayedCommentName(savedComment.isAnonymized(), creatingUser.getForumUsername(),
-                creatingUser.getAnonymizedName());
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                displayName, savedComment.getCreatedAt(), 0,
+                creatingUser.getForumUsername(), savedComment.getCreatedAt(), 0,
                 associatedPost.getUser().equals(creatingUser), false, false);
     }
 

@@ -35,7 +35,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
             u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
-            c.isDeleted, c.isAnonymized, u.anonymizedName, c.createdAt,
+            c.isDeleted, c.createdAt,
             c.lastModifiedAt, c.isDeleted)
             FROM ForumPost p LEFT JOIN p.comments c JOIN c.user u
             WHERE p.id=?1 AND c.parentId=?1 ORDER BY c.createdAt ASC
@@ -45,9 +45,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     @Query(
     value = """
     SELECT
-    fp.id, fp.title, fp.content, fp.likeCount, fp.commentCount,
-    CASE WHEN EXISTS (SELECT 1 FROM likes l WHERE l.likedObjectId=fp.id AND l.likingUserId=?3)
-    THEN true ELSE false END
+    fp.id, fp.title, fp.content, fp.commentCount
     FROM posts fp WHERE
     (?1 IS NULL OR to_tsvector('english', fp.title) @@ websearch_to_tsquery('english', ?1))
     AND (?2 IS NULL OR to_tsvector('english', fp.content) @@ websearch_to_tsquery('english', ?2))
@@ -58,10 +56,10 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
     @Query("""
     SELECT fp FROM ForumPost fp
-    WHERE fp.user=?1 AND fp.isAnonymized=false
+    WHERE fp.user=?1
     ORDER BY fp.createdAt DESC
     """)
-    List<ForumPost> findByUserUnAnonymized(User user);
+    List<ForumPost> findByUserOrdered(User user);
 
     @Query(value = """
     SELECT fp FROM ForumPost fp

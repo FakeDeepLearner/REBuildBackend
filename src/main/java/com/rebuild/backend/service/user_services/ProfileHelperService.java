@@ -32,7 +32,7 @@ public class ProfileHelperService {
 
     public List<ProfileHistoryCommentDTO> loadCommentDTOsForUser(User user)
     {
-        List<Comment> madeComments = commentRepository.findByUserUnAnonymizedAndNotDeleted(user);
+        List<Comment> madeComments = commentRepository.findByUserAndNotDeleted(user);
         return madeComments.stream().map(comment ->
                 new ProfileHistoryCommentDTO(comment.getContent(), comment.getCreatedAt())).toList();
     }
@@ -40,7 +40,7 @@ public class ProfileHelperService {
 
     public List<ProfileHistoryPostDTO> loadPostDTOsForUser(User user)
     {
-        List<ForumPost> userPosts = forumPostRepository.findByUserUnAnonymized(user);
+        List<ForumPost> userPosts = forumPostRepository.findByUserOrdered(user);
         return userPosts.stream().map(forumPost -> new ProfileHistoryPostDTO(forumPost.getTitle(), forumPost.getContent(),
                 forumPost.getCreatedAt())).toList();
     }

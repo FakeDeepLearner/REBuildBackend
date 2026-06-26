@@ -51,9 +51,6 @@ public class Comment extends Auditable {
     @Column(name = "is_deleted")
     private boolean isDeleted = false;
 
-    @Column(name = "is_anonymized")
-    private boolean isAnonymized = false;
-
     @Column(name = "is_edited")
     private boolean isEdited = false;
 

@@ -111,18 +111,6 @@ public class StringUtil {
         return determineMonthString(yearMonth.getMonthValue()) + " - " + yearMonth.getYear();
     }
 
-
-    public static String determineDisplayedCommentName(boolean commentIsAnonymized, String defaultName,
-                                                       String anonymizedName)
-    {
-        if (!commentIsAnonymized)
-        {
-            return defaultName;
-        }
-        return "Anonymous#" + anonymizedName;
-    }
-
-
     public static String generateResumeCacheKey(User user, UUID resumeId) {
         return user.getId() + ":" + resumeId;
     }

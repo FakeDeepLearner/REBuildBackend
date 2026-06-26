@@ -44,9 +44,8 @@ public class PostsService {
 
     @Transactional
     public ForumPost createNewPost(NewPostForm postForm,
-                                                  User creatingUser) {
+                                   User creatingUser) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
-        newPost.setAnonymized(postForm.remainAnonymous());
         List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
                         .map(PostResume::new).
                         peek(postResume -> postResume.setAssociatedPost(newPost)).
@@ -68,17 +67,6 @@ public class PostsService {
         postRepository.delete(postToDelete);
     }
 
-    @Transactional
-    public String changePostAnonymization(UUID postID, User anonymizingUser){
-        ForumPost postToAnonymize = postRepository.findByIdAndUser(postID, anonymizingUser).
-                orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));
-
-        postToAnonymize.setAnonymized(!postToAnonymize.isAnonymized());
-        ForumPost savedPost = postRepository.save(postToAnonymize);
-        return StringUtil.determineDisplayedCommentName(savedPost.isAnonymized(),
-                anonymizingUser.getForumUsername(), anonymizingUser.getAnonymizedName());
-    }
-
     public PostDisplayDTO loadPost(UUID postID, User loadingUser, int pageSize){
         ForumPost forumPost = postRepository.findByIdWithMoreInfo(postID).orElseThrow(
                 () -> new NotFoundException("Post with this id is not found")
@@ -96,8 +84,6 @@ public class PostsService {
                 toList();
 
 
-        String displayedName = StringUtil.determineDisplayedCommentName(forumPost.isAnonymized(),
-                postUser.getForumUsername(), postUser.getAnonymizedName());
         List<ResumePreviewResponse> previews = forumPost.getResumes().stream().map(
                 postResume -> new ResumePreviewResponse(postResume.getId(),
                         null, postResume.getPreviewUrl())
@@ -105,7 +91,7 @@ public class PostsService {
 
         Instant postedTime = forumPost.isEdited() ? forumPost.getLastModifiedAt() : forumPost.getCreatedAt();
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
-                displayedName, postedTime, previews, displayedComments,
+                postUser.getForumUsername(), postedTime, previews, displayedComments,
                 fetchedComments.hasNext());
 
     }

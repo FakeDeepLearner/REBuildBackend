@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID commentID, String content, String authorUsername, int replyCount,
                               boolean commentIsDeleted,
-                              boolean commentIsAnonymized, String anonymizedBaseName,
                               Instant creationTime, Instant modificationTime,
                               boolean commentIsEdited) {
 
@@ -26,8 +25,7 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
         {
             return "[Removed]";
         }
-        return StringUtil.determineDisplayedCommentName(commentIsAnonymized, authorUsername,
-                anonymizedBaseName);
+        return authorUsername;
     }
 
     private Instant determineDisplayedCreationTime()
@@ -42,7 +40,7 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
 
     private boolean determineUserIsOriginalPoster(String postAuthorName)
     {
-        if (commentIsAnonymized || commentIsDeleted)
+        if (commentIsDeleted)
         {
             return false;
         }
