@@ -21,7 +21,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping(value = "/api/resume/post", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.CREATED)
-@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
 public class ResumePostController {
 
     private final ResumePostService resumePostService;
@@ -33,7 +32,6 @@ public class ResumePostController {
 
 
     @PostMapping("/experience/{resume_id}")
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public ResumeResponse createNewExperience(@Valid @RequestBody ExperienceForm experienceForm,
                                               @PathVariable UUID resume_id,
                                               @AuthenticationPrincipal User user){
@@ -43,7 +41,6 @@ public class ResumePostController {
     }
 
     @PostMapping("/project/{resume_id}")
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     public ResumeResponse createNewProject(@Valid @RequestBody ProjectForm projectForm,
                                             @PathVariable UUID resume_id,
                                             @AuthenticationPrincipal User user){

@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/resume/prefill")
-@CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
 public class ResumePrefillController {
 
     private final ResumePrefillService prefillService;
@@ -27,7 +26,6 @@ public class ResumePrefillController {
 
     @PostMapping("/header/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public ResumeResponse prefillHeader(@AuthenticationPrincipal User user,
                                         @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {
@@ -36,7 +34,6 @@ public class ResumePrefillController {
 
     @PostMapping("/education/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public ResumeResponse prefillEducation(@AuthenticationPrincipal User user,
                                               @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {
@@ -45,7 +42,6 @@ public class ResumePrefillController {
 
     @PostMapping("/experiences/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public ResumeResponse prefillExperiences(@AuthenticationPrincipal User user,
                                              @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {
@@ -54,7 +50,6 @@ public class ResumePrefillController {
 
     @PostMapping("/projects/{current_resume_id}/{sample_resume_id}")
     @ResponseStatus(HttpStatus.OK)
-    @CacheEvict(key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #current_resume_id)")
     public ResumeResponse prefillProjects(@AuthenticationPrincipal User user,
                                                  @PathVariable UUID current_resume_id, @PathVariable UUID sample_resume_id)
     {

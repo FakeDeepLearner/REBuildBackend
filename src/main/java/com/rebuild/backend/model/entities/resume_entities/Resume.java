@@ -6,6 +6,8 @@ import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.responses.resume_responses.*;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cache;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @RequiredArgsConstructor
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "resumes")
 public class Resume extends Auditable {
 
     @Id

@@ -116,10 +116,6 @@ public class StringUtil {
         return determineMonthString(yearMonth.getMonthValue()) + " - " + yearMonth.getYear();
     }
 
-    public static String generateResumeCacheKey(User user, UUID resumeId) {
-        return user.getId() + ":" + resumeId;
-    }
-
     public static String findPrimaryEmail(ClerkInformation information)
     {
         String primaryEmailId = information.primaryEmailAddressId();

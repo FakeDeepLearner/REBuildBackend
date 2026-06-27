@@ -3,18 +3,11 @@ package com.rebuild.backend.controllers.resume_controllers;
 import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.service.resume_services.ResumeService;
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.*;
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController("/api/utils")
 public class ResumeUtilController {
@@ -26,8 +19,6 @@ public class ResumeUtilController {
     }
 
     @PutMapping("/change_name/{resume_id}")
-    @CacheEvict(cacheManager = "cacheManager", cacheNames = "resume_cache",
-            key = "T(com.rebuild.backend.utils.StringUtil).generateResumeCacheKey(#user, #resume_id)")
     @ResponseStatus(HttpStatus.OK)
     public Resume changeResumeName(@RequestBody String newName,
                                               @PathVariable UUID resume_id,

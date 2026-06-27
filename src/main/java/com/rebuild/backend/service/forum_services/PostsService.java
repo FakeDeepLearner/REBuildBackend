@@ -13,7 +13,6 @@ import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
-import com.rebuild.backend.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

@@ -11,6 +11,7 @@ import com.svix.exceptions.WebhookVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -28,6 +29,7 @@ import java.util.function.BiPredicate;
 
 
 @RestController("/webhooks")
+@Transactional
 public class WebhooksController {
 
     private final UserRepository userRepository;
@@ -60,7 +62,7 @@ public class WebhooksController {
     }
 
     @PostMapping("/update")
-    public void createUser(HttpServletRequest request) throws EmptyWebhookSecretException, IOException {
+    public void createUser(HttpServletRequest request) throws EmptyWebhookSecretException {
 
         String secret = System.getenv("SIGNUP_WEBHOOK_SECRET");
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request, 0);

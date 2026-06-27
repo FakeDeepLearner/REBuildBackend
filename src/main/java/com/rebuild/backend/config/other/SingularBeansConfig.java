@@ -2,7 +2,6 @@ package com.rebuild.backend.config.other;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
