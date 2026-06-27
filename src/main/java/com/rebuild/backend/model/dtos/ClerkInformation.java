@@ -9,9 +9,12 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record ClerkInformation(
         String id,
+        String name,
         String imageUrl,
         Boolean hasImage,
         String username,
         String primaryEmailAddressId,
-        List<ClerkEmail> emailAddresses) {
+        List<ClerkEmail> emailAddresses,
+        String primaryPhoneNumberId,
+        List<ClerkPhoneNumber> phoneNumbers) {
 }

@@ -3,23 +3,17 @@ package com.rebuild.backend.service.resume_services;
 
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.resume_entities.*;
-import com.rebuild.backend.utils.BulletsUtil;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.model.forms.resume_forms.*;
 
 import com.rebuild.backend.model.responses.resume_responses.*;
-import com.rebuild.backend.repository.resume_repositories.ExperienceRepository;
-import com.rebuild.backend.repository.resume_repositories.ProjectRepository;
 import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
-import com.rebuild.backend.utils.StringUtil;
-import com.rebuild.backend.utils.exceptions.BelongingException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.YearMonth;
 import java.util.Optional;
 import java.util.UUID;
 

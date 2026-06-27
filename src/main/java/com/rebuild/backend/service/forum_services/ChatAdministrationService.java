@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class ChatAdministrationService {
 
     private final ChatParticipationRepository participationRepository;
@@ -48,7 +49,6 @@ public class ChatAdministrationService {
         this.messageRepository = messageRepository;
     }
 
-    @Transactional
     public boolean toggleUserAdmin(User administratingUser, UUID chatId, UUID userId)
     {
         ChatParticipation foundParticipation = participationRepository.findByChatIdAndUser(
@@ -84,7 +84,6 @@ public class ChatAdministrationService {
 
     }
 
-    @Transactional
     public void kickUserFromChat(User kickingUser, UUID chatId, UUID userId)
     {
 
@@ -120,7 +119,6 @@ public class ChatAdministrationService {
         websocketsService.sendKickNotification((GroupChat) savedChat, kickedUserParticipation);
     }
 
-    @Transactional
     public void deleteChat(User deletingUser, UUID chatId)
     {
 
@@ -147,7 +145,6 @@ public class ChatAdministrationService {
     }
 
 
-    @Transactional
     public void transferChatOwnership(User transferingUser, UUID chatId, UUID userId) {
         ChatParticipation transferringUserParticipation = participationRepository.findByChatIdAndUser(
                 chatId, transferingUser
@@ -180,7 +177,6 @@ public class ChatAdministrationService {
     }
 
 
-    @Transactional
     public ChatInvitation sendGroupChatInvitation(User sender, UUID recipientId, UUID chatId)
     {
         User recipient = userRepository.findById(recipientId).orElseThrow(

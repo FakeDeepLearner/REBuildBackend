@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ChatService {
 
     private final ChatRepository chatRepository;
@@ -56,8 +57,7 @@ public class ChatService {
         this.messageRepository = messageRepository;
     }
 
-
-    @Transactional
+    
     public GroupChat createNewGroupChat(User creatingUser, String chatName)
     {
         GroupChat newChat = new GroupChat();
@@ -71,8 +71,7 @@ public class ChatService {
 
         return chatRepository.save(newChat);
     }
-
-    @Transactional
+    
     public GroupChat acceptChatInvitation(User recipient, UUID invitationId)
     {
         ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
@@ -93,8 +92,7 @@ public class ChatService {
         return chatRepository.save(associatedChat);
 
     }
-
-    @Transactional
+    
     public void declineChatInvitation(User recipient, UUID invitationId)
     {
         ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
@@ -103,8 +101,7 @@ public class ChatService {
 
         chatInvitationRepository.delete(foundInvitation);
     }
-
-    @Transactional
+    
     public void leaveChat(User leavingUser, UUID chatId)
     {
 
@@ -128,7 +125,6 @@ public class ChatService {
         participationRepository.delete(leavingUserParticipation);
     }
 
-    @Transactional
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
         List<ChatParticipation> allChatParticipations = participationRepository.findByParticipatingUser(displayingUser);
@@ -154,7 +150,7 @@ public class ChatService {
     }
 
 
-    @Transactional
+    
     public LoadChatResponse loadChat(UUID chatId, User loadingUser, int pageNumber)
     {
         if (pageNumber < 0)
@@ -213,7 +209,7 @@ public class ChatService {
         return !muted;
     }
 
-    @Transactional
+    
     public LoadChatUsersResponse loadChatUsers(User loadingUser, UUID chatId)
     {
         ChatParticipation loadingUserParticipation = participationRepository.

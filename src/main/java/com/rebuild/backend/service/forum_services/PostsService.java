@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class PostsService {
 
     private final ForumPostRepository postRepository;
@@ -42,7 +42,7 @@ public class PostsService {
         this.resumeRepository = resumeRepository;
     }
 
-    @Transactional
+    
     public ForumPost createNewPost(NewPostForm postForm,
                                    User creatingUser) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
@@ -58,7 +58,7 @@ public class PostsService {
     }
 
 
-    @Transactional
+    
     public void deletePost(UUID postID, User deletingUser){
         ForumPost postToDelete = postRepository.findByIdAndUser(postID, deletingUser).
                 orElseThrow(() -> new BelongingException("This post does not belong to you, so you can't delete it"));

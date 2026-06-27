@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class ResumeDeleteService {
     private final ResumeObtainer getUtility;
 
@@ -22,20 +23,20 @@ public class ResumeDeleteService {
         this.resumeRepository = resumeRepository;
     }
 
-    @Transactional
+    
     public void deleteById(User deletingUser, UUID id){
         Resume resume = getUtility.findByUserResumeId(deletingUser, id);
         resumeRepository.delete(resume);
     }
 
-    @Transactional
+    
     public ResumeResponse deleteEducation(User changingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setResumeEducation(null);
         return resumeRepository.save(resume).toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse deleteExperience(User changingUser, UUID resumeId, UUID experienceId){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
         resume.getResumeExperiences().removeIf(experience -> experience.getId().equals(experienceId));
@@ -43,7 +44,7 @@ public class ResumeDeleteService {
     }
 
 
-    @Transactional
+    
     public ResumeResponse deleteProject(User changingUser, UUID resumeId, UUID projectId){
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);
         resume.getResumeProjects().removeIf(project -> project.getId().equals(projectId));
@@ -51,21 +52,21 @@ public class ResumeDeleteService {
     }
 
 
-    @Transactional
+    
     public ResumeResponse deleteHeader(User changingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(changingUser, resumeId);
         resume.setResumeHeader(null);
         return resumeRepository.save(resume).toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse deleteAllExperiences(User deletingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(deletingUser, resumeId);
         resume.setResumeExperiences(null);
         return resumeRepository.save(resume).toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse deleteAllProjects(User deletingUser, UUID resumeId){
         Resume resume = getUtility.findByUserResumeId(deletingUser, resumeId);
         resume.setResumeProjects(null);

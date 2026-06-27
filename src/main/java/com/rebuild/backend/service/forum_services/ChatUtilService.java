@@ -7,8 +7,10 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Priv
 import com.rebuild.backend.model.entities.user_entities.User;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Transactional
 public class ChatUtilService {
 
     public User determineOtherChatUser(PrivateChat chat, User loadingUser)

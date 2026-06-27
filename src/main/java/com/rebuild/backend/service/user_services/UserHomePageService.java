@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class UserHomePageService {
 
     private static final int DEFAULT_PAGE_SIZE = 15;
@@ -24,13 +25,13 @@ public class UserHomePageService {
         this.resumeRepository = resumeRepository;
     }
 
-    @Transactional
+    
     public HomePageResponse getHomePageData(User user, int pageNumber) {
 
         return getSearchResult(null, user, pageNumber);
     }
 
-    @Transactional
+    
     public HomePageResponse getSearchResult(String name,
                                             User user, int pageNumber){
 

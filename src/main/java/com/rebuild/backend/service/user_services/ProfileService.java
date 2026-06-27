@@ -4,13 +4,11 @@ import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
-import com.rebuild.backend.repository.user_repositories.ProfileRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,10 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class ProfileService {
-
-    private final ProfileRepository profileRepository;
 
     private final UserRepository userRepository;
 
@@ -33,28 +29,25 @@ public class ProfileService {
     private final ProfileHelperService helperService;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository, UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository,
+    public ProfileService(UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository,
                          ProfileHelperService helperService) {
-        this.profileRepository = profileRepository;
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.helperService = helperService;
     }
 
 
-
-    @Transactional
     public UserProfileResponse loadSelfProfile(User user)
     {
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(user.getImageUrl(),
-                        user.getEmail(), user.getForumUsername()),
+                        user.getEmail(), user.getForumUsername(),
+                        user.getName(), user.getPhoneNumber()),
                 helperService.loadCommentDTOsForUser(user),
                 helperService.loadPostDTOsForUser(user)
         );
     }
 
-    @Transactional
     public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
     {
 
@@ -71,7 +64,7 @@ public class ProfileService {
                 findByUserAndUserId(user, clickedUserId);
 
         return helperService.
-                loadOtherUserProfile(foundUser, foundUser.getUserProfile(), foundRelationship.isPresent());
+                loadOtherUserProfile(foundUser, foundRelationship.isPresent());
 
     }
 
@@ -85,8 +78,6 @@ public class ProfileService {
         };
     }
 
-
-    @Transactional
     public UserProfileResponse changeProfilePrivacySettings(User user,
                                                             ProfilePrivacySettingsForm privacySettingsForm)
     {
@@ -94,19 +85,13 @@ public class ProfileService {
         InformationVisibility commentsVisibility = mapStringToVisibility(privacySettingsForm.commentsVisibilityValue());
         InformationVisibility sensitiveInfoVisibility = mapStringToVisibility(privacySettingsForm.sensitiveInfoVisibilityValue());
 
-        UserProfile profile = user.getUserProfile();
+        user.setPostsVisibility(postsVisibility);
+        user.setCommentsVisibility(commentsVisibility);
+        user.setSensitiveInfoVisibility(sensitiveInfoVisibility);
+        user.setMessagesFromFriendsOnly(privacySettingsForm.messagesFromFriends());
 
-        profile.setPostsVisibility(postsVisibility);
-        profile.setCommentsVisibility(commentsVisibility);
-        profile.setSensitiveInfoVisibility(sensitiveInfoVisibility);
-        profile.setMessagesFromFriendsOnly(privacySettingsForm.messagesFromFriends());
-
-
-        profileRepository.save(profile);
-
-        return loadSelfProfile(user);
+        User savedUser = userRepository.save(user);
+        return loadSelfProfile(savedUser);
     }
-
-
 
 }

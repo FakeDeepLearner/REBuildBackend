@@ -17,6 +17,7 @@ import java.time.YearMonth;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class ResumePostService {
 
     private final ResumeObtainer getUtility;
@@ -29,7 +30,7 @@ public class ResumePostService {
         this.resumeRepository = resumeRepository;
     }
 
-    @Transactional
+    
     public ResumeResponse createNewExperience(User changingUser, UUID resumeId,
                                               ExperienceForm experienceForm){
         Resume resume = getUtility.findByUserAndIdWithExperiences(changingUser, resumeId);
@@ -47,7 +48,7 @@ public class ResumePostService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse createNewProject(User changingUser, UUID resumeId, ProjectForm projectForm){
 
         Resume resume = getUtility.findByUserAndIdWithProjects(changingUser, resumeId);

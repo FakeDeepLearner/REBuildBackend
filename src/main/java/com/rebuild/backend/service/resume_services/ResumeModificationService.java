@@ -17,11 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.DocFlavor;
 import java.time.YearMonth;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class ResumeModificationService {
 
     private final ExperienceRepository experienceRepository;
@@ -42,13 +45,18 @@ public class ResumeModificationService {
         this.getUtility = getUtility;
     }
 
-
-    @Transactional
+    
     public ResumeResponse changeHeaderInfo(HeaderForm headerForm, UUID resumeID, User user){
         Resume changingResume = getUtility.findByUserResumeId(user, resumeID);
 
-        ResumeHeader newResumeHeader = new ResumeHeader(headerForm.number(), headerForm.name(),
-                headerForm.email(), headerForm.links());
+        // If the user has left the relevant field empty, default to their account information
+        // (If that is also empty, the value at the Header will be empty)
+        String headerNumber = StringUtil.inputOrAlternative(headerForm.number(), user.getPhoneNumber());
+        String headerName = StringUtil.inputOrAlternative(headerForm.name(), user.getName());;
+        String headerEmail = StringUtil.inputOrAlternative(headerForm.email(), user.getEmail());;
+
+        ResumeHeader newResumeHeader = new ResumeHeader(headerNumber, headerName,
+                headerEmail, headerForm.links());
 
         changingResume.setResumeHeader(newResumeHeader);
         newResumeHeader.setResume(changingResume);
@@ -56,7 +64,7 @@ public class ResumeModificationService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse changeEducationInfo(EducationForm educationForm,
                                               UUID resumeID, User user){
         Resume changingResume = getUtility.findByUserResumeId(user, resumeID);
@@ -72,7 +80,7 @@ public class ResumeModificationService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse modifyResumeExperience(ExperienceForm experienceForm, UUID experienceId,
                                                  UUID resumeId, User changingUser) {
         Optional<ResumeExperience> changingExperience = experienceRepository.findByIdAndResume_IdAndResume_User(experienceId,
@@ -93,7 +101,7 @@ public class ResumeModificationService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse modifyResumeProject(ProjectForm projectForm, UUID projectId,
                                               UUID resumeId, User changingUser) {
 

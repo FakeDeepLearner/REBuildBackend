@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Transactional
 public class MessageService {
 
     private final WebsocketsService websocketsService;
@@ -110,7 +111,7 @@ public class MessageService {
     }
 
 
-    @Transactional
+    
     public MessageDisplayDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
         if (messageContent.isBlank())
@@ -127,7 +128,7 @@ public class MessageService {
 
             // If the recipient has not selected the setting, just send the message with the content,
             // creating a chat between the users first
-            if(!receivingUser.getUserProfile().isMessagesFromFriendsOnly())
+            if(!receivingUser.isMessagesFromFriendsOnly())
             {
                 return sendMessageTo(sender, receivingUser, messageContent);
             }
@@ -196,7 +197,7 @@ public class MessageService {
         return original.subList(0, maxSize);
     }
 
-    @Transactional
+    
     public SearchMessagesResponse searchForMessages(User searchingUser, UUID chatId, String query,
                                                     int pageNumber)
     {
@@ -281,7 +282,7 @@ public class MessageService {
 
     }
 
-    @Transactional
+    
     public LoadMoreMessagesResponse loadMoreMessagesWithTimestamp(User searchingUser, UUID chatId,
                                                                   String lastTimestamp, boolean loadFromAbove)
     {
@@ -298,7 +299,7 @@ public class MessageService {
         }
     }
 
-    @Transactional
+    
     protected LoadMoreMessagesResponse loadMoreFromAbove(User searchingUser, UUID chatId,
                                                          Instant lastTimestamp)
     {
@@ -335,7 +336,7 @@ public class MessageService {
     }
 
 
-    @Transactional
+    
     protected LoadMoreMessagesResponse loadMoreFromBelow(User searchingUser, UUID chatId,
                                                          Instant lastTimestamp)
     {

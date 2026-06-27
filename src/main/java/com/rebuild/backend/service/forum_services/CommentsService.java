@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class CommentsService {
 
     private final CommentRepository commentRepository;
@@ -37,7 +38,6 @@ public class CommentsService {
         this.postRepository = postRepository;
     }
 
-    @Transactional
     public void deleteComment(UUID commentID, User deletingUser){
         Comment commentToDelete = commentRepository.findByIdAndAuthor(commentID, deletingUser).orElseThrow(
                 () -> new BelongingException("This comment does not belong to you, or it has already been deleted")
@@ -56,7 +56,7 @@ public class CommentsService {
         comment.setUser(user);
     }
 
-    @Transactional
+    
     public CommentDisplayDTO createComment(String content, UUID parentId, User creatingUser)
     {
         if (content.isBlank())

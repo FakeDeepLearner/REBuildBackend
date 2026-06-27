@@ -6,7 +6,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
-import com.rebuild.backend.model.entities.user_entities.UserProfile;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.forum_repositories.CommentRepository;
@@ -45,9 +44,9 @@ public class ProfileHelperService {
                 forumPost.getCreatedAt())).toList();
     }
 
-    private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, UserProfile profile, boolean thereIsFriendship)
+    private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, boolean thereIsFriendship)
     {
-        InformationVisibility sensitiveInfoVisibility = profile.getSensitiveInfoVisibility();
+        InformationVisibility sensitiveInfoVisibility = user.getSensitiveInfoVisibility();
         if (thereIsFriendship)
         {
             //If the user has selected their information to be visible to everyone or to friends only, return it normally
@@ -55,7 +54,8 @@ public class ProfileHelperService {
                     sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
             {
                 return new ProfileSensitiveInformationDTO(user.getImageUrl(),
-                        user.getEmail(), user.getForumUsername());
+                        user.getEmail(), user.getForumUsername(),
+                        StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()));
             }
             //Otherwise, return the information masked
         }
@@ -66,18 +66,20 @@ public class ProfileHelperService {
             if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
             {
                 return new ProfileSensitiveInformationDTO(user.getImageUrl(),
-                        user.getEmail(), user.getForumUsername());
+                        user.getEmail(), user.getForumUsername(),
+                        StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()));
             }
 
             //Otherwise, return the information masked
         }
         return new ProfileSensitiveInformationDTO(null,
-                StringUtil.maskString(user.getEmail()), user.getAnonymizedName());
+                StringUtil.maskString(user.getEmail()), user.getForumUsername(),
+                StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()));
     }
 
-    private List<ProfileHistoryCommentDTO> decideCommentList(User user, UserProfile profile, boolean thereIsFriendship)
+    private List<ProfileHistoryCommentDTO> decideCommentList(User user, boolean thereIsFriendship)
     {
-        InformationVisibility commentsVisibility = profile.getCommentsVisibility();
+        InformationVisibility commentsVisibility = user.getCommentsVisibility();
         if (thereIsFriendship)
         {
             //If the user has selected their information to be visible to everyone or to friends only, return it normally
@@ -102,10 +104,10 @@ public class ProfileHelperService {
         return null;
     }
 
-    private List<ProfileHistoryPostDTO> decidePostsList(User user, UserProfile profile, boolean thereIsFriendship)
+    private List<ProfileHistoryPostDTO> decidePostsList(User user, boolean thereIsFriendship)
     {
 
-        InformationVisibility postsVisibility = profile.getPostsVisibility();
+        InformationVisibility postsVisibility = user.getPostsVisibility();
         if (thereIsFriendship)
         {
             if (postsVisibility.equals(InformationVisibility.EVERYONE) ||
@@ -126,13 +128,13 @@ public class ProfileHelperService {
     }
 
 
-    public UserProfileResponse loadOtherUserProfile(User otherUser, UserProfile profile, boolean thereIsFriendship)
+    public UserProfileResponse loadOtherUserProfile(User otherUser, boolean thereIsFriendship)
     {
-        List<ProfileHistoryPostDTO> postsList = decidePostsList(otherUser, profile, thereIsFriendship);
-        List<ProfileHistoryCommentDTO> commentsList = decideCommentList(otherUser, profile, thereIsFriendship);
+        List<ProfileHistoryPostDTO> postsList = decidePostsList(otherUser, thereIsFriendship);
+        List<ProfileHistoryCommentDTO> commentsList = decideCommentList(otherUser, thereIsFriendship);
 
         ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser,
-                profile, thereIsFriendship);
+                thereIsFriendship);
 
         return new UserProfileResponse(sensitiveInformationDTO, commentsList, postsList);
     }

@@ -8,11 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Component
 @CacheConfig(cacheManager = "cacheManager", cacheNames = "resume_cache")
+@Transactional(readOnly = true)
 public class ResumeObtainer {
 
     private final ResumeRepository resumeRepository;

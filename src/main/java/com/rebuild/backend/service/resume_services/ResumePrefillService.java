@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ResumePrefillService {
 
     private final ResumeObtainer resumeObtainer;
@@ -27,7 +28,7 @@ public class ResumePrefillService {
         this.resumeRepository = resumeRepository;
     }
 
-    @Transactional
+    
     public ResumeResponse prefillResumeHeader(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
@@ -44,7 +45,7 @@ public class ResumePrefillService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse prefillResumeEducation(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
@@ -61,7 +62,7 @@ public class ResumePrefillService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse prefillResumeExperiences(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);
@@ -79,7 +80,7 @@ public class ResumePrefillService {
         return savedResume.toResponse();
     }
 
-    @Transactional
+    
     public ResumeResponse prefillResumeProjects(UUID currentResumeId, UUID sampleResumeId, User user)
     {
         Resume currentResume = resumeObtainer.findByUserResumeId(user, currentResumeId);

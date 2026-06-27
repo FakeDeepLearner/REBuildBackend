@@ -19,8 +19,6 @@ public interface FriendRelationshipRepository extends JpaRepository<FriendRelati
     )
     Optional<FriendRelationship> findByTwoUsers(User user1, User user2);
 
-
-
     @Query(
             value = "SELECT r from FriendRelationship r " +
                     "WHERE (r.recipient=?1 AND r.sender.id=?2)" +

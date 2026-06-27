@@ -12,11 +12,8 @@ public class WebsocketsService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    private final ChatUtilService chatUtilService;
-
-    public WebsocketsService(SimpMessagingTemplate simpMessagingTemplate, ChatUtilService chatUtilService) {
+    public WebsocketsService(SimpMessagingTemplate simpMessagingTemplate) {
         this.simpMessagingTemplate = simpMessagingTemplate;
-        this.chatUtilService = chatUtilService;
     }
 
 

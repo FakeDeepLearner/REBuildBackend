@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class FriendshipService {
 
     private final WebsocketsService websocketsService;
@@ -39,7 +40,7 @@ public class FriendshipService {
         this.friendRequestRepository = friendRequestRepository;
     }
 
-    @Transactional
+    
     public FriendRelationship acceptFriendshipRequest(User receiver, UUID friendRequestId)
     {
         FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, receiver).
@@ -56,7 +57,7 @@ public class FriendshipService {
         return friendRelationshipRepository.save(newRelationship);
     }
 
-    @Transactional
+    
     public void declineFriendshipRequest(User declininguser, UUID friendRequestId)
     {
         FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, declininguser).
@@ -67,7 +68,7 @@ public class FriendshipService {
     }
 
 
-    @Transactional
+    
     public void sendFriendRequest(User sender, UUID recipientId)
     {
         User recipient = userRepository.findById(recipientId).orElseThrow(() ->

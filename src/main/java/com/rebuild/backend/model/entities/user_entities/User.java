@@ -33,12 +33,22 @@ import static jakarta.persistence.CascadeType.ALL;
 @AllArgsConstructor
 public class User implements Serializable {
 
+    //By default, no one other than the user themselves can see comments, posts and sensitive information.
+    private static final InformationVisibility DEFAULT_COMMENTS_VISIBILITY = InformationVisibility.NO_ONE;
+
+    private static final InformationVisibility DEFAULT_POSTS_VISIBILITY = InformationVisibility.NO_ONE;
+
+    private static final InformationVisibility DEFAULT_SENSITIVE_INFO_VISIBILITY = InformationVisibility.NO_ONE;
+
     @Serial
     private static final long serialVersionUID = 8L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @NonNull
+    private String name;
 
     @Column(
             nullable = false,
@@ -60,15 +70,23 @@ public class User implements Serializable {
     @NonNull
     private String forumUsername;
 
-    @Column(name = "backup_username")
-    @NonNull
-    private String anonymizedName;
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
-    @OneToOne(orphanRemoval = true, mappedBy = "user", cascade = {
-            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE
-    })
-    @JsonIgnore
-    private UserProfile userProfile;
+    @Column(name = "post_history_setting")
+    @Enumerated(EnumType.STRING)
+    private InformationVisibility postsVisibility = DEFAULT_POSTS_VISIBILITY;
+
+    @Column(name = "comment_history_setting")
+    @Enumerated(EnumType.STRING)
+    private InformationVisibility commentsVisibility = DEFAULT_COMMENTS_VISIBILITY;
+
+    @Column(name = "exclusive_friend_messages")
+    private boolean messagesFromFriendsOnly = true;
+
+    @Column(name = "sensitive_information_setting")
+    @Enumerated(EnumType.STRING)
+    private InformationVisibility sensitiveInfoVisibility = DEFAULT_SENSITIVE_INFO_VISIBILITY;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
     cascade = {
@@ -105,6 +123,8 @@ public class User implements Serializable {
     public void update(ClerkInformation clerkInformation)
     {
         this.email = StringUtil.findPrimaryEmail(clerkInformation);
+        this.phoneNumber = StringUtil.findPrimaryPhoneNumber(clerkInformation);
+        this.name = clerkInformation.name();
         this.forumUsername = clerkInformation.username();
         this.imageUrl = clerkInformation.imageUrl();
     }
@@ -113,13 +133,13 @@ public class User implements Serializable {
     {
         String primaryEmail = StringUtil.findPrimaryEmail(clerkInformation);
 
+        String primaryPhoneNumber = StringUtil.findPrimaryPhoneNumber(clerkInformation);
 
-        this(primaryEmail, clerkInformation.id(), clerkInformation.imageUrl(), clerkInformation.username(),
-                UUID.randomUUID().toString().substring(0, 24));
+        this(clerkInformation.name(),
+                primaryEmail, clerkInformation.id(),
+                clerkInformation.imageUrl(), clerkInformation.username());
 
-        UserProfile newProfile = new UserProfile();
-        this.userProfile = newProfile;
-        newProfile.setUser(this);
+        this.phoneNumber = primaryPhoneNumber;
     }
 
     @Override
