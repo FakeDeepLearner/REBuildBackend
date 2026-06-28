@@ -24,11 +24,6 @@ spring:
     user:
       name: "eren"
       password: "12Eren89"
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 5MB
-      max-request-size: 10MB
   main:
     banner-mode: off
     allow-bean-definition-overriding: true
@@ -37,9 +32,6 @@ spring:
       start:
         command: up
       lifecycle-management: start-and-stop
-  batch:
-    job:
-      enabled: true
   jackson:
     time-zone: UTC
 
@@ -51,14 +43,6 @@ logging:
         security: trace
 
 server:
-  servlet:
-    session:
-      timeout: 20m
-      cookie:
-        http-only: true
-        secure: true
-        same-site: strict
-        name: JSESSIONID
   port: 443
 ---
 
