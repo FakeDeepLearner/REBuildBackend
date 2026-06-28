@@ -5,9 +5,6 @@ spring:
     import: optional:file:.env[.properties]
 ---
 spring:
-  rabbitmq:
-    host: localhost
-    port: 5672
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,13 +17,11 @@ spring:
         format_sql: true
     database: PostgreSQL
     open-in-view: true
-  security:
-    user:
-      name: "eren"
-      password: "12Eren89"
   main:
-    banner-mode: off
+    allow-circular-references: true
     allow-bean-definition-overriding: true
+    banner-mode: off
+    web-application-type: servlet
   docker:
     compose:
       start:
