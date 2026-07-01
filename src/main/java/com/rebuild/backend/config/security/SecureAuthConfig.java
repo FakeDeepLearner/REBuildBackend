@@ -1,11 +1,10 @@
 package com.rebuild.backend.config.security;
 
-
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -17,6 +16,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.filter.UrlHandlerFilter;
 
@@ -56,11 +56,11 @@ public class SecureAuthConfig {
     }
 
     @Bean
-    @Order(3)
     public SecurityFilterChain filterChainAuthentication(HttpSecurity security,
                                                          ClerkAuthenticationFilter authenticationFilter,
                                                          UrlHandlerFilter urlHandlerFilter,
-                                                         CsrfTokenRepository csrfTokenRepository) {
+                                                         CsrfTokenRepository csrfTokenRepository,
+                                                         CorsConfigurationSource corsConfigurationSource) {
         security
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -77,9 +77,14 @@ public class SecureAuthConfig {
                 headers -> headers.contentSecurityPolicy(
                         csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; " +
                                 "img-src 'self'; frame-ancestors 'none';")
-                ));
+                )).
+                authorizeHttpRequests(auth -> auth
+                .requestMatchers("/webhooks").permitAll()
+                .requestMatchers("/api/**", "/home/**").authenticated()
+                .anyRequest().denyAll())
+                .redirectToHttps(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource));
         return security.build();
-
 
     }
 
