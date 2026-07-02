@@ -135,27 +135,11 @@ public class ChatsController {
         administrationService.kickUserFromChat(user, chat_id, user_id);
     }
 
-    @DeleteMapping("/delete_chat/{chat_id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
-    {
-
-        administrationService.deleteChat(user, chat_id);
-    }
-
     @DeleteMapping("/kick_user/{chat_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void leaveChat(@AuthenticationPrincipal User user, @PathVariable UUID chat_id)
     {
         chatService.leaveChat(user, chat_id);
-    }
-
-    @DeleteMapping("/kick_user/{chat_id}/{user_id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void transferChatOwnership(@AuthenticationPrincipal User user, @PathVariable UUID chat_id,
-                         @PathVariable UUID user_id)
-    {
-        administrationService.transferChatOwnership(user, chat_id, user_id);
     }
 
     @GetMapping("/search_messages/{chat_id}")

@@ -69,11 +69,6 @@ public class ChatAdministrationService {
                 findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId).orElseThrow(()
                         -> new NotFoundException("User with this ID is not found, or is not a member of this chat"));
 
-        if (recipientParticipation.getIsGroupOwner())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "The owner of the chat must remain an administrator");
-        }
-
         boolean currentStatus = recipientParticipation.getIsAdmin();
 
         recipientParticipation.setIsAdmin(!currentStatus);
@@ -106,10 +101,6 @@ public class ChatAdministrationService {
                 participationRepository.findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId)
                         .orElseThrow(() -> new NotFoundException("This user is not a member of this chat"));
 
-        if (kickedUserParticipation.getIsGroupOwner()) {
-            throw new ChatException(HttpStatus.FORBIDDEN, "The group owner cannot be kicked");
-        }
-
         AbstractChat necessaryChat = kickedUserParticipation.getParticipatedChat();
         necessaryChat.getParticipations().remove(kickedUserParticipation);
 
@@ -132,48 +123,11 @@ public class ChatAdministrationService {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
         }
 
-        if (!deletingUserParticipation.getIsGroupOwner())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "Only the group owner can disband the group");
-        }
-
         AbstractChat relevantChat = deletingUserParticipation.getParticipatedChat();
         //This will automatically delete all the messages and participations as well, because of orphan removal
         relevantChat.setMessages(null);
         relevantChat.setParticipations(null);
         chatRepository.delete(relevantChat);
-    }
-
-
-    public void transferChatOwnership(User transferingUser, UUID chatId, UUID userId) {
-        ChatParticipation transferringUserParticipation = participationRepository.findByChatIdAndUser(
-                chatId, transferingUser
-        ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
-
-        if (!transferringUserParticipation.getIsGroupChat())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
-        }
-
-        if (!transferringUserParticipation.getIsGroupOwner())
-        {
-            throw new ChatException(HttpStatus.UNAUTHORIZED, "You are not the owner of this chat");
-        }
-
-        ChatParticipation recipientParticipation = participationRepository.
-                findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId).orElseThrow(()
-                        -> new NotFoundException("The recipient is not a member of this chat"));
-
-
-        // The user becomes the owner, and thus an admin, and the user that transfers ownership loses it
-        // but still retains being an admin
-        recipientParticipation.setIsGroupOwner(true);
-        recipientParticipation.setIsAdmin(true);
-        transferringUserParticipation.setIsGroupOwner(false);
-
-        participationRepository.save(transferringUserParticipation);
-        participationRepository.save(recipientParticipation);
     }
 
 

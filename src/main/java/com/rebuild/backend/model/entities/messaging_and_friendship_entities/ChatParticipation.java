@@ -68,14 +68,9 @@ public class ChatParticipation extends Auditable {
     @NonNull
     private Boolean isAdmin;
 
-    @NonNull
-    @Column(name = "is_permanent_admin")
-    private Boolean isGroupOwner;
-
-
     public boolean hasNoAdminPrivileges()
     {
-        return !isAdmin && !isGroupOwner;
+        return !isAdmin;
     }
 
     @Override

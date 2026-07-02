@@ -62,8 +62,7 @@ public class ChatService {
     {
         GroupChat newChat = new GroupChat();
 
-        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true, true,
-                true);
+        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true, true);
         creatingUser.addChatParticipation(userParticipation);
 
         newChat.setChatName(chatName);
@@ -81,7 +80,7 @@ public class ChatService {
         GroupChat associatedChat = foundInvitation.getAssociatedChat();
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient,
-                associatedChat, true, false, false);
+                associatedChat, true, false);
         recipientParticipation.setLastMessage(associatedChat.getLastMessage());
 
         associatedChat.getParticipations().add(recipientParticipation);
@@ -113,11 +112,6 @@ public class ChatService {
         if (!leavingUserParticipation.getIsGroupChat())
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
-        }
-
-        if (leavingUserParticipation.getIsGroupOwner())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "You must transfer ownership to another user before leaving");
         }
 
         leavingUserParticipation.getParticipatedChat().getParticipations().remove(leavingUserParticipation);
@@ -225,12 +219,11 @@ public class ChatService {
                     User participatingUser = chatParticipation.getParticipatingUser();
                     return new ChatUserDisplayDTO(participatingUser.getId(),
                             participatingUser.getForumUsername(), chatParticipation.getCreatedAt(),
-                            chatParticipation.getIsAdmin(), chatParticipation.getIsGroupOwner(),
+                            chatParticipation.getIsAdmin(),
                             participatingUser.equals(loadingUser), participatingUser.getImageUrl());
                 }
         ).toList();
 
-        return new LoadChatUsersResponse(userDisplayDTOS, loadingUserParticipation.getIsAdmin(),
-                loadingUserParticipation.getIsGroupOwner());
+        return new LoadChatUsersResponse(userDisplayDTOS, loadingUserParticipation.getIsAdmin());
     }
 }
