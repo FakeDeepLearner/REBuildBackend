@@ -9,6 +9,7 @@ import com.svix.Webhook;
 import com.svix.exceptions.EmptyWebhookSecretException;
 import com.svix.exceptions.WebhookVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ public class WebhooksController {
         this.userRepository = userRepository;
     }
 
-    private HttpHeaders createHeaders(HttpServletRequest request) {
+    private HttpHeaders createHeaders(HttpServletRequestWrapper request) {
         HashMap<String, List<String>> headerMap = new HashMap<>();
         headerMap.put("svix-id", Collections.singletonList(request.getHeader("svix-id")));
         headerMap.put("svix-timestamp", Collections.singletonList(request.getHeader("svix-timestamp")));
@@ -49,12 +50,19 @@ public class WebhooksController {
         return HttpHeaders.of(headerMap, (_, _) -> true);
     }
 
-    private void verifyWebhook(String secret, HttpHeaders headers, String payload)
+    private String verifyWebhook(String secret,
+                               HttpServletRequest request)
             throws EmptyWebhookSecretException {
         Webhook webhook = new Webhook(secret);
+        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request, 0);
+
+        HttpHeaders headers = createHeaders(requestWrapper);
+
+        String payload = requestWrapper.getContentAsString();
 
         try {
             webhook.verify(payload, headers.map());
+            return payload;
         }
         catch (WebhookVerificationException verificationException)
         {
@@ -66,14 +74,8 @@ public class WebhooksController {
     public void createUser(HttpServletRequest request) throws EmptyWebhookSecretException {
 
         String secret = System.getenv("SIGNUP_WEBHOOK_SECRET");
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request, 0);
 
-        HttpHeaders headers = createHeaders(request);
-
-        String payload = requestWrapper.getContentAsString();
-
-        verifyWebhook(secret, headers, payload);
-
+        String payload = verifyWebhook(secret, request);
         ObjectMapper mapper = new ObjectMapper();
 
         ClerkInformation clerkInformation = mapper.readValue(payload, ClerkInformation.class);
@@ -88,13 +90,8 @@ public class WebhooksController {
     @PostMapping("/delete")
     public void deleteUser(HttpServletRequest request) throws EmptyWebhookSecretException {
         String secret = System.getenv("DELETE_WEBHOOK_SECRET");
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request, 0);
 
-        HttpHeaders headers = createHeaders(request);
-
-        String payload = requestWrapper.getContentAsString();
-
-        verifyWebhook(secret, headers, payload);
+        String payload = verifyWebhook(secret, request);
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -107,13 +104,8 @@ public class WebhooksController {
     @PostMapping("/update")
     public void updateUser(HttpServletRequest request) throws EmptyWebhookSecretException {
         String secret = System.getenv("UPDATE_WEBHOOK_SECRET");
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request, 0);
 
-        HttpHeaders headers = createHeaders(request);
-
-        String payload = requestWrapper.getContentAsString();
-
-        verifyWebhook(secret, headers, payload);
+        String payload = verifyWebhook(secret, request);
 
         ObjectMapper mapper = new ObjectMapper();
 
