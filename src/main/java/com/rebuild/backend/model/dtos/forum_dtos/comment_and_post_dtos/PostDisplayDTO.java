@@ -1,6 +1,5 @@
-package com.rebuild.backend.model.dtos.forum_dtos;
+package com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos;
 
-import com.rebuild.backend.model.entities.forum_entities.PostResume;
 import com.rebuild.backend.model.responses.resume_responses.ResumePreviewResponse;
 
 import java.time.Instant;

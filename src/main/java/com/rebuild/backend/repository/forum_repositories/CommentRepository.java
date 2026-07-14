@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository.forum_repositories;
 
-import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.user_entities.User;
 import lombok.NonNull;
@@ -19,7 +19,7 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
 
     @Query(
         """
-        SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
+        SELECT new com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO(
           u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
           c.isDeleted, c.createdAt,
           c.lastModifiedAt, c.isDeleted)
@@ -31,7 +31,7 @@ public interface CommentRepository extends JpaRepository<@NonNull Comment, @NonN
 
     @Query(
             """
-            SELECT new com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
+            SELECT new com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO(
               u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
               c.isDeleted, c.createdAt,
               c.lastModifiedAt, c.isDeleted)

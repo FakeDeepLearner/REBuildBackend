@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.dtos.forum_dtos;
+package com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos;
 
 import java.time.Instant;
 import java.util.UUID;

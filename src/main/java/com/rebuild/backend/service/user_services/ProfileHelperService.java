@@ -1,8 +1,8 @@
 package com.rebuild.backend.service.user_services;
 
-import com.rebuild.backend.model.dtos.ProfileHistoryCommentDTO;
-import com.rebuild.backend.model.dtos.ProfileHistoryPostDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
+import com.rebuild.backend.model.dtos.user_dtos.ProfileHistoryCommentDTO;
+import com.rebuild.backend.model.dtos.user_dtos.ProfileHistoryPostDTO;
+import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;

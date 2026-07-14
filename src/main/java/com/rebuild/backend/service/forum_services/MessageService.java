@@ -1,8 +1,9 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.MessageSearchDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.PinnedMessageDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.FetchMessagesDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSearchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.PinnedMessageDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -11,7 +12,6 @@ import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
-import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -229,59 +229,6 @@ public class MessageService {
 
         return new SearchMessagesResponse(displayedSearchDTOs, foundMessages.hasNext());
     }
-
-    public MessageJumpResponse jumpToMessage(User user, UUID chatId, UUID messageId)
-    {
-        boolean userIsInChat = participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, user);
-
-        if (!userIsInChat)
-        {
-            throw new BelongingException("You are not a member of this chat");
-        }
-
-        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
-        // so that we can easily check if we have more data in either direction
-        int fetchSize = 25;
-
-        Message foundMessage = messageRepository.findByIdAndAssociatedChat_Id(messageId, chatId).
-                orElseThrow(() ->
-                        new ChatException(HttpStatus.NOT_FOUND,
-                                "Message with this id does not exist, or is not in this chat"));
-
-        Limit messageFetchLimit = Limit.of(fetchSize + 1);
-
-        List<Message> messagesBefore = messageRepository.findByAssociatedChat_IdAndCreatedAtBefore(
-                chatId, foundMessage.getCreatedAt(),
-                Sort.by(Sort.Direction.ASC, "createdAt"),
-                messageFetchLimit
-        );
-
-        List<Message> messagesAfter = messageRepository.findByAssociatedChat_IdAndCreatedAtAfter(
-                chatId, foundMessage.getCreatedAt(),
-                Sort.by(Sort.Direction.ASC, "createdAt"),
-                messageFetchLimit
-        );
-
-        //If we fetched more messages than our actual fetch size, then we have more messages in that direction
-        boolean hasMoreFromBefore = messagesBefore.size() > fetchSize;
-        boolean hasMoreFromAfter = messagesAfter.size() > fetchSize;
-
-        List<Message> actualBeforeMessages = getMaximumSize(messagesBefore, fetchSize);
-        List<Message> actualAfterMessages = getMaximumSize(messagesAfter, fetchSize);
-
-        Instant lastBeforeTimestamp = actualBeforeMessages.getFirst().getCreatedAt();
-        Instant lastAfterTimestamp = actualAfterMessages.getLast().getCreatedAt();
-
-        Stream<Message> combinedStream = Stream.concat(actualBeforeMessages.stream(),
-                Stream.concat(Stream.of(foundMessage), actualAfterMessages.stream()));
-
-        List<MessageDisplayDTO> displayedMessages =
-                combinedStream.map(message -> message.toDTo(user)).toList();
-
-        return new MessageJumpResponse(displayedMessages, hasMoreFromBefore, hasMoreFromAfter, lastBeforeTimestamp, lastAfterTimestamp);
-
-    }
-
     
     public LoadMoreMessagesResponse loadMoreMessagesWithTimestamp(User searchingUser, UUID chatId,
                                                                   String lastTimestamp, boolean loadFromAbove)
@@ -299,8 +246,37 @@ public class MessageService {
         }
     }
 
+    private FetchMessagesDTO fetchMessagesBeforeOrAfterTimestamp(UUID chatId, Instant lastTimestamp,
+                                                                   boolean fetchMessagesBefore)
+    {
+        List<Message> messages;
+
+        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
+        // so that we can easily check if we have more data in either direction
+        int fetchSize = 25;
+
+        Limit messageFetchLimit = Limit.of(fetchSize + 1);
+
+        if (fetchMessagesBefore) {
+            messages = messageRepository.findByAssociatedChat_IdAndCreatedAtBefore(
+                    chatId, lastTimestamp,
+                    Sort.by(Sort.Direction.ASC, "createdAt"),
+                    messageFetchLimit
+            );
+        }
+        else {
+            messages = messageRepository.findByAssociatedChat_IdAndCreatedAtAfter(
+                    chatId, lastTimestamp,
+                    Sort.by(Sort.Direction.ASC, "createdAt"),
+                    messageFetchLimit
+            );
+        }
+
+        boolean hasMore = messages.size() > fetchSize;
+        return new FetchMessagesDTO(getMaximumSize(messages, fetchSize), hasMore);
+    }
     
-    protected LoadMoreMessagesResponse loadMoreFromAbove(User searchingUser, UUID chatId,
+    private LoadMoreMessagesResponse loadMoreFromAbove(User searchingUser, UUID chatId,
                                                          Instant lastTimestamp)
     {
         boolean userIsInChat = participationRepository.
@@ -311,33 +287,21 @@ public class MessageService {
             throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
         }
 
-        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
-        // so that we can easily check if we have more data in either direction
-        int fetchSize = 25;
+        FetchMessagesDTO fetchMessagesDTO = fetchMessagesBeforeOrAfterTimestamp(chatId, lastTimestamp, true);
 
-        Limit messageFetchLimit = Limit.of(fetchSize + 1);
+        List<Message> messages = fetchMessagesDTO.messages();
 
-        List<Message> messagesBefore = messageRepository.findByAssociatedChat_IdAndCreatedAtBefore(
-                chatId, lastTimestamp,
-                Sort.by(Sort.Direction.ASC, "createdAt"),
-                messageFetchLimit
-        );
-
-        boolean hasMore =  messagesBefore.size() > fetchSize;
-        List<Message> actualBeforeMessages = getMaximumSize(messagesBefore, fetchSize);
-
-        Instant lastBeforeTimestamp = actualBeforeMessages.getFirst().getCreatedAt();
+        Instant lastBeforeTimestamp = messages.getFirst().getCreatedAt();
 
 
         List<MessageDisplayDTO> displayedMessages =
-                actualBeforeMessages.stream().map(message -> message.toDTo(searchingUser)).toList();
+                messages.stream().map(message -> message.toDTo(searchingUser)).toList();
 
-        return new LoadMoreMessagesResponse(displayedMessages, hasMore, lastBeforeTimestamp);
+        return new LoadMoreMessagesResponse(displayedMessages, fetchMessagesDTO.hasMore(), lastBeforeTimestamp);
     }
 
 
-    
-    protected LoadMoreMessagesResponse loadMoreFromBelow(User searchingUser, UUID chatId,
+    private LoadMoreMessagesResponse loadMoreFromBelow(User searchingUser, UUID chatId,
                                                          Instant lastTimestamp)
     {
 
@@ -349,27 +313,18 @@ public class MessageService {
             throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
         }
 
-        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
-        // so that we can easily check if we have more data in either direction
-        int fetchSize = 25;
+        FetchMessagesDTO fetchMessagesDTO = fetchMessagesBeforeOrAfterTimestamp(chatId, lastTimestamp,
+                false);
 
-        Limit messageFetchLimit = Limit.of(fetchSize + 1);
+        List<Message> messages = fetchMessagesDTO.messages();
 
-        List<Message> messagesAfter = messageRepository.findByAssociatedChat_IdAndCreatedAtAfter(
-                chatId, lastTimestamp,
-                Sort.by(Sort.Direction.ASC, "createdAt"),
-                messageFetchLimit
-        );
+        Instant lastAfterTimestamp = messages.getLast().getCreatedAt();
 
-        boolean hasMore =  messagesAfter.size() > fetchSize;
-        List<Message> actualBeforeMessages = getMaximumSize(messagesAfter, fetchSize);
-
-        Instant lastAfter = actualBeforeMessages.getLast().getCreatedAt();
 
         List<MessageDisplayDTO> displayedMessages =
-                actualBeforeMessages.stream().map(message -> message.toDTo(searchingUser)).toList();
+                messages.stream().map(message -> message.toDTo(searchingUser)).toList();
 
-        return new LoadMoreMessagesResponse(displayedMessages, hasMore, lastAfter);
+        return new LoadMoreMessagesResponse(displayedMessages, fetchMessagesDTO.hasMore(), lastAfterTimestamp);
     }
 
     public PinnedMessagesResponse getPinnedMessages(User user, UUID chatId, int pageNumber)

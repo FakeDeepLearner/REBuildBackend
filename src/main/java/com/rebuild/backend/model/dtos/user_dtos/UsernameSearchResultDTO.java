@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.dtos.forum_dtos;
+package com.rebuild.backend.model.dtos.user_dtos;
 
 import java.util.UUID;
 

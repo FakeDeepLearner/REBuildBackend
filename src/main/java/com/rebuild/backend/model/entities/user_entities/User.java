@@ -1,8 +1,7 @@
 package com.rebuild.backend.model.entities.user_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rebuild.backend.model.dtos.ClerkEmail;
-import com.rebuild.backend.model.dtos.ClerkInformation;
+import com.rebuild.backend.model.dtos.auth_dtos.ClerkInformation;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
@@ -10,10 +9,6 @@ import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
-import org.jspecify.annotations.Nullable;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -150,5 +145,10 @@ public class User implements Serializable {
     public void addChatParticipation(ChatParticipation participation)
     {
         this.chatParticipations.add(participation);
+    }
+
+    @Override
+    public String toString() {
+        return this.clerkId;
     }
 }

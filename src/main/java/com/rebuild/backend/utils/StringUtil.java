@@ -3,14 +3,9 @@ package com.rebuild.backend.utils;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import com.rebuild.backend.model.dtos.ClerkEmail;
-import com.rebuild.backend.model.dtos.ClerkInformation;
-import com.rebuild.backend.model.dtos.ClerkPhoneNumber;
-import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.ExperienceBulletPoint;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.ProjectBulletPoint;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractExperience;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.base_resume_entities.AbstractProject;
+import com.rebuild.backend.model.dtos.auth_dtos.ClerkEmail;
+import com.rebuild.backend.model.dtos.auth_dtos.ClerkInformation;
+import com.rebuild.backend.model.dtos.auth_dtos.ClerkPhoneNumber;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.UserAuthException;
 import org.springframework.http.HttpStatus;
@@ -18,9 +13,6 @@ import org.springframework.http.HttpStatus;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 public class StringUtil {

@@ -1,6 +1,6 @@
 package com.rebuild.backend.service.user_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.ProfileSensitiveInformationDTO;
+import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;

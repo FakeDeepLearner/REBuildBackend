@@ -1,8 +1,8 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.PostDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.PostDisplayDTO;
 import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.EditPostForm;

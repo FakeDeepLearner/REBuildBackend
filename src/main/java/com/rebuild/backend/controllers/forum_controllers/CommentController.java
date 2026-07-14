@@ -1,13 +1,10 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.forms.forum_forms.EditPostForm;
 import com.rebuild.backend.model.responses.forum_responses.EditCommentResponse;
-import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadCommentsResponse;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentDisplayDTO;
 import com.rebuild.backend.service.forum_services.CommentsService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

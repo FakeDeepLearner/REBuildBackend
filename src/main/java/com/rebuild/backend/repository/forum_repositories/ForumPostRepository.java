@@ -1,7 +1,7 @@
 package com.rebuild.backend.repository.forum_repositories;
 
-import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.ForumPostSummaryDTO;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.domain.*;
@@ -33,7 +33,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
     Optional<ForumPost> findByIdWithComments(UUID id);
 
     @Query(value = """
-            SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO(
+            SELECT NEW com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO(
             u.id, p.id, c.id, c.content, u.forumUsername, c.repliesCount,
             c.isDeleted, c.createdAt,
             c.lastModifiedAt, c.isDeleted)

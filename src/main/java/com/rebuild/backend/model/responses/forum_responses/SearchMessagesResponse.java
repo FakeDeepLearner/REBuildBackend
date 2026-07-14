@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.responses.forum_responses;
 
-import com.rebuild.backend.model.dtos.forum_dtos.MessageSearchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSearchDTO;
 
 import java.util.List;
 

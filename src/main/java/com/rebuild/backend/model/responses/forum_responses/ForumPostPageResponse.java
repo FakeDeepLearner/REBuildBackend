@@ -1,6 +1,6 @@
 package com.rebuild.backend.model.responses.forum_responses;
 
-import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.ForumPostSummaryDTO;
 
 import java.util.List;
 

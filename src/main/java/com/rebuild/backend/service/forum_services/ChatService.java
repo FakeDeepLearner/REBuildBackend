@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.ChatUserDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;

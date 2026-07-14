@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.ForumPostSummaryDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.UsernameSearchResultDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.ForumPostSummaryDTO;
+import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.responses.forum_responses.ForumPostPageResponse;

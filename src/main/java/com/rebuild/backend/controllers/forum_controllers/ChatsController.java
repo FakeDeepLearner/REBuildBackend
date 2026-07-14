@@ -1,6 +1,6 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.dtos.forum_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -149,13 +149,6 @@ public class ChatsController {
                                                   @RequestBody String searchString,
                                                   @RequestParam(name = "page", defaultValue = "0") int pageNumber){
         return messageService.searchForMessages(user, chat_id, searchString, pageNumber);
-    }
-
-    @GetMapping("jump_to_message/{chat_id}/{message_id}")
-    @ResponseStatus(HttpStatus.OK)
-    public MessageJumpResponse jumpToMessage(@AuthenticationPrincipal User user,
-                                             @PathVariable UUID chat_id, @PathVariable UUID message_id){
-        return messageService.jumpToMessage(user, chat_id, message_id);
     }
 
     @GetMapping("jump_to_message/{chat_id}")

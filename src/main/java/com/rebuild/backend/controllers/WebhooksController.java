@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers;
 
-import com.rebuild.backend.model.dtos.ClerkInformation;
-import com.rebuild.backend.model.dtos.ClerkUserId;
+import com.rebuild.backend.model.dtos.auth_dtos.ClerkInformation;
+import com.rebuild.backend.model.dtos.auth_dtos.ClerkUserId;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.utils.exceptions.ApiException;
@@ -16,18 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.ContentCachingRequestWrapper;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
 
-import java.io.IOException;
 import java.net.http.HttpHeaders;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.BiPredicate;
 
 
 @RestController("/webhooks")

@@ -1,7 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.CommentDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.CommentFetchDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentDisplayDTO;
+import com.rebuild.backend.model.dtos.forum_dtos.comment_and_post_dtos.CommentFetchDTO;
 import com.rebuild.backend.model.responses.forum_responses.EditCommentResponse;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.model.responses.forum_responses.LoadCommentsResponse;
