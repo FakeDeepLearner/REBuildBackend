@@ -20,6 +20,8 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     Slice<Message> findByAssociatedChat(AbstractChat associatedChat, Pageable pageable);
 
+    Slice<Message> findByAssociatedChat_Id(UUID associatedChatId, Pageable pageable);
+
     @Query(nativeQuery = true,
     value = """
     SELECT m FROM messages m
@@ -29,15 +31,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     Slice<Message> findByChatAndSimilarContent(UUID chatId, String query, Pageable pageable);
 
     Optional<Message> findByIdAndAssociatedChat_Id(UUID id, UUID associatedChatId);
-
-    List<Message> findByAssociatedChat_IdAndCreatedAtBefore(UUID chatId,
-                                                         Instant createdAtBefore,
-                                                         Sort sort, Limit limit);
-
-    List<Message> findByAssociatedChat_IdAndCreatedAtAfter(UUID chatId,
-                                                        Instant createdAtAfter,
-                                                        Sort sort, Limit limit);
-
+    
     @Query(value = """
     SELECT m FROM Message m
     WHERE m.associatedChat.id=?1 AND m.isPinned=true

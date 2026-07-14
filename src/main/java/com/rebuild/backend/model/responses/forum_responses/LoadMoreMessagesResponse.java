@@ -6,5 +6,5 @@ import java.time.Instant;
 import java.util.List;
 
 public record LoadMoreMessagesResponse(List<MessageDisplayDTO> newMessages,
-                                       boolean hasMore, Instant lastMessageTimestamp) {
+                                       boolean hasMore) {
 }

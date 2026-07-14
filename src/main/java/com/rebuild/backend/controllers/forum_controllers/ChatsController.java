@@ -155,10 +155,9 @@ public class ChatsController {
     @ResponseStatus(HttpStatus.OK)
     public LoadMoreMessagesResponse loadMoreMessages(@AuthenticationPrincipal User user,
                                                      @PathVariable UUID chat_id,
-                                                     @RequestBody LoadMoreMessagesForm moreMessagesForm)
+                                                     @RequestParam(name = "page", defaultValue = "0") int pageNumber)
     {
-        return messageService.loadMoreMessagesWithTimestamp(user, chat_id,
-                moreMessagesForm.lastTimestamp(),  moreMessagesForm.loadFromAbove());
+        return messageService.loadMoreMessages(user, chat_id, pageNumber);
     }
 
     @GetMapping("/load_users/{chat_id}")

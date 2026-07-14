@@ -229,102 +229,32 @@ public class MessageService {
 
         return new SearchMessagesResponse(displayedSearchDTOs, foundMessages.hasNext());
     }
-    
-    public LoadMoreMessagesResponse loadMoreMessagesWithTimestamp(User searchingUser, UUID chatId,
-                                                                  String lastTimestamp, boolean loadFromAbove)
+
+    public LoadMoreMessagesResponse loadMoreMessages(User searchingUser, UUID chatId,
+                                                     int pageNumber)
     {
-        try {
-            Instant timestamp = Instant.parse(lastTimestamp);
-            if (loadFromAbove) {
-                return loadMoreFromAbove(searchingUser, chatId, timestamp);
-            }
-
-            return loadMoreFromBelow(searchingUser, chatId, timestamp);
-        }
-        catch (DateTimeParseException e) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid timestamp format");
-        }
-    }
-
-    private FetchMessagesDTO fetchMessagesBeforeOrAfterTimestamp(UUID chatId, Instant lastTimestamp,
-                                                                   boolean fetchMessagesBefore)
-    {
-        List<Message> messages;
-
-        //This is how many messages we will fetch in each direction. We will actually limit ourselves to 1 more
-        // so that we can easily check if we have more data in either direction
-        int fetchSize = 25;
-
-        Limit messageFetchLimit = Limit.of(fetchSize + 1);
-
-        if (fetchMessagesBefore) {
-            messages = messageRepository.findByAssociatedChat_IdAndCreatedAtBefore(
-                    chatId, lastTimestamp,
-                    Sort.by(Sort.Direction.ASC, "createdAt"),
-                    messageFetchLimit
-            );
-        }
-        else {
-            messages = messageRepository.findByAssociatedChat_IdAndCreatedAtAfter(
-                    chatId, lastTimestamp,
-                    Sort.by(Sort.Direction.ASC, "createdAt"),
-                    messageFetchLimit
-            );
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to 0.");
         }
 
-        boolean hasMore = messages.size() > fetchSize;
-        return new FetchMessagesDTO(getMaximumSize(messages, fetchSize), hasMore);
-    }
-    
-    private LoadMoreMessagesResponse loadMoreFromAbove(User searchingUser, UUID chatId,
-                                                         Instant lastTimestamp)
-    {
-        boolean userIsInChat = participationRepository.
-                existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
+        boolean userIsInChat =
+                participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
 
         if (!userIsInChat)
         {
-            throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
+            throw new BelongingException("You are not a member of this chat");
         }
 
-        FetchMessagesDTO fetchMessagesDTO = fetchMessagesBeforeOrAfterTimestamp(chatId, lastTimestamp, true);
+        Pageable pageable = PageRequest.of(pageNumber, 25,
+                Sort.by(Sort.Direction.ASC, "createdAt"));
 
-        List<Message> messages = fetchMessagesDTO.messages();
-
-        Instant lastBeforeTimestamp = messages.getFirst().getCreatedAt();
-
+        Slice<Message> currentMessages = messageRepository.findByAssociatedChat_Id(chatId, pageable);
 
         List<MessageDisplayDTO> displayedMessages =
-                messages.stream().map(message -> message.toDTo(searchingUser)).toList();
+            currentMessages.stream().map(message -> message.toDTo(searchingUser)).toList();
 
-        return new LoadMoreMessagesResponse(displayedMessages, fetchMessagesDTO.hasMore(), lastBeforeTimestamp);
-    }
-
-
-    private LoadMoreMessagesResponse loadMoreFromBelow(User searchingUser, UUID chatId,
-                                                         Instant lastTimestamp)
-    {
-
-        boolean userIsInChat = participationRepository.
-                existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
-
-        if (!userIsInChat)
-        {
-            throw new BelongingException("You are not a member of this chat, or a chat with this ID does not exist");
-        }
-
-        FetchMessagesDTO fetchMessagesDTO = fetchMessagesBeforeOrAfterTimestamp(chatId, lastTimestamp,
-                false);
-
-        List<Message> messages = fetchMessagesDTO.messages();
-
-        Instant lastAfterTimestamp = messages.getLast().getCreatedAt();
-
-
-        List<MessageDisplayDTO> displayedMessages =
-                messages.stream().map(message -> message.toDTo(searchingUser)).toList();
-
-        return new LoadMoreMessagesResponse(displayedMessages, fetchMessagesDTO.hasMore(), lastAfterTimestamp);
+        return new LoadMoreMessagesResponse(displayedMessages, currentMessages.hasNext());
     }
 
     public PinnedMessagesResponse getPinnedMessages(User user, UUID chatId, int pageNumber)
