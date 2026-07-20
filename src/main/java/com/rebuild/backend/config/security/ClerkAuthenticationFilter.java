@@ -37,7 +37,7 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri =  request.getRequestURI();
 
-        return uri.startsWith("/webhooks");
+        return uri.startsWith("/webhooks/");
     }
 
     @Override
