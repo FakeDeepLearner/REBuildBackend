@@ -17,7 +17,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/home")
+@RequestMapping("/api/home")
 public class HomePageController {
 
     private final ResumeService resumeService;

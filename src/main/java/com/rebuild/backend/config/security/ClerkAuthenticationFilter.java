@@ -32,18 +32,18 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+    //Anything in the webhook controller is exempt from this filter
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri =  request.getRequestURI();
+
+        return uri.startsWith("/webhooks");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-
-        String requestPath = request.getRequestURI();
-
-        //For webhook-related endpoints, immediately skip filtering as they are exempt.
-        if (requestPath.startsWith("/webhooks")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         String clerkId = getClerkId(request);
 
@@ -61,7 +61,6 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);
         }
-
 
     }
 

@@ -50,7 +50,7 @@ public class SecureAuthConfig {
     public UrlHandlerFilter handlerFilter()
     {
         return UrlHandlerFilter
-                .trailingSlashHandler("/api/**", "/home/**")
+                .trailingSlashHandler("/api/**")
                 .redirect(HttpStatus.PERMANENT_REDIRECT)
                 .build();
     }
@@ -79,8 +79,8 @@ public class SecureAuthConfig {
                                 "img-src 'self'; frame-ancestors 'none';")
                 )).
                 authorizeHttpRequests(auth -> auth
-                .requestMatchers("/webhooks").permitAll()
-                .requestMatchers("/api/**", "/home/**").authenticated()
+                .requestMatchers("/webhooks/**").permitAll()
+                .requestMatchers("/api/**").authenticated()
                 .anyRequest().denyAll())
                 .redirectToHttps(Customizer.withDefaults())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource));
