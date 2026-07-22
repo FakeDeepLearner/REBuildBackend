@@ -147,7 +147,8 @@ public class MessageService {
 
         return recipientChat.map(chat ->
                 sendMessageTo(sender, messageContent, chat)).
-                orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "You are not authorized to send messages to this user or channel"));
+                orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not authorized " +
+                        "to send messages to this user or channel"));
 
     }
 

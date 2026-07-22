@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.*;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -16,23 +17,31 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.filter.UrlHandlerFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecureAuthConfig {
 
     @Bean
-    public SessionRegistry sessionRegistry(){
-        return new SessionRegistryImpl();
-    }
+    public UrlBasedCorsConfigurationSource corsConfigurationSource()
+    {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedOrigins(List.of("localhost", "rerebuild.ca"));
+        corsConfiguration.setAllowedHeaders(List.of("Idempotency-Key"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS",  "PATCH", "HEAD"));
+        corsConfiguration.setAllowCredentials(false);
+        corsConfiguration.setMaxAge(3600L);
 
-    //Needed to make sure that the SessionRegistry listens to session invalidations and timeouts
-    @Bean
-    public HttpSessionEventPublisher eventPublisher(){
-        return new HttpSessionEventPublisher();
+        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+        return urlBasedCorsConfigurationSource;
     }
 
     @Bean
@@ -62,12 +71,13 @@ public class SecureAuthConfig {
                                                          CsrfTokenRepository csrfTokenRepository,
                                                          CorsConfigurationSource corsConfigurationSource) {
         security
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
+                .formLogin(FormLoginConfigurer::disable)
+                .httpBasic(HttpBasicConfigurer::disable)
+                .logout(LogoutConfigurer::disable)
                 .sessionManagement(management ->
                         management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2Login(AbstractHttpConfigurer::disable)
+                .requestCache(RequestCacheConfigurer::disable)
+                .oauth2Login(OAuth2LoginConfigurer::disable)
                 .addFilterBefore(urlHandlerFilter, SecurityContextHolderFilter.class)
                 .addFilterAfter(new HiddenHttpMethodFilter(), UrlHandlerFilter.class)
                 .addFilterAfter(authenticationFilter, HiddenHttpMethodFilter.class)

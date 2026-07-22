@@ -62,7 +62,7 @@ public class ChatAdministrationService {
         }
         if (foundParticipation.hasNoAdminPrivileges())
         {
-            throw new ChatException(HttpStatus.UNAUTHORIZED, "Only administrators are able to do this operation");
+            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
         }
 
         ChatParticipation recipientParticipation = participationRepository.
@@ -94,7 +94,7 @@ public class ChatAdministrationService {
 
         if (kickingUserParticipation.hasNoAdminPrivileges())
         {
-            throw new ChatException(HttpStatus.UNAUTHORIZED, "Only administrators are able to do this operation");
+            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
         }
 
         ChatParticipation kickedUserParticipation =
@@ -148,7 +148,7 @@ public class ChatAdministrationService {
 
         if (foundParticipation.hasNoAdminPrivileges())
         {
-            throw new ChatException(HttpStatus.UNAUTHORIZED, "You can't invite anyone to this chat " +
+            throw new ChatException(HttpStatus.FORBIDDEN, "You can't invite anyone to this chat " +
                     "because you are not an administrator in this chat.");
         }
 
@@ -180,7 +180,7 @@ public class ChatAdministrationService {
                         "or you are not a member in this chat."));
 
         if (pinningUserParticipation.hasNoAdminPrivileges()){
-            throw new ChatException(HttpStatus.UNAUTHORIZED, "Only administrators can perform this action");
+            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators can perform this action");
         }
 
         Message foundMessage = messageRepository.findByIdAndAssociatedChat_Id(messageId, chatId).orElseThrow(

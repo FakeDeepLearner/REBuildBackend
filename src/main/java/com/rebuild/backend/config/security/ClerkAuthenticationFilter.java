@@ -47,10 +47,10 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
 
         String clerkId = getClerkId(request);
 
+        //If the clerk id is null, we do not invoke the next filter in the chain.
         if (clerkId == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Authentication failed");
-            filterChain.doFilter(request, response);
         }
         else {
             User foundUser = userRepository.findByClerkId(clerkId).orElseThrow();
@@ -71,7 +71,7 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
         request.getHeaderNames().asIterator().forEachRemaining(
                 headerName ->
                 {
-                    headers.put(headerName, Collections.singletonList(request.getHeader(headerName)));
+                    headers.put(headerName, Collections.list(request.getHeaders(headerName)));
                 }
         );
 
@@ -79,7 +79,7 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
                 secretKey(System.getenv("CLERK_SECRET_KEY"))
                 .authorizedParty("https://rerebuild.ca").build());
 
-        if (state.isSignedIn())
+        if (state.isSignedIn() && state.claims().isPresent())
         {
             return state.claims().get().getSubject();
         }
