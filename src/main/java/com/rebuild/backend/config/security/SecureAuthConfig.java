@@ -61,9 +61,9 @@ public class SecureAuthConfig {
 
     @Bean
     public SecurityFilterChain webhooksFilterChain(HttpSecurity security)  {
+        security.securityMatcher("/webhooks/**");
         commonChain(security);
-        security.
-                securityMatcher("/webhooks/**")
+        security
                 .csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(auth ->
                         auth.anyRequest().permitAll());
@@ -75,10 +75,9 @@ public class SecureAuthConfig {
                                                       ClerkAuthenticationFilter authenticationFilter,
                                                       CsrfTokenRepository csrfTokenRepository,
                                                       CorsConfigurationSource corsConfigurationSource) {
+        security.securityMatcher("/api/**");
         commonChain(security);
-        
         security
-                .securityMatcher("/api/**")
                 .addFilterAfter(authenticationFilter, SecurityContextHolderFilter.class)
                 .csrf(management ->
                         management.csrfTokenRepository(csrfTokenRepository))
