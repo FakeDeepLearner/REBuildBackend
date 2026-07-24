@@ -1,10 +1,8 @@
 package com.rebuild.backend.model.forms.forum_forms;
 
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotBlank;
 
-public record ForumSpecsForm(String titleContains,
-                            String bodyContains) {
+public record ForumSpecsForm(@NotBlank(message = "Title may not be empty") String titleContains,
+                             @NotBlank(message = "Body may not be empty") String bodyContains) {
 }

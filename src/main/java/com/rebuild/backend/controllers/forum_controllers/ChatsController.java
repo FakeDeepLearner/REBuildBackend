@@ -4,7 +4,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDi
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.forms.forum_forms.LoadMoreMessagesForm;
 import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.service.forum_services.ChatAdministrationService;
 import com.rebuild.backend.service.forum_services.MessageService;

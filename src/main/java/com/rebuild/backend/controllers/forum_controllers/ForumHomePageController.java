@@ -54,14 +54,14 @@ public class ForumHomePageController {
                                           @RequestBody ForumSpecsForm forumSpecsForm,
                                           @AuthenticationPrincipal User user) {
 
-        return homePageService.getPagedResult(pageNumber, forumSpecsForm, user);
+        return homePageService.loadForumWithSpecsForm(pageNumber, forumSpecsForm, user);
     }
 
     @GetMapping("/get_posts")
     @ResponseStatus(HttpStatus.OK)
     public ForumPostPageResponse getPosts(@RequestParam(defaultValue = "0", name = "page", required = false) int pageNumber,
                                           @AuthenticationPrincipal User user) {
-        return homePageService.serveGetRequest(pageNumber, user);
+        return homePageService.loadForum(pageNumber, user);
     }
 
     @GetMapping("/get_posts/{post_id}")

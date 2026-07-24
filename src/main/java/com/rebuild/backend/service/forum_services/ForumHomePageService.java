@@ -37,13 +37,13 @@ public class ForumHomePageService {
         this.friendRelationshipRepository = friendRelationshipRepository;
     }
 
-    public ForumPostPageResponse serveGetRequest(int pageNumber, User user)
+    public ForumPostPageResponse loadForum(int pageNumber, User user)
     {
-        return getPagedResult(pageNumber, new ForumSpecsForm(null, null), user);
+        return loadForumWithSpecsForm(pageNumber, new ForumSpecsForm(null, null), user);
     }
 
-    public ForumPostPageResponse getPagedResult(int pageNumber,
-                                                ForumSpecsForm forumSpecsForm, User user)
+    public ForumPostPageResponse loadForumWithSpecsForm(int pageNumber,
+                                                        ForumSpecsForm forumSpecsForm, User user)
     {
         if (pageNumber < 0)
         {

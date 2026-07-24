@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
 public class SecureAuthConfig {
 
     @Bean
