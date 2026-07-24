@@ -111,6 +111,10 @@ public class MessageService {
     
     public MessageDisplayDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
     {
+        if (receivingObjectId.equals(sender.getId()))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You can't send messages to yourself.");
+        }
         if (messageContent.isBlank())
         {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Message content cannot be blank");

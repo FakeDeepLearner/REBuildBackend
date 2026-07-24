@@ -76,6 +76,10 @@ public class FriendshipService {
     
     public void sendFriendRequest(User sender, UUID recipientId)
     {
+        if (recipientId.equals(sender.getId()))
+        {
+            throw new FriendshipException(HttpStatus.FORBIDDEN, "You can't send friend requests to yourself.");
+        }
         User recipient = userRepository.findById(recipientId).orElseThrow(() ->
                 new NotFoundException("User with the given id not found"));
 
