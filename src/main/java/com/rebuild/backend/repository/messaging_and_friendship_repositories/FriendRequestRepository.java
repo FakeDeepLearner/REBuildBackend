@@ -5,19 +5,17 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, UUID> {
 
-    @Query(
-            value = "SELECT r from FriendRequest r " +
-                    "WHERE (r.recipient=?1 AND r.sender=?2)" +
-                    "OR (r.recipient=?2 AND r.sender=?1)"
-    )
-    Optional<FriendRequest> findByTwoUsers(User user1, User user2);
+
+    Optional<FriendRequest> findByLowUserIdAndHighUserId(UUID lowUserId, UUID highUserId);
 
     Optional<FriendRequest> findByIdAndRecipient(UUID id, User recipient);
 

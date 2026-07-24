@@ -1,6 +1,5 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.FetchMessagesDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSearchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.PinnedMessageDTO;
@@ -9,6 +8,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
 import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
+import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
@@ -19,11 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -35,7 +32,7 @@ public class MessageService {
 
     private final UserRepository userRepository;
 
-    private final FriendRelationshipRepository friendRelationshipRepository;
+    private final FriendshipRepository friendshipRepository;
 
     private final ChatParticipationRepository participationRepository;
 
@@ -43,13 +40,13 @@ public class MessageService {
 
     @Autowired
     public MessageService(WebsocketsService websocketsService, ChatRepository chatRepository, UserRepository userRepository,
-                          FriendRelationshipRepository friendRelationshipRepository,
+                          FriendshipRepository friendshipRepository,
                           ChatParticipationRepository participationRepository,
                           MessageRepository messageRepository) {
         this.websocketsService = websocketsService;
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
-        this.friendRelationshipRepository = friendRelationshipRepository;
+        this.friendshipRepository = friendshipRepository;
         this.participationRepository = participationRepository;
         this.messageRepository = messageRepository;
     }
@@ -133,9 +130,10 @@ public class MessageService {
                 return sendMessageTo(sender, receivingUser, messageContent);
             }
 
+            UserPair userPair = new UserPair(sender, receivingUser);
             //Otherwise, only send a message if the 2 users are friends with each other.
-            Optional<FriendRelationship> foundRelationship =
-                    friendRelationshipRepository.findByTwoUsers(sender, receivingUser);
+            Optional<Friendship> foundRelationship =
+                    friendshipRepository.findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
             if (foundRelationship.isPresent()) {
                 return sendMessageTo(sender, receivingUser, messageContent);
             }

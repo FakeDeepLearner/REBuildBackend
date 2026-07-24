@@ -1,14 +1,15 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRelationship;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Friendship;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
+import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendshipRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,15 +25,15 @@ public class ProfileService {
 
     private final UserRepository userRepository;
 
-    private final FriendRelationshipRepository friendRelationshipRepository;
+    private final FriendshipRepository friendshipRepository;
 
     private final ProfileHelperService helperService;
 
     @Autowired
-    public ProfileService(UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository,
+    public ProfileService(UserRepository userRepository, FriendshipRepository friendshipRepository,
                          ProfileHelperService helperService) {
         this.userRepository = userRepository;
-        this.friendRelationshipRepository = friendRelationshipRepository;
+        this.friendshipRepository = friendshipRepository;
         this.helperService = helperService;
     }
 
@@ -60,12 +61,12 @@ public class ProfileService {
                 new NotFoundException("User with this id is not found"));
 
 
-        Optional<FriendRelationship> foundRelationship = friendRelationshipRepository.
-                findByUserAndUserId(user, clickedUserId);
+        UserPair userPair = new UserPair(foundUser, user);
+        Optional<Friendship> foundRelationship = friendshipRepository.
+                findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
 
         return helperService.
                 loadOtherUserProfile(foundUser, foundRelationship.isPresent());
-
     }
 
     private InformationVisibility mapStringToVisibility(String input)

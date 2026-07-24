@@ -2,11 +2,12 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.utils.exceptions.FriendshipException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendshipRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRequestRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,22 +27,22 @@ public class FriendshipService {
 
     private final UserRepository userRepository;
 
-    private final FriendRelationshipRepository friendRelationshipRepository;
+    private final FriendshipRepository friendshipRepository;
 
     private final FriendRequestRepository friendRequestRepository;
 
     @Autowired
     public FriendshipService(WebsocketsService websocketsService, UserRepository userRepository,
-                             FriendRelationshipRepository friendRelationshipRepository,
+                             FriendshipRepository friendshipRepository,
                              FriendRequestRepository friendRequestRepository) {
         this.websocketsService = websocketsService;
         this.userRepository = userRepository;
-        this.friendRelationshipRepository = friendRelationshipRepository;
+        this.friendshipRepository = friendshipRepository;
         this.friendRequestRepository = friendRequestRepository;
     }
 
     
-    public FriendRelationship acceptFriendshipRequest(User receiver, UUID friendRequestId)
+    public String acceptFriendshipRequest(User receiver, UUID friendRequestId)
     {
         FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, receiver).
                 orElseThrow(() ->
@@ -50,11 +51,15 @@ public class FriendshipService {
 
         User sender = friendRequest.getSender();
 
-        FriendRelationship newRelationship = new FriendRelationship(sender, receiver);
+        UserPair userPair = new UserPair(sender, receiver);
+
+        Friendship newRelationship = new Friendship(userPair);
 
         friendRequestRepository.delete(friendRequest);
 
-        return friendRelationshipRepository.save(newRelationship);
+        friendshipRepository.save(newRelationship);
+
+        return sender.getForumUsername();
     }
 
     
@@ -74,8 +79,10 @@ public class FriendshipService {
         User recipient = userRepository.findById(recipientId).orElseThrow(() ->
                 new NotFoundException("User with the given id not found"));
 
+        UserPair userPair = new UserPair(recipient, sender);
+
         Optional<FriendRequest> foundRequest =
-                friendRequestRepository.findByTwoUsers(sender, recipient);
+                friendRequestRepository.findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
 
         if (foundRequest.isPresent()) {
             throw new FriendshipException(HttpStatus.CONFLICT,
@@ -83,13 +90,13 @@ public class FriendshipService {
                             "another one until it is either declined or times out.");
         }
 
-        Optional<FriendRelationship> foundRelationship =
-                friendRelationshipRepository.findByTwoUsers(sender, recipient);
+        Optional<Friendship> foundRelationship =
+                friendshipRepository.findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
+
         if (foundRelationship.isPresent()) {
             throw new FriendshipException(HttpStatus.CONFLICT,
                     "You are already friends with this user");
         }
-
 
         FriendRequest newRequest = new FriendRequest(sender, recipient);
 

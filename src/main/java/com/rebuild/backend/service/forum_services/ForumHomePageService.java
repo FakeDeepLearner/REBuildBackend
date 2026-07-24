@@ -7,8 +7,9 @@ import com.rebuild.backend.model.forms.forum_forms.ForumSpecsForm;
 import com.rebuild.backend.model.responses.forum_responses.ForumPostPageResponse;
 import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendRelationshipRepository;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendshipRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
+import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -26,15 +27,15 @@ public class ForumHomePageService {
 
     private final UserRepository userRepository;
 
-    private final FriendRelationshipRepository friendRelationshipRepository;
+    private final FriendshipRepository friendshipRepository;
 
     @Autowired
     public ForumHomePageService(ForumPostRepository postRepository,
                                UserRepository userRepository,
-                                FriendRelationshipRepository friendRelationshipRepository) {
+                                FriendshipRepository friendshipRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
-        this.friendRelationshipRepository = friendRelationshipRepository;
+        this.friendshipRepository = friendshipRepository;
     }
 
     public ForumPostPageResponse loadForum(int pageNumber, User user)
@@ -70,10 +71,13 @@ public class ForumHomePageService {
         Slice<User> foundUsers = userRepository.findBySimilarUsername(username, request);
         List<UsernameSearchResultDTO> searchResultDTOS =
                 foundUsers.stream()
-                        .map(user ->
-                                new UsernameSearchResultDTO(user.getId(), user.getForumUsername(),
-                                        friendRelationshipRepository.findByTwoUsers(searchingUser,
-                                                user).isPresent())).
+                        .map(user -> {
+                            UserPair userPair = new UserPair(searchingUser, user);
+
+                            return new UsernameSearchResultDTO(user.getId(), user.getForumUsername(),
+                                    friendshipRepository.findByLowUserIdAndHighUserId(userPair.lowId(),
+                                            userPair.highId()).isPresent());
+                        }).
                         toList();
         return new UsernameSearchResponse(searchResultDTOS, foundUsers.getNumber(), foundUsers.hasNext());
     }
