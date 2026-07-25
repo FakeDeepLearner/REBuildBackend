@@ -1,6 +1,11 @@
 package com.rebuild.backend.service.forum_services;
 
-import com.rebuild.backend.model.dtos.websocket_dtos.*;
+import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.ChatInvitationNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.KickedNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.NewChatNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.NewMessageNotificationDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestActionDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestNotificationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
@@ -112,8 +117,17 @@ public class WebsocketsService {
 
         simpMessagingTemplate.convertAndSendToUser(
                 recipient.getForumUsername(),
-                "user/kick_notifications",
+                "/user/kick_notifications",
                 kickedNotificationDTO
+        );
+    }
+
+    public void sendFriendActionNotification(FriendRequestActionDTO actionDTO, String recipientUsername)
+    {
+        simpMessagingTemplate.convertAndSendToUser(
+                recipientUsername,
+                "/user/friendship_notifications",
+                actionDTO
         );
     }
 }

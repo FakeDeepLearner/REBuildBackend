@@ -1,7 +1,7 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.responses.user_responses.HomePageResponse;
 import com.rebuild.backend.model.responses.resume_responses.ResumeResponse;
 import com.rebuild.backend.service.forum_services.FriendshipService;
@@ -64,10 +64,16 @@ public class HomePageController {
         return resumeService.createNewResumeFor(name, authenticatedUser);
     }
 
-    @GetMapping("/friends")
+    @GetMapping("/friends/received_requests")
     @ResponseStatus(HttpStatus.OK)
-    public List<UsernameSearchResultDTO> loadFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
-        return friendshipService.loadUserFriendRequests(authenticatedUser);
+    public List<FriendRequestDTO> loadReceivedFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
+        return friendshipService.loadReceivedFriendRequests(authenticatedUser);
+    }
+
+    @GetMapping("/friends/sent_requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<FriendRequestDTO> loadSentFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
+        return friendshipService.loadSentFriendRequests(authenticatedUser);
     }
 
 }

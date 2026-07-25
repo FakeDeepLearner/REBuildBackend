@@ -1,10 +1,11 @@
 package com.rebuild.backend.service.forum_services;
 
+import com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO;
+import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestActionDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.BelongingException;
-import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.utils.exceptions.FriendshipException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendshipRepository;
@@ -59,20 +60,35 @@ public class FriendshipService {
 
         friendshipRepository.save(newRelationship);
 
+        FriendRequestActionDTO requestActionDTO = new FriendRequestActionDTO(receiver.getForumUsername(),
+                true);
+
+        websocketsService.sendFriendActionNotification(requestActionDTO, sender.getForumUsername());
+
         return sender.getForumUsername();
     }
-
     
     public void declineFriendshipRequest(User declininguser, UUID friendRequestId)
     {
         FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, declininguser).
                 orElseThrow(() ->
-                        new BelongingException("This friend either does not exist or has not been addressed to you."));
+                        new BelongingException("This friend request either does not exist or has not been addressed to you."));
 
+        FriendRequestActionDTO requestActionDTO = new FriendRequestActionDTO(declininguser.getForumUsername(),
+                false);
+
+        websocketsService.sendFriendActionNotification(requestActionDTO, friendRequest.getSender().getForumUsername());
         friendRequestRepository.delete(friendRequest);
     }
 
+    public void cancelFriendshipRequest(User cancellingUser, UUID friendRequestId)
+    {
+        FriendRequest friendRequest = friendRequestRepository.findByIdAndSender(friendRequestId,
+                cancellingUser).orElseThrow(() -> new BelongingException("This friend request either " +
+                "does not exist or has not been sent by you"));
 
+        friendRequestRepository.delete(friendRequest);
+    }
     
     public void sendFriendRequest(User sender, UUID recipientId)
     {
@@ -109,9 +125,14 @@ public class FriendshipService {
         websocketsService.sendFriendRequestNotification(savedRequest);
     }
 
-    public List<UsernameSearchResultDTO> loadUserFriendRequests(User loadingUser)
+    public List<FriendRequestDTO> loadReceivedFriendRequests(User loadingUser)
     {
-        return friendRequestRepository.loadByUser(loadingUser);
+        return friendRequestRepository.loadReceivedRequestsByUser(loadingUser);
+    }
+
+    public List<FriendRequestDTO> loadSentFriendRequests(User loadingUser)
+    {
+        return friendRequestRepository.loadSentRequestsByUser(loadingUser);
     }
 
 

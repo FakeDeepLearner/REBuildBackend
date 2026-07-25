@@ -15,7 +15,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "friend_requests", indexes = {
         @Index(columnList = "low_id, high_id"),
-        @Index(columnList = "id, recipient_id")
+        @Index(columnList = "id, recipient_id"),
+        @Index(columnList = "creation_time DESC")
 })
 @Data
 @RequiredArgsConstructor

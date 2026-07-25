@@ -71,7 +71,7 @@ public class ForumHomePageController {
     }
 
     @PostMapping("/accept_request/{request_id}")
-    public ResponseEntity<@NonNull String> acceptFriendshipRequest(@PathVariable UUID request_id,
+    public ResponseEntity<String> acceptFriendshipRequest(@PathVariable UUID request_id,
                                                                    @AuthenticationPrincipal User acceptingUser) {
         String result = friendshipService.acceptFriendshipRequest(acceptingUser, request_id);
         return ResponseEntity.ok("You have added " + result + " as a friend");
@@ -85,13 +85,18 @@ public class ForumHomePageController {
         friendshipService.declineFriendshipRequest(acceptingUser, request_id);
     }
 
+    @DeleteMapping("/delete_request/{request_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFriendshipRequest(@PathVariable UUID request_id,
+                                         @AuthenticationPrincipal User deletingUser) {
+        friendshipService.cancelFriendshipRequest(deletingUser, request_id);
+    }
+
     @PostMapping("/send_friendship/{recipient_id}")
-    public ResponseEntity<@NonNull String> sendFriendshipRequest(@PathVariable UUID recipient_id,
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendFriendshipRequest(@PathVariable UUID recipient_id,
                                                                  @AuthenticationPrincipal User sendingUser)
     {
-
         friendshipService.sendFriendRequest(sendingUser, recipient_id);
-
-        return ResponseEntity.ok("Friendship request sent");
     }
 }

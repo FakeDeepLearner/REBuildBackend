@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.dtos.websocket_dtos;
+package com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos;
 
 import java.util.UUID;
 
