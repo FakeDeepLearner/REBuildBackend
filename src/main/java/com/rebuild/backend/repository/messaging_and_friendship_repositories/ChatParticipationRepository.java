@@ -24,6 +24,7 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
 
     Optional<ChatParticipation> findByParticipatingUser_IdAndParticipatedChat_Id(UUID participatingUserId,
                                                                                  UUID participatedChatId);
+
     boolean existsByParticipatedChat_IdAndParticipatingUser(UUID participatedChatId, User participatingUser);
 
     @Query(value = """

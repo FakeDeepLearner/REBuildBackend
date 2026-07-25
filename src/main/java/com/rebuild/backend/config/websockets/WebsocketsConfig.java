@@ -1,10 +1,8 @@
-package com.rebuild.backend.config.other;
+package com.rebuild.backend.config.websockets;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
@@ -12,12 +10,24 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
 
+    private final WebsocketHandshakeHandler handshakeHandler;
+
+    private final WebsocketHandshakeInterceptor handshakeInterceptor;
+
+    @Autowired
+    public WebsocketsConfig(WebsocketHandshakeHandler handshakeHandler,
+                            WebsocketHandshakeInterceptor handshakeInterceptor) {
+        this.handshakeHandler = handshakeHandler;
+        this.handshakeInterceptor = handshakeInterceptor;
+    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // This configures the endpoint that
         // the client will connect to initially once the login is complete
-        registry.addEndpoint("chat-system").setAllowedOrigins("rerebuild.ca", "localhost").
+        registry.addEndpoint("/chat-system").setAllowedOrigins("https://rerebuild.ca", "localhost").
+                setHandshakeHandler(handshakeHandler).
+                addInterceptors(handshakeInterceptor).
                 withSockJS();
     }
 
@@ -36,7 +46,7 @@ public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
          */
 
         //The server will send a heartbeat every 5 seconds, and the client every 10 seconds
-        registry.enableSimpleBroker("/new_messages", "/new_chat_inviations",
+        registry.enableSimpleBroker("/new_messages", "/new_chat_invitations",
                         "/new_friend_invitations", "/new_chat_notifications", "/typing",
                         "/kicked_notifications", "/friendship_notifications").
                 setHeartbeatValue(new long[] {5000, 10000});

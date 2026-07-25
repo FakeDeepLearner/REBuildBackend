@@ -5,11 +5,15 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.forum_responses.*;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.service.forum_services.ChatAdministrationService;
 import com.rebuild.backend.service.forum_services.MessageService;
 import com.rebuild.backend.service.forum_services.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,11 +30,19 @@ public class ChatsController {
 
     private final ChatAdministrationService administrationService;
 
+    private final ChatParticipationRepository chatParticipationRepository;
+
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
     @Autowired
-    public ChatsController(MessageService messageService, ChatService chatService, ChatAdministrationService administrationService) {
+    public ChatsController(MessageService messageService, ChatService chatService,
+                           ChatAdministrationService administrationService,
+                           ChatParticipationRepository chatParticipationRepository, SimpMessagingTemplate simpMessagingTemplate) {
         this.messageService = messageService;
         this.chatService = chatService;
         this.administrationService = administrationService;
+        this.chatParticipationRepository = chatParticipationRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
 
@@ -181,6 +193,25 @@ public class ChatsController {
                                                     @RequestParam(name = "page", defaultValue = "0")  int pageNumber)
     {
         return messageService.getPinnedMessages(user, chat_id, pageNumber);
+    }
+
+    @MessageMapping("/typing-notification/{chatId}")
+    public void sendTypingNotification(@DestinationVariable UUID chatId,
+                                       @AuthenticationPrincipal User sender){
+        boolean userIsInChat = chatParticipationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, sender);
+
+        // If the user is not actually in this chat, then we don't do anything. If we don't have this check,
+        // a malicious user could send "typing" notifications to any chat that they want.
+
+        if (!userIsInChat){
+            return;
+        }
+
+        simpMessagingTemplate.convertAndSend(
+                "/typing/" + chatId,
+                sender.getForumUsername()
+        );
+
     }
 
 

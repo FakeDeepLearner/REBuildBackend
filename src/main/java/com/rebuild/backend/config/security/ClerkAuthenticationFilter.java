@@ -64,7 +64,7 @@ public class ClerkAuthenticationFilter extends OncePerRequestFilter {
 
     }
 
-    private String getClerkId(HttpServletRequest request)
+    public static String getClerkId(HttpServletRequest request)
     {
         Map<String, List<String>> headers = new HashMap<>();
 
