@@ -55,9 +55,8 @@ public class ProfileHelperService {
             {
                 return new ProfileSensitiveInformationDTO(user.getImageUrl(),
                         user.getEmail(), user.getForumUsername(),
-                        StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()));
+                        user.getName(), user.getPhoneNumber(), user.getLocation());
             }
-            //Otherwise, return the information masked
         }
 
         //If there is no friendship, we will only return the information properly if the visibility is set to everyone
@@ -67,14 +66,15 @@ public class ProfileHelperService {
             {
                 return new ProfileSensitiveInformationDTO(user.getImageUrl(),
                         user.getEmail(), user.getForumUsername(),
-                        StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()));
+                        user.getName(), user.getPhoneNumber(),
+                        user.getLocation());
             }
 
-            //Otherwise, return the information masked
         }
         return new ProfileSensitiveInformationDTO(null,
                 StringUtil.maskString(user.getEmail()), user.getForumUsername(),
-                StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()));
+                StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()),
+                StringUtil.maskString(user.getLocation()));
     }
 
     private List<ProfileHistoryCommentDTO> decideCommentList(User user, boolean thereIsFriendship)
@@ -88,7 +88,6 @@ public class ProfileHelperService {
             {
                 return loadCommentDTOsForUser(user);
             }
-            //Otherwise, return the information masked
         }
 
         //If there is no friendship, we will only return the information properly if the visibility is set to everyone
@@ -99,7 +98,6 @@ public class ProfileHelperService {
                 return loadCommentDTOsForUser(user);
             }
 
-            //Otherwise, return the information masked
         }
         return null;
     }
@@ -136,6 +134,7 @@ public class ProfileHelperService {
         ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser,
                 thereIsFriendship);
 
-        return new UserProfileResponse(sensitiveInformationDTO, commentsList, postsList);
+        return new UserProfileResponse(sensitiveInformationDTO, otherUser.getBiography(),
+                commentsList, postsList);
     }
 }

@@ -68,6 +68,12 @@ public class User implements Serializable {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "location")
+    private String location = null;
+
+    @Column(name = "bio")
+    private String biography = null;
+
     @Column(name = "post_history_setting")
     @Enumerated(EnumType.STRING)
     private InformationVisibility postsVisibility = DEFAULT_POSTS_VISIBILITY;
@@ -94,7 +100,7 @@ public class User implements Serializable {
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)
-    private transient List<ChatParticipation> chatParticipations = new ArrayList<>();
+    private List<ChatParticipation> chatParticipations = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL,

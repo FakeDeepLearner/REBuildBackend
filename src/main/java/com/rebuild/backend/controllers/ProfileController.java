@@ -45,4 +45,21 @@ public class ProfileController {
     {
         return profileService.changeProfilePrivacySettings(user, privacySettingsForm);
     }
+
+    @PatchMapping("/update_location")
+    @ResponseStatus(HttpStatus.OK)
+    public String updateUserLocation(@AuthenticationPrincipal User user,
+                                     @RequestBody String newLocation)
+    {
+        return profileService.updateUserLocation(user, newLocation);
+    }
+
+
+    @PatchMapping("/update_biography")
+    @ResponseStatus(HttpStatus.OK)
+    public String updateUserBiography(@AuthenticationPrincipal User user,
+                                     @RequestBody String newBiography)
+    {
+        return profileService.updateUserBiography(user, newBiography);
+    }
 }

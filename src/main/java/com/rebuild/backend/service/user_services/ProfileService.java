@@ -43,7 +43,9 @@ public class ProfileService {
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(user.getImageUrl(),
                         user.getEmail(), user.getForumUsername(),
-                        user.getName(), user.getPhoneNumber()),
+                        user.getName(), user.getPhoneNumber(),
+                        user.getLocation()),
+                user.getBiography(),
                 helperService.loadCommentDTOsForUser(user),
                 helperService.loadPostDTOsForUser(user)
         );
@@ -95,4 +97,29 @@ public class ProfileService {
         return loadSelfProfile(savedUser);
     }
 
+    public String updateUserLocation(User user, String newLocation)
+    {
+        if (newLocation.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Location may not be blank");
+        }
+
+        user.setLocation(newLocation);
+
+        User savedUser = userRepository.save(user);
+        return savedUser.getLocation();
+    }
+
+    public String updateUserBiography(User user, String newBiography)
+    {
+        if (newBiography.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Biography may not be blank");
+        }
+
+        user.setBiography(newBiography);
+
+        User savedUser = userRepository.save(user);
+        return savedUser.getBiography();
+    }
 }
