@@ -2,6 +2,7 @@ package com.rebuild.backend.config.websockets;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -22,13 +23,18 @@ public class WebsocketsConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        WebSocketMessageBrokerConfigurer.super.configureClientInboundChannel(registration);
+    }
+
+    @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.setPreserveReceiveOrder(true);
         // This configures the endpoint that
         // the client will connect to initially once the login is complete
-        registry.addEndpoint("/chat-system").setAllowedOrigins("https://rerebuild.ca", "localhost").
+        registry.addEndpoint("/rerebuild").setAllowedOrigins("https://rerebuild.ca", "localhost").
                 setHandshakeHandler(handshakeHandler).
-                addInterceptors(handshakeInterceptor).
-                withSockJS();
+                addInterceptors(handshakeInterceptor);
     }
 
     @Override

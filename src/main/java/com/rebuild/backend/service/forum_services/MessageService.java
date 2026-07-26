@@ -80,9 +80,12 @@ public class MessageService {
 
         List<ChatParticipation> newParticipations = associatedChat.getParticipations().stream().
                 peek(participation -> {
-            //For the participation of the sender of the message in this chat,
-            // we only update the last message of the participation
-            if (sender.equals(participation.getParticipatingUser()) && !participation.isMuted())
+              //Any muted participations are not updated at all.
+             if (participation.isMuted())
+             {
+                 return;
+             }
+            if (sender.equals(participation.getParticipatingUser()))
             {
                 participation.setLastMessage(content);
             }
@@ -90,11 +93,8 @@ public class MessageService {
             // update their last message only if the chat has not been muted
             else
             {
-                if (!participation.isMuted())
-                {
-                    participation.setLastMessage(content);
-                    participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1);
-                }
+                participation.setLastMessage(content);
+                participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1);
             }
 
         }).collect(Collectors.toCollection(ArrayList::new));

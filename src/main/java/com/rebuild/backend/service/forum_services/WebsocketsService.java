@@ -71,7 +71,7 @@ public class WebsocketsService {
                 contentPreview, sender.getForumUsername());
 
         simpMessagingTemplate.convertAndSendToUser(recipient.getForumUsername(),
-                "user/new_chat_notifications",
+                "/new_chat_notifications",
                 newChatNotificationDTO);
     }
 
@@ -86,7 +86,7 @@ public class WebsocketsService {
 
         simpMessagingTemplate.convertAndSendToUser(
                 sentInvitation.getRecipient().getForumUsername(),
-                "/user/new_chat_invitations",
+                "/new_chat_invitations",
                 invitationNotificationDTO
         );
     }
@@ -103,7 +103,7 @@ public class WebsocketsService {
 
         simpMessagingTemplate.convertAndSendToUser(
                 sentFriendRequest.getRecipient().getForumUsername(),
-                "/user/new_chat_invitations",
+                "/new_chat_invitations",
                 notificationDTO
         );
     }
@@ -117,7 +117,7 @@ public class WebsocketsService {
 
         simpMessagingTemplate.convertAndSendToUser(
                 recipient.getForumUsername(),
-                "/user/kick_notifications",
+                "/kick_notifications",
                 kickedNotificationDTO
         );
     }
@@ -126,7 +126,7 @@ public class WebsocketsService {
     {
         simpMessagingTemplate.convertAndSendToUser(
                 recipientUsername,
-                "/user/friendship_notifications",
+                "/friendship_notifications",
                 actionDTO
         );
     }

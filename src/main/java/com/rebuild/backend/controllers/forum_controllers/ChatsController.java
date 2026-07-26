@@ -194,26 +194,4 @@ public class ChatsController {
     {
         return messageService.getPinnedMessages(user, chat_id, pageNumber);
     }
-
-    @MessageMapping("/typing-notification/{chatId}")
-    public void sendTypingNotification(@DestinationVariable UUID chatId,
-                                       @AuthenticationPrincipal User sender){
-        boolean userIsInChat = chatParticipationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, sender);
-
-        // If the user is not actually in this chat, then we don't do anything. If we don't have this check,
-        // a malicious user could send "typing" notifications to any chat that they want.
-
-        if (!userIsInChat){
-            return;
-        }
-
-        simpMessagingTemplate.convertAndSend(
-                "/typing/" + chatId,
-                sender.getForumUsername()
-        );
-
-    }
-
-
-
 }
