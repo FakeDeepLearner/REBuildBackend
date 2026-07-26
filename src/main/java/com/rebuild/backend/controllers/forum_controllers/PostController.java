@@ -21,17 +21,14 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/forum/posts")
+@RequestMapping("api/posts")
 @Transactional
 public class PostController {
-
-    private final ResumeService resumeService;
 
     private final PostsService postsService;
 
     @Autowired
-    public PostController(ResumeService resumeService, PostsService postsService) {
-        this.resumeService = resumeService;
+    public PostController(PostsService postsService) {
         this.postsService = postsService;
     }
 

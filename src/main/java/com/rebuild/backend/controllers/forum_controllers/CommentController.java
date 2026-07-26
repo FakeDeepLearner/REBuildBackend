@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/forum/comments")
+@RequestMapping("/api/comments")
 public class CommentController {
 
     private final CommentsService commentsService;

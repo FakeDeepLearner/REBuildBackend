@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class ProfileService {
+public class UserService {
 
     private final UserRepository userRepository;
 
@@ -30,8 +30,8 @@ public class ProfileService {
     private final ProfileHelperService helperService;
 
     @Autowired
-    public ProfileService(UserRepository userRepository, FriendshipRepository friendshipRepository,
-                         ProfileHelperService helperService) {
+    public UserService(UserRepository userRepository, FriendshipRepository friendshipRepository,
+                       ProfileHelperService helperService) {
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
         this.helperService = helperService;

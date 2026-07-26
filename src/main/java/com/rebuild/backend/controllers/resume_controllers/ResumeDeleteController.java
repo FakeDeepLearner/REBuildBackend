@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/api/resume/delete", method = RequestMethod.DELETE)
+@RequestMapping(value = "/api/resume")
 @ResponseStatus(HttpStatus.OK)
 public class ResumeDeleteController {
 

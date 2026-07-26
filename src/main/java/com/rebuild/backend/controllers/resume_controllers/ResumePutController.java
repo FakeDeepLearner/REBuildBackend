@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/api/resume/put", method = RequestMethod.PUT)
+@RequestMapping(value = "/api/resume")
 @ResponseStatus(HttpStatus.OK)
 public class ResumePutController {
 
@@ -45,7 +45,6 @@ public class ResumePutController {
     }
 
     @PutMapping("/education/{resume_id}")
-    @ResponseStatus(HttpStatus.OK)
     public ResumeResponse modifyEducation(@Valid @RequestBody EducationForm educationForm,
                                              @AuthenticationPrincipal User user,
                                              @PathVariable UUID resume_id){

@@ -9,7 +9,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.*;
 
-@RestController("/api/utils")
+@RequestMapping("/api/resume")
+@RestController
 public class ResumeUtilController {
 
     private final ResumeService resumeService;
