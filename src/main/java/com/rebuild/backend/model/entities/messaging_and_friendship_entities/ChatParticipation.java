@@ -3,7 +3,7 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -67,11 +67,6 @@ public class ChatParticipation extends Auditable {
     @Column(name = "is_admin")
     @NonNull
     private Boolean isAdmin;
-
-    public boolean hasNoAdminPrivileges()
-    {
-        return !isAdmin;
-    }
 
     @Override
     public boolean equals(Object o) {

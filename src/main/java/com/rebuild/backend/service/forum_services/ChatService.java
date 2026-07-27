@@ -7,7 +7,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatUsersResponse;
@@ -60,12 +60,11 @@ public class ChatService {
     
     public GroupChat createNewGroupChat(User creatingUser, String chatName)
     {
-        GroupChat newChat = new GroupChat();
+        GroupChat newChat = new GroupChat(chatName);
 
         ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true, true);
         creatingUser.addChatParticipation(userParticipation);
 
-        newChat.setChatName(chatName);
         newChat.setParticipations(new ArrayList<>(List.of(userParticipation)));
 
         return chatRepository.save(newChat);
@@ -121,7 +120,8 @@ public class ChatService {
 
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
     {
-        List<ChatParticipation> allChatParticipations = participationRepository.findByParticipatingUser(displayingUser);
+        List<ChatParticipation> allChatParticipations = participationRepository.
+                findByParticipatingUser(displayingUser);
 
         // We have to use the collect method at the very end,
         // because using toList() returns an unmodifiable list.
@@ -158,6 +158,7 @@ public class ChatService {
         ChatParticipation userParticipation = participationRepository.
                 findByParticipatingUserAndParticipatedChat(loadingUser, chat).
                 orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not participating in this chat, you can't load it"));
+
         //Update the participation of this user in this chat.
         userParticipation.setUnreadMessagesCount(0);
         userParticipation.setLastMessage(chat.getLastMessage());
@@ -168,16 +169,15 @@ public class ChatService {
 
         Pageable request = PageRequest.of(pageNumber, 30, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Slice<Message> currentMessages = messageRepository.findByAssociatedChat(chat, request);
+        Slice<Message> currentMessages = messageRepository.findByAssociatedChat_Id(chatId, request);
 
         List<MessageDisplayDTO> messages = currentMessages.getContent()
                 .stream().
                 map(message -> message.toDTo(loadingUser)).toList();
 
         return new LoadChatResponse(chatDisplayName, chat.getId(), messages,
-                chatPictureUrl, currentMessages.hasNext(), !userParticipation.hasNoAdminPrivileges());
+                chatPictureUrl, currentMessages.hasNext(), userParticipation.getIsAdmin());
     }
-
 
     public List<UUID> findAllChatIdsByUser(User user)
     {
@@ -186,12 +186,8 @@ public class ChatService {
 
     public boolean toggleChatMute(User togglingUser, UUID chatId)
     {
-        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(
-                () -> new NotFoundException("A chat with the specified id does not exist")
-        );
-
         ChatParticipation foundParticipation = participationRepository.
-                findByParticipatingUserAndParticipatedChat(togglingUser, foundChat).
+                findByChatIdAndUser(chatId, togglingUser).
                 orElseThrow(() -> new BelongingException("You cannot mute or unmute a chat you are not participating in"));
 
         boolean muted = foundParticipation.isMuted();
@@ -224,6 +220,7 @@ public class ChatService {
                 }
         ).toList();
 
-        return new LoadChatUsersResponse(userDisplayDTOS, loadingUserParticipation.getIsAdmin());
+        return new LoadChatUsersResponse(userDisplayDTOS, userChat.getMemberCount(),
+                loadingUserParticipation.getIsAdmin());
     }
 }

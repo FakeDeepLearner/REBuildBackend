@@ -18,8 +18,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
     @Query(value = """
             SELECT fp FROM ForumPost fp
-            LEFT JOIN FETCH fp.resumes
-            JOIN fp.user u WHERE fp.id=?1
+            JOIN FETCH fp.user u WHERE fp.id=?1
            """)
     Optional<ForumPost> findByIdWithMoreInfo(UUID id);
 

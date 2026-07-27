@@ -5,5 +5,6 @@ import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserD
 import java.util.List;
 
 public record LoadChatUsersResponse(List<ChatUserDisplayDTO> userDisplays,
+                                    int userCount,
                                     boolean requestingUserIsAdmin) {
 }

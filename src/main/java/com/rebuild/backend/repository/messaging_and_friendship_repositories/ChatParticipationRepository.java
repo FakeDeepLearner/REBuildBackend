@@ -2,9 +2,7 @@ package com.rebuild.backend.repository.messaging_and_friendship_repositories;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

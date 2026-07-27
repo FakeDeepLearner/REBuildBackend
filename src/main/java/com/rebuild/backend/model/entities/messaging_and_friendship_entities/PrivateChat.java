@@ -2,13 +2,11 @@ package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -20,6 +18,7 @@ public class PrivateChat extends AbstractChat {
 
     public PrivateChat(User sender, User recipient, String initialMessageContent)
     {
+        super(2, 2);
         ChatParticipation senderParticipation = new ChatParticipation(sender, this,
                 false, true);
         senderParticipation.setParticipatingUser(sender);

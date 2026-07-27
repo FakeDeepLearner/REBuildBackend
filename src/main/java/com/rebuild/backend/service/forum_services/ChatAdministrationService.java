@@ -5,7 +5,7 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Chat
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatInvitationRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
@@ -60,7 +60,7 @@ public class ChatAdministrationService {
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
         }
-        if (foundParticipation.hasNoAdminPrivileges())
+        if (!foundParticipation.getIsAdmin())
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
         }
@@ -92,7 +92,7 @@ public class ChatAdministrationService {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
         }
 
-        if (kickingUserParticipation.hasNoAdminPrivileges())
+        if (!kickingUserParticipation.getIsAdmin())
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
         }
@@ -146,7 +146,7 @@ public class ChatAdministrationService {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
         }
 
-        if (foundParticipation.hasNoAdminPrivileges())
+        if (!foundParticipation.getIsAdmin())
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "You can't invite anyone to this chat " +
                     "because you are not an administrator in this chat.");
@@ -179,7 +179,7 @@ public class ChatAdministrationService {
                 orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
                         "or you are not a member in this chat."));
 
-        if (pinningUserParticipation.hasNoAdminPrivileges()){
+        if (!pinningUserParticipation.getIsAdmin()){
             throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators can perform this action");
         }
 

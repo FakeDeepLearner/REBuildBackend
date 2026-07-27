@@ -33,9 +33,6 @@ public class ForumPost extends Auditable {
     @NonNull
     private String content;
 
-    @OneToMany(mappedBy = "associatedPost", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostResume> resumes;
-
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore

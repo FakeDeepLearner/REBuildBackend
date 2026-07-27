@@ -1,12 +1,9 @@
-package com.rebuild.backend.model.entities.util_entitites.base_entities;
+package com.rebuild.backend.model.entities.util_entitites;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
-import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +14,8 @@ import java.util.UUID;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "is_group_chat", discriminatorType = DiscriminatorType.INTEGER)
 @Data
+@NoArgsConstructor
+@RequiredArgsConstructor
 public abstract class AbstractChat extends Auditable {
 
     @Id
@@ -30,11 +29,17 @@ public abstract class AbstractChat extends Auditable {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY,
     orphanRemoval = true)
-    @NonNull
     private List<ChatParticipation> participations = new ArrayList<>();
 
     @Column(name = "last_message")
     private String lastMessage = null;
 
+    @NonNull
+    @Column(name = "member_count", columnDefinition = "int")
+    private Integer memberCount;
+
+    @NonNull
+    @Column(name = "member_count", columnDefinition = "int")
+    private Integer administratorCount;
 
 }

@@ -6,7 +6,7 @@ import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSe
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.PinnedMessageDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import jakarta.persistence.*;
 import lombok.*;
 

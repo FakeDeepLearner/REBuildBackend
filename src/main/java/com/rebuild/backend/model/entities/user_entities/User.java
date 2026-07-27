@@ -5,7 +5,6 @@ import com.rebuild.backend.model.dtos.auth_dtos.ClerkInformation;
 import com.rebuild.backend.model.entities.forum_entities.Comment;
 import com.rebuild.backend.model.entities.forum_entities.ForumPost;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.resume_entities.Resume;
 import com.rebuild.backend.utils.StringUtil;
 import jakarta.persistence.*;
 import lombok.*;
@@ -88,15 +87,6 @@ public class User implements Serializable {
     @Column(name = "sensitive_information_setting")
     @Enumerated(EnumType.STRING)
     private InformationVisibility sensitiveInfoVisibility = DEFAULT_SENSITIVE_INFO_VISIBILITY;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = true,
-    cascade = {
-            CascadeType.REMOVE,
-            CascadeType.PERSIST,
-            CascadeType.MERGE
-    })
-    @OrderBy("createdAt ASC")
-    private List<Resume> resumes = new ArrayList<>();
 
     @OneToMany(orphanRemoval = true, cascade = ALL, mappedBy = "participatingUser",
     fetch = FetchType.LAZY)

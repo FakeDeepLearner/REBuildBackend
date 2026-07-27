@@ -8,7 +8,7 @@ import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendReque
 import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestNotificationDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.base_entities.AbstractChat;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 

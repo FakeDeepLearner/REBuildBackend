@@ -7,12 +7,10 @@ import com.rebuild.backend.model.entities.forum_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.forum_forms.EditPostForm;
 import com.rebuild.backend.model.responses.forum_responses.EditPostResponse;
-import com.rebuild.backend.model.responses.resume_responses.ResumePreviewResponse;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import com.rebuild.backend.model.forms.forum_forms.NewPostForm;
 import com.rebuild.backend.repository.forum_repositories.ForumPostRepository;
-import com.rebuild.backend.repository.resume_repositories.ResumeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,26 +28,16 @@ public class PostsService {
 
     private final ForumPostRepository postRepository;
 
-    private final ResumeRepository resumeRepository;
-
 
     @Autowired
-    public PostsService(ResumeRepository resumeRepository,
-                        ForumPostRepository postRepository) {
+    public PostsService(ForumPostRepository postRepository) {
         this.postRepository = postRepository;
-        this.resumeRepository = resumeRepository;
     }
 
     
     public ForumPost createNewPost(NewPostForm postForm,
                                    User creatingUser) {
         ForumPost newPost = new ForumPost(postForm.title(), postForm.content());
-        List<PostResume> resumes = resumeRepository.findByUserAndIdIn(creatingUser, postForm.resumeIDs()).stream()
-                        .map(PostResume::new).
-                        peek(postResume -> postResume.setAssociatedPost(newPost)).
-                toList();
-        newPost.setResumes(resumes);
-
         newPost.setUser(creatingUser);
         creatingUser.getMadePosts().add(newPost);
         return postRepository.save(newPost);
@@ -82,14 +70,9 @@ public class PostsService {
                 toList();
 
 
-        List<ResumePreviewResponse> previews = forumPost.getResumes().stream().map(
-                postResume -> new ResumePreviewResponse(postResume.getId(),
-                        null, postResume.getPreviewUrl())
-        ).toList();
-
         Instant postedTime = forumPost.isEdited() ? forumPost.getLastModifiedAt() : forumPost.getCreatedAt();
         return new PostDisplayDTO(forumPost.getId(), forumPost.getTitle(), forumPost.getContent(),
-                postUser.getForumUsername(), postedTime, previews, displayedComments,
+                postUser.getForumUsername(), postedTime, null, displayedComments,
                 fetchedComments.hasNext());
 
     }
