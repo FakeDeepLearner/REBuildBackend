@@ -64,11 +64,10 @@ public class UserService {
 
 
         UserPair userPair = new UserPair(foundUser, user);
-        Optional<Friendship> foundRelationship = friendshipRepository.
-                findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
 
         return helperService.
-                loadOtherUserProfile(foundUser, foundRelationship.isPresent());
+                loadOtherUserProfile(foundUser, friendshipRepository.
+                        existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId()));
     }
 
     private InformationVisibility mapStringToVisibility(String input)

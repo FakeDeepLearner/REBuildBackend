@@ -136,9 +136,9 @@ public class MessageService {
 
             UserPair userPair = new UserPair(sender, receivingUser);
             //Otherwise, only send a message if the 2 users are friends with each other.
-            Optional<Friendship> foundRelationship =
-                    friendshipRepository.findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
-            if (foundRelationship.isPresent()) {
+            boolean foundRelationship =
+                    friendshipRepository.existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
+            if (foundRelationship) {
                 return sendMessageTo(sender, receivingUser, messageContent);
             }
         }

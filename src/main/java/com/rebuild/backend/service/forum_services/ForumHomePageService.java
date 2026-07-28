@@ -75,8 +75,8 @@ public class ForumHomePageService {
                             UserPair userPair = new UserPair(searchingUser, user);
 
                             return new UsernameSearchResultDTO(user.getId(), user.getForumUsername(),
-                                    friendshipRepository.findByLowUserIdAndHighUserId(userPair.lowId(),
-                                            userPair.highId()).isPresent());
+                                    friendshipRepository.existsByLowUserIdAndHighUserId(userPair.lowId(),
+                                            userPair.highId()));
                         }).
                         toList();
         return new UsernameSearchResponse(searchResultDTOS, foundUsers.getNumber(), foundUsers.hasNext());

@@ -2,19 +2,16 @@ package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
+import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatUsersResponse;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatInvitationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
+import com.rebuild.backend.repository.user_repositories.UserRepository;
+import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
@@ -45,27 +42,40 @@ public class ChatService {
 
     private final MessageRepository messageRepository;
 
+    private final UserRepository userRepository;
+
+    private final FriendshipRepository friendshipRepository;
+
     @Autowired
     public ChatService(ChatRepository chatRepository,
                        ChatInvitationRepository chatInvitationRepository,
                        ChatUtilService chatUtilService, ChatParticipationRepository participationRepository,
-                       MessageRepository messageRepository) {
+                       MessageRepository messageRepository, UserRepository userRepository, FriendshipRepository friendshipRepository) {
         this.chatRepository = chatRepository;
         this.chatInvitationRepository = chatInvitationRepository;
         this.chatUtilService = chatUtilService;
         this.participationRepository = participationRepository;
         this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+        this.friendshipRepository = friendshipRepository;
     }
 
     
-    public GroupChat createNewGroupChat(User creatingUser, String chatName)
+    public GroupChat createNewGroupChat(User creatingUser, NewChatForm newChatForm)
     {
-        GroupChat newChat = new GroupChat(chatName);
+        GroupChat newChat = new GroupChat(newChatForm);
 
-        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true, true);
+        ChatParticipation userParticipation = new ChatParticipation(creatingUser, newChat, true);
         creatingUser.addChatParticipation(userParticipation);
 
         newChat.setParticipations(new ArrayList<>(List.of(userParticipation)));
+
+        List<ChatInvitation> createdChatInvitations = newChatForm.invitedUserIds().stream().map(
+                userId -> createInvitationToNewChat(creatingUser, newChat,
+                        userId)
+        ).collect(Collectors.toCollection(ArrayList::new));
+
+        newChat.setInvitations(createdChatInvitations);
 
         return chatRepository.save(newChat);
     }
@@ -79,9 +89,10 @@ public class ChatService {
         GroupChat associatedChat = foundInvitation.getAssociatedChat();
 
         ChatParticipation recipientParticipation = new ChatParticipation(recipient,
-                associatedChat, true, false);
+                associatedChat, false);
         recipientParticipation.setLastMessage(associatedChat.getLastMessage());
 
+        associatedChat.setMemberCount(associatedChat.getMemberCount() + 1);
         associatedChat.getParticipations().add(recipientParticipation);
         recipient.addChatParticipation(recipientParticipation);
 
@@ -106,16 +117,35 @@ public class ChatService {
         ChatParticipation leavingUserParticipation = participationRepository.findByChatIdAndUser(
                 chatId, leavingUser
         ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
+                "or you are not a member in this chat."));
 
-        if (!leavingUserParticipation.getIsGroupChat())
+        AbstractChat chat = leavingUserParticipation.getParticipatedChat();
+
+        if (!(chat instanceof GroupChat))
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
         }
 
-        leavingUserParticipation.getParticipatedChat().getParticipations().remove(leavingUserParticipation);
+        //If this user is the only administrator and there are members other than this user, they can't leave.
+        if (leavingUserParticipation.getIsAdmin() && chat.getAdministratorCount() == 1 && chat.getMemberCount() > 1)
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You cannot leave this chat as the only administrator. " +
+                    "Please make another user an administrator if you want to leave.");
+        }
+
+
+        chat.setMemberCount(chat.getMemberCount() - 1);
+        chat.getParticipations().remove(leavingUserParticipation);
         leavingUser.getChatParticipations().remove(leavingUserParticipation);
         participationRepository.delete(leavingUserParticipation);
+
+        //If the leaving user was the last member of the chat, then delete the chat as well.
+        if (chat.getMemberCount() == 0)
+        {
+            chatRepository.delete(chat);
+        }
+
+        userRepository.save(leavingUser);
     }
 
     public List<DisplayChatResponse> displayAllChats(User displayingUser)
@@ -222,5 +252,26 @@ public class ChatService {
 
         return new LoadChatUsersResponse(userDisplayDTOS, userChat.getMemberCount(),
                 loadingUserParticipation.getIsAdmin());
+    }
+
+    private ChatInvitation createInvitationToNewChat(User sender, GroupChat newGroupChat, UUID invitedUserId)
+    {
+        User recipient = userRepository.findById(invitedUserId).orElseThrow(
+                () -> new NotFoundException("User with this id is not found.")
+        );
+
+        UserPair userPair = new UserPair(recipient, sender);
+        boolean usersAreFriends = friendshipRepository.existsByLowUserIdAndHighUserId(
+                userPair.lowId(),
+                userPair.highId()
+        );
+
+        if (!usersAreFriends)
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You cannot invite users who you are not " +
+                    "friends with to the chat while creating it");
+        }
+
+        return new ChatInvitation(sender, recipient, newGroupChat);
     }
 }

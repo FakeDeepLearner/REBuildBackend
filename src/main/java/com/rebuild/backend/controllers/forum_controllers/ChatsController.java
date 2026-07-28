@@ -4,11 +4,13 @@ import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDi
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.service.forum_services.ChatAdministrationService;
 import com.rebuild.backend.service.forum_services.MessageService;
 import com.rebuild.backend.service.forum_services.ChatService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -70,9 +72,10 @@ public class ChatsController {
     }
 
     @PostMapping("/create")
-    public GroupChat createGroupChat(@AuthenticationPrincipal User creatingUser, @RequestBody String name)
+    public GroupChat createGroupChat(@AuthenticationPrincipal User creatingUser,
+                                     @Valid @RequestBody NewChatForm newChatForm)
     {
-        return chatService.createNewGroupChat(creatingUser, name);
+        return chatService.createNewGroupChat(creatingUser, newChatForm);
     }
 
 
@@ -97,7 +100,6 @@ public class ChatsController {
                                                  @PathVariable UUID chat_id)
     {
         return administrationService.sendGroupChatInvitation(user, user_id, chat_id);
-
     }
 
 

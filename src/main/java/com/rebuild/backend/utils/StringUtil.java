@@ -7,12 +7,8 @@ import com.rebuild.backend.model.dtos.auth_dtos.ClerkEmail;
 import com.rebuild.backend.model.dtos.auth_dtos.ClerkInformation;
 import com.rebuild.backend.model.dtos.auth_dtos.ClerkPhoneNumber;
 import com.rebuild.backend.utils.exceptions.ApiException;
-import com.rebuild.backend.utils.exceptions.UserAuthException;
 import org.springframework.http.HttpStatus;
 
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 
 public class StringUtil {
@@ -70,7 +66,7 @@ public class StringUtil {
         }
         catch (NumberParseException e)
         {
-            throw new UserAuthException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ApiException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 

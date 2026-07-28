@@ -1,6 +1,7 @@
 package com.rebuild.backend.controllers;
 
 import com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO;
+import com.rebuild.backend.model.dtos.user_dtos.UserFriendDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.service.forum_services.FriendshipService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,5 +34,12 @@ public class HomePageController {
     public List<FriendRequestDTO> loadSentFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
         return friendshipService.loadSentFriendRequests(authenticatedUser);
     }
+
+    @GetMapping("/friends")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserFriendDTO> loadFriends(@AuthenticationPrincipal User authenticatedUser) {
+        return friendshipService.getUserFriends(authenticatedUser);
+    }
+
 
 }

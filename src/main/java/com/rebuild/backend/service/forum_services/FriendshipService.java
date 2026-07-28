@@ -1,6 +1,7 @@
 package com.rebuild.backend.service.forum_services;
 
 import com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO;
+import com.rebuild.backend.model.dtos.user_dtos.UserFriendDTO;
 import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestActionDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -101,19 +102,19 @@ public class FriendshipService {
 
         UserPair userPair = new UserPair(recipient, sender);
 
-        Optional<FriendRequest> foundRequest =
-                friendRequestRepository.findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
+        boolean foundRequest =
+                friendRequestRepository.existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
 
-        if (foundRequest.isPresent()) {
+        if (!foundRequest) {
             throw new FriendshipException(HttpStatus.CONFLICT,
                     "You already have an existing friend request with this user, you cannot send " +
                             "another one until it is either declined or times out.");
         }
 
-        Optional<Friendship> foundRelationship =
-                friendshipRepository.findByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
+        boolean foundRelationship =
+                friendshipRepository.existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
 
-        if (foundRelationship.isPresent()) {
+        if (!foundRelationship) {
             throw new FriendshipException(HttpStatus.CONFLICT,
                     "You are already friends with this user");
         }
@@ -133,6 +134,11 @@ public class FriendshipService {
     public List<FriendRequestDTO> loadSentFriendRequests(User loadingUser)
     {
         return friendRequestRepository.loadSentRequestsByUser(loadingUser);
+    }
+
+    public List<UserFriendDTO> getUserFriends(User loadingUser)
+    {
+        return friendshipRepository.findFriendshipsById(loadingUser.getId());
     }
 
 

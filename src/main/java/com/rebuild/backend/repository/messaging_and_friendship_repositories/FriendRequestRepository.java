@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, UUID> {
 
 
-    Optional<FriendRequest> findByLowUserIdAndHighUserId(UUID lowUserId, UUID highUserId);
+    boolean existsByLowUserIdAndHighUserId(UUID lowUserId, UUID highUserId);
 
     @Query(value = """
     SELECT f FROM FriendRequest f

@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.*;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,25 +52,25 @@ public class ChatAdministrationService {
 
     public boolean toggleUserAdmin(User administratingUser, UUID chatId, UUID userId)
     {
-        ChatParticipation foundParticipation = participationRepository.findByChatIdAndUser(
-                chatId, administratingUser
-        ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
-
-        if (!foundParticipation.getIsGroupChat())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
-        }
-        if (!foundParticipation.getIsAdmin())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
-        }
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(administratingUser, chatId);
 
         ChatParticipation recipientParticipation = participationRepository.
                 findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId).orElseThrow(()
                         -> new NotFoundException("User with this ID is not found, or is not a member of this chat"));
 
         boolean currentStatus = recipientParticipation.getIsAdmin();
+
+        //If the user is currently an admin, we will subtract one from the admin total,
+        // since we are removing the admin status of the target user
+        if (currentStatus)
+        {
+            associatedChat.setAdministratorCount(associatedChat.getAdministratorCount() - 1);
+        }
+        else
+        {
+            associatedChat.setAdministratorCount(associatedChat.getAdministratorCount() + 1);
+        }
+        chatRepository.save(associatedChat);
 
         recipientParticipation.setIsAdmin(!currentStatus);
 
@@ -81,76 +82,30 @@ public class ChatAdministrationService {
 
     public void kickUserFromChat(User kickingUser, UUID chatId, UUID userId)
     {
-
-        ChatParticipation kickingUserParticipation = participationRepository.findByChatIdAndUser(
-                chatId, kickingUser
-        ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
-
-        if (!kickingUserParticipation.getIsGroupChat())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
-        }
-
-        if (!kickingUserParticipation.getIsAdmin())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
-        }
-
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(kickingUser, chatId);
         ChatParticipation kickedUserParticipation =
                 participationRepository.findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId)
                         .orElseThrow(() -> new NotFoundException("This user is not a member of this chat"));
 
-        AbstractChat necessaryChat = kickedUserParticipation.getParticipatedChat();
-        necessaryChat.getParticipations().remove(kickedUserParticipation);
+        associatedChat.getParticipations().remove(kickedUserParticipation);
 
-        AbstractChat savedChat = chatRepository.save(necessaryChat);
-
-        //Once again, this is a safe cast, since we know that the chat cannot be a private chat by the time we get here.
-        websocketsService.sendKickNotification((GroupChat) savedChat, kickedUserParticipation);
-    }
-
-    public void deleteChat(User deletingUser, UUID chatId)
-    {
-
-        ChatParticipation deletingUserParticipation = participationRepository.findByChatIdAndUser(
-                chatId, deletingUser
-        ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
-
-        if (!deletingUserParticipation.getIsGroupChat())
+        associatedChat.setMemberCount(associatedChat.getMemberCount() - 1);
+        if (kickedUserParticipation.getIsAdmin())
         {
-            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
+            associatedChat.setAdministratorCount(associatedChat.getAdministratorCount() - 1);
         }
 
-        AbstractChat relevantChat = deletingUserParticipation.getParticipatedChat();
-        //This will automatically delete all the messages and participations as well, because of orphan removal
-        relevantChat.setMessages(null);
-        relevantChat.setParticipations(null);
-        chatRepository.delete(relevantChat);
+        GroupChat savedChat = chatRepository.save(associatedChat);
+        participationRepository.delete(kickedUserParticipation);
+        websocketsService.sendKickNotification(savedChat, kickedUserParticipation);
     }
-
 
     public ChatInvitation sendGroupChatInvitation(User sender, UUID recipientId, UUID chatId)
     {
         User recipient = userRepository.findById(recipientId).orElseThrow(
                 () -> new NotFoundException("User with the specified id not found"));
 
-        ChatParticipation foundParticipation = participationRepository.findByChatIdAndUser(
-                chatId, sender
-        ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
-
-        if (!foundParticipation.getIsGroupChat())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
-        }
-
-        if (!foundParticipation.getIsAdmin())
-        {
-            throw new ChatException(HttpStatus.FORBIDDEN, "You can't invite anyone to this chat " +
-                    "because you are not an administrator in this chat.");
-        }
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(sender, chatId);
 
         Optional<ChatInvitation> foundInvitation =
                 chatInvitationRepository.findBySenderAndRecipientAndAssociatedChat_Id(sender, recipient,
@@ -165,7 +120,9 @@ public class ChatAdministrationService {
 
         //This cast is safe, since we already know that it isn't a private chat by this point.
         ChatInvitation newInvitation = new ChatInvitation(sender, recipient,
-                (GroupChat) foundParticipation.getParticipatedChat());
+                associatedChat);
+        associatedChat.getInvitations().add(newInvitation);
+        chatRepository.save(associatedChat);
 
         ChatInvitation savedInvitation = chatInvitationRepository.save(newInvitation);
 
@@ -198,5 +155,24 @@ public class ChatAdministrationService {
         Message savedMessage = messageRepository.save(foundMessage);
         return savedMessage.isPinned();
 
+    }
+
+    private GroupChat findParticipationAndCheckGroupAdminStatus(User user, UUID chatId)
+    {
+        ChatParticipation foundParticipation = participationRepository.findByChatIdAndUser(
+                chatId, user
+        ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
+                "or you are not a member in this chat, or this chat is not a group chat"));
+        AbstractChat associatedChat = foundParticipation.getParticipatedChat();
+
+        if (!(associatedChat instanceof GroupChat))
+        {
+            throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
+        }
+        if (!foundParticipation.getIsAdmin()) {
+            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators are able to do this operation");
+        }
+
+        return (GroupChat) associatedChat;
     }
 }

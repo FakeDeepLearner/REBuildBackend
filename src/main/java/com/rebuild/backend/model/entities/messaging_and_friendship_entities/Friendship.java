@@ -10,7 +10,9 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "friendships", indexes = {
-        @Index(columnList = "low_id, high_id")
+        @Index(columnList = "low_id, high_id"),
+        @Index(columnList = "high_id"),
+        @Index(columnList = "low_id")
 })
 @Data
 @NoArgsConstructor
