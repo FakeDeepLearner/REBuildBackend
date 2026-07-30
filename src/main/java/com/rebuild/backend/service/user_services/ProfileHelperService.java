@@ -47,30 +47,21 @@ public class ProfileHelperService {
     private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, boolean thereIsFriendship)
     {
         InformationVisibility sensitiveInfoVisibility = user.getSensitiveInfoVisibility();
-        if (thereIsFriendship)
+        if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
         {
-            //If the user has selected their information to be visible to everyone or to friends only, return it normally
-            if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE) ||
-                    sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
-            {
-                return new ProfileSensitiveInformationDTO(user.getImageUrl(),
-                        user.getEmail(), user.getForumUsername(),
-                        user.getName(), user.getPhoneNumber(), user.getLocation());
-            }
+            return new ProfileSensitiveInformationDTO(user.getImageUrl(),
+                    user.getEmail(), user.getForumUsername(),
+                    user.getName(), user.getPhoneNumber(),
+                    user.getLocation());
+        }
+        if (thereIsFriendship && sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
+        {
+            return new ProfileSensitiveInformationDTO(user.getImageUrl(),
+                    user.getEmail(), user.getForumUsername(),
+                    user.getName(), user.getPhoneNumber(),
+                    user.getLocation());
         }
 
-        //If there is no friendship, we will only return the information properly if the visibility is set to everyone
-        else
-        {
-            if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
-            {
-                return new ProfileSensitiveInformationDTO(user.getImageUrl(),
-                        user.getEmail(), user.getForumUsername(),
-                        user.getName(), user.getPhoneNumber(),
-                        user.getLocation());
-            }
-
-        }
         return new ProfileSensitiveInformationDTO(null,
                 StringUtil.maskString(user.getEmail()), user.getForumUsername(),
                 StringUtil.maskString(user.getName()), StringUtil.maskString(user.getPhoneNumber()),
@@ -80,25 +71,15 @@ public class ProfileHelperService {
     private List<ProfileHistoryCommentDTO> decideCommentList(User user, boolean thereIsFriendship)
     {
         InformationVisibility commentsVisibility = user.getCommentsVisibility();
-        if (thereIsFriendship)
+        if (commentsVisibility.equals(InformationVisibility.EVERYONE))
         {
-            //If the user has selected their information to be visible to everyone or to friends only, return it normally
-            if (commentsVisibility.equals(InformationVisibility.EVERYONE) ||
-                    commentsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
-            {
-                return loadCommentDTOsForUser(user);
-            }
+            return loadCommentDTOsForUser(user);
+        }
+        if (thereIsFriendship && commentsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
+        {
+            return loadCommentDTOsForUser(user);
         }
 
-        //If there is no friendship, we will only return the information properly if the visibility is set to everyone
-        else
-        {
-            if (commentsVisibility.equals(InformationVisibility.EVERYONE))
-            {
-                return loadCommentDTOsForUser(user);
-            }
-
-        }
         return null;
     }
 
@@ -106,22 +87,15 @@ public class ProfileHelperService {
     {
 
         InformationVisibility postsVisibility = user.getPostsVisibility();
-        if (thereIsFriendship)
+        if (postsVisibility.equals(InformationVisibility.EVERYONE))
         {
-            if (postsVisibility.equals(InformationVisibility.EVERYONE) ||
-                    postsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
-            {
-                return loadPostDTOsForUser(user);
-            }
+            return loadPostDTOsForUser(user);
+        }
+        if (thereIsFriendship && postsVisibility.equals(InformationVisibility.FRIENDS_ONLY))
+        {
+            return loadPostDTOsForUser(user);
         }
 
-        else
-        {
-            if (postsVisibility.equals(InformationVisibility.EVERYONE))
-            {
-               return loadPostDTOsForUser(user);
-            }
-        }
         return null;
     }
 
