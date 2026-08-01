@@ -28,7 +28,7 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO(
-            f.id, s.forumUsername, f.creationTimestamp)
+            f.id, s.forumUsername, f.creationTimestamp, f.content)
             FROM FriendRequest f
             JOIN f.sender s
             WHERE f.recipient=?1 ORDER BY f.creationTimestamp DESC
@@ -38,7 +38,7 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO(
-            f.id, s.forumUsername, f.creationTimestamp)
+            f.id, s.forumUsername, f.creationTimestamp, f.content)
             FROM FriendRequest f
             JOIN f.recipient s
             WHERE f.sender=?1 ORDER BY f.creationTimestamp DESC

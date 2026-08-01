@@ -50,11 +50,14 @@ public class FriendRequest {
     @NonNull
     private User recipient;
 
-    public FriendRequest(User sender, User recipient)
+    private String content;
+
+    public FriendRequest(User sender, User recipient, String content)
     {
         UserPair pair = new UserPair(sender, recipient);
 
         this(pair.lowId(), pair.highId(), sender, recipient);
+        this.content = content;
     }
 
 }

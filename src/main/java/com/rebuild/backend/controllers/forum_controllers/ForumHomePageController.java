@@ -95,8 +95,9 @@ public class ForumHomePageController {
     @PostMapping("/send_friendship/{recipient_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void sendFriendshipRequest(@PathVariable UUID recipient_id,
-                                                                 @AuthenticationPrincipal User sendingUser)
+                                      @AuthenticationPrincipal User sendingUser,
+                                      @RequestBody String content)
     {
-        friendshipService.sendFriendRequest(sendingUser, recipient_id);
+        friendshipService.sendFriendRequest(sendingUser, recipient_id, content);
     }
 }

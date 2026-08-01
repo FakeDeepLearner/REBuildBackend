@@ -91,7 +91,7 @@ public class FriendshipService {
         friendRequestRepository.delete(friendRequest);
     }
     
-    public void sendFriendRequest(User sender, UUID recipientId)
+    public void sendFriendRequest(User sender, UUID recipientId, String requestContent)
     {
         if (recipientId.equals(sender.getId()))
         {
@@ -119,7 +119,7 @@ public class FriendshipService {
                     "You are already friends with this user");
         }
 
-        FriendRequest newRequest = new FriendRequest(sender, recipient);
+        FriendRequest newRequest = new FriendRequest(sender, recipient, requestContent);
 
         FriendRequest savedRequest = friendRequestRepository.save(newRequest);
 
