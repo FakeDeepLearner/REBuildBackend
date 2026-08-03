@@ -6,5 +6,6 @@ import java.util.List;
 
 public record LoadChatUsersResponse(List<ChatUserDisplayDTO> userDisplays,
                                     int userCount,
+                                    String chatStatus,
                                     boolean requestingUserIsAdmin) {
 }

@@ -1,9 +1,6 @@
 package com.rebuild.backend.service.chat_services;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
+import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatInvitationRepository;
@@ -132,13 +129,7 @@ public class ChatAdministrationService {
 
     public boolean pinOrUnpinMessage(User pinningUser, UUID chatId, UUID messageId)
     {
-        ChatParticipation pinningUserParticipation = participationRepository.findByChatIdAndUser(chatId, pinningUser).
-                orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                        "or you are not a member in this chat."));
-
-        if (!pinningUserParticipation.getIsAdmin()){
-            throw new ChatException(HttpStatus.FORBIDDEN, "Only administrators can perform this action");
-        }
+        GroupChat _ = findParticipationAndCheckGroupAdminStatus(pinningUser, chatId);
 
         Message foundMessage = messageRepository.findByIdAndAssociatedChat_Id(messageId, chatId).orElseThrow(
                 () -> new ChatException(HttpStatus.NOT_FOUND,
@@ -157,12 +148,27 @@ public class ChatAdministrationService {
 
     }
 
+    public String updateChatStatus(User updatingUser, UUID chatId, String newChatStatus)
+    {
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(updatingUser, chatId);
+
+        ChatStatus newStatus = ChatStatus.valueOf(newChatStatus);
+
+        associatedChat.setChatStatus(newStatus);
+
+        chatRepository.save(associatedChat);
+
+        return newStatus.value;
+
+
+    }
+
     private GroupChat findParticipationAndCheckGroupAdminStatus(User user, UUID chatId)
     {
         ChatParticipation foundParticipation = participationRepository.findByChatIdAndUser(
                 chatId, user
         ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
-                "or you are not a member in this chat, or this chat is not a group chat"));
+                "or you are not a member in this chat."));
         AbstractChat associatedChat = foundParticipation.getParticipatedChat();
 
         if (!(associatedChat instanceof GroupChat))

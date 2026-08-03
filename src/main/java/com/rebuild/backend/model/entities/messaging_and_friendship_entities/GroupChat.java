@@ -22,6 +22,10 @@ public class GroupChat extends AbstractChat {
     @Column(name = "description")
     private String chatDescription;
 
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private ChatStatus chatStatus = ChatStatus.INVITE_ONLY;
+
     @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatInvitation> invitations = new ArrayList<>();

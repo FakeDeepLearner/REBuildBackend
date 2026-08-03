@@ -251,6 +251,7 @@ public class ChatService {
         ).toList();
 
         return new LoadChatUsersResponse(userDisplayDTOS, userChat.getMemberCount(),
+                userChat instanceof GroupChat gc ? gc.getChatStatus().value : null,
                 loadingUserParticipation.getIsAdmin());
     }
 

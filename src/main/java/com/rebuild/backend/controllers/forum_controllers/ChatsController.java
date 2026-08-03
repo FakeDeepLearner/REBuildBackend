@@ -179,10 +179,19 @@ public class ChatsController {
     }
 
     @GetMapping("/pinned_messages/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
     public PinnedMessagesResponse getPinnedMessages(@AuthenticationPrincipal User user,
                                                     @PathVariable UUID chat_id,
                                                     @RequestParam(name = "page", defaultValue = "0")  int pageNumber)
     {
         return messageService.getPinnedMessages(user, chat_id, pageNumber);
+    }
+
+    @PatchMapping("/update_status/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public String updateChatStatus(@AuthenticationPrincipal User user,
+                                   @PathVariable UUID chat_id,
+                                   @RequestBody String newStatus){
+        return administrationService.updateChatStatus(user, chat_id, newStatus);
     }
 }
