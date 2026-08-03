@@ -1,26 +1,35 @@
 package com.rebuild.backend.controllers;
 
+import com.rebuild.backend.model.dtos.user_dtos.UserFriendDTO;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
+import com.rebuild.backend.model.responses.user_responses.FriendRequestResponse;
 import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
+import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse;
+import com.rebuild.backend.service.user_services.FriendshipService;
 import com.rebuild.backend.service.user_services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/profile")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
 
+    private final FriendshipService friendshipService;
+
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FriendshipService friendshipService) {
         this.userService = userService;
+        this.friendshipService = friendshipService;
     }
 
 
@@ -59,5 +68,63 @@ public class UserController {
                                      @RequestBody String newBiography)
     {
         return userService.updateUserBiography(user, newBiography);
+    }
+
+    @GetMapping("/friends/received_requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<FriendRequestResponse> loadReceivedFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
+        return friendshipService.loadReceivedFriendRequests(authenticatedUser);
+    }
+
+    @GetMapping("/friends/sent_requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<FriendRequestResponse> loadSentFriendRequests(@AuthenticationPrincipal User authenticatedUser) {
+        return friendshipService.loadSentFriendRequests(authenticatedUser);
+    }
+
+    @GetMapping("/friends")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserFriendDTO> loadFriends(@AuthenticationPrincipal User authenticatedUser) {
+        return friendshipService.getUserFriends(authenticatedUser);
+    }
+
+    @PostMapping("/accept_request/{request_id}")
+    public ResponseEntity<String> acceptFriendshipRequest(@PathVariable UUID request_id,
+                                                          @AuthenticationPrincipal User acceptingUser) {
+        String result = friendshipService.acceptFriendshipRequest(acceptingUser, request_id);
+        return ResponseEntity.ok("You have added " + result + " as a friend");
+
+    }
+
+    @PostMapping("/decline_request/{request_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void declineFriendshipRequest(@PathVariable UUID request_id,
+                                         @AuthenticationPrincipal User acceptingUser) {
+        friendshipService.declineFriendshipRequest(acceptingUser, request_id);
+    }
+
+    @DeleteMapping("/delete_request/{request_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFriendshipRequest(@PathVariable UUID request_id,
+                                        @AuthenticationPrincipal User deletingUser) {
+        friendshipService.cancelFriendshipRequest(deletingUser, request_id);
+    }
+
+    @PostMapping("/send_friendship/{recipient_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendFriendshipRequest(@PathVariable UUID recipient_id,
+                                      @AuthenticationPrincipal User sendingUser,
+                                      @RequestBody String content)
+    {
+        friendshipService.sendFriendRequest(sendingUser, recipient_id, content);
+    }
+
+    @GetMapping("/username_search")
+    public UsernameSearchResponse searchUsernames(@RequestBody String username,
+                                                  @AuthenticationPrincipal User user,
+                                                  @RequestParam(defaultValue = "0", name = "page", required = false)
+                                                  int pageNumber)
+    {
+        return userService.getUsernameSearchResults(username, user, pageNumber);
     }
 }

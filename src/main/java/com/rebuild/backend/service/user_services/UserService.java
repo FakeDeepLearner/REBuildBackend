@@ -1,10 +1,12 @@
 package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
+import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Friendship;
 import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
+import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
@@ -12,10 +14,13 @@ import com.rebuild.backend.model.responses.user_responses.UserProfileResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.FriendshipRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -120,5 +125,27 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         return savedUser.getBiography();
+    }
+
+    public UsernameSearchResponse getUsernameSearchResults(String username, User searchingUser,
+                                                           int pageNumber)
+    {
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to zero");
+        }
+        PageRequest request = PageRequest.of(pageNumber, 10);
+        Slice<User> foundUsers = userRepository.findBySimilarUsername(username, request);
+        List<UsernameSearchResultDTO> searchResultDTOS =
+                foundUsers.stream()
+                        .map(user -> {
+                            UserPair userPair = new UserPair(searchingUser, user);
+
+                            return new UsernameSearchResultDTO(user.getId(), user.getForumUsername(),
+                                    friendshipRepository.existsByLowUserIdAndHighUserId(userPair.lowId(),
+                                            userPair.highId()));
+                        }).
+                        toList();
+        return new UsernameSearchResponse(searchResultDTOS, foundUsers.getNumber(), foundUsers.hasNext());
     }
 }

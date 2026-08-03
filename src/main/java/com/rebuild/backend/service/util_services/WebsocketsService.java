@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.forum_services;
+package com.rebuild.backend.service.util_services;
 
 import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.ChatInvitationNotificationDTO;
 import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.KickedNotificationDTO;

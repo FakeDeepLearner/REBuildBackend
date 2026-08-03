@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.forum_services;
+package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
@@ -11,6 +11,7 @@ import com.rebuild.backend.repository.messaging_and_friendship_repositories.Chat
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
+import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.*;
 import java.util.Optional;
 import java.util.UUID;
 

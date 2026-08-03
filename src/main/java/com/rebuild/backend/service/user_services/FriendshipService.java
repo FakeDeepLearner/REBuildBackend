@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.forum_services;
+package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.dtos.user_dtos.UserFriendDTO;
@@ -6,6 +6,7 @@ import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendReque
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.responses.user_responses.FriendRequestResponse;
+import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.FriendshipException;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

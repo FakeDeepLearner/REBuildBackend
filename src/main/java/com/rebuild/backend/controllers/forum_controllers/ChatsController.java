@@ -6,16 +6,12 @@ import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Grou
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import com.rebuild.backend.model.responses.forum_responses.*;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
-import com.rebuild.backend.service.forum_services.ChatAdministrationService;
-import com.rebuild.backend.service.forum_services.MessageService;
-import com.rebuild.backend.service.forum_services.ChatService;
+import com.rebuild.backend.service.chat_services.ChatAdministrationService;
+import com.rebuild.backend.service.chat_services.MessageService;
+import com.rebuild.backend.service.chat_services.ChatService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,19 +28,12 @@ public class ChatsController {
 
     private final ChatAdministrationService administrationService;
 
-    private final ChatParticipationRepository chatParticipationRepository;
-
-    private final SimpMessagingTemplate simpMessagingTemplate;
-
     @Autowired
     public ChatsController(MessageService messageService, ChatService chatService,
-                           ChatAdministrationService administrationService,
-                           ChatParticipationRepository chatParticipationRepository, SimpMessagingTemplate simpMessagingTemplate) {
+                           ChatAdministrationService administrationService) {
         this.messageService = messageService;
         this.chatService = chatService;
         this.administrationService = administrationService;
-        this.chatParticipationRepository = chatParticipationRepository;
-        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
 

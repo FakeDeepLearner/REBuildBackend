@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.forum_services;
+package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSearchDTO;
@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
+import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;

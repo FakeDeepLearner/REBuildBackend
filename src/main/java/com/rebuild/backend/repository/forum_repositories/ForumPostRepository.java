@@ -16,13 +16,6 @@ import java.util.UUID;
 @Repository
 public interface ForumPostRepository extends JpaRepository<ForumPost, UUID> {
 
-    @Query(value = """
-            SELECT fp FROM ForumPost fp
-            JOIN FETCH fp.user u WHERE fp.id=?1
-           """)
-    Optional<ForumPost> findByIdWithMoreInfo(UUID id);
-
-    Optional<ForumPost> findByIdAndUser(UUID id, User user);
 
     @Query(value = """
             SELECT fp FROM ForumPost fp

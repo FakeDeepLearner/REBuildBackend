@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.forum_services;
+package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;

@@ -1,4 +1,4 @@
-package com.rebuild.backend.service.forum_services;
+package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
