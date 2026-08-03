@@ -92,7 +92,7 @@ public class CommentsService {
 
 
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                creatingUser.getForumUsername(), savedComment.getCreatedAt(), 0,
+                creatingUser.getForumUsername(), savedComment.getCreatedAt().toString(), 0,
                 post.getUser().equals(creatingUser),
                 false, false);
 
@@ -115,7 +115,7 @@ public class CommentsService {
 
         Comment savedComment = commentRepository.save(newComment);
         return new CommentDisplayDTO(savedComment.getId(), savedComment.getContent(),
-                creatingUser.getForumUsername(), savedComment.getCreatedAt(), 0,
+                creatingUser.getForumUsername(), savedComment.getCreatedAt().toString(), 0,
                 associatedPost.getUser().equals(creatingUser), false, false);
     }
 
@@ -184,7 +184,7 @@ public class CommentsService {
         foundComment.setContent(newContent);
         Comment savedComment =  commentRepository.save(foundComment);
 
-        return new EditCommentResponse(savedComment.getContent(), savedComment.getLastModifiedAt());
+        return new EditCommentResponse(savedComment.getContent(), savedComment.getLastModifiedAt().toString());
 
     }
 }

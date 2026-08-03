@@ -5,6 +5,7 @@ import com.rebuild.backend.model.dtos.user_dtos.UserFriendDTO;
 import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestActionDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.responses.user_responses.FriendRequestResponse;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.FriendshipException;
@@ -126,14 +127,18 @@ public class FriendshipService {
         websocketsService.sendFriendRequestNotification(savedRequest);
     }
 
-    public List<FriendRequestDTO> loadReceivedFriendRequests(User loadingUser)
+    public List<FriendRequestResponse> loadReceivedFriendRequests(User loadingUser)
     {
-        return friendRequestRepository.loadReceivedRequestsByUser(loadingUser);
+        return friendRequestRepository.loadReceivedRequestsByUser(loadingUser).stream().map(
+                FriendRequestDTO::convertToResponse
+        ).toList();
     }
 
-    public List<FriendRequestDTO> loadSentFriendRequests(User loadingUser)
+    public List<FriendRequestResponse> loadSentFriendRequests(User loadingUser)
     {
-        return friendRequestRepository.loadSentRequestsByUser(loadingUser);
+        return friendRequestRepository.loadSentRequestsByUser(loadingUser).stream().map(
+                FriendRequestDTO::convertToResponse
+        ).toList();
     }
 
     public List<UserFriendDTO> getUserFriends(User loadingUser)

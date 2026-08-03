@@ -88,7 +88,7 @@ public class PostsService {
         postToEdit.setEdited(true);
 
         ForumPost savedPost = postRepository.save(postToEdit);
-        return new EditPostResponse(savedPost.getTitle(), savedPost.getContent(), savedPost.getLastModifiedAt());
+        return new EditPostResponse(savedPost.getTitle(), savedPost.getContent(), savedPost.getLastModifiedAt().toString());
     }
 
 }

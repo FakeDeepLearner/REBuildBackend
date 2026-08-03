@@ -71,19 +71,19 @@ public class Message extends Auditable {
     public MessageDisplayDTO toDTo(User loadingUser)
     {
         return new MessageDisplayDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited, isPinned,
+                getDisplayedDate().toString(), getDisplayOnTheRight(loadingUser), isRemoved, isEdited, isPinned,
                 sender.getImageUrl());
     }
 
     public MessageSearchDTO toSearchDTO()
     {
         return new MessageSearchDTO(id, sender.getForumUsername(), getDisplayedContent(),
-                getDisplayedDate(), isEdited, isPinned, sender.getImageUrl());
+                getDisplayedDate().toString(), isEdited, isPinned, sender.getImageUrl());
     }
 
     public PinnedMessageDTO toPinnedDTO()
     {
         return new PinnedMessageDTO(id, sender.getForumUsername(), content,
-                createdAt, sender.getImageUrl());
+                createdAt.toString(), sender.getImageUrl());
     }
 }

@@ -4,6 +4,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record MessageSearchDTO(UUID messageId, String senderUsername, String content,
-                               Instant messageTime, boolean isEdited, boolean messageIsPinned,
+                               String messageTime, boolean isEdited, boolean messageIsPinned,
                                String imageUrl) {
 }

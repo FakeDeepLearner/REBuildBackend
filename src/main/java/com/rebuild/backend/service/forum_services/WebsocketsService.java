@@ -52,7 +52,7 @@ public class WebsocketsService {
 
         NewMessageNotificationDTO newMessageNotificationDTO =
                 new NewMessageNotificationDTO(chat.getId(), sender.getId(), sentMessage.getId(),
-                        contentPreview, sentMessage.getCreatedAt(), sender.getForumUsername(), chatName);
+                        contentPreview, sentMessage.getCreatedAt().toString(), sender.getForumUsername(), chatName);
 
         //Send this DTO to every user that is subscribed to this channel.
         simpMessagingTemplate.convertAndSend(
@@ -81,7 +81,7 @@ public class WebsocketsService {
         User sender =  sentInvitation.getSender();
         ChatInvitationNotificationDTO invitationNotificationDTO = new ChatInvitationNotificationDTO(
                 sender.getForumUsername(), associatedChat.getChatName(),
-                sentInvitation.getId(), sentInvitation.getCreatedAt()
+                sentInvitation.getId(), sentInvitation.getCreatedAt().toString()
         );
 
         simpMessagingTemplate.convertAndSendToUser(
@@ -98,7 +98,7 @@ public class WebsocketsService {
         FriendRequestNotificationDTO notificationDTO = new FriendRequestNotificationDTO(
                 sender.getForumUsername(),
                 sentFriendRequest.getId(),
-                sentFriendRequest.getCreationTimestamp()
+                sentFriendRequest.getCreationTimestamp().toString()
         );
 
         simpMessagingTemplate.convertAndSendToUser(

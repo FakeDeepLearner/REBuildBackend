@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record CommentDisplayDTO(UUID commentID, String content, String displayedName,
-                                Instant displayedTime,
+                                String displayedTime,
                                 int replyCount,
                                 boolean authorIsPostingUser,
                                 boolean isDeleted,

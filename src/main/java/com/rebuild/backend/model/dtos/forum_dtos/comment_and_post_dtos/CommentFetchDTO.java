@@ -26,14 +26,14 @@ public record CommentFetchDTO(UUID authorId, UUID associatedPostId, UUID comment
         return authorUsername;
     }
 
-    private Instant determineDisplayedCreationTime()
+    private String determineDisplayedCreationTime()
     {
         if (commentIsDeleted)
         {
             return null;
         }
 
-        return commentIsEdited ? modificationTime : creationTime;
+        return commentIsEdited ? modificationTime.toString() : creationTime.toString();
     }
 
     private boolean determineUserIsOriginalPoster(String postAuthorName)

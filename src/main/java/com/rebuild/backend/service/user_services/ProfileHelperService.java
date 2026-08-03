@@ -33,7 +33,7 @@ public class ProfileHelperService {
     {
         List<Comment> madeComments = commentRepository.findByUserAndNotDeleted(user);
         return madeComments.stream().map(comment ->
-                new ProfileHistoryCommentDTO(comment.getContent(), comment.getCreatedAt())).toList();
+                new ProfileHistoryCommentDTO(comment.getContent(), comment.getCreatedAt().toString())).toList();
     }
 
 
@@ -41,7 +41,7 @@ public class ProfileHelperService {
     {
         List<ForumPost> userPosts = forumPostRepository.findByUserOrdered(user);
         return userPosts.stream().map(forumPost -> new ProfileHistoryPostDTO(forumPost.getTitle(), forumPost.getContent(),
-                forumPost.getCreatedAt())).toList();
+                forumPost.getCreatedAt().toString())).toList();
     }
 
     private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, boolean thereIsFriendship)

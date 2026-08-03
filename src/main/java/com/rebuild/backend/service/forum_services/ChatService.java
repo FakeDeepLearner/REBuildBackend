@@ -244,7 +244,7 @@ public class ChatService {
                 chatParticipation -> {
                     User participatingUser = chatParticipation.getParticipatingUser();
                     return new ChatUserDisplayDTO(participatingUser.getId(),
-                            participatingUser.getForumUsername(), chatParticipation.getCreatedAt(),
+                            participatingUser.getForumUsername(), chatParticipation.getCreatedAt().toString(),
                             chatParticipation.getIsAdmin(),
                             participatingUser.equals(loadingUser), participatingUser.getImageUrl());
                 }
