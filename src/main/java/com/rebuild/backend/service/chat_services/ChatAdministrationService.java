@@ -1,14 +1,19 @@
 package com.rebuild.backend.service.chat_services;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
+import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
+import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.chat_entities.GroupChat;
+import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
+import com.rebuild.backend.model.enums.ChatStatus;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatInvitationRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.WebsocketsService;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,14 +157,16 @@ public class ChatAdministrationService {
     {
         GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(updatingUser, chatId);
 
-        ChatStatus newStatus = ChatStatus.valueOf(newChatStatus);
-
+        ChatStatus newStatus = ChatStatus.fromValue(newChatStatus);
+        if (newStatus == null)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid status value.");
+        }
         associatedChat.setChatStatus(newStatus);
 
         chatRepository.save(associatedChat);
 
         return newStatus.value;
-
 
     }
 

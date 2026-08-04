@@ -1,6 +1,7 @@
-package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
+package com.rebuild.backend.model.entities.chat_entities;
 
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
+import com.rebuild.backend.model.enums.ChatStatus;
 import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,10 @@ public class GroupChat extends AbstractChat {
     @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatInvitation> invitations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<JoinChatApplication> applications = new ArrayList<>();
 
     public GroupChat(NewChatForm newChatForm) {
         super(1, 1);

@@ -13,7 +13,5 @@ public record ClerkInformation(
         Boolean hasImage,
         String username,
         String primaryEmailAddressId,
-        List<ClerkEmail> emailAddresses,
-        String primaryPhoneNumberId,
-        List<ClerkPhoneNumber> phoneNumbers) {
+        List<ClerkEmail> emailAddresses) {
 }

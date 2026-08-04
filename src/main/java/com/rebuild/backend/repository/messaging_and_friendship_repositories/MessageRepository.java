@@ -1,6 +1,6 @@
 package com.rebuild.backend.repository.messaging_and_friendship_repositories;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
+import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.user_entities.User;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;

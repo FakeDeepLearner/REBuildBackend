@@ -1,4 +1,4 @@
-package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
+package com.rebuild.backend.model.entities.chat_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -32,7 +32,6 @@ public class ChatParticipation extends Auditable {
             CascadeType.REFRESH
     })
     @JoinColumn(name = "participating_user_id", referencedColumnName = "id")
-    @JsonIgnore
     @NonNull
     private User participatingUser;
 
@@ -43,7 +42,6 @@ public class ChatParticipation extends Auditable {
             CascadeType.REFRESH
     })
     @JoinColumn(name = "participated_chat_id", referencedColumnName = "id")
-    @JsonIgnore
     @NonNull
     private AbstractChat participatedChat;
 

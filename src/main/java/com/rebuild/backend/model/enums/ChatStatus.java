@@ -1,7 +1,4 @@
-package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
-
-import com.rebuild.backend.utils.exceptions.ApiException;
-import org.springframework.http.HttpStatus;
+package com.rebuild.backend.model.enums;
 
 public enum ChatStatus {
 
@@ -23,12 +20,11 @@ public enum ChatStatus {
     }
 
     public static ChatStatus fromValue(String value){
-        return switch (value) {
-            case "Anyone Can Join" -> ChatStatus.ANYONE_CAN_JOIN;
-            case "Invite Only" -> ChatStatus.INVITE_ONLY;
-            case "Closed" -> ChatStatus.CLOSED;
-            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid chat status value.");
-        };
-
+        for (ChatStatus chatStatus : ChatStatus.values()) {
+            if (chatStatus.value.equals(value)) {
+                return chatStatus;
+            }
+        }
+        return null;
     }
 }

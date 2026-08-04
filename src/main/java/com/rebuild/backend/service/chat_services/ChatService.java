@@ -2,7 +2,10 @@ package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
+import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
+import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.chat_entities.GroupChat;
+import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.forms.chat_forms.NewChatForm;

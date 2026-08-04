@@ -1,9 +1,9 @@
 package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.PrivateChat;
+import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.chat_entities.GroupChat;
+import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 
 import org.springframework.stereotype.Component;

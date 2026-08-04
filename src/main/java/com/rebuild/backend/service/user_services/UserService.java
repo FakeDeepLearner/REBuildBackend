@@ -2,11 +2,11 @@ package com.rebuild.backend.service.user_services;
 
 import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Friendship;
-import com.rebuild.backend.model.entities.user_entities.InformationVisibility;
+import com.rebuild.backend.model.enums.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
 import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse;
+import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,14 +31,10 @@ public class UserService {
 
     private final FriendshipRepository friendshipRepository;
 
-    private final ProfileHelperService helperService;
-
     @Autowired
-    public UserService(UserRepository userRepository, FriendshipRepository friendshipRepository,
-                       ProfileHelperService helperService) {
+    public UserService(UserRepository userRepository, FriendshipRepository friendshipRepository) {
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
-        this.helperService = helperService;
     }
 
 
@@ -48,12 +43,43 @@ public class UserService {
         return new UserProfileResponse(
                 new ProfileSensitiveInformationDTO(user.getImageUrl(),
                         user.getEmail(), user.getForumUsername(),
-                        user.getName(), user.getPhoneNumber(),
+                        user.getName(),
                         user.getLocation()),
-                user.getBiography(),
-                helperService.loadCommentDTOsForUser(user),
-                helperService.loadPostDTOsForUser(user)
+                user.getBiography()
         );
+    }
+
+    private ProfileSensitiveInformationDTO decideSensitiveInfo(User user, boolean thereIsFriendship)
+    {
+        InformationVisibility sensitiveInfoVisibility = user.getSensitiveInfoVisibility();
+        if (sensitiveInfoVisibility.equals(InformationVisibility.EVERYONE))
+        {
+            return new ProfileSensitiveInformationDTO(user.getImageUrl(),
+                    user.getEmail(), user.getForumUsername(),
+                    user.getName(),
+                    user.getLocation());
+        }
+        if (thereIsFriendship && sensitiveInfoVisibility.equals(InformationVisibility.FRIENDS_ONLY))
+        {
+            return new ProfileSensitiveInformationDTO(user.getImageUrl(),
+                    user.getEmail(), user.getForumUsername(),
+                    user.getName(),
+                    user.getLocation());
+        }
+
+        return new ProfileSensitiveInformationDTO(null,
+                StringUtil.maskString(user.getEmail()), user.getForumUsername(),
+                StringUtil.maskString(user.getName()),
+                StringUtil.maskString(user.getLocation()));
+    }
+
+
+    public UserProfileResponse loadOtherUserProfile(User otherUser, boolean thereIsFriendship)
+    {
+        ProfileSensitiveInformationDTO sensitiveInformationDTO = decideSensitiveInfo(otherUser,
+                thereIsFriendship);
+
+        return new UserProfileResponse(sensitiveInformationDTO, otherUser.getBiography());
     }
 
     public UserProfileResponse loadUserProfile(User user, UUID clickedUserId)
@@ -70,30 +96,19 @@ public class UserService {
 
         UserPair userPair = new UserPair(foundUser, user);
 
-        return helperService.
-                loadOtherUserProfile(foundUser, friendshipRepository.
+        return loadOtherUserProfile(foundUser, friendshipRepository.
                         existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId()));
-    }
-
-    private InformationVisibility mapStringToVisibility(String input)
-    {
-        return switch (input){
-            case "Everyone" -> InformationVisibility.EVERYONE;
-            case "Friends Only" -> InformationVisibility.FRIENDS_ONLY;
-            case "No One" -> InformationVisibility.NO_ONE;
-            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid input");
-        };
     }
 
     public UserProfileResponse changeProfilePrivacySettings(User user,
                                                             ProfilePrivacySettingsForm privacySettingsForm)
     {
-        InformationVisibility postsVisibility = mapStringToVisibility(privacySettingsForm.postsVisibilityValue());
-        InformationVisibility commentsVisibility = mapStringToVisibility(privacySettingsForm.commentsVisibilityValue());
-        InformationVisibility sensitiveInfoVisibility = mapStringToVisibility(privacySettingsForm.sensitiveInfoVisibilityValue());
-
-        user.setPostsVisibility(postsVisibility);
-        user.setCommentsVisibility(commentsVisibility);
+        InformationVisibility sensitiveInfoVisibility =
+                InformationVisibility.fromValue(privacySettingsForm.sensitiveInfoVisibilityValue());
+        if (sensitiveInfoVisibility == null)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid input");
+        }
         user.setSensitiveInfoVisibility(sensitiveInfoVisibility);
         user.setMessagesFromFriendsOnly(privacySettingsForm.messagesFromFriends());
 

@@ -1,7 +1,7 @@
 package com.rebuild.backend.model.entities.util_entitites;
 
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Message;
+import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.chat_entities.Message;
 import jakarta.persistence.*;
 import lombok.*;
 

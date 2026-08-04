@@ -1,8 +1,8 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.ChatInvitation;
-import com.rebuild.backend.model.entities.messaging_and_friendship_entities.GroupChat;
+import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
+import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import com.rebuild.backend.model.responses.forum_responses.*;

@@ -6,6 +6,10 @@ import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.NewChatNotificati
 import com.rebuild.backend.model.dtos.websocket_dtos.chat_dtos.NewMessageNotificationDTO;
 import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestActionDTO;
 import com.rebuild.backend.model.dtos.websocket_dtos.friendship_dtos.FriendRequestNotificationDTO;
+import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
+import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.chat_entities.GroupChat;
+import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;

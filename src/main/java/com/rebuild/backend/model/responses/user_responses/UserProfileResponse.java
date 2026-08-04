@@ -7,7 +7,5 @@ import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
 import java.util.List;
 
 public record UserProfileResponse(ProfileSensitiveInformationDTO sensitiveInformationDTO,
-                                  String biography,
-                                  List<ProfileHistoryCommentDTO> madeComments,
-                                  List<ProfileHistoryPostDTO> madePosts) {
+                                  String biography) {
 }
