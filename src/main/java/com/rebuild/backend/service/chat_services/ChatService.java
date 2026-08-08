@@ -2,12 +2,10 @@ package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
-import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.chat_entities.GroupChat;
-import com.rebuild.backend.model.entities.chat_entities.Message;
+import com.rebuild.backend.model.entities.chat_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
+import com.rebuild.backend.model.enums.ChatStatus;
 import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
@@ -49,11 +47,13 @@ public class ChatService {
 
     private final FriendshipRepository friendshipRepository;
 
+    private final ChatApplicationRepository chatApplicationRepository;
+
     @Autowired
     public ChatService(ChatRepository chatRepository,
                        ChatInvitationRepository chatInvitationRepository,
                        ChatUtilService chatUtilService, ChatParticipationRepository participationRepository,
-                       MessageRepository messageRepository, UserRepository userRepository, FriendshipRepository friendshipRepository) {
+                       MessageRepository messageRepository, UserRepository userRepository, FriendshipRepository friendshipRepository, ChatApplicationRepository chatApplicationRepository) {
         this.chatRepository = chatRepository;
         this.chatInvitationRepository = chatInvitationRepository;
         this.chatUtilService = chatUtilService;
@@ -61,6 +61,7 @@ public class ChatService {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
+        this.chatApplicationRepository = chatApplicationRepository;
     }
 
     
@@ -87,22 +88,32 @@ public class ChatService {
     {
         ChatInvitation foundInvitation = chatInvitationRepository.findByIdAndRecipient(invitationId,
                 recipient).orElseThrow(() ->
-                new BelongingException("This invitation either does not exist or does not belong to you"));
+                new BelongingException("This invitation either does not exist or has not been addressed to you."));
 
         GroupChat associatedChat = foundInvitation.getAssociatedChat();
 
-        ChatParticipation recipientParticipation = new ChatParticipation(recipient,
-                associatedChat, false);
-        recipientParticipation.setLastMessage(associatedChat.getLastMessage());
-
-        associatedChat.setMemberCount(associatedChat.getMemberCount() + 1);
-        associatedChat.getParticipations().add(recipientParticipation);
-        recipient.addChatParticipation(recipientParticipation);
+        ChatParticipation newParticipation = chatUtilService.addUserToChat(associatedChat, recipient);
+        participationRepository.save(newParticipation);
 
         chatInvitationRepository.delete(foundInvitation);
 
         return chatRepository.save(associatedChat);
 
+    }
+
+    public void acceptAllChatInvitations(User user)
+    {
+        List<ChatInvitation> invitations = chatInvitationRepository.findByRecipient(user);
+
+
+        List<ChatParticipation> participations = invitations.stream().map(
+                chatInvitation -> {
+                    GroupChat associatedChat = chatInvitation.getAssociatedChat();
+                    return chatUtilService.addUserToChat(associatedChat, user);
+                }
+        ).collect(Collectors.toCollection(ArrayList::new));
+
+        participationRepository.saveAll(participations);
     }
     
     public void declineChatInvitation(User recipient, UUID invitationId)
@@ -112,6 +123,13 @@ public class ChatService {
                 new BelongingException("This invitation either does not exist or does not belong to you"));
 
         chatInvitationRepository.delete(foundInvitation);
+    }
+
+    public void declineAllChatInvitations(User user)
+    {
+        List<ChatInvitation> invitations = chatInvitationRepository.findByRecipient(user);
+
+        chatInvitationRepository.deleteAll(invitations);
     }
     
     public void leaveChat(User leavingUser, UUID chatId)
@@ -124,7 +142,7 @@ public class ChatService {
 
         AbstractChat chat = leavingUserParticipation.getParticipatedChat();
 
-        if (!(chat instanceof GroupChat))
+        if (!(chat instanceof GroupChat groupChat))
         {
             throw new ChatException(HttpStatus.FORBIDDEN, "This action can only be done on group chats");
         }
@@ -136,14 +154,10 @@ public class ChatService {
                     "Please make another user an administrator if you want to leave.");
         }
 
-
-        chat.setMemberCount(chat.getMemberCount() - 1);
-        chat.getParticipations().remove(leavingUserParticipation);
-        leavingUser.getChatParticipations().remove(leavingUserParticipation);
-        participationRepository.delete(leavingUserParticipation);
+        chatUtilService.removeUserFromChat(groupChat, leavingUserParticipation);
 
         //If the leaving user was the last member of the chat, then delete the chat as well.
-        if (chat.getMemberCount() == 0)
+        if (groupChat.getMemberCount() == 0)
         {
             chatRepository.delete(chat);
         }
@@ -277,5 +291,62 @@ public class ChatService {
         }
 
         return new ChatInvitation(sender, recipient, newGroupChat);
+    }
+
+    public void applyToJoinChat(User applyingUser, UUID chatId, String content)
+    {
+        if (content.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Content cannot be empty.");
+        }
+        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(
+                () -> new NotFoundException("Chat with this id is not found.")
+        );
+
+        if (!(foundChat instanceof GroupChat groupChat))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Chat with this id is not a group chat.");
+        }
+        //A group chat that is closed cannot receive applications
+        if (groupChat.getChatStatus().equals(ChatStatus.CLOSED))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "This chat is closed, it cannot receive any applications");
+        }
+
+        boolean userApplicationExists = chatApplicationRepository.existsByAssociatedChatAndAssociatedUser(groupChat,
+                applyingUser);
+
+        if (userApplicationExists)
+        {
+            throw new ApiException(HttpStatus.CONFLICT, "You already have an application to this chat.");
+        }
+
+        JoinChatApplication joinChatApplication = new JoinChatApplication(content, applyingUser, groupChat);
+        applyingUser.addChatApplication(joinChatApplication);
+        groupChat.getApplications().add(joinChatApplication);
+        chatApplicationRepository.save(joinChatApplication);
+    }
+
+    public void cancelChatApplication(User cancellingUser, UUID applicationId)
+    {
+        JoinChatApplication foundApplication = chatApplicationRepository.findById(applicationId).orElseThrow(
+                () -> new NotFoundException("Application with this id is not found.")
+        );
+
+        User applicationUser = foundApplication.getAssociatedUser();
+
+        if(!applicationUser.equals(cancellingUser))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "This application does not belong to you," +
+                    "so you cannot cancel it.");
+        }
+        chatApplicationRepository.delete(foundApplication);
+    }
+
+    public void cancelAllChatApplications(User user)
+    {
+        List<JoinChatApplication> foundApplications = chatApplicationRepository.findByAssociatedUser(user);
+
+        chatApplicationRepository.deleteAll(foundApplications);
     }
 }

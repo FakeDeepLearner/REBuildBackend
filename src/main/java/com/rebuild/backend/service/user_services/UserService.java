@@ -1,11 +1,15 @@
 package com.rebuild.backend.service.user_services;
 
+import com.rebuild.backend.model.dtos.user_dtos.ChatApplicationDisplayDTO;
+import com.rebuild.backend.model.dtos.user_dtos.ChatApplicationFetchDTO;
 import com.rebuild.backend.model.dtos.user_dtos.ProfileSensitiveInformationDTO;
 import com.rebuild.backend.model.dtos.user_dtos.UsernameSearchResultDTO;
 import com.rebuild.backend.model.enums.InformationVisibility;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.profile_forms.ProfilePrivacySettingsForm;
+import com.rebuild.backend.model.responses.user_responses.ChatApplicationSearchResponse;
 import com.rebuild.backend.model.responses.user_responses.UsernameSearchResponse;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatApplicationRepository;
 import com.rebuild.backend.utils.StringUtil;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
@@ -16,6 +20,7 @@ import com.rebuild.backend.repository.user_repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +36,14 @@ public class UserService {
 
     private final FriendshipRepository friendshipRepository;
 
+    private final ChatApplicationRepository chatApplicationRepository;
+
     @Autowired
-    public UserService(UserRepository userRepository, FriendshipRepository friendshipRepository) {
+    public UserService(UserRepository userRepository, FriendshipRepository friendshipRepository,
+                       ChatApplicationRepository chatApplicationRepository) {
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
+        this.chatApplicationRepository = chatApplicationRepository;
     }
 
 
@@ -162,5 +171,24 @@ public class UserService {
                         }).
                         toList();
         return new UsernameSearchResponse(searchResultDTOS, foundUsers.getNumber(), foundUsers.hasNext());
+    }
+
+    public ChatApplicationSearchResponse getAllChatApplications(User searchingUser, int pageNumber)
+    {
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to zero");
+        }
+
+        PageRequest request = PageRequest.of(pageNumber, 10,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Slice<ChatApplicationFetchDTO> foundResults = chatApplicationRepository.findByAssociatedUser(searchingUser,
+                request);
+
+        List<ChatApplicationDisplayDTO> displayDTOS = foundResults.stream().map(ChatApplicationFetchDTO::toDisplayDTO)
+                .toList();
+
+        return new ChatApplicationSearchResponse(displayDTOS, foundResults.getNumber(), foundResults.hasNext());
     }
 }

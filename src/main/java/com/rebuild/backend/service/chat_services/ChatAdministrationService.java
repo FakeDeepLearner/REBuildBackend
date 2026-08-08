@@ -1,28 +1,31 @@
 package com.rebuild.backend.service.chat_services;
 
-import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
-import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
-import com.rebuild.backend.model.entities.chat_entities.GroupChat;
-import com.rebuild.backend.model.entities.chat_entities.Message;
+import com.rebuild.backend.model.dtos.user_dtos.ChatApplicationDisplayDTO;
+import com.rebuild.backend.model.dtos.user_dtos.ChatApplicationFetchDTO;
+import com.rebuild.backend.model.entities.chat_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.enums.ChatStatus;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatInvitationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
+import com.rebuild.backend.model.responses.user_responses.ChatApplicationSearchResponse;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -40,16 +43,22 @@ public class ChatAdministrationService {
 
     private final MessageRepository messageRepository;
 
+    private final ChatApplicationRepository chatApplicationRepository;
+
+    private final ChatUtilService chatUtilService;
+
     @Autowired
     public ChatAdministrationService(ChatParticipationRepository participationRepository,
                                      ChatRepository chatRepository, WebsocketsService websocketsService,
-                                     UserRepository userRepository, ChatInvitationRepository chatInvitationRepository, MessageRepository messageRepository) {
+                                     UserRepository userRepository, ChatInvitationRepository chatInvitationRepository, MessageRepository messageRepository, ChatApplicationRepository chatApplicationRepository, ChatUtilService chatUtilService) {
         this.participationRepository = participationRepository;
         this.chatRepository = chatRepository;
         this.websocketsService = websocketsService;
         this.userRepository = userRepository;
         this.chatInvitationRepository = chatInvitationRepository;
         this.messageRepository = messageRepository;
+        this.chatApplicationRepository = chatApplicationRepository;
+        this.chatUtilService = chatUtilService;
     }
 
     public boolean toggleUserAdmin(User administratingUser, UUID chatId, UUID userId)
@@ -89,16 +98,14 @@ public class ChatAdministrationService {
                 participationRepository.findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId)
                         .orElseThrow(() -> new NotFoundException("This user is not a member of this chat"));
 
-        associatedChat.getParticipations().remove(kickedUserParticipation);
 
-        associatedChat.setMemberCount(associatedChat.getMemberCount() - 1);
+        chatUtilService.removeUserFromChat(associatedChat, kickedUserParticipation);
         if (kickedUserParticipation.getIsAdmin())
         {
             associatedChat.setAdministratorCount(associatedChat.getAdministratorCount() - 1);
         }
 
         GroupChat savedChat = chatRepository.save(associatedChat);
-        participationRepository.delete(kickedUserParticipation);
         websocketsService.sendKickNotification(savedChat, kickedUserParticipation);
     }
 
@@ -168,6 +175,82 @@ public class ChatAdministrationService {
 
         return newStatus.value;
 
+    }
+
+    public ChatApplicationSearchResponse seeChatApplications(User user, UUID chatId,
+                                                             int pageNumber)
+    {
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to zero");
+        }
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(user, chatId);
+
+
+        PageRequest request = PageRequest.of(pageNumber, 10,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Slice<ChatApplicationFetchDTO> foundResults = chatApplicationRepository.findByAssociatedChat(associatedChat,
+                request);
+
+        List<ChatApplicationDisplayDTO> displayDTOS = foundResults.stream().map(ChatApplicationFetchDTO::toDisplayDTO)
+                .toList();
+
+        return new ChatApplicationSearchResponse(displayDTOS, foundResults.getNumber(), foundResults.hasNext());
+    }
+
+    public void acceptChatApplication(User user, UUID chatId, UUID applicationId)
+    {
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(user, chatId);
+
+        JoinChatApplication foundApplication = chatApplicationRepository.findByIdAndAssociatedChat(applicationId,
+                        associatedChat).orElseThrow(() ->
+                new NotFoundException("Application with this id not found or does not belong to this chat"));
+
+        User applyingUser = foundApplication.getAssociatedUser();
+
+        ChatParticipation newParticipation = chatUtilService.addUserToChat(associatedChat, applyingUser);
+
+        participationRepository.save(newParticipation);
+
+        chatRepository.save(associatedChat);
+
+    }
+
+    public void acceptAllApplications(User user, UUID chatId)
+    {
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(user, chatId);
+
+        List<JoinChatApplication> foundApplications = chatApplicationRepository.
+                findByAssociatedChat(associatedChat);
+        List<ChatParticipation> newParticipations = foundApplications.stream().map(application -> {
+            User applyingUser =  application.getAssociatedUser();
+            return chatUtilService.addUserToChat(associatedChat, applyingUser);
+        }).collect(Collectors.toCollection(ArrayList::new));
+
+        participationRepository.saveAll(newParticipations);
+        chatRepository.save(associatedChat);
+    }
+
+    public void rejectChatApplication(User user, UUID chatId, UUID applicationId)
+    {
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(user, chatId);
+
+        JoinChatApplication foundApplication = chatApplicationRepository.findByIdAndAssociatedChat(applicationId,
+                associatedChat).orElseThrow(() ->
+                new NotFoundException("Application with this id not found or does not belong to this chat"));
+
+        chatApplicationRepository.delete(foundApplication);
+    }
+
+    public void rejectAllApplications(User user, UUID chatId)
+    {
+        GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(user, chatId);
+
+        List<JoinChatApplication> foundApplications = chatApplicationRepository.
+                findByAssociatedChat(associatedChat);
+
+        chatApplicationRepository.deleteAll(foundApplications);
     }
 
     private GroupChat findParticipationAndCheckGroupAdminStatus(User user, UUID chatId)

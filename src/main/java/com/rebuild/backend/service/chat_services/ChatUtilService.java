@@ -6,12 +6,21 @@ import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional
 public class ChatUtilService {
+
+    private final ChatParticipationRepository participationRepository;
+
+    @Autowired
+    public ChatUtilService(ChatParticipationRepository participationRepository) {
+        this.participationRepository = participationRepository;
+    }
 
     public User determineOtherChatUser(PrivateChat chat, User loadingUser)
     {
@@ -57,5 +66,32 @@ public class ChatUtilService {
                         !participation.getParticipatingUser().equals(user)).findFirst()
                 .map(ChatParticipation::getUnreadMessagesCount).orElse(0);
 
+    }
+
+    // A helper method for a user to join a group chat. When this method runs,
+    // we assume that all the necessary checks have been done
+    public ChatParticipation addUserToChat(GroupChat chatToJoin, User joiningUser)
+    {
+        ChatParticipation recipientParticipation = new ChatParticipation(joiningUser,
+                chatToJoin, false);
+        recipientParticipation.setLastMessage(chatToJoin.getLastMessage());
+
+        chatToJoin.setMemberCount(chatToJoin.getMemberCount() + 1);
+        chatToJoin.getParticipations().add(recipientParticipation);
+        joiningUser.addChatParticipation(recipientParticipation);
+
+        return recipientParticipation;
+
+    }
+
+    //Same as above, but this time the user is removed from the chat.
+    public void removeUserFromChat(GroupChat chat, ChatParticipation kickedUserParticipation)
+    {
+        chat.setMemberCount(chat.getMemberCount() - 1);
+        chat.getParticipations().remove(kickedUserParticipation);
+        User kickedUser = kickedUserParticipation.getParticipatingUser();
+        kickedUser.getChatParticipations().remove(kickedUserParticipation);
+
+        participationRepository.delete(kickedUserParticipation);
     }
 }

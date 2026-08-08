@@ -1,18 +1,23 @@
 package com.rebuild.backend.model.entities.chat_entities;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.UUID;
 
 @Entity
-@Table(name = "join_chat_applications")
+@Table(name = "join_chat_applications",
+    indexes = {
+        @Index(columnList = "associated_chat_id, applying_user_id"),
+        @Index(columnList = "id, applying_user_id")
+    })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class JoinChatApplication {
+public class JoinChatApplication extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

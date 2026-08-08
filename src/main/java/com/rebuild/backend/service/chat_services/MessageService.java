@@ -194,16 +194,6 @@ public class MessageService {
         return savedMessage.toDTo(editingUser);
     }
 
-    private List<Message> getMaximumSize(List<Message> original, int maxSize)
-    {
-        if (maxSize >= original.size())
-        {
-            return original;
-        }
-        return original.subList(0, maxSize);
-    }
-
-    
     public SearchMessagesResponse searchForMessages(User searchingUser, UUID chatId, String query,
                                                     int pageNumber)
     {
