@@ -44,30 +44,54 @@ public class FriendshipService {
         this.friendRequestRepository = friendRequestRepository;
     }
 
-    
-    public String acceptFriendshipRequest(User receiver, UUID friendRequestId)
+    private Friendship makeUsersFriends(User receiver, FriendRequest acceptedRequest)
     {
-        FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, receiver).
-                orElseThrow(() ->
-                        new BelongingException("This friend request either does not exist or has not been addressed to you."));
-
-
-        User sender = friendRequest.getSender();
+        User sender = acceptedRequest.getSender();
 
         UserPair userPair = new UserPair(sender, receiver);
 
         Friendship newRelationship = new Friendship(userPair);
 
-        friendRequestRepository.delete(friendRequest);
+        return friendshipRepository.save(newRelationship);
+    }
+    
+    public void acceptFriendshipRequest(User receiver, UUID friendRequestId)
+    {
+        FriendRequest friendRequest = friendRequestRepository.findByIdAndRecipient(friendRequestId, receiver).
+                orElseThrow(() ->
+                        new BelongingException("This friend request either does not " +
+                                "exist or has not been addressed to you."));
 
-        friendshipRepository.save(newRelationship);
+        User sender = friendRequest.getSender();
+
+        Friendship _ = makeUsersFriends(receiver, friendRequest);
+
+        friendRequestRepository.delete(friendRequest);
 
         FriendRequestActionDTO requestActionDTO = new FriendRequestActionDTO(receiver.getForumUsername(),
                 true);
 
         websocketsService.sendFriendActionNotification(requestActionDTO, sender.getForumUsername());
+    }
 
-        return sender.getForumUsername();
+    public void acceptAllFriendshipRequests(User recipient)
+    {
+        List<FriendRequest> requests = friendRequestRepository.findByRecipient(recipient);
+
+        List<Friendship> newFriendships = requests.stream().map(request ->
+        {
+            Friendship newFriendship = makeUsersFriends(recipient, request);
+            User sender = request.getSender();
+            FriendRequestActionDTO requestActionDTO = new FriendRequestActionDTO(recipient.getForumUsername(),
+                    true);
+
+            websocketsService.sendFriendActionNotification(requestActionDTO, sender.getForumUsername());
+            return newFriendship;
+        }).toList();
+
+        friendRequestRepository.deleteAll(requests);
+
+        friendshipRepository.saveAll(newFriendships);
     }
     
     public void declineFriendshipRequest(User declininguser, UUID friendRequestId)
@@ -81,6 +105,23 @@ public class FriendshipService {
 
         websocketsService.sendFriendActionNotification(requestActionDTO, friendRequest.getSender().getForumUsername());
         friendRequestRepository.delete(friendRequest);
+    }
+
+    public void declineAllFriendshipRequests(User recipient)
+    {
+        List<FriendRequest> requests = friendRequestRepository.findByRecipient(recipient);
+
+        requests.forEach(friendRequest -> {
+            User sender =  friendRequest.getSender();
+
+            FriendRequestActionDTO requestActionDTO = new FriendRequestActionDTO(recipient.getForumUsername(),
+                    false);
+
+            websocketsService.sendFriendActionNotification(requestActionDTO, sender.getForumUsername());
+        });
+
+        friendRequestRepository.deleteAll(requests);
+
     }
 
     public void cancelFriendshipRequest(User cancellingUser, UUID friendRequestId)

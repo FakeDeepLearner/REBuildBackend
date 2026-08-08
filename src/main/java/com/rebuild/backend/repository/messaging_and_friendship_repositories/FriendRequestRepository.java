@@ -44,4 +44,11 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
             WHERE f.sender=?1 ORDER BY f.creationTimestamp DESC
            """)
     List<FriendRequestDTO> loadSentRequestsByUser(User user);
+
+    @Query(value = """
+    SELECT f FROM FriendRequest f
+    JOIN FETCH f.sender
+    WHERE f.recipient=?1
+    """)
+    List<FriendRequest> findByRecipient(User recipient);
 }

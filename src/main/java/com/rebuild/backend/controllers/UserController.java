@@ -96,18 +96,31 @@ public class UserController {
     }
 
     @PostMapping("/accept_request/{request_id}")
-    public ResponseEntity<String> acceptFriendshipRequest(@PathVariable UUID request_id,
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void acceptFriendshipRequest(@PathVariable UUID request_id,
                                                           @AuthenticationPrincipal User acceptingUser) {
-        String result = friendshipService.acceptFriendshipRequest(acceptingUser, request_id);
-        return ResponseEntity.ok("You have added " + result + " as a friend");
-
+        friendshipService.acceptFriendshipRequest(acceptingUser, request_id);
     }
 
-    @PostMapping("/decline_request/{request_id}")
+    @PostMapping("/accept_all_requests")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void acceptAllFriendshipRequests(@AuthenticationPrincipal User user)
+    {
+        friendshipService.acceptAllFriendshipRequests(user);
+    }
+
+    @DeleteMapping("/decline_request/{request_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void declineFriendshipRequest(@PathVariable UUID request_id,
                                          @AuthenticationPrincipal User acceptingUser) {
         friendshipService.declineFriendshipRequest(acceptingUser, request_id);
+    }
+
+    @DeleteMapping("/reject_all_requests")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void rejectAllFriendshipRequests(@AuthenticationPrincipal User user)
+    {
+        friendshipService.declineAllFriendshipRequests(user);
     }
 
     @DeleteMapping("/delete_request/{request_id}")
