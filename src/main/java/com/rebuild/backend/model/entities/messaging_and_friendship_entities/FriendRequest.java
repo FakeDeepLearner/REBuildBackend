@@ -1,6 +1,7 @@
 package com.rebuild.backend.model.entities.messaging_and_friendship_entities;
 
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.utils.UserPair;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,24 +22,12 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @NoArgsConstructor
-public class FriendRequest {
+public class FriendRequest extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, columnDefinition = "uuid")
     private UUID id;
-
-    @Column(name = "creation_time")
-    @CreationTimestamp
-    private Instant creationTimestamp;
-
-    @Column(name = "low_id", nullable = false)
-    @NonNull
-    private UUID lowUserId;
-
-    @Column(name = "high_id", nullable = false)
-    @NonNull
-    private UUID highUserId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", referencedColumnName = "id", nullable = false)
@@ -54,10 +43,15 @@ public class FriendRequest {
 
     public FriendRequest(User sender, User recipient, String content)
     {
-        UserPair pair = new UserPair(sender, recipient);
-
-        this(pair.lowId(), pair.highId(), sender, recipient);
-        this.content = content;
+        this(sender, recipient);
+        if (content.isBlank())
+        {
+            this.content = null;
+        }
+        else
+        {
+            this.content = content;
+        }
     }
 
 }

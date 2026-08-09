@@ -15,8 +15,6 @@ import java.util.UUID;
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, UUID> {
 
 
-    boolean existsByLowUserIdAndHighUserId(UUID lowUserId, UUID highUserId);
-
     @Query(value = """
     SELECT f FROM FriendRequest f
     JOIN FETCH f.sender
@@ -26,22 +24,24 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
 
     Optional<FriendRequest> findByIdAndSender(UUID id, User sender);
 
+    boolean existsBySenderAndRecipient(User sender, User recipient);
+
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO(
-            f.id, s.forumUsername, f.creationTimestamp, f.content)
+            f.id, s.forumUsername, f.createdAt, f.content)
             FROM FriendRequest f
             JOIN f.sender s
-            WHERE f.recipient=?1 ORDER BY f.creationTimestamp DESC
+            WHERE f.recipient=?1 ORDER BY f.createdAt DESC
            """)
     List<FriendRequestDTO> loadReceivedRequestsByUser(User user);
 
 
     @Query(value = """
             SELECT NEW com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO(
-            f.id, s.forumUsername, f.creationTimestamp, f.content)
+            f.id, s.forumUsername, f.createdAt, f.content)
             FROM FriendRequest f
             JOIN f.recipient s
-            WHERE f.sender=?1 ORDER BY f.creationTimestamp DESC
+            WHERE f.sender=?1 ORDER BY f.createdAt DESC
            """)
     List<FriendRequestDTO> loadSentRequestsByUser(User user);
 

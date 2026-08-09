@@ -145,12 +145,12 @@ public class FriendshipService {
         UserPair userPair = new UserPair(recipient, sender);
 
         boolean foundRequest =
-                friendRequestRepository.existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
+                friendRequestRepository.existsBySenderAndRecipient(sender, recipient);
 
         if (!foundRequest) {
             throw new FriendshipException(HttpStatus.CONFLICT,
                     "You already have an existing friend request with this user, you cannot send " +
-                            "another one until it is either declined or times out.");
+                            "another one while it is active.");
         }
 
         boolean foundRelationship =
@@ -158,7 +158,7 @@ public class FriendshipService {
 
         if (!foundRelationship) {
             throw new FriendshipException(HttpStatus.CONFLICT,
-                    "You are already friends with this user");
+                    "You are already friends with this user.");
         }
 
         FriendRequest newRequest = new FriendRequest(sender, recipient, requestContent);

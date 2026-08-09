@@ -102,7 +102,7 @@ public class WebsocketsService {
         FriendRequestNotificationDTO notificationDTO = new FriendRequestNotificationDTO(
                 sender.getForumUsername(),
                 sentFriendRequest.getId(),
-                sentFriendRequest.getCreationTimestamp().toString()
+                sentFriendRequest.getCreatedAt().toString()
         );
 
         simpMessagingTemplate.convertAndSendToUser(
