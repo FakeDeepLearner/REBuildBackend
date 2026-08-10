@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "is_group_chat", discriminatorType = DiscriminatorType.INTEGER)
+@MappedSuperclass
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor

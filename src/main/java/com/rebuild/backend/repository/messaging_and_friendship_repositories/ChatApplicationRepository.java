@@ -47,6 +47,4 @@ public interface ChatApplicationRepository extends JpaRepository<JoinChatApplica
     """)
     Slice<ChatApplicationFetchDTO> findByAssociatedChat(GroupChat groupChat, Pageable pageable);
 
-    boolean existsByIdAndAssociatedUser(UUID id, User associatedUser);
-
 }

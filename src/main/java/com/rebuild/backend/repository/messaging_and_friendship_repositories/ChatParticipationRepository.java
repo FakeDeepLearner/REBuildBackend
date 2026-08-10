@@ -19,6 +19,8 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
 
     Optional<ChatParticipation> findByParticipatingUserAndParticipatedChat(User participatingUser,
                                                                            AbstractChat participatedChat);
+    
+    boolean existsByParticipatedChatAndParticipatingUser(AbstractChat participatedChat, User participatingUser);
 
     Optional<ChatParticipation> findByParticipatingUser_IdAndParticipatedChat_Id(UUID participatingUserId,
                                                                                  UUID participatedChatId);
@@ -42,5 +44,11 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
     """)
     Optional<ChatParticipation> findByChatIdAndUserWithParticipations(UUID chatId,
                                                                       User user);
+
+    @Query("""
+    SELECT cp.participatedChat.id FROM ChatParticipation cp
+    WHERE cp.isMuted=false AND cp.participatingUser=?1
+    """)
+    List<UUID> findIdsByUser(User user);
 
 }

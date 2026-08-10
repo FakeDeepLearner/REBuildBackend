@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
-@DiscriminatorValue(value = "1")
 @RequiredArgsConstructor
 @Data
 @AllArgsConstructor
 @Entity
+@Table(name = "group_chats")
 public class GroupChat extends AbstractChat {
 
     @Column(name = "chat_name")

@@ -33,15 +33,11 @@ import java.util.stream.Collectors;
 @Transactional
 public class ChatService {
 
-    private final ChatRepository chatRepository;
-
     private final ChatInvitationRepository chatInvitationRepository;
 
     private final ChatUtilService chatUtilService;
 
     private final ChatParticipationRepository participationRepository;
-
-    private final MessageRepository messageRepository;
 
     private final UserRepository userRepository;
 
@@ -49,19 +45,23 @@ public class ChatService {
 
     private final ChatApplicationRepository chatApplicationRepository;
 
+    private final PrivateChatRepository privateChatRepository;
+
+    private final GroupChatRepository groupChatRepository;
+
     @Autowired
-    public ChatService(ChatRepository chatRepository,
-                       ChatInvitationRepository chatInvitationRepository,
+    public ChatService(ChatInvitationRepository chatInvitationRepository,
                        ChatUtilService chatUtilService, ChatParticipationRepository participationRepository,
-                       MessageRepository messageRepository, UserRepository userRepository, FriendshipRepository friendshipRepository, ChatApplicationRepository chatApplicationRepository) {
-        this.chatRepository = chatRepository;
+                       UserRepository userRepository, FriendshipRepository friendshipRepository,
+                       ChatApplicationRepository chatApplicationRepository, PrivateChatRepository privateChatRepository, GroupChatRepository groupChatRepository) {
         this.chatInvitationRepository = chatInvitationRepository;
         this.chatUtilService = chatUtilService;
         this.participationRepository = participationRepository;
-        this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
         this.chatApplicationRepository = chatApplicationRepository;
+        this.privateChatRepository = privateChatRepository;
+        this.groupChatRepository = groupChatRepository;
     }
 
     
@@ -81,7 +81,7 @@ public class ChatService {
 
         newChat.setInvitations(createdChatInvitations);
 
-        return chatRepository.save(newChat);
+        return groupChatRepository.save(newChat);
     }
     
     public GroupChat acceptChatInvitation(User recipient, UUID invitationId)
@@ -97,7 +97,7 @@ public class ChatService {
 
         chatInvitationRepository.delete(foundInvitation);
 
-        return chatRepository.save(associatedChat);
+        return groupChatRepository.save(associatedChat);
 
     }
 
@@ -159,7 +159,7 @@ public class ChatService {
         //If the leaving user was the last member of the chat, then delete the chat as well.
         if (groupChat.getMemberCount() == 0)
         {
-            chatRepository.delete(chat);
+            groupChatRepository.delete(groupChat);
         }
 
         userRepository.save(leavingUser);
@@ -190,45 +190,33 @@ public class ChatService {
                 }).collect(Collectors.toCollection(ArrayList::new));
     }
 
-
-    
-    public LoadChatResponse loadChat(UUID chatId, User loadingUser, int pageNumber)
+    public LoadChatResponse loadPrivateChat(UUID chatId, User loadingUser, int pageNumber)
     {
         if (pageNumber < 0)
         {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to 0.");
         }
-        AbstractChat chat = chatRepository.findByIdWithMessages(chatId).orElseThrow(
-                () -> new NotFoundException("Chat with this id not found")
+        PrivateChat chat = privateChatRepository.findById(chatId).orElseThrow(
+                () -> new NotFoundException("Private chat with this id is not found")
         );
+        return chatUtilService.loadChat(chat, loadingUser, pageNumber);
+    }
 
-        ChatParticipation userParticipation = participationRepository.
-                findByParticipatingUserAndParticipatedChat(loadingUser, chat).
-                orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not participating in this chat, you can't load it"));
-
-        //Update the participation of this user in this chat.
-        userParticipation.setUnreadMessagesCount(0);
-        userParticipation.setLastMessage(chat.getLastMessage());
-        participationRepository.save(userParticipation);
-
-        String chatDisplayName = chatUtilService.determineChatDisplayName(chat, loadingUser);
-        String chatPictureUrl = chatUtilService.determineChatPictureUrl(chat, loadingUser);
-
-        Pageable request = PageRequest.of(pageNumber, 30, Sort.by(Sort.Direction.DESC, "createdAt"));
-
-        Slice<Message> currentMessages = messageRepository.findByAssociatedChat_Id(chatId, request);
-
-        List<MessageDisplayDTO> messages = currentMessages.getContent()
-                .stream().
-                map(message -> message.toDTo(loadingUser)).toList();
-
-        return new LoadChatResponse(chatDisplayName, chat.getId(), messages,
-                chatPictureUrl, currentMessages.hasNext(), userParticipation.getIsAdmin());
+    public LoadChatResponse loadGroupChat(UUID chatID, User loadingUser, int pageNumber)
+    {
+        if (pageNumber < 0)
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Page number must be greater than or equal to 0.");
+        }
+        GroupChat chat = groupChatRepository.findById(chatID).orElseThrow(
+                () -> new NotFoundException("Group chat with this id is not found")
+        );
+        return chatUtilService.loadChat(chat, loadingUser, pageNumber);
     }
 
     public List<UUID> findAllChatIdsByUser(User user)
     {
-        return chatRepository.findIdsByUser(user);
+        return participationRepository.findIdsByUser(user);
     }
 
     public boolean toggleChatMute(User togglingUser, UUID chatId)
@@ -299,21 +287,17 @@ public class ChatService {
         {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Content cannot be empty.");
         }
-        AbstractChat foundChat = chatRepository.findById(chatId).orElseThrow(
-                () -> new NotFoundException("Chat with this id is not found.")
+        GroupChat foundChat = groupChatRepository.findById(chatId).orElseThrow(
+                () -> new NotFoundException("Group with this id is not found.")
         );
 
-        if (!(foundChat instanceof GroupChat groupChat))
-        {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Chat with this id is not a group chat.");
-        }
         //A group chat that is closed cannot receive applications
-        if (groupChat.getChatStatus().equals(ChatStatus.CLOSED))
+        if (foundChat.getChatStatus().equals(ChatStatus.CLOSED))
         {
             throw new ApiException(HttpStatus.FORBIDDEN, "This chat is closed, it cannot receive any applications");
         }
 
-        boolean userApplicationExists = chatApplicationRepository.existsByAssociatedChatAndAssociatedUser(groupChat,
+        boolean userApplicationExists = chatApplicationRepository.existsByAssociatedChatAndAssociatedUser(foundChat,
                 applyingUser);
 
         if (userApplicationExists)
@@ -321,9 +305,9 @@ public class ChatService {
             throw new ApiException(HttpStatus.CONFLICT, "You already have an application to this chat.");
         }
 
-        JoinChatApplication joinChatApplication = new JoinChatApplication(content, applyingUser, groupChat);
+        JoinChatApplication joinChatApplication = new JoinChatApplication(content, applyingUser, foundChat);
         applyingUser.addChatApplication(joinChatApplication);
-        groupChat.getApplications().add(joinChatApplication);
+        foundChat.getApplications().add(joinChatApplication);
         chatApplicationRepository.save(joinChatApplication);
     }
 

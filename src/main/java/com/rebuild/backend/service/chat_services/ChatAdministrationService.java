@@ -27,13 +27,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static io.lettuce.core.ShutdownArgs.Builder.save;
+
 @Service
 @Transactional
 public class ChatAdministrationService {
 
     private final ChatParticipationRepository participationRepository;
-
-    private final ChatRepository chatRepository;
 
     private final WebsocketsService websocketsService;
 
@@ -47,18 +47,20 @@ public class ChatAdministrationService {
 
     private final ChatUtilService chatUtilService;
 
+    private final GroupChatRepository groupChatRepository;
+
     @Autowired
     public ChatAdministrationService(ChatParticipationRepository participationRepository,
-                                     ChatRepository chatRepository, WebsocketsService websocketsService,
-                                     UserRepository userRepository, ChatInvitationRepository chatInvitationRepository, MessageRepository messageRepository, ChatApplicationRepository chatApplicationRepository, ChatUtilService chatUtilService) {
+                                     WebsocketsService websocketsService,
+                                     UserRepository userRepository, ChatInvitationRepository chatInvitationRepository, MessageRepository messageRepository, ChatApplicationRepository chatApplicationRepository, ChatUtilService chatUtilService, GroupChatRepository groupChatRepository) {
         this.participationRepository = participationRepository;
-        this.chatRepository = chatRepository;
         this.websocketsService = websocketsService;
         this.userRepository = userRepository;
         this.chatInvitationRepository = chatInvitationRepository;
         this.messageRepository = messageRepository;
         this.chatApplicationRepository = chatApplicationRepository;
         this.chatUtilService = chatUtilService;
+        this.groupChatRepository = groupChatRepository;
     }
 
     public boolean toggleUserAdmin(User administratingUser, UUID chatId, UUID userId)
@@ -81,7 +83,7 @@ public class ChatAdministrationService {
         {
             associatedChat.setAdministratorCount(associatedChat.getAdministratorCount() + 1);
         }
-        chatRepository.save(associatedChat);
+        groupChatRepository.save(associatedChat);
 
         recipientParticipation.setIsAdmin(!currentStatus);
 
@@ -105,7 +107,7 @@ public class ChatAdministrationService {
             associatedChat.setAdministratorCount(associatedChat.getAdministratorCount() - 1);
         }
 
-        GroupChat savedChat = chatRepository.save(associatedChat);
+        GroupChat savedChat = groupChatRepository.save(associatedChat);
         websocketsService.sendKickNotification(savedChat, kickedUserParticipation);
     }
 
@@ -131,7 +133,7 @@ public class ChatAdministrationService {
         ChatInvitation newInvitation = new ChatInvitation(sender, recipient,
                 associatedChat);
         associatedChat.getInvitations().add(newInvitation);
-        chatRepository.save(associatedChat);
+        groupChatRepository.save(associatedChat);
 
         ChatInvitation savedInvitation = chatInvitationRepository.save(newInvitation);
 
@@ -171,7 +173,7 @@ public class ChatAdministrationService {
         }
         associatedChat.setChatStatus(newStatus);
 
-        chatRepository.save(associatedChat);
+        groupChatRepository.save(associatedChat);
 
         return newStatus.value;
 
@@ -213,7 +215,7 @@ public class ChatAdministrationService {
 
         participationRepository.save(newParticipation);
 
-        chatRepository.save(associatedChat);
+        groupChatRepository.save(associatedChat);
 
     }
 
@@ -229,7 +231,7 @@ public class ChatAdministrationService {
         }).collect(Collectors.toCollection(ArrayList::new));
 
         participationRepository.saveAll(newParticipations);
-        chatRepository.save(associatedChat);
+        groupChatRepository.save(associatedChat);
     }
 
     public void rejectChatApplication(User user, UUID chatId, UUID applicationId)

@@ -37,13 +37,24 @@ public class ChatsController {
         return chatService.displayAllChats(authenticatedUser);
     }
 
-    @GetMapping("/load/{chat_id}")
+    @GetMapping("/load/private/{chat_id}")
     @ResponseStatus(HttpStatus.OK)
-    public LoadChatResponse loadChat(@PathVariable UUID chat_id,
-                                     @AuthenticationPrincipal User authenticatedUser,
-                                     @RequestParam(name = "page", defaultValue = "0") int pageNumber) {
-        return chatService.loadChat(chat_id, authenticatedUser, pageNumber);
+    public LoadChatResponse loadPrivateChat(@PathVariable UUID chat_id,
+                                            @AuthenticationPrincipal User authenticatedUser,
+                                            @RequestParam(name = "page", defaultValue = "0") int pageNumber)
+    {
+        return chatService.loadPrivateChat(chat_id, authenticatedUser, pageNumber);
     }
+
+    @GetMapping("/load/group/{chat_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LoadChatResponse loadGroupChat(@PathVariable UUID chat_id,
+                                            @AuthenticationPrincipal User authenticatedUser,
+                                            @RequestParam(name = "page", defaultValue = "0") int pageNumber)
+    {
+        return chatService.loadGroupChat(chat_id, authenticatedUser, pageNumber);
+    }
+
 
     @PostMapping("/create")
     public GroupChat createGroupChat(@AuthenticationPrincipal User creatingUser,

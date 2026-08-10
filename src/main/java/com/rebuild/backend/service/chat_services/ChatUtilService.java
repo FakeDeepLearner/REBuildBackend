@@ -1,15 +1,30 @@
 package com.rebuild.backend.service.chat_services;
 
+import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
+import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 
+import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
+import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
+import com.rebuild.backend.service.util_services.WebsocketsService;
+import com.rebuild.backend.utils.exceptions.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Transactional
@@ -17,9 +32,15 @@ public class ChatUtilService {
 
     private final ChatParticipationRepository participationRepository;
 
+    private final MessageRepository messageRepository;
+
+    private final WebsocketsService websocketsService;
+
     @Autowired
-    public ChatUtilService(ChatParticipationRepository participationRepository) {
+    public ChatUtilService(ChatParticipationRepository participationRepository, MessageRepository messageRepository, WebsocketsService websocketsService) {
         this.participationRepository = participationRepository;
+        this.messageRepository = messageRepository;
+        this.websocketsService = websocketsService;
     }
 
     public User determineOtherChatUser(PrivateChat chat, User loadingUser)
@@ -93,5 +114,72 @@ public class ChatUtilService {
         kickedUser.getChatParticipations().remove(kickedUserParticipation);
 
         participationRepository.delete(kickedUserParticipation);
+    }
+
+    public LoadChatResponse loadChat(AbstractChat chat, User loadingUser, int pageNumber)
+    {
+        ChatParticipation userParticipation = participationRepository.
+                findByParticipatingUserAndParticipatedChat(loadingUser, chat).
+                orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not participating in this chat, you can't load it"));
+
+        //Update the participation of this user in this chat.
+        userParticipation.setUnreadMessagesCount(0);
+        userParticipation.setLastMessage(chat.getLastMessage());
+        participationRepository.save(userParticipation);
+
+        String chatDisplayName = determineChatDisplayName(chat, loadingUser);
+        String chatPictureUrl = determineChatPictureUrl(chat, loadingUser);
+
+        Pageable request = PageRequest.of(pageNumber, 30, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Slice<Message> currentMessages = messageRepository.findByAssociatedChat(chat, request);
+
+        List<MessageDisplayDTO> messages = currentMessages.getContent()
+                .stream().
+                map(message -> message.toDTo(loadingUser)).toList();
+
+        return new LoadChatResponse(chatDisplayName, chat.getId(), messages,
+                chatPictureUrl, currentMessages.hasNext(), userParticipation.getIsAdmin());
+    }
+
+    public Message createNewMessageInChat(AbstractChat chat, User creatingUser, String messageContent,
+                                          boolean sendWebsocketNotification)
+    {
+        Message newMessage = new Message(creatingUser, messageContent);
+        newMessage.setAssociatedChat(chat);
+        chat.getMessages().add(newMessage);
+        chat.setLastMessage(messageContent);
+
+        List<ChatParticipation> newParticipations = chat.getParticipations().stream().
+                peek(participation -> {
+                    //Any muted participations are not updated at all.
+                    if (participation.isMuted())
+                    {
+                        return;
+                    }
+                    if (creatingUser.equals(participation.getParticipatingUser()))
+                    {
+                        participation.setLastMessage(messageContent);
+                    }
+                    //For participations that do not belong to the sender, we increase their unread count and
+                    // update their last message only if the chat has not been muted
+                    else
+                    {
+                        participation.setLastMessage(messageContent);
+                        participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1);
+                    }
+
+                }).collect(Collectors.toCollection(ArrayList::new));
+        chat.setParticipations(newParticipations);
+
+        Message savedMessage = messageRepository.save(newMessage);
+        if (sendWebsocketNotification)
+        {
+            websocketsService.sendNewMessageNotification(chat, creatingUser, savedMessage);
+        }
+
+        return savedMessage;
+
+
     }
 }

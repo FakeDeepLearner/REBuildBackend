@@ -4,6 +4,7 @@ import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDi
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSearchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.PinnedMessageDTO;
 import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
+import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
@@ -16,6 +17,7 @@ import com.rebuild.backend.utils.exceptions.ApiException;
 import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
+import com.rebuild.backend.utils.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -31,130 +33,112 @@ public class MessageService {
 
     private final WebsocketsService websocketsService;
 
-    private final ChatRepository chatRepository;
-
     private final UserRepository userRepository;
-
-    private final FriendshipRepository friendshipRepository;
 
     private final ChatParticipationRepository participationRepository;
 
     private final MessageRepository messageRepository;
+    
+    private final PrivateChatRepository privateChatRepository;
+    
+    private final GroupChatRepository groupChatRepository;
+    
+    private final ChatUtilService chatUtilService;
 
     @Autowired
-    public MessageService(WebsocketsService websocketsService, ChatRepository chatRepository, UserRepository userRepository,
-                          FriendshipRepository friendshipRepository,
-                          ChatParticipationRepository participationRepository,
-                          MessageRepository messageRepository) {
+    public MessageService(WebsocketsService websocketsService, UserRepository userRepository,
+                          ChatParticipationRepository participationRepository, MessageRepository messageRepository,
+                          PrivateChatRepository privateChatRepository, GroupChatRepository groupChatRepository, ChatUtilService chatUtilService) {
         this.websocketsService = websocketsService;
-        this.chatRepository = chatRepository;
         this.userRepository = userRepository;
-        this.friendshipRepository = friendshipRepository;
         this.participationRepository = participationRepository;
         this.messageRepository = messageRepository;
+        this.privateChatRepository = privateChatRepository;
+        this.groupChatRepository = groupChatRepository;
+        this.chatUtilService = chatUtilService;
     }
 
-    private MessageDisplayDTO sendMessageTo(User sender, User recipient, String messageContent){
-        //If we enter this method, we know that we will have to create a new chat.
-        PrivateChat createdChat = new PrivateChat(sender, recipient, messageContent);
-
-        Message newMessage = new Message(sender, messageContent);
-        newMessage.setAssociatedChat(createdChat);
-        createdChat.getMessages().add(newMessage);
-        createdChat.setLastMessage(messageContent);
-
-        //Here, we do need to save both the message and the chat, since the chat itself is also a brand-new entity
-        chatRepository.save(createdChat);
-        Message savedMessage = messageRepository.save(newMessage);
-
-        websocketsService.sendNewChatNotification(createdChat, sender, savedMessage, recipient);
-
-        return savedMessage.toDTo(sender);
-    }
-
-    private MessageDisplayDTO sendMessageTo(User sender, String content,
-                                        AbstractChat associatedChat)
+    public MessageDisplayDTO sendMessageInPrivateChat(User sender, UUID chatId, String content)
     {
-
-        Message newMessage = new Message(sender, content);
-        newMessage.setAssociatedChat(associatedChat);
-        associatedChat.getMessages().add(newMessage);
-        associatedChat.setLastMessage(content);
-
-        List<ChatParticipation> newParticipations = associatedChat.getParticipations().stream().
-                peek(participation -> {
-              //Any muted participations are not updated at all.
-             if (participation.isMuted())
-             {
-                 return;
-             }
-            if (sender.equals(participation.getParticipatingUser()))
-            {
-                participation.setLastMessage(content);
-            }
-            //For participations that do not belong to the sender, we increase their unread count and
-            // update their last message only if the chat has not been muted
-            else
-            {
-                participation.setLastMessage(content);
-                participation.setUnreadMessagesCount(participation.getUnreadMessagesCount() + 1);
-            }
-
-        }).collect(Collectors.toCollection(ArrayList::new));
-        associatedChat.setParticipations(newParticipations);
-
-        Message savedMessage = messageRepository.save(newMessage);
-
-        websocketsService.sendNewMessageNotification(associatedChat, sender, savedMessage);
-
-        return savedMessage.toDTo(sender);
-    }
-
-
-    
-    public MessageDisplayDTO createMessage(User sender, UUID receivingObjectId, String messageContent)
-    {
-        if (receivingObjectId.equals(sender.getId()))
-        {
-            throw new ApiException(HttpStatus.FORBIDDEN, "You can't send messages to yourself.");
-        }
-        if (messageContent.isBlank())
+        if (content.isBlank())
         {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Message content cannot be blank");
         }
-        Optional<User> recipient = userRepository.findById(receivingObjectId);
-
-        //If we find a user with the given id, the recipient will receive a message from this user for the first time
-        //So, create a private chat between the 2 users and send the message
-        if (recipient.isPresent())
+        
+        PrivateChat chat = privateChatRepository.findById(chatId).orElseThrow(
+                () -> new NotFoundException("Private chat with this id does not exist.")
+        );
+        
+        if (!participationRepository.existsByParticipatedChatAndParticipatingUser(chat, sender))
         {
-           User receivingUser = recipient.get();
+            throw new ApiException(HttpStatus.FORBIDDEN, "You are not allowed to send this message," +
+                    "because you are not a member of this chat");
+        }
+        
+        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, true);
+        return newMessage.toDTo(sender);
+    }
 
-            // If the recipient has not selected the setting, just send the message with the content,
-            // creating a chat between the users first
-            if(!receivingUser.isMessagesFromFriendsOnly())
-            {
-                return sendMessageTo(sender, receivingUser, messageContent);
-            }
-
-            UserPair userPair = new UserPair(sender, receivingUser);
-            //Otherwise, only send a message if the 2 users are friends with each other.
-            boolean foundRelationship =
-                    friendshipRepository.existsByLowUserIdAndHighUserId(userPair.lowId(), userPair.highId());
-            if (foundRelationship) {
-                return sendMessageTo(sender, receivingUser, messageContent);
-            }
+    public MessageDisplayDTO sendMessageInGroupChat(User sender, UUID chatId, String content)
+    {
+        if (content.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Message content cannot be blank");
         }
 
-        // If the provided identifier is instead the id of a chat,
-        // then send a message to the chat identified by it.
-        Optional<AbstractChat> recipientChat = chatRepository.findByIdWithParticipations(receivingObjectId);
+        GroupChat chat = groupChatRepository.findById(chatId).orElseThrow(
+                () -> new NotFoundException("Group chat with this id does not exist.")
+        );
 
-        return recipientChat.map(chat ->
-                sendMessageTo(sender, messageContent, chat)).
-                orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not authorized " +
-                        "to send messages to this user or channel"));
+        if (!participationRepository.existsByParticipatedChatAndParticipatingUser(chat, sender))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You are not allowed to send this message," +
+                    "because you are not a member of this chat");
+        }
 
+        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, true);
+
+        return newMessage.toDTo(sender);
+    }
+    
+    public MessageDisplayDTO sendMessageToUser(User sender, UUID userId, String content)
+    {
+        if (content.isBlank())
+        {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Message content cannot be blank");
+        }
+        if(userId.equals(sender.getId()))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You cannot send messages to yourself.");
+        }
+        
+        User recipient = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("User with this id does not exist.")
+        );
+        
+        UserPair pair = new UserPair(sender, recipient);
+        Optional<PrivateChat> foundChat = privateChatRepository.findByLowUserIdAndHighUserId(
+                pair.lowId(),
+                pair.highId()
+        );
+        //If the 2 users already have a chat between them, then we use the existing method to send the message.
+        if (foundChat.isPresent())
+        {
+            return sendMessageInPrivateChat(sender, foundChat.get().getId(),  content);
+        }
+
+        //If not, then we create a new private chat and then make a new message in that chat.
+        PrivateChat createdChat = new PrivateChat(sender, recipient, content);
+
+        Message newMessage = chatUtilService.createNewMessageInChat(createdChat, sender, content,
+                false);
+
+        privateChatRepository.save(createdChat);
+
+        websocketsService.sendNewChatNotification(createdChat, sender, newMessage, recipient);
+
+        return newMessage.toDTo(sender);
+        
     }
 
 

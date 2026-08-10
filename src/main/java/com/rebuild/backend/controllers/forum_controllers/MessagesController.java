@@ -25,13 +25,28 @@ public class MessagesController {
         this.messageService = messageService;
     }
 
-    @PostMapping("/send_message/{receiving_object_id}")
+    @PostMapping("/send_message/private_chat/{chat_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public MessageDisplayDTO sendMessage(@PathVariable UUID receiving_object_id,
+    public MessageDisplayDTO sendMessageToPrivateChat(@PathVariable UUID chat_id,
                                          @RequestBody String messageContent,
                                          @AuthenticationPrincipal User authenticatedUser) {
-        return messageService.
-                createMessage(authenticatedUser, receiving_object_id, messageContent);
+        return messageService.sendMessageInPrivateChat(authenticatedUser,  chat_id, messageContent);
+    }
+
+    @PostMapping("/send_message/group_chat/{chat_id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MessageDisplayDTO sendMessageToGroupChat(@PathVariable UUID chat_id,
+                                                      @RequestBody String messageContent,
+                                                      @AuthenticationPrincipal User authenticatedUser) {
+        return messageService.sendMessageInGroupChat(authenticatedUser,  chat_id, messageContent);
+    }
+
+    @PostMapping("/send_message/user/{user_id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MessageDisplayDTO sendMessageToAnotherUser(@PathVariable UUID user_id,
+                                                      @RequestBody String messageContent,
+                                                      @AuthenticationPrincipal User authenticatedUser) {
+        return messageService.sendMessageToUser(authenticatedUser, user_id, messageContent);
     }
 
     @DeleteMapping("/remove_message/{message_id}")

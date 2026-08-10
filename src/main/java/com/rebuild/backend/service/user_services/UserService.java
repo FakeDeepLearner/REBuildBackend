@@ -119,7 +119,6 @@ public class UserService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid input");
         }
         user.setSensitiveInfoVisibility(sensitiveInfoVisibility);
-        user.setMessagesFromFriendsOnly(privacySettingsForm.messagesFromFriends());
 
         User savedUser = userRepository.save(user);
         return loadSelfProfile(savedUser);

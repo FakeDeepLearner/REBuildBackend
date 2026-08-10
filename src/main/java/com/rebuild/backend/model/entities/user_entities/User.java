@@ -66,9 +66,6 @@ public class User implements Serializable {
     @Column(name = "bio")
     private String biography = null;
 
-    @Column(name = "exclusive_friend_messages")
-    private boolean messagesFromFriendsOnly = true;
-
     @Column(name = "sensitive_information_setting")
     @Enumerated(EnumType.STRING)
     private InformationVisibility sensitiveInfoVisibility = DEFAULT_SENSITIVE_INFO_VISIBILITY;
