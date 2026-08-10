@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository.messaging_and_friendship_repositories;
+package com.rebuild.backend.repository.chat_repositories;
 
 import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import org.springframework.data.jpa.repository.JpaRepository;

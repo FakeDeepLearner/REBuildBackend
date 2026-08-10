@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository.messaging_and_friendship_repositories;
+package com.rebuild.backend.repository.user_repositories;
 
 import com.rebuild.backend.model.dtos.user_dtos.FriendRequestDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.FriendRequest;

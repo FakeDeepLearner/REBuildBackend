@@ -1,10 +1,9 @@
-package com.rebuild.backend.repository.messaging_and_friendship_repositories;
+package com.rebuild.backend.repository.chat_repositories;
 
 import com.rebuild.backend.model.dtos.user_dtos.ChatApplicationFetchDTO;
 import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.JoinChatApplication;
 import com.rebuild.backend.model.entities.user_entities.User;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;

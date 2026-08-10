@@ -7,7 +7,7 @@ import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.enums.ChatStatus;
 import com.rebuild.backend.model.responses.user_responses.ChatApplicationSearchResponse;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
+import com.rebuild.backend.repository.chat_repositories.*;
 import com.rebuild.backend.repository.user_repositories.UserRepository;
 import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.exceptions.ApiException;

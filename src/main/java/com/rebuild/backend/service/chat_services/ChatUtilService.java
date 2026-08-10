@@ -10,8 +10,8 @@ import com.rebuild.backend.model.entities.user_entities.User;
 
 import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
+import com.rebuild.backend.repository.chat_repositories.ChatParticipationRepository;
+import com.rebuild.backend.repository.chat_repositories.MessageRepository;
 import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.exceptions.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;

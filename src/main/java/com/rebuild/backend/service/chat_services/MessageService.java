@@ -7,8 +7,12 @@ import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
+import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.responses.forum_responses.*;
-import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
+import com.rebuild.backend.repository.chat_repositories.ChatParticipationRepository;
+import com.rebuild.backend.repository.chat_repositories.GroupChatRepository;
+import com.rebuild.backend.repository.chat_repositories.MessageRepository;
+import com.rebuild.backend.repository.chat_repositories.PrivateChatRepository;
 import com.rebuild.backend.service.util_services.WebsocketsService;
 import com.rebuild.backend.utils.UserPair;
 import com.rebuild.backend.utils.exceptions.ApiException;
@@ -55,6 +59,14 @@ public class MessageService {
         this.chatUtilService = chatUtilService;
     }
 
+    private MessageDisplayDTO sendMessage(User sender, AbstractChat chat, String content,
+                                          boolean sendNotification)
+    {
+        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, sendNotification);
+
+        return newMessage.toDTo(sender);
+    }
+
     public MessageDisplayDTO sendMessageInPrivateChat(User sender, UUID chatId, String content)
     {
         if (content.isBlank())
@@ -71,9 +83,8 @@ public class MessageService {
             throw new ApiException(HttpStatus.FORBIDDEN, "You are not allowed to send this message," +
                     "because you are not a member of this chat");
         }
-        
-        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, true);
-        return newMessage.toDTo(sender);
+
+        return sendMessage(sender, chat, content, true);
     }
 
     public MessageDisplayDTO sendMessageInGroupChat(User sender, UUID chatId, String content)
@@ -93,9 +104,7 @@ public class MessageService {
                     "because you are not a member of this chat");
         }
 
-        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, true);
-
-        return newMessage.toDTo(sender);
+        return sendMessage(sender, chat, content, true);
     }
     
     public MessageDisplayDTO sendMessageToUser(User sender, UUID userId, String content)
@@ -121,10 +130,12 @@ public class MessageService {
         //If the 2 users already have a chat between them, then we use the existing method to send the message.
         if (foundChat.isPresent())
         {
-            return sendMessageInPrivateChat(sender, foundChat.get().getId(),  content);
+            return sendMessage(sender, foundChat.get(), content, true);
         }
 
-        //If not, then we create a new private chat and then make a new message in that chat.
+        // If not, then we create a new private chat and then make a new message in that chat.
+        // This requires a different websocket notification, so it does not
+        // use the same methods as the other send message methods.
         PrivateChat createdChat = new PrivateChat(sender, recipient, content);
 
         Message newMessage = chatUtilService.createNewMessageInChat(createdChat, sender, content,
@@ -135,7 +146,6 @@ public class MessageService {
         websocketsService.sendNewChatNotification(createdChat, sender, newMessage, recipient);
 
         return newMessage.toDTo(sender);
-        
     }
 
 

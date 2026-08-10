@@ -1,4 +1,4 @@
-package com.rebuild.backend.repository.messaging_and_friendship_repositories;
+package com.rebuild.backend.repository.user_repositories;
 
 import com.rebuild.backend.model.dtos.user_dtos.UserFriendDTO;
 import com.rebuild.backend.model.entities.messaging_and_friendship_entities.Friendship;
@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
