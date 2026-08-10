@@ -1,7 +1,6 @@
 package com.rebuild.backend.service.chat_services;
 
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.ChatUserDisplayDTO;
-import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.entities.chat_entities.*;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
@@ -18,10 +17,6 @@ import com.rebuild.backend.utils.exceptions.BelongingException;
 import com.rebuild.backend.utils.exceptions.ChatException;
 import com.rebuild.backend.utils.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,7 +135,7 @@ public class ChatService {
         ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
                 "or you are not a member in this chat."));
 
-        AbstractChat chat = leavingUserParticipation.getParticipatedChat();
+        AbstractChat chat = leavingUserParticipation.getAssociatedChat();
 
         if (!(chat instanceof GroupChat groupChat))
         {
@@ -165,29 +160,21 @@ public class ChatService {
         userRepository.save(leavingUser);
     }
 
-    public List<DisplayChatResponse> displayAllChats(User displayingUser)
+
+    public List<DisplayChatResponse> displayAllPrivateChats(User displayingUser)
     {
-        List<ChatParticipation> allChatParticipations = participationRepository.
-                findByParticipatingUser(displayingUser);
+        List<ChatParticipation> privateParticipations = participationRepository.
+                findPrivateParticipationsParticipatingUser(displayingUser);
 
-        // We have to use the collect method at the very end,
-        // because using toList() returns an unmodifiable list.
+        return chatUtilService.displayChatResponses(privateParticipations, displayingUser);
+    }
 
-        return allChatParticipations.stream()
-                .map(participation -> {
-                    AbstractChat participatedChat = participation.getParticipatedChat();
+    public List<DisplayChatResponse> displayAllGroupChats(User displayingUser)
+    {
+        List<ChatParticipation> privateParticipations = participationRepository.
+                findGroupParticipationsParticipatingUser(displayingUser);
 
-                    int unreadMessageCount = chatUtilService.determineUnreadMessageCount(participatedChat, displayingUser);
-
-                    String chatDisplayName = chatUtilService.determineChatDisplayName(participatedChat, displayingUser);
-
-                    String chatPictureUrl = chatUtilService.determineChatPictureUrl(participatedChat, displayingUser);
-
-                    return new DisplayChatResponse(participatedChat.getId(), chatDisplayName,
-                            chatPictureUrl, Objects.requireNonNullElse(participation.getLastMessage(),
-                            participatedChat.getLastMessage()),
-                            unreadMessageCount, participation.isMuted());
-                }).collect(Collectors.toCollection(ArrayList::new));
+        return chatUtilService.displayChatResponses(privateParticipations, displayingUser);
     }
 
     public LoadChatResponse loadPrivateChat(UUID chatId, User loadingUser, int pageNumber)
@@ -233,7 +220,6 @@ public class ChatService {
         //Return the new mute status of the chat
         return !muted;
     }
-
     
     public LoadChatUsersResponse loadChatUsers(User loadingUser, UUID chatId)
     {
@@ -243,7 +229,7 @@ public class ChatService {
                                 "or you are not a member of this chat")
                 );
 
-        AbstractChat userChat = loadingUserParticipation.getParticipatedChat();
+        AbstractChat userChat = loadingUserParticipation.getAssociatedChat();
         List<ChatParticipation> allParticipations = userChat.getParticipations();
         List<ChatUserDisplayDTO> userDisplayDTOS = allParticipations.stream().map(
                 chatParticipation -> {

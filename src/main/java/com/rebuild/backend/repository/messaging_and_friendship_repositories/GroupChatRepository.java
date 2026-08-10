@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface GroupChatRepository extends JpaRepository<GroupChat, UUID> {
+
+
 }

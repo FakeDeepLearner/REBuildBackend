@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public abstract class AbstractChat extends Auditable {
     @OrderBy(value = "createdAt DESC")
     private List<Message> messages = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "participatedChat", fetch = FetchType.LAZY,
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "associatedChat", fetch = FetchType.LAZY,
     orphanRemoval = true)
     private List<ChatParticipation> participations = new ArrayList<>();
 

@@ -27,8 +27,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static io.lettuce.core.ShutdownArgs.Builder.save;
-
 @Service
 @Transactional
 public class ChatAdministrationService {
@@ -68,7 +66,7 @@ public class ChatAdministrationService {
         GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(administratingUser, chatId);
 
         ChatParticipation recipientParticipation = participationRepository.
-                findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId).orElseThrow(()
+                findByParticipatingUser_IdAndAssociatedChat_Id(userId, chatId).orElseThrow(()
                         -> new NotFoundException("User with this ID is not found, or is not a member of this chat"));
 
         boolean currentStatus = recipientParticipation.getIsAdmin();
@@ -97,7 +95,7 @@ public class ChatAdministrationService {
     {
         GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(kickingUser, chatId);
         ChatParticipation kickedUserParticipation =
-                participationRepository.findByParticipatingUser_IdAndParticipatedChat_Id(userId, chatId)
+                participationRepository.findByParticipatingUser_IdAndAssociatedChat_Id(userId, chatId)
                         .orElseThrow(() -> new NotFoundException("This user is not a member of this chat"));
 
 
@@ -261,7 +259,7 @@ public class ChatAdministrationService {
                 chatId, user
         ).orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "The chat with this id either does not exist," +
                 "or you are not a member in this chat."));
-        AbstractChat associatedChat = foundParticipation.getParticipatedChat();
+        AbstractChat associatedChat = foundParticipation.getAssociatedChat();
 
         if (!(associatedChat instanceof GroupChat))
         {

@@ -14,22 +14,34 @@ import java.util.UUID;
 @Repository
 public interface ChatParticipationRepository extends JpaRepository<ChatParticipation, UUID> {
 
-    List<ChatParticipation> findByParticipatingUser(User participatingUser);
-
-
-    Optional<ChatParticipation> findByParticipatingUserAndParticipatedChat(User participatingUser,
-                                                                           AbstractChat participatedChat);
-    
-    boolean existsByParticipatedChatAndParticipatingUser(AbstractChat participatedChat, User participatingUser);
-
-    Optional<ChatParticipation> findByParticipatingUser_IdAndParticipatedChat_Id(UUID participatingUserId,
-                                                                                 UUID participatedChatId);
-
-    boolean existsByParticipatedChat_IdAndParticipatingUser(UUID participatedChatId, User participatingUser);
+    @Query(value = """
+    SELECT cp FROM ChatParticipation cp
+    JOIN cp.associatedChat ch
+    WHERE TYPE(ch) = PrivateChat AND cp.participatingUser=?1
+    """)
+    List<ChatParticipation> findPrivateParticipationsParticipatingUser(User participatingUser);
 
     @Query(value = """
     SELECT cp FROM ChatParticipation cp
-    JOIN FETCH cp.participatedChat ch
+    JOIN cp.associatedChat ch
+    WHERE TYPE(ch) = GroupChat AND cp.participatingUser=?1
+    """)
+    List<ChatParticipation> findGroupParticipationsParticipatingUser(User participatingUser);
+
+
+    Optional<ChatParticipation> findByParticipatingUserAndAssociatedChat(User participatingUser,
+                                                                         AbstractChat participatedChat);
+
+    boolean existsByAssociatedChatAndParticipatingUser(AbstractChat participatedChat, User participatingUser);
+
+    Optional<ChatParticipation> findByParticipatingUser_IdAndAssociatedChat_Id(UUID participatingUserId,
+                                                                               UUID participatedChatId);
+
+    boolean existsByAssociatedChat_IdAndParticipatingUser(UUID participatedChatId, User participatingUser);
+
+    @Query(value = """
+    SELECT cp FROM ChatParticipation cp
+    JOIN FETCH cp.associatedChat ch
     WHERE ch.id=?1 AND cp.participatingUser=?2
     """)
     Optional<ChatParticipation> findByChatIdAndUser(UUID chatId,
@@ -38,7 +50,7 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
 
     @Query(value = """
     SELECT cp FROM ChatParticipation cp
-    JOIN FETCH cp.participatedChat ch
+    JOIN FETCH cp.associatedChat ch
     JOIN FETCH ch.participations
     WHERE ch.id=?1 AND cp.participatingUser=?2
     """)
@@ -46,7 +58,7 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
                                                                       User user);
 
     @Query("""
-    SELECT cp.participatedChat.id FROM ChatParticipation cp
+    SELECT cp.associatedChat.id FROM ChatParticipation cp
     WHERE cp.isMuted=false AND cp.participatingUser=?1
     """)
     List<UUID> findIdsByUser(User user);

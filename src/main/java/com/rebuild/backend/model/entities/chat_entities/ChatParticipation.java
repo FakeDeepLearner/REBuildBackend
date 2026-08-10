@@ -1,6 +1,5 @@
 package com.rebuild.backend.model.entities.chat_entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.entities.util_entitites.Auditable;
 import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
@@ -43,7 +42,7 @@ public class ChatParticipation extends Auditable {
     })
     @JoinColumn(name = "participated_chat_id", referencedColumnName = "id")
     @NonNull
-    private AbstractChat participatedChat;
+    private AbstractChat associatedChat;
 
     // Indicates whether this user has muted this chat or not.
     @Column(name = "is_muted")

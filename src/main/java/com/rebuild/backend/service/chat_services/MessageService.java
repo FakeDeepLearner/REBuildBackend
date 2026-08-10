@@ -3,12 +3,10 @@ package com.rebuild.backend.service.chat_services;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageSearchDTO;
 import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.PinnedMessageDTO;
-import com.rebuild.backend.model.entities.chat_entities.ChatParticipation;
 import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.Message;
 import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
-import com.rebuild.backend.model.entities.util_entitites.AbstractChat;
 import com.rebuild.backend.model.responses.forum_responses.*;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.*;
 import com.rebuild.backend.service.util_services.WebsocketsService;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -69,7 +66,7 @@ public class MessageService {
                 () -> new NotFoundException("Private chat with this id does not exist.")
         );
         
-        if (!participationRepository.existsByParticipatedChatAndParticipatingUser(chat, sender))
+        if (!participationRepository.existsByAssociatedChatAndParticipatingUser(chat, sender))
         {
             throw new ApiException(HttpStatus.FORBIDDEN, "You are not allowed to send this message," +
                     "because you are not a member of this chat");
@@ -90,7 +87,7 @@ public class MessageService {
                 () -> new NotFoundException("Group chat with this id does not exist.")
         );
 
-        if (!participationRepository.existsByParticipatedChatAndParticipatingUser(chat, sender))
+        if (!participationRepository.existsByAssociatedChatAndParticipatingUser(chat, sender))
         {
             throw new ApiException(HttpStatus.FORBIDDEN, "You are not allowed to send this message," +
                     "because you are not a member of this chat");
@@ -192,7 +189,7 @@ public class MessageService {
         }
 
         boolean userIsInChat =
-                participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
+                participationRepository.existsByAssociatedChat_IdAndParticipatingUser(chatId, searchingUser);
 
         if (!userIsInChat)
         {
@@ -219,7 +216,7 @@ public class MessageService {
         }
 
         boolean userIsInChat =
-                participationRepository.existsByParticipatedChat_IdAndParticipatingUser(chatId, searchingUser);
+                participationRepository.existsByAssociatedChat_IdAndParticipatingUser(chatId, searchingUser);
 
         if (!userIsInChat)
         {
@@ -244,7 +241,7 @@ public class MessageService {
             throw new ChatException(HttpStatus.BAD_REQUEST, "Page number cannot be negative");
         }
         boolean userIsInChat = participationRepository.
-                existsByParticipatedChat_IdAndParticipatingUser(chatId, user);
+                existsByAssociatedChat_IdAndParticipatingUser(chatId, user);
 
         if (!userIsInChat)
         {

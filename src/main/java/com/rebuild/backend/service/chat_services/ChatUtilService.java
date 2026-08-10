@@ -8,6 +8,7 @@ import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.chat_entities.PrivateChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 
+import com.rebuild.backend.model.responses.forum_responses.DisplayChatResponse;
 import com.rebuild.backend.model.responses.forum_responses.LoadChatResponse;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.ChatParticipationRepository;
 import com.rebuild.backend.repository.messaging_and_friendship_repositories.MessageRepository;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -119,7 +121,7 @@ public class ChatUtilService {
     public LoadChatResponse loadChat(AbstractChat chat, User loadingUser, int pageNumber)
     {
         ChatParticipation userParticipation = participationRepository.
-                findByParticipatingUserAndParticipatedChat(loadingUser, chat).
+                findByParticipatingUserAndAssociatedChat(loadingUser, chat).
                 orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "You are not participating in this chat, you can't load it"));
 
         //Update the participation of this user in this chat.
@@ -179,7 +181,24 @@ public class ChatUtilService {
         }
 
         return savedMessage;
+    }
 
+    public List<DisplayChatResponse> displayChatResponses(List<ChatParticipation> participations, User displayingUser)
+    {
+        return participations.stream()
+                .map(participation -> {
+                    AbstractChat participatedChat = participation.getAssociatedChat();
 
+                    int unreadMessageCount = determineUnreadMessageCount(participatedChat, displayingUser);
+
+                    String chatDisplayName = determineChatDisplayName(participatedChat, displayingUser);
+
+                    String chatPictureUrl = determineChatPictureUrl(participatedChat, displayingUser);
+
+                    return new DisplayChatResponse(participatedChat.getId(), chatDisplayName,
+                            chatPictureUrl, Objects.requireNonNullElse(participation.getLastMessage(),
+                            participatedChat.getLastMessage()),
+                            unreadMessageCount, participation.isMuted());
+                }).collect(Collectors.toCollection(ArrayList::new));
     }
 }

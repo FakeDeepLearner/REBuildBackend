@@ -1,13 +1,9 @@
 package com.rebuild.backend.controllers.forum_controllers;
 
-import com.rebuild.backend.model.dtos.forum_dtos.message_and_chat_dtos.MessageDisplayDTO;
-import com.rebuild.backend.model.entities.chat_entities.ChatInvitation;
 import com.rebuild.backend.model.entities.chat_entities.GroupChat;
 import com.rebuild.backend.model.entities.user_entities.User;
 import com.rebuild.backend.model.forms.chat_forms.NewChatForm;
 import com.rebuild.backend.model.responses.forum_responses.*;
-import com.rebuild.backend.service.chat_services.ChatAdministrationService;
-import com.rebuild.backend.service.chat_services.MessageService;
 import com.rebuild.backend.service.chat_services.ChatService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +27,14 @@ public class ChatsController {
     }
 
 
-    @GetMapping("/all_chats")
-    @ResponseStatus(HttpStatus.OK)
-    public List<DisplayChatResponse> showAllChats(@AuthenticationPrincipal User authenticatedUser) {
-        return chatService.displayAllChats(authenticatedUser);
+    @GetMapping("/private_chats")
+    public List<DisplayChatResponse> showPrivateChats(@AuthenticationPrincipal User displayingUser) {
+        return chatService.displayAllPrivateChats(displayingUser);
+    }
+
+    @GetMapping("/group_chats")
+    public List<DisplayChatResponse> showGroupChats(@AuthenticationPrincipal User displayingUser) {
+        return chatService.displayAllGroupChats(displayingUser);
     }
 
     @GetMapping("/load/private/{chat_id}")
