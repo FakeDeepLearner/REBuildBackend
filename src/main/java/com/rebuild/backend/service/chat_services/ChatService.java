@@ -97,6 +97,38 @@ public class ChatService {
 
     }
 
+    public GroupChat joinGroupChat(User joiningUser, UUID chatId)
+    {
+        GroupChat chatToJoin = groupChatRepository.findById(chatId).orElseThrow(
+                () ->new NotFoundException("A group chat with this id does not exist.")
+        );
+
+        boolean userIsInChat = participationRepository.existsByAssociatedChat_IdAndParticipatingUser(chatId,
+                joiningUser);
+
+        if (userIsInChat) {
+            throw new ApiException(HttpStatus.CONFLICT, "You are already a member of this chat");
+        }
+
+        if (!chatToJoin.getChatStatus().equals(ChatStatus.ANYONE_CAN_JOIN))
+        {
+            throw new ApiException(HttpStatus.CONFLICT, "You can't join this group chat because it does not " +
+                    "allow users to join without being invited or applying");
+        }
+
+        ChatParticipation newParticipation = chatUtilService.addUserToChat(chatToJoin, joiningUser);
+        participationRepository.save(newParticipation);
+
+        //If the user has a pending invitation for this chat, remove it.
+        Optional<ChatInvitation> foundInvitation = chatInvitationRepository.
+                findByRecipientAndAssociatedChat_Id(joiningUser, chatId);
+
+        foundInvitation.ifPresent(chatInvitationRepository::delete);
+
+        return groupChatRepository.save(chatToJoin);
+
+    }
+
     public void acceptAllChatInvitations(User user)
     {
         List<ChatInvitation> invitations = chatInvitationRepository.findByRecipient(user);
@@ -278,11 +310,13 @@ public class ChatService {
                 () -> new NotFoundException("Group with this id is not found.")
         );
 
-        //A group chat that is closed cannot receive applications
-        if (foundChat.getChatStatus().equals(ChatStatus.CLOSED))
+        //A group chat that is closed or open to every user cannot receive applications
+        if (!foundChat.getChatStatus().equals(ChatStatus.INVITE_OR_APPLICATION_ONLY))
         {
-            throw new ApiException(HttpStatus.FORBIDDEN, "This chat is closed, it cannot receive any applications");
+            throw new ApiException(HttpStatus.FORBIDDEN,
+                    "This chat cannot receive applications");
         }
+
 
         boolean userApplicationExists = chatApplicationRepository.existsByAssociatedChatAndAssociatedUser(foundChat,
                 applyingUser);

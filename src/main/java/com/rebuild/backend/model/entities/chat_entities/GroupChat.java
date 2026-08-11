@@ -25,7 +25,7 @@ public class GroupChat extends AbstractChat {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private ChatStatus chatStatus = ChatStatus.INVITE_ONLY;
+    private ChatStatus chatStatus = ChatStatus.INVITE_OR_APPLICATION_ONLY;
 
     @OneToMany(mappedBy = "associatedChat", orphanRemoval = true,
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)

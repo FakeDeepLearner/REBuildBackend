@@ -17,6 +17,8 @@ public interface ChatInvitationRepository extends JpaRepository<ChatInvitation, 
     Optional<ChatInvitation> findBySenderAndRecipientAndAssociatedChat_Id(User sender,
                                                                           User recipient,
                                                                           UUID associatedChatId);
+    
+    Optional<ChatInvitation> findByRecipientAndAssociatedChat_Id(User recipient, UUID associatedChatId);
 
 
     Optional<ChatInvitation> findByIdAndRecipient(UUID id, User recipient);

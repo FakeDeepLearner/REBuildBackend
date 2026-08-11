@@ -116,6 +116,12 @@ public class ChatAdministrationService {
 
         GroupChat associatedChat = findParticipationAndCheckGroupAdminStatus(sender, chatId);
 
+        if (associatedChat.getChatStatus().equals(ChatStatus.ANYONE_CAN_JOIN))
+        {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Invitations cannot be sent from this chat," +
+                    "because it is in a state that allows every user to join it.");
+        }
+
         Optional<ChatInvitation> foundInvitation =
                 chatInvitationRepository.findBySenderAndRecipientAndAssociatedChat_Id(sender, recipient,
                         chatId);

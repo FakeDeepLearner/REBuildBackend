@@ -59,10 +59,9 @@ public class MessageService {
         this.chatUtilService = chatUtilService;
     }
 
-    private MessageDisplayDTO sendMessage(User sender, AbstractChat chat, String content,
-                                          boolean sendNotification)
+    private MessageDisplayDTO sendMessage(User sender, AbstractChat chat, String content)
     {
-        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, sendNotification);
+        Message newMessage = chatUtilService.createNewMessageInChat(chat, sender, content, true);
 
         return newMessage.toDTo(sender);
     }
@@ -84,7 +83,7 @@ public class MessageService {
                     "because you are not a member of this chat");
         }
 
-        return sendMessage(sender, chat, content, true);
+        return sendMessage(sender, chat, content);
     }
 
     public MessageDisplayDTO sendMessageInGroupChat(User sender, UUID chatId, String content)
@@ -104,7 +103,7 @@ public class MessageService {
                     "because you are not a member of this chat");
         }
 
-        return sendMessage(sender, chat, content, true);
+        return sendMessage(sender, chat, content);
     }
     
     public MessageDisplayDTO sendMessageToUser(User sender, UUID userId, String content)
@@ -130,7 +129,7 @@ public class MessageService {
         //If the 2 users already have a chat between them, then we use the existing method to send the message.
         if (foundChat.isPresent())
         {
-            return sendMessage(sender, foundChat.get(), content, true);
+            return sendMessage(sender, foundChat.get(), content);
         }
 
         // If not, then we create a new private chat and then make a new message in that chat.

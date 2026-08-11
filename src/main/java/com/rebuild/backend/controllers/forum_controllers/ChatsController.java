@@ -131,6 +131,12 @@ public class ChatsController {
         chatService.applyToJoinChat(user, chat_id, content);
     }
 
+    @PostMapping("/join/{chat_id}")
+    public GroupChat joinGroupChat(@AuthenticationPrincipal User user,
+                                   @PathVariable UUID chat_id)
+    {
+        return chatService.joinGroupChat(user, chat_id);
+    }
 
 
 }
