@@ -35,9 +35,14 @@ public class GroupChat extends AbstractChat {
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<JoinChatApplication> applications = new ArrayList<>();
 
+    @OneToOne(mappedBy = "associatedChat", orphanRemoval = true,
+    cascade = CascadeType.ALL)
+    private ChatSearchInformation searchInformation;
+
     public GroupChat(NewChatForm newChatForm) {
         super(1, 1);
         this.chatName = newChatForm.chatName();
         this.chatDescription = newChatForm.chatDescription();
+        this.searchInformation = new ChatSearchInformation(this);
     }
 }

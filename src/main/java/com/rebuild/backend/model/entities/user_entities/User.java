@@ -66,6 +66,9 @@ public class User implements Serializable {
     @Column(name = "bio")
     private String biography = null;
 
+    @OneToOne(mappedBy = "associatedUser", cascade = ALL, orphanRemoval = true)
+    private UserSearchInformation searchInformation = new UserSearchInformation(this);
+
     @Column(name = "sensitive_information_setting")
     @Enumerated(EnumType.STRING)
     private InformationVisibility sensitiveInfoVisibility = DEFAULT_SENSITIVE_INFO_VISIBILITY;
