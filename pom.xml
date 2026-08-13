@@ -51,8 +51,14 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-vector</artifactId>
+			<version>7.4.5.Final</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-spatial</artifactId>
-			<version>7.4.4.Final</version>
+			<version>7.4.5.Final</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
